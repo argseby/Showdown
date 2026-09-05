@@ -140,6 +140,7 @@ void main() {
           onTabChanged: (_) {},
           chatFocusNode: FocusNode(),
           onSendChat: (_) {},
+          settings: const SizedBox.shrink(),
           adminToken: token,
         ),
       ),

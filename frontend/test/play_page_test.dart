@@ -211,16 +211,18 @@ void main() {
     expect(find.text('Keyboard shortcuts'), findsOneWidget);
   });
 
-  testWidgets('the top bar menu holds the preferences and the leave actions', (
+  testWidgets('the settings tab holds the preferences and the leave actions', (
     tester,
   ) async {
     await pumpPlay(tester);
-    // Only two icons remain in the bar: the panel toggle and the menu.
+    // The bar keeps invite, microphone and the panel toggle; no menu.
     expect(find.byKey(const Key('panel-toggle')), findsOneWidget);
-    expect(find.byKey(const Key('table-menu')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('table-menu')));
+    expect(find.byKey(const Key('table-menu')), findsNothing);
+    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.settings));
     await tester.pump(const Duration(milliseconds: 600));
-    // The drawer: voice, preferences, table actions.
+    // The gear tab: voice, preferences, table actions.
     expect(find.byKey(const Key('drawer-voice')), findsOneWidget);
     expect(find.byKey(const Key('drawer-sound')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chips')), findsOneWidget);
@@ -265,7 +267,9 @@ void main() {
         .widgetList<PlayingCardWidget>(find.byType(PlayingCardWidget))
         .first
         .width;
-    await tester.tap(find.byKey(const Key('table-menu')));
+    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.settings));
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }

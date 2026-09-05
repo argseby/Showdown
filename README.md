@@ -4,7 +4,8 @@ Self-hosted Texas Hold'em (No-Limit) for private groups: a Go API and a Flutter 
 client, deployed with a single `docker compose up`. Anyone on your instance can create a
 table and becomes its host; the host shares the link, players join with a display name in
 the browser. Everything runs on your own server, and the app makes no external requests
-at all.
+at all. The web client is compiled to WebAssembly (with a JavaScript fallback for
+older browsers).
 
 ![A full table in Showdown: eight players, community cards and the pot](promo.png)
 

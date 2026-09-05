@@ -19,8 +19,10 @@ WORKDIR /app
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 COPY . .
-# --no-web-resources-cdn keeps CanvasKit local so the app makes no external requests.
-RUN flutter build web --release --no-web-resources-cdn
+# --wasm compiles to WebAssembly (with the JavaScript build as the fallback for
+# browsers without wasm-gc); --no-web-resources-cdn keeps the renderer local so
+# the app makes no external requests.
+RUN flutter build web --wasm --release --no-web-resources-cdn
 
 FROM caddy:2-alpine
 RUN addgroup -S -g 10001 web && adduser -S -u 10001 -G web web \

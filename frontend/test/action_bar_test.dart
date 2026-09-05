@@ -73,17 +73,9 @@ void main() {
     bool enabled(WidgetTester tester, Key key) {
       final button = find.descendant(
         of: find.byKey(key),
-        matching: find.byWidgetPredicate(
-          (w) =>
-              w is DestructiveButton ||
-              w is PrimaryButton ||
-              w is SecondaryButton,
-        ),
+        matching: find.byWidgetPredicate((w) => w is Button),
       );
-      final w = tester.widget(button);
-      if (w is DestructiveButton) return w.onPressed != null;
-      if (w is PrimaryButton) return w.onPressed != null;
-      return (w as SecondaryButton).onPressed != null;
+      return tester.widget<Button>(button).onPressed != null;
     }
 
     testWidgets('options enable exactly the legal buttons', (tester) async {
@@ -93,23 +85,17 @@ void main() {
       expect(find.text('Call 300'), findsOneWidget);
       expect(enabled(tester, const Key('action-raise')), isTrue);
       expect(find.text('Raise'), findsOneWidget);
-      expect(enabled(tester, const Key('action-all-in')), isTrue);
+      // All-in lives with the presets, not as a fourth button.
+      expect(find.byKey(const Key('action-all-in')), findsNothing);
     });
 
-    testWidgets('buttons stay visible but disabled when it is not your turn', (
-      tester,
-    ) async {
+    testWidgets('no action buttons when it is not your turn', (tester) async {
       final s = fixtureSnapshot();
       await pump(tester, s.copyWith(you: s.you.copyWith(options: null)));
-      for (final k in [
-        'action-fold',
-        'action-check-call',
-        'action-raise',
-        'action-all-in',
-      ]) {
-        expect(find.byKey(Key(k)), findsOneWidget);
-        expect(enabled(tester, Key(k)), isFalse, reason: k);
+      for (final k in ['action-fold', 'action-check-call', 'action-raise']) {
+        expect(find.byKey(Key(k)), findsNothing, reason: k);
       }
+      expect(find.byKey(const Key('sit-out')), findsOneWidget);
     });
 
     testWidgets('check option shows Check and raising closed disables raise', (
@@ -127,7 +113,6 @@ void main() {
       expect(find.text('Check'), findsOneWidget);
       expect(enabled(tester, const Key('action-check-call')), isTrue);
       expect(enabled(tester, const Key('action-raise')), isFalse);
-      expect(enabled(tester, const Key('action-all-in')), isFalse);
     });
 
     testWidgets('raise control clamps, presets and confirms', (tester) async {
@@ -136,6 +121,9 @@ void main() {
       state.openRaise(focusInput: false);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('raise-control')), findsOneWidget);
+      // Presets and all-in are equal-width buttons inside the panel.
+      expect(find.byKey(const Key('preset-3')), findsOneWidget);
+      expect(find.byKey(const Key('action-all-in')), findsOneWidget);
       state.preset(3); // pot
       await tester.pumpAndSettle();
       expect(find.text('Raise to 1,200'), findsOneWidget);

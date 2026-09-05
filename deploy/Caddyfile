@@ -28,6 +28,10 @@ header {
 	X-Content-Type-Options nosniff
 	Referrer-Policy same-origin
 	Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+	# Cross-origin isolation lets the WebAssembly renderer use threads; every
+	# resource is same-origin, so nothing is blocked by it.
+	Cross-Origin-Opener-Policy same-origin
+	Cross-Origin-Embedder-Policy credentialless
 	Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
 }
 

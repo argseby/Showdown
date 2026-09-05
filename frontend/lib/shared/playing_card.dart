@@ -10,18 +10,19 @@ class PlayingCardWidget extends StatelessWidget {
     this.card,
     this.width = 44,
     this.highlighted = false,
-    this.dimmed = false,
+    this.highlightColor,
     this.fourColor = false,
   });
 
   final String? card;
   final double width;
 
-  /// Part of the winning five at showdown.
+  /// Part of the highlighted hand (the winner's five at showdown, or the
+  /// viewer's live hand).
   final bool highlighted;
 
-  /// Not part of the best five (or folded).
-  final bool dimmed;
+  /// Border colour of the highlight (theme primary when null).
+  final Color? highlightColor;
   final bool fourColor;
 
   @override
@@ -31,23 +32,25 @@ class PlayingCardWidget extends StatelessWidget {
     final card = this.card == null || this.card!.isEmpty ? null : this.card;
     return Semantics(
       label: card == null ? 'face-down card' : cardLabel(card),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 200),
-        opacity: dimmed ? 0.45 : 1,
-        child: CustomPaint(
-          size: Size(width, width * 1.4),
-          painter: _CardPainter(
-            card: card,
-            highlight: highlighted ? theme.colorScheme.primary : null,
-            backColor: theme.colorScheme.primary,
-            backAccent: theme.colorScheme.background,
-            fourColor: fourColor,
-          ),
+      child: CustomPaint(
+        size: Size(width, width * 1.4),
+        painter: _CardPainter(
+          card: card,
+          highlight: highlighted
+              ? (highlightColor ?? theme.colorScheme.primary)
+              : null,
+          backColor: cardBack,
+          backAccent: const Color(0xFFFFFFFF),
+          fourColor: fourColor,
         ),
       ),
     );
   }
 }
+
+/// Card back: a fixed navy in both themes (a theme colour turned the backs
+/// into black blocks in the light theme).
+const cardBack = Color(0xFF2B4C7E);
 
 const _rankNames = {
   'A': 'Ace',
