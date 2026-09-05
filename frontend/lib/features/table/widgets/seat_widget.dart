@@ -23,7 +23,6 @@ class SeatWidget extends ConsumerWidget {
     required this.best,
     required this.compact,
     this.winner = false,
-    this.liveBest,
     this.handNumber = 0,
     this.bigBlind = 0,
     this.chipDisplay = ChipDisplay.coins,
@@ -34,7 +33,11 @@ class SeatWidget extends ConsumerWidget {
     this.scale = 1.0,
     this.phrase,
     this.onAdminTap,
+    this.onSayTap,
   });
+
+  /// Own seat only: opens the quick-phrase picker (small bubble button).
+  final VoidCallback? onSayTap;
 
   /// A quick phrase the player just said (already translated).
   final String? phrase;
@@ -51,16 +54,12 @@ class SeatWidget extends ConsumerWidget {
   final bool isViewer;
   final int turnTimeMs;
 
-  /// Best five cards of this seat when revealed (highlighting).
+  /// Best five cards of this seat when it won a pot (gold highlight).
   final List<String>? best;
   final bool compact;
 
   /// Won a pot in the current hand: glowing avatar ring.
   final bool winner;
-
-  /// The viewer's own cards that make their current hand (live highlight,
-  /// no dimming of the others).
-  final List<String>? liveBest;
 
   /// Current hand number: keys the deal animation.
   final int handNumber;
@@ -212,6 +211,32 @@ class SeatWidget extends ConsumerWidget {
             top: compact ? -2 : 0,
             child: _WinnerMark(size: compact ? 18 : 22),
           ),
+        if (onSayTap != null)
+          Positioned(
+            left: compact ? -4 : 0,
+            bottom: compact ? -2 : 2,
+            child: Tooltip(
+              tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
+              child: GestureDetector(
+                key: const Key('say-button'),
+                onTap: onSayTap,
+                child: Container(
+                  width: compact ? 18 : 22,
+                  height: compact ? 18 : 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.card,
+                    border: Border.all(color: theme.colorScheme.border),
+                  ),
+                  child: Icon(
+                    LucideIcons.messageCircleMore,
+                    size: compact ? 11 : 13,
+                    color: theme.colorScheme.foreground,
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (p.voice != 'off')
           Positioned(
             right: compact ? -2 : 2,
@@ -250,11 +275,7 @@ class SeatWidget extends ConsumerWidget {
                           width: cardWidth,
                           fourColor: fourColor,
                           highlighted: _inBest(p, i),
-                          dimmed:
-                              best != null &&
-                              p.holeCards != null &&
-                              p.holeCards!.length > i &&
-                              !best!.contains(p.holeCards![i]),
+                          highlightColor: winnerGold,
                         ),
                       ),
                   ],
@@ -340,13 +361,11 @@ class SeatWidget extends ConsumerWidget {
     );
   }
 
-  /// Whether hole card [i] belongs to the highlighted hand: the showdown's
-  /// best five, or (own seat, live) the cards making the current hand.
+  /// Whether hole card [i] belongs to the winning five at the showdown.
   bool _inBest(PlayerView p, int i) {
     final cards = p.holeCards;
     if (cards == null || cards.length <= i) return false;
-    if (best != null) return best!.contains(cards[i]);
-    return liveBest?.contains(cards[i]) ?? false;
+    return best?.contains(cards[i]) ?? false;
   }
 
   String _actionLabel(AppLocalizations l10n, LastAction a, String locale) {
@@ -460,7 +479,10 @@ class _VoiceBadge extends StatelessWidget {
   }
 }
 
-const _gold = Color(0xFFE6B422);
+const _gold = winnerGold;
+
+/// Gold used for everything that marks a winner: ring, badge, card borders.
+const winnerGold = Color(0xFFE6B422);
 
 /// A speech bubble with a quick phrase; pops in and is removed by the
 /// session after a few seconds.

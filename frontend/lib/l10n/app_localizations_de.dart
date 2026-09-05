@@ -1362,4 +1362,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get phraseBrb => 'Bin gleich zurück';
+
+  @override
+  String get tabSettings => 'Einstellungen';
 }

@@ -1354,4 +1354,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phraseBrb => 'Be right back';
+
+  @override
+  String get tabSettings => 'Settings';
 }

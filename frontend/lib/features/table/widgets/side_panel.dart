@@ -15,7 +15,7 @@ import '../replay/replay_dialog.dart';
 import '../table_session.dart';
 
 /// Tabs of the side panel. [admin] exists only for the table's host.
-enum PanelTab { chat, log, leaderboard, admin }
+enum PanelTab { chat, log, leaderboard, admin, settings }
 
 /// Chat · Log · Leaderboard (· Admin for the host) with unread badges.
 class SidePanel extends ConsumerStatefulWidget {
@@ -26,8 +26,12 @@ class SidePanel extends ConsumerStatefulWidget {
     required this.onTabChanged,
     required this.chatFocusNode,
     required this.onSendChat,
+    required this.settings,
     this.adminToken,
   });
+
+  /// Content of the gear tab (voice, preferences, table actions).
+  final Widget settings;
 
   final String tableId;
 
@@ -93,6 +97,7 @@ class _SidePanelState extends ConsumerState<SidePanel> {
         n.markLogRead();
       case PanelTab.leaderboard:
       case PanelTab.admin:
+      case PanelTab.settings:
         break;
     }
   }
@@ -113,9 +118,16 @@ class _SidePanelState extends ConsumerState<SidePanel> {
     final tab = _tab == PanelTab.admin && adminToken == null
         ? PanelTab.chat
         : _tab;
+    final visible = [
+      PanelTab.chat,
+      PanelTab.log,
+      PanelTab.leaderboard,
+      if (adminToken != null) PanelTab.admin,
+      PanelTab.settings,
+    ];
     final tabs = Tabs(
-      index: tab.index,
-      onChanged: (i) => _select(PanelTab.values[i]),
+      index: visible.indexOf(tab),
+      onChanged: (i) => _select(visible[i]),
       children: [
         TabItem(
           child: label(
@@ -132,6 +144,13 @@ class _SidePanelState extends ConsumerState<SidePanel> {
         TabItem(child: Text(l10n.tabLeaderboard)),
         if (adminToken != null)
           TabItem(key: const Key('tab-admin'), child: Text(l10n.tabAdmin)),
+        TabItem(
+          key: const Key('tab-settings'),
+          child: Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.tabSettings)).call,
+            child: const Icon(LucideIcons.settings, size: 16),
+          ),
+        ),
       ],
     );
     return Column(
@@ -157,6 +176,7 @@ class _SidePanelState extends ConsumerState<SidePanel> {
               tableId: widget.tableId,
               token: adminToken!,
             ),
+            PanelTab.settings => widget.settings,
           },
         ),
       ],

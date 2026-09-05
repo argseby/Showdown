@@ -2449,6 +2449,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Be right back'**
   String get phraseBrb;
+
+  /// No description provided for @tabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get tabSettings;
 }
 
 class _AppLocalizationsDelegate

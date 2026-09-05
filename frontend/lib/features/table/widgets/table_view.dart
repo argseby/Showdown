@@ -22,6 +22,7 @@ class TableView extends ConsumerWidget {
     this.speaking = const {},
     this.onToggleMute,
     this.onAdminTap,
+    this.onSayTap,
   });
 
   final TableSessionState session;
@@ -37,6 +38,9 @@ class TableView extends ConsumerWidget {
 
   /// Host only: opens the player actions for a seat that is not the host's.
   final ValueChanged<PlayerView>? onAdminTap;
+
+  /// Players only: the quick-phrase button on the viewer's own seat.
+  final VoidCallback? onSayTap;
 
   /// Position index (0 = bottom center, clockwise) of a seat for a viewer.
   static int positionOf(int seat, int viewerSeat, int maxPlayers) =>
@@ -86,13 +90,11 @@ class TableView extends ConsumerWidget {
     final chipDisplay = ref.watch(chipDisplayProvider);
     final scale = ref.watch(uiScaleProvider);
     final bigBlind = snap.table.settings.bigBlind;
-    final myBest = session.mySeat != null
-        ? session.best[session.mySeat!]
-        : session.best.values.firstOrNull;
-    // Live highlight of the viewer's current hand (no showdown yet).
-    final liveBest = myBest == null && session.isPlayer
-        ? snap.you.bestCards
-        : null;
+    // Once the pots are awarded, the winners' best five are highlighted in
+    // gold (board and hole cards). Nothing else is ever framed.
+    final winnerBest = <String>{
+      for (final seat in session.winners) ...?session.best[seat],
+    };
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -152,8 +154,7 @@ class TableView extends ConsumerWidget {
                   if (hand != null) ...[
                     _Board(
                       board: hand.board,
-                      best: myBest,
-                      liveBest: liveBest,
+                      best: winnerBest.isEmpty ? null : winnerBest.toList(),
                       rabbit: hand.rabbitCards ?? const [],
                       fourColor: fourColor,
                       compact: compact,
@@ -202,9 +203,8 @@ class TableView extends ConsumerWidget {
                   hand: hand,
                   isViewer: session.isPlayer && sv.seat == session.mySeat,
                   turnTimeMs: snap.table.settings.turnTime * 1000,
-                  best: session.best[sv.seat],
-                  liveBest: session.isPlayer && sv.seat == session.mySeat
-                      ? liveBest
+                  best: session.winners.contains(sv.seat)
+                      ? session.best[sv.seat]
                       : null,
                   handNumber: snap.table.handNumber,
                   bigBlind: bigBlind,
@@ -228,6 +228,9 @@ class TableView extends ConsumerWidget {
                           (sv.seat == session.mySeat &&
                               speaking.contains('me'))),
                   onVoiceTap: sv.seat == session.mySeat ? onToggleMute : null,
+                  onSayTap: sv.seat == session.mySeat && session.isPlayer
+                      ? onSayTap
+                      : null,
                   onTakeSeat:
                       sv.player == null &&
                           onTakeSeat != null &&
@@ -319,7 +322,6 @@ class _Board extends StatelessWidget {
   const _Board({
     required this.board,
     required this.best,
-    required this.liveBest,
     required this.rabbit,
     required this.fourColor,
     required this.compact,
@@ -327,7 +329,6 @@ class _Board extends StatelessWidget {
   });
   final List<String> board;
   final List<String>? best;
-  final List<String>? liveBest;
 
   /// Rabbit hunt: the cards that would have completed the board, shown
   /// ghosted after the real ones.
@@ -352,11 +353,8 @@ class _Board extends StatelessWidget {
                       card: board[i],
                       width: w,
                       fourColor: fourColor,
-                      highlighted:
-                          (best != null && best!.contains(board[i])) ||
-                          (best == null &&
-                              (liveBest?.contains(board[i]) ?? false)),
-                      dimmed: best != null && !best!.contains(board[i]),
+                      highlighted: best != null && best!.contains(board[i]),
+                      highlightColor: winnerGold,
                     ),
                   )
                 : i - board.length < rabbit.length

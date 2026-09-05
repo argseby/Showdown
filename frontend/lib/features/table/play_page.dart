@@ -6,7 +6,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
 import '../../app/preferences.dart';
-import '../../app/theme.dart';
 import '../../core/formatting.dart';
 import '../../core/session_store.dart';
 import '../../core/time_sync.dart';
@@ -16,8 +15,6 @@ import '../../core/ws_client.dart';
 import '../../protocol/protocol.dart';
 import '../../shared/confirm_dialog.dart';
 import '../../shared/connection_banner.dart';
-import '../../shared/display_size_picker.dart';
-import '../../shared/kbd_hint.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_player_actions.dart';
 import '../admin/admin_widgets.dart';
@@ -28,6 +25,7 @@ import 'widgets/action_bar.dart';
 import 'widgets/invite_dialog.dart';
 import 'widgets/mic_dialog.dart';
 import 'widgets/say_dialog.dart';
+import 'widgets/settings_tab.dart';
 import 'widgets/shortcuts_overlay.dart';
 import 'widgets/side_panel.dart';
 import 'widgets/table_view.dart';
@@ -292,26 +290,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
     );
   }
 
-  void _openMenu(
-    BuildContext context,
-    TableSessionState session,
-    ChipDisplay chipDisplay,
-    bool sound,
-  ) {
-    openSheetOverlay<void>(
-      context: context,
-      position: OverlayPosition.right,
-      builder: (sheetContext) => _TableDrawer(
-        tableId: widget.tableId,
-        isPlayer: session.isPlayer,
-        onTakeSeat: _clearAndGoToJoin,
-        onOtherTable: _otherTable,
-        onLeave: session.isPlayer ? _leave : _clearAndGoToJoin,
-        onShortcuts: () => showShortcutsOverlay(this.context),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -368,7 +346,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
     final locale = Localizations.localeOf(context).toString();
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= 1024;
-    final sound = ref.watch(soundEnabledProvider);
     final conn = session.connection;
 
     String? banner;
@@ -445,6 +422,14 @@ class _PlayPageState extends ConsumerState<PlayPage>
       onTabChanged: (t) => setState(() => _tab = t),
       chatFocusNode: _chatFocus,
       onSendChat: _session.chat,
+      settings: TableSettingsTab(
+        tableId: widget.tableId,
+        isPlayer: session.isPlayer,
+        onTakeSeat: _clearAndGoToJoin,
+        onOtherTable: _otherTable,
+        onLeave: session.isPlayer ? _leave : _clearAndGoToJoin,
+        onShortcuts: () => showShortcutsOverlay(context),
+      ),
     );
 
     final uiScale = ref.watch(uiScaleProvider);
@@ -472,6 +457,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
             onTakeSeat: _changeSeat,
             speaking: voice.speaking,
             onToggleMute: voice.enabled ? _voiceController.toggleMute : null,
+            onSayTap: session.isPlayer
+                ? () => showSayDialog(context, ref, widget.tableId)
+                : null,
             onAdminTap: (snap?.you.isAdmin ?? false) && adminToken != null
                 ? (p) =>
                       AdminPlayerActions(
@@ -526,7 +514,8 @@ class _PlayPageState extends ConsumerState<PlayPage>
       _panelDecided = true;
       _panelOpen = width >= 1280;
     }
-    final unread = session.unreadChat + session.unreadLog;
+    // Only chat messages count on the toggle; the hand log has its own badge.
+    final unread = session.unreadChat;
     final panelButton = Tooltip(
       tooltip: TooltipContainer(child: Text(l10n.panelToggle)).call,
       child: GhostButton(
@@ -542,7 +531,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            const Icon(LucideIcons.messageSquare),
+            const Icon(LucideIcons.panelRight),
             if (unread > 0 && !(wide && _panelOpen))
               Positioned(
                 right: -6,
@@ -602,27 +591,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
             ),
           )
         : null;
-    final sayButton = session.isPlayer
-        ? Tooltip(
-            tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
-            child: GhostButton(
-              key: const Key('say-button'),
-              density: ButtonDensity.icon,
-              onPressed: () => showSayDialog(context, ref, widget.tableId),
-              child: const Icon(LucideIcons.messageCircleMore),
-            ),
-          )
-        : null;
-    final menuButton = Tooltip(
-      tooltip: TooltipContainer(child: Text(l10n.menuMore)).call,
-      child: GhostButton(
-        key: const Key('table-menu'),
-        density: ButtonDensity.icon,
-        onPressed: () => _openMenu(context, session, chipDisplay, sound),
-        child: const Icon(LucideIcons.ellipsisVertical),
-      ),
-    );
-
     final header = TopBar(
       compact: compact,
       showToggles: false,
@@ -670,14 +638,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
                 ],
               ],
             ),
-      trailing: [
-        inviteButton,
-        const Gap(4),
-        ?micButton,
-        ?sayButton,
-        panelButton,
-        menuButton,
-      ],
+      trailing: [inviteButton, const Gap(4), ?micButton, panelButton],
     );
 
     Widget body = wide && _panelOpen
@@ -686,7 +647,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
               Expanded(child: table),
               VerticalDivider(color: theme.colorScheme.border, width: 1),
               SizedBox(
-                width: 320,
+                width: width >= 1440 ? 420 : 380,
                 child: Padding(padding: const EdgeInsets.all(10), child: panel),
               ),
             ],
@@ -1025,242 +986,3 @@ class _BlindsCountdownState extends ConsumerState<_BlindsCountdown>
 }
 
 /// The table's side drawer.
-class _TableDrawer extends ConsumerWidget {
-  const _TableDrawer({
-    required this.tableId,
-    required this.isPlayer,
-    required this.onTakeSeat,
-    required this.onOtherTable,
-    required this.onLeave,
-    required this.onShortcuts,
-  });
-
-  final String tableId;
-  final bool isPlayer;
-  final VoidCallback onTakeSeat;
-  final VoidCallback onOtherTable;
-  final VoidCallback onLeave;
-  final VoidCallback onShortcuts;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final sound = ref.watch(soundEnabledProvider);
-    final fourColor = ref.watch(fourColorDeckProvider);
-    final chipDisplay = ref.watch(chipDisplayProvider);
-    final voice = ref.watch(voiceControllerProvider(tableId));
-    final brightness = theme.colorScheme.brightness;
-    final locale = Localizations.localeOf(context);
-    final wide = MediaQuery.sizeOf(context).width >= KbdHint.minWidth;
-
-    Widget section(String title) => Padding(
-      padding: const EdgeInsets.only(top: 14, bottom: 6),
-      child: Text(title).muted().small(),
-    );
-    Widget toggle(
-      String label,
-      IconData icon,
-      bool value,
-      VoidCallback onTap, {
-      Key? key,
-    }) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: theme.colorScheme.mutedForeground),
-          const Gap(10),
-          Expanded(child: Text(label)),
-          Switch(key: key, value: value, onChanged: (_) => onTap()),
-        ],
-      ),
-    );
-    Widget action(
-      String label,
-      IconData icon,
-      VoidCallback onTap, {
-      Key? key,
-      bool destructive = false,
-      bool close = true,
-    }) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: (destructive ? DestructiveButton.new : OutlineButton.new)(
-        key: key,
-        onPressed: () {
-          if (close) closeOverlay<void>(context);
-          onTap();
-        },
-        alignment: Alignment.centerLeft,
-        leading: Icon(icon, size: 18),
-        child: Text(label),
-      ),
-    );
-
-    return SizedBox(
-      width: 300,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: Text(l10n.menuMore).h3()),
-                  GhostButton(
-                    density: ButtonDensity.icon,
-                    onPressed: () => closeOverlay<void>(context),
-                    child: const Icon(LucideIcons.x),
-                  ),
-                ],
-              ),
-              if (isPlayer) ...[
-                section(l10n.voiceTitle),
-                toggle(
-                  voice.enabled ? l10n.voiceOn : l10n.voiceOff,
-                  LucideIcons.headphones,
-                  voice.enabled,
-                  () => voice.enabled
-                      ? ref
-                            .read(voiceControllerProvider(tableId).notifier)
-                            .disable()
-                      : ref
-                            .read(voiceControllerProvider(tableId).notifier)
-                            .enable(),
-                  key: const Key('drawer-voice'),
-                ),
-                if (voice.enabled)
-                  toggle(
-                    voice.muted ? l10n.voiceMicMuted : l10n.voiceMicOn,
-                    voice.muted ? LucideIcons.micOff : LucideIcons.mic,
-                    !voice.muted,
-                    () => ref
-                        .read(voiceControllerProvider(tableId).notifier)
-                        .toggleMute(),
-                    key: const Key('drawer-mute'),
-                  ),
-                if (voice.unavailable)
-                  Text(
-                    l10n.voiceUnavailable,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.destructive,
-                    ),
-                  ),
-              ],
-              section(l10n.menuPreferences),
-              toggle(
-                sound ? l10n.soundOn : l10n.soundOff,
-                sound ? LucideIcons.volume2 : LucideIcons.volumeX,
-                sound,
-                () => ref.read(soundEnabledProvider.notifier).toggle(),
-                key: const Key('drawer-sound'),
-              ),
-              toggle(
-                l10n.fourColorDeck,
-                LucideIcons.palette,
-                fourColor,
-                () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
-                key: const Key('drawer-deck'),
-              ),
-              toggle(
-                l10n.showBigBlinds,
-                LucideIcons.coins,
-                chipDisplay == ChipDisplay.bigBlinds,
-                () => ref.read(chipDisplayProvider.notifier).toggle(),
-                key: const Key('drawer-chips'),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      LucideIcons.zoomIn,
-                      size: 18,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                    const Gap(10),
-                    Expanded(child: Text(l10n.displaySize)),
-                  ],
-                ),
-              ),
-              const DisplaySizePicker(),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      LucideIcons.languages,
-                      size: 18,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                    const Gap(10),
-                    Expanded(child: Text(l10n.languageToggle)),
-                    OutlineButton(
-                      size: ButtonSize.small,
-                      onPressed: () => ref
-                          .read(localePreferenceProvider.notifier)
-                          .next(locale),
-                      child: Text(locale.languageCode.toUpperCase()),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      brightness == Brightness.dark
-                          ? LucideIcons.sun
-                          : LucideIcons.moon,
-                      size: 18,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                    const Gap(10),
-                    Expanded(child: Text(l10n.themeToggle)),
-                    OutlineButton(
-                      size: ButtonSize.small,
-                      onPressed: () => ref
-                          .read(themeModeProvider.notifier)
-                          .toggle(brightness),
-                      child: Icon(
-                        brightness == Brightness.dark
-                            ? LucideIcons.sun
-                            : LucideIcons.moon,
-                        size: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (wide)
-                action(l10n.shortcutsTitle, LucideIcons.keyboard, onShortcuts),
-              section(l10n.menuTable),
-              if (!isPlayer)
-                action(
-                  l10n.takeSeat,
-                  LucideIcons.armchair,
-                  onTakeSeat,
-                  key: const Key('menu-take-seat'),
-                ),
-              action(
-                l10n.otherTable,
-                LucideIcons.house,
-                onOtherTable,
-                key: const Key('menu-other-table'),
-              ),
-              action(
-                l10n.leave,
-                LucideIcons.logOut,
-                onLeave,
-                key: const Key('menu-leave'),
-                destructive: true,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
