@@ -53,11 +53,14 @@ test-engine: ## engine tests with coverage report (internal/poker)
 	mkdir -p $(GO_DIR)/bin
 	cd $(GO_DIR) && go test -race -coverprofile=bin/poker.cover ./internal/poker/... && go tool cover -func=bin/poker.cover | tail -1
 
-build: ## build both images
-	docker compose build
+# Building from source uses the build override; IMAGE_OWNER only names the tags.
+COMPOSE_BUILD = IMAGE_OWNER=$${IMAGE_OWNER:-local} docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml
 
-up: ## build and start the stack in the background
-	docker compose up -d --build
+build: ## build both images from source
+	$(COMPOSE_BUILD) build
+
+up: ## build from source and start the stack in the background
+	$(COMPOSE_BUILD) up -d --build
 
 down: ## stop the stack (keeps the data volume)
 	docker compose down

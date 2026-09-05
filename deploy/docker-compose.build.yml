@@ -1,0 +1,11 @@
+# Build both images from this checkout instead of pulling them.
+# Usage: docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml up -d --build
+# (make build / make up wrap this; IMAGE_OWNER only names the local tags then).
+services:
+  web:
+    build:
+      context: ./frontend
+      additional_contexts:
+        deploy: ./deploy                        # gives the web image access to deploy/Caddyfile
+  api:
+    build: ./backend

@@ -13,10 +13,17 @@ Poker rules: `docs/rules.md`. Wire protocol: `docs/protocol.md`.
 
 ## Quick start
 
+You need Docker with Compose. Download `docker-compose.yml` (and optionally
+`.env.example`) from this repository, then:
+
 ```
-cp .env.example .env        # optional: change the port or limits
-docker compose up --build   # open http://localhost:8080
+docker compose up -d        # pulls ghcr.io/argseby/showdown-web and -api, starts the stack
 ```
+
+Optional `.env` (copy `.env.example`): the port, limits, `IMAGE_TAG` to pin a release
+(`v1.0.1`, default `latest`), `IMAGE_OWNER` only for a fork that publishes its own
+images. Updates: `docker compose pull && docker compose up -d`. Nothing is compiled on
+your machine.
 
 Then open `http://localhost:8080`, create a table and share the link (the **Invite**
 button at the table copies it and shows a QR code) with your group. Players open the link, pick a name and play. Reloading the page or
@@ -47,30 +54,35 @@ network). Game data lives in the `data` volume (a single SQLite file).
 | `TABLE_RETENTION_DAYS` | `90` | hands and chat of ended tables are deleted after this many days; the tables and their final standings are kept |
 | `MAX_TABLES` | `100` | cap on tables that have not ended |
 | `VOICE_STUN_URLS` | empty | STUN servers for the voice chat across networks, comma-separated (`stun:` / `stuns:`); empty keeps voice within one network and avoids any third party |
-| `IMAGE_OWNER` | `owner` | only for pulling/publishing prebuilt images |
+| `IMAGE_TAG` | `latest` | release to run, e.g. `v1.0.1` |
+| `IMAGE_OWNER` | `argseby` | only for a fork that publishes its own images |
 
 More API settings can be added to the `api` service environment:
 `MAX_CONNECTIONS_PER_IP` (default 50), `TRUST_PROXY` (`true`: use `X-Forwarded-For`
 from the proxy for rate limiting), `LOG_LEVEL` (`info`) and `LOG_FORMAT` (`json` or
 `text`).
 
-## Prebuilt images (Portainer, small servers)
+## Portainer and other stack tools
 
-Building the web image compiles the Flutter app and needs network access to
-github.com and storage.googleapis.com plus about 2 GB of disk and a few minutes of CPU.
-Stack tools such as Portainer build on the server, where that often fails or times out.
-Use the published images instead:
+Deploy the repository as a stack with compose path `docker-compose.yml`; optionally set
+`IMAGE_TAG`, and `PROXY_NETWORK` with the proxy override below, in the stack's
+environment. The file has no `build:` sections, so "re-pull image and redeploy" is the
+update path.
 
-1. Push a release tag (`v1.0.0`) to GitHub; the CI publishes
-   `ghcr.io/<owner>/showdown-api` and `ghcr.io/<owner>/showdown-web`. Make both packages
-   public in the GitHub package settings.
-2. Deploy `deploy/docker-compose.prebuilt.yml` (in Portainer: repository stack, compose
-   path `deploy/docker-compose.prebuilt.yml`) with `IMAGE_OWNER=<owner>` and optionally
-   `IMAGE_TAG=v1.0.0` in the environment. It has no `build:` sections, so nothing is
-   compiled on the server.
+## Building from source
 
-The proxy override below works with it too:
-`COMPOSE_FILE=deploy/docker-compose.prebuilt.yml:deploy/docker-compose.proxy.yml`.
+`deploy/docker-compose.build.yml` adds the build sections:
+
+```
+make up      # = docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml up -d --build
+```
+
+The web image compiles the Flutter app and needs network access to github.com and
+storage.googleapis.com, about 2 GB of disk and a few minutes of CPU, which is why the
+default is to pull. Releases are published by the CI: push a tag `v*` and the
+`publish` job pushes `ghcr.io/argseby/showdown-api` and `showdown-web` (a fork
+publishes under its own owner and sets `IMAGE_OWNER`); make both packages public in the
+GitHub package settings so they can be pulled without a login.
 
 ## Behind an existing reverse proxy (Dokploy, Traefik, nginx, Caddy)
 

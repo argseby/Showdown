@@ -1,10 +1,10 @@
+# Runs the published images (ghcr.io/argseby/showdown-*). IMAGE_TAG picks a
+# release, IMAGE_OWNER only matters for a fork that publishes its own images.
+# To build from source instead, add deploy/docker-compose.build.yml
+# (make build / make up do that).
 services:
   web:
-    image: ghcr.io/${IMAGE_OWNER:-owner}/showdown-web:latest   # IMAGE_OWNER is set by the repo owner (lowercase)
-    build:
-      context: ./frontend
-      additional_contexts:
-        deploy: ./deploy                        # gives the web image access to deploy/Caddyfile
+    image: ghcr.io/${IMAGE_OWNER:-argseby}/showdown-web:${IMAGE_TAG:-latest}
     ports:
       - "${WEB_PORT:-8080}:80"
     environment:
@@ -15,8 +15,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
   api:
-    image: ghcr.io/${IMAGE_OWNER:-owner}/showdown-api:latest
-    build: ./backend
+    image: ghcr.io/${IMAGE_OWNER:-argseby}/showdown-api:${IMAGE_TAG:-latest}
     environment:
       TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
       MAX_TABLES: ${MAX_TABLES:-100}

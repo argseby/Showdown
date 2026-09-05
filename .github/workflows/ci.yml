@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: docker compose build
-        run: docker compose build
+        run: IMAGE_OWNER=ci docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml build
 
   # Image publishing: runs only for pushed tags v* and pushes both images to
   # GHCR with the workflow's own token (no extra secrets needed).
