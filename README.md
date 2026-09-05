@@ -53,6 +53,24 @@ More API settings can be added to the `api` service environment:
 from the proxy for rate limiting), `LOG_LEVEL` (`info`) and `LOG_FORMAT` (`json` or
 `text`).
 
+## Prebuilt images (Portainer, small servers)
+
+Building the web image compiles the Flutter app and needs network access to
+github.com and storage.googleapis.com plus about 2 GB of disk and a few minutes of CPU.
+Stack tools such as Portainer build on the server, where that often fails or times out.
+Use the published images instead:
+
+1. Push a release tag (`v1.0.0`) to GitHub; the CI publishes
+   `ghcr.io/<owner>/showdown-api` and `ghcr.io/<owner>/showdown-web`. Make both packages
+   public in the GitHub package settings.
+2. Deploy `deploy/docker-compose.prebuilt.yml` (in Portainer: repository stack, compose
+   path `deploy/docker-compose.prebuilt.yml`) with `IMAGE_OWNER=<owner>` and optionally
+   `IMAGE_TAG=v1.0.0` in the environment. It has no `build:` sections, so nothing is
+   compiled on the server.
+
+The proxy override below works with it too:
+`COMPOSE_FILE=deploy/docker-compose.prebuilt.yml:deploy/docker-compose.proxy.yml`.
+
 ## Behind an existing reverse proxy (Dokploy, Traefik, nginx, Caddy)
 
 Point your proxy at the `web` container on port 80 and leave `SITE_ADDRESS=:80`. Your

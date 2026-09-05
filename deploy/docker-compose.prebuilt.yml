@@ -1,0 +1,35 @@
+# Run the published images without building anything on the server (Portainer,
+# small hosts). Requires IMAGE_OWNER in .env (lowercase GitHub user/org that
+# published the images) and public packages; see README "Prebuilt images".
+# Usage: docker compose -f deploy/docker-compose.prebuilt.yml up -d
+#   (or COMPOSE_FILE=deploy/docker-compose.prebuilt.yml in .env)
+services:
+  web:
+    image: ghcr.io/${IMAGE_OWNER:?set IMAGE_OWNER to the GitHub user/org that published the images}/showdown-web:${IMAGE_TAG:-latest}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      API_UPSTREAM: api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+  api:
+    image: ghcr.io/${IMAGE_OWNER:?set IMAGE_OWNER to the GitHub user/org that published the images}/showdown-api:${IMAGE_TAG:-latest}
+    environment:
+      TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
+      MAX_TABLES: ${MAX_TABLES:-100}
+      VOICE_STUN_URLS: ${VOICE_STUN_URLS:-}
+      LOG_FORMAT: json
+    volumes:
+      - data:/data
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD", "/showdown", "-healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+volumes:
+  data:

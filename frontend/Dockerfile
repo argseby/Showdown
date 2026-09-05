@@ -6,8 +6,11 @@
 # checked out before building. FLUTTER_VERSION must match pubspec.yaml.
 FROM ghcr.io/cirruslabs/flutter:3.44.0 AS build
 ARG FLUTTER_VERSION=3.47.2
+# Needs network access to github.com and storage.googleapis.com and about 2 GB of
+# free disk; on small servers pull the published images instead (see README).
 RUN set -eu; \
     root="$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")"; \
+    git config --global --add safe.directory "$root"; \
     git -C "$root" fetch --depth 1 origin "refs/tags/${FLUTTER_VERSION}:refs/tags/${FLUTTER_VERSION}"; \
     git -C "$root" checkout -q "${FLUTTER_VERSION}"; \
     flutter --version; \
