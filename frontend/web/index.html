@@ -23,24 +23,53 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="showdown">
+  <meta name="apple-mobile-web-app-title" content="Showdown">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0c">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Favicon: the SVG logo, PNG for browsers without SVG favicons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
 
   <title>Showdown</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* Shown until the app has started; flutter_bootstrap.js removes it. The
+       first visit downloads a few megabytes, later visits are served from
+       the browser cache. */
+    html, body { margin: 0; height: 100%; background: #0b0b0c; color: #e6e6e6; }
+    @media (prefers-color-scheme: light) {
+      html, body { background: #fafafa; color: #1c1c1c; }
+    }
+    #loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-align: center; padding: 24px; box-sizing: border-box;
+    }
+    #loading img { width: 96px; height: 96px; border-radius: 22px; }
+    #loading .bar {
+      width: 180px; height: 4px; border-radius: 2px; overflow: hidden;
+      background: rgba(128, 128, 128, 0.25);
+    }
+    #loading .bar i {
+      display: block; width: 40%; height: 100%; border-radius: 2px;
+      background: #e6b422; animation: slide 1.1s ease-in-out infinite;
+    }
+    @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+    #loading small { opacity: 0.65; font-size: 12px; }
+    #loading .err { color: #d64545; display: none; }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="loading" role="status" aria-live="polite">
+    <img src="favicon.svg" alt="">
+    <div>Loading Showdown &middot; Showdown wird geladen &hellip;</div>
+    <div class="bar"><i></i></div>
+    <small>Downloading the game files (a few MB) &middot; Die Spieldateien werden geladen (wenige MB)</small>
+    <div class="err" id="loading-error">Loading failed &middot; Laden fehlgeschlagen. Reload the page &middot; Seite neu laden.</div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

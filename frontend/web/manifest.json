@@ -1,12 +1,12 @@
 {
-    "name": "showdown",
-    "short_name": "showdown",
+    "name": "Showdown",
+    "short_name": "Showdown",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0b0b0c",
+    "theme_color": "#0b0b0c",
+    "description": "Self-hosted Texas Hold'em for private groups.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
