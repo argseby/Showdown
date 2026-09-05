@@ -1,0 +1,14 @@
+# Load-test override: caps the api service at 1 vCPU / 512 MB and publishes
+# it on localhost:18080 so cmd/loadtest can talk to it directly (bypassing
+# Caddy, which would collapse all bots onto one client IP).
+# Usage: docker compose -f docker-compose.yml -f deploy/docker-compose.loadtest.yml up -d
+#        make loadtest
+services:
+  api:
+    ports:
+      - "127.0.0.1:18080:8080"
+    cpus: 1.0
+    mem_limit: 512m
+    environment:
+      MAX_CONNECTIONS_PER_IP: "50"
+      TRUST_PROXY: "true"

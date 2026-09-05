@@ -1,0 +1,35 @@
+services:
+  web:
+    image: ghcr.io/${IMAGE_OWNER:-owner}/showdown-web:latest   # IMAGE_OWNER is set by the repo owner (lowercase)
+    build:
+      context: ./frontend
+      additional_contexts:
+        deploy: ./deploy                        # gives the web image access to deploy/Caddyfile
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      API_UPSTREAM: api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+  api:
+    image: ghcr.io/${IMAGE_OWNER:-owner}/showdown-api:latest
+    build: ./backend
+    environment:
+      TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
+      MAX_TABLES: ${MAX_TABLES:-100}
+      VOICE_STUN_URLS: ${VOICE_STUN_URLS:-}
+      LOG_FORMAT: json
+    volumes:
+      - data:/data
+    expose: ["8080"]            # no `ports:` - never reachable from outside
+    healthcheck:
+      test: ["CMD", "/showdown", "-healthcheck"]   # binary flag that GETs /readyz; distroless has no curl
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+volumes:
+  data:

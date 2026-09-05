@@ -1,0 +1,36 @@
+{$SITE_ADDRESS}
+
+encode zstd gzip
+
+handle /api/* {
+	reverse_proxy {$API_UPSTREAM}
+}
+handle /ws/* {
+	reverse_proxy {$API_UPSTREAM}
+}
+handle /healthz {
+	respond "ok" 200
+}
+handle {
+	root * /srv
+	try_files {path} /index.html
+	# Flutter web ships no service worker and no content-hashed file names, so
+	# every file is revalidated (ETag -> 304) to make updates take effect at
+	# the next page load instead of serving a stale bundle from the cache.
+	header Cache-Control "no-cache"
+	file_server
+}
+
+# defer: apply after the upstream response so proxied API responses carry each
+# header once (the API sets some of them itself for direct dev access).
+header {
+	defer
+	X-Content-Type-Options nosniff
+	Referrer-Policy same-origin
+	Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+	Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+}
+
+# HSTS only when this Caddy terminates TLS itself (standalone auto-HTTPS).
+@https protocol https
+header @https Strict-Transport-Security "max-age=31536000; includeSubDomains"

@@ -1,0 +1,28 @@
+# local working notes, tooling state and secrets (never part of a release)
+CLAUDE.md
+docs/STATUS.md
+.claude/
+.env
+*.log
+
+# Go
+backend/bin/
+backend/data/
+*.db
+*.db-wal
+*.db-shm
+
+# Flutter / Dart
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.pub/
+frontend/*.iml
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

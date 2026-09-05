@@ -1,0 +1,3 @@
+-- 0001_init: establishes the migration mechanism. The schema itself arrives
+-- with the table actor and persistence work (M2); this migration is
+-- intentionally empty so that schema_migrations records version 1.

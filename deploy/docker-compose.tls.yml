@@ -1,0 +1,17 @@
+# Standalone deployment with Caddy's built-in auto-HTTPS.
+# Usage: docker compose -f docker-compose.yml -f deploy/docker-compose.tls.yml up -d
+# Requires SITE_ADDRESS=<your domain> in .env and ports 80/443 reachable from the internet.
+services:
+  web:
+    ports: !override
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS to your public host name, e.g. poker.example.com}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:

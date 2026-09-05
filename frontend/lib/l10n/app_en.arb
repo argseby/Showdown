@@ -1,0 +1,1038 @@
+{
+  "@@locale": "en",
+  "appTitle": "Showdown",
+  "@appTitle": {
+    "description": "Application name shown in the browser tab and headers"
+  },
+  "landingTagline": "Texas Hold'em for your private group.",
+  "landingCodeLabel": "Table link or code",
+  "landingCodePlaceholder": "https://example.com/t/k7m2p9xq4w or k7m2p9xq4w",
+  "landingJoin": "Open table",
+  "landingInvalidCode": "That doesn't look like a table link or code.",
+  "notFoundTitle": "Page not found",
+  "notFoundBody": "There is nothing at this address.",
+  "notFoundHome": "Back to start",
+  "themeToggle": "Toggle light/dark theme",
+  "languageToggle": "Switch language",
+  "languageEnglish": "English",
+  "languageGerman": "German",
+  "joinTitle": "Join table",
+  "joinSeats": "{seated} of {max} seats taken",
+  "@joinSeats": {
+    "placeholders": {
+      "seated": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "joinStateWaiting": "Waiting for players",
+  "joinStateRunning": "Running",
+  "joinStatePaused": "Paused",
+  "joinStateEnded": "Ended",
+  "joinBlinds": "Blinds {small}/{big}",
+  "@joinBlinds": {
+    "placeholders": {
+      "small": {
+        "type": "String"
+      },
+      "big": {
+        "type": "String"
+      }
+    }
+  },
+  "joinNameLabel": "Your name",
+  "joinNamePlaceholder": "1-20 characters",
+  "joinPasswordLabel": "Table password",
+  "joinButton": "Join",
+  "spectateButton": "Spectate",
+  "joinNameInvalid": "Use 1-20 letters, digits, spaces, _ - .",
+  "joinPasswordRequired": "Please enter the table password.",
+  "joinLoadFailed": "Could not load this table.",
+  "joinTableEnded": "This table has ended.",
+  "joinClosed": "Joining is closed for this table.",
+  "joinSpectatorsOff": "Spectators are not allowed at this table.",
+  "tableNotFound": "Table not found",
+  "retry": "Retry",
+  "errWrongPassword": "Wrong password",
+  "errNameTaken": "That name is already taken",
+  "errTableFull": "The table is full",
+  "errJoinsClosed": "Joining is closed",
+  "errTableEnded": "The table has ended",
+  "errInvalidName": "Invalid name",
+  "errSpectatorsDisabled": "Spectators are not allowed",
+  "errRateLimited": "Too many requests, please try again shortly",
+  "errGeneric": "Something went wrong: {message}",
+  "@errGeneric": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "errNotYourTurn": "It is not your turn",
+  "errIllegalAction": "That action is not allowed right now",
+  "errAmountOutOfRange": "Amount out of range",
+  "handNumber": "Hand #{number}",
+  "@handNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "blindsShort": "Blinds {small}/{big}",
+  "@blindsShort": {
+    "placeholders": {
+      "small": {
+        "type": "String"
+      },
+      "big": {
+        "type": "String"
+      }
+    }
+  },
+  "connConnected": "Connected",
+  "connConnecting": "Connecting...",
+  "connReconnecting": "Reconnecting... (attempt {attempt})",
+  "@connReconnecting": {
+    "placeholders": {
+      "attempt": {
+        "type": "int"
+      }
+    }
+  },
+  "connDisconnected": "Disconnected",
+  "replacedTitle": "Connected elsewhere",
+  "replacedBody": "This seat is now used by another connection.",
+  "reconnectHere": "Reconnect here",
+  "kickedTitle": "Removed from the table",
+  "kickedBody": "The admin removed you from this table.",
+  "sessionExpiredTitle": "Session expired",
+  "sessionExpiredBody": "Your session is no longer valid. Please join again.",
+  "tableEndedTitle": "Table ended",
+  "finalStandings": "Final standings",
+  "backToJoin": "Back to the table page",
+  "serverRestarting": "The server is restarting, reconnecting shortly...",
+  "leave": "Leave",
+  "leaveConfirmTitle": "Leave the table?",
+  "leaveConfirmBody": "Your seat will be freed. If a hand is running you fold.",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "close": "Close",
+  "fold": "Fold",
+  "check": "Check",
+  "call": "Call {amount}",
+  "@call": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bet": "Bet",
+  "raise": "Raise",
+  "allIn": "All-in",
+  "raiseTo": "Raise to {amount}",
+  "@raiseTo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "betAmount": "Bet {amount}",
+  "@betAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "presetMin": "Min",
+  "presetHalfPot": "1/2 Pot",
+  "presetThreeQuarterPot": "3/4 Pot",
+  "presetPot": "Pot",
+  "presetAllIn": "All-in",
+  "amountRange": "Allowed: {min} - {max}",
+  "@amountRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "amountClamped": "Amount adjusted to {amount}",
+  "@amountClamped": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "rebuy": "Rebuy {amount}",
+  "@rebuy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sitOut": "Sit out",
+  "sitIn": "I'm back",
+  "showCards": "Show cards",
+  "waitingForPlayers": "Waiting for players...",
+  "tablePaused": "Table paused",
+  "tableWaiting": "The table has not started yet",
+  "yourTurn": "Your turn",
+  "badgeDealer": "D",
+  "badgeSmallBlind": "SB",
+  "badgeBigBlind": "BB",
+  "badgeSittingOut": "Sitting out",
+  "badgeDisconnected": "Offline",
+  "badgeAllIn": "All-in",
+  "badgeBusted": "Busted",
+  "badgeWaiting": "Next hand",
+  "badgeFolded": "Folded",
+  "mainPot": "Main pot",
+  "sidePot": "Side pot {n}",
+  "@sidePot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "potTotal": "Pot {amount}",
+  "@potTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "tabChat": "Chat",
+  "tabLog": "Log",
+  "tabLeaderboard": "Leaderboard",
+  "panelToggle": "Toggle panel",
+  "chatPlaceholder": "Message...",
+  "chatDisabled": "Chat is disabled",
+  "chatMuted": "You are muted",
+  "chatSpectatorsOff": "Spectator chat is off",
+  "chatSend": "Send",
+  "chatAdmin": "Admin",
+  "logCopy": "Copy log",
+  "logCopied": "Log copied",
+  "logEmpty": "No events yet",
+  "lbName": "Name",
+  "lbStack": "Stack",
+  "lbNet": "Net",
+  "lbHandsWon": "Won",
+  "lbBiggestPot": "Biggest pot",
+  "shortcutsTitle": "Keyboard shortcuts",
+  "shortcutsHint": "Shortcuts are inactive while typing. Esc leaves the text field.",
+  "scFold": "Fold",
+  "scCheckCall": "Check / Call",
+  "scOpenRaise": "Open the raise control",
+  "scAllIn": "Select all-in (Enter confirms)",
+  "scPresets": "Presets Min / 1/2 Pot / 3/4 Pot / Pot",
+  "scAmount": "+/- one big blind (Shift: +/- five)",
+  "scConfirm": "Confirm bet / raise",
+  "scCancel": "Cancel raise / close overlay / leave text field",
+  "scChat": "Focus chat",
+  "scLog": "Toggle log",
+  "scLeaderboard": "Toggle leaderboard",
+  "scSound": "Toggle sound",
+  "scHelp": "This overlay",
+  "soundOn": "Sound on",
+  "soundOff": "Sound off",
+  "spectatorsCount": "{count} watching",
+  "@spectatorsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "roleSpectator": "Spectating",
+  "roleAdmin": "Admin view",
+  "yourTurnTitle": "▶ Your turn — Showdown",
+  "seatLabel": "Seat {seat}",
+  "@seatLabel": {
+    "placeholders": {
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "emptySeat": "Empty",
+  "you": "You",
+  "logHandStarted": "Hand #{number} starts. Dealer: {name}",
+  "@logHandStarted": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAnte": "{name} posts ante {amount}",
+  "@logAnte": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logSmallBlind": "{name} posts small blind {amount}",
+  "@logSmallBlind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logBigBlind": "{name} posts big blind {amount}",
+  "@logBigBlind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logDealt": "You are dealt {cards}",
+  "@logDealt": {
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logFold": "{name} folds",
+  "@logFold": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logCheck": "{name} checks",
+  "@logCheck": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logCall": "{name} calls {amount}",
+  "@logCall": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logBet": "{name} bets {amount}",
+  "@logBet": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logRaise": "{name} raises to {amount}",
+  "@logRaise": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logAllInSuffix": " (all-in)",
+  "logTimeoutCheck": "{name} times out and checks",
+  "@logTimeoutCheck": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logTimeoutFold": "{name} times out and folds",
+  "@logTimeoutFold": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logUncalled": "Uncalled bet of {amount} returned to {name}",
+  "@logUncalled": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logFlop": "Flop: {cards}",
+  "@logFlop": {
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logTurn": "Turn: {cards}",
+  "@logTurn": {
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logRiver": "River: {cards}",
+  "@logRiver": {
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logReveal": "{name} shows {cards} - {description}",
+  "@logReveal": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "cards": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "logRevealNoDesc": "{name} shows {cards}",
+  "@logRevealNoDesc": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logWin": "{name} wins {amount} ({pot}) with {description}",
+  "@logWin": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "pot": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "logWinUncontested": "{name} wins {amount} ({pot})",
+  "@logWinUncontested": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "pot": {
+        "type": "String"
+      }
+    }
+  },
+  "logVoided": "Hand voided ({reason})",
+  "@logVoided": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "logJoined": "{name} joined (seat {seat})",
+  "@logJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "logLeft": "{name} left",
+  "@logLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logKicked": "{name} was removed",
+  "@logKicked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logSatOut": "{name} sits out",
+  "@logSatOut": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logSatIn": "{name} is back",
+  "@logSatIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBusted": "{name} is out of chips",
+  "@logBusted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logRebought": "{name} rebought {amount}",
+  "@logRebought": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logChips": "Admin adjusted chips of {name} by {delta}",
+  "@logChips": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "logSettings": "Settings changed: {fields}",
+  "@logSettings": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "logStarted": "Table started",
+  "logPaused": "Table paused",
+  "logResumed": "Table resumed",
+  "logEnded": "Table ended",
+  "logRestarted": "Server restarted",
+  "adminTitle": "Admin",
+  "adminNewTable": "New table",
+  "adminCreate": "Create",
+  "adminSave": "Save",
+  "adminSaved": "Settings saved",
+  "adminSavedNextHand": "Saved. Applies from the next hand: {fields}",
+  "@adminSavedNextHand": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "adminNoChanges": "No changes",
+  "adminTableName": "Table name",
+  "adminTableNameInvalid": "1-40 characters",
+  "adminPlayersCount": "{seated}/{max} players",
+  "@adminPlayersCount": {
+    "placeholders": {
+      "seated": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCopyLink": "Copy link",
+  "adminLinkCopied": "Link copied",
+  "adminQrCode": "QR code",
+  "adminSettings": "Settings",
+  "adminPlayers": "Players",
+  "adminChat": "Chat moderation",
+  "adminHands": "Recent hands",
+  "adminNoHands": "No hands yet",
+  "adminHandRow": "Hand #{number} · {time}",
+  "@adminHandRow": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "adminHandVoided": "voided",
+  "adminStart": "Start",
+  "adminPause": "Pause",
+  "adminResume": "Resume",
+  "adminEnd": "End",
+  "adminDelete": "Delete table",
+  "adminEndTitle": "End the table?",
+  "adminEndBody": "Choose whether the running hand should finish first.",
+  "adminEndAfterHand": "After this hand",
+  "adminEndNow": "Now, void the hand",
+  "adminDeleteTitle": "Delete this table?",
+  "adminDeleteBody": "All hands, chat and standings of this table are removed.",
+  "adminDeleteRunning": "A running table cannot be deleted. Pause or end it first.",
+  "adminKick": "Kick",
+  "adminKickTitle": "Remove {name}?",
+  "@adminKickTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminKickBody": "The player folds now and the seat is freed after the hand.",
+  "adminChips": "Chips",
+  "adminChipsTitle": "Adjust chips of {name}",
+  "@adminChipsTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminChipsAmount": "Amount (negative to remove)",
+  "adminChipsNote": "Note",
+  "adminChipsInvalid": "Enter a non-zero whole number",
+  "adminChipsApplied": "Chips adjusted",
+  "adminChipsQueued": "Queued until the hand ends",
+  "adminMute": "Mute",
+  "adminUnmute": "Unmute",
+  "adminRemoveMessage": "Remove message",
+  "adminNoChat": "No chat messages",
+  "adminStateChanged": "Table is now {state}",
+  "@adminStateChanged": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "adminAppliesNextHand": "applies from the next hand",
+  "adminAppliesImmediately": "applies immediately",
+  "adminAppliesNextJoin": "applies to the next join",
+  "adminAppliesFuture": "applies to future joins and rebuys",
+  "adminSpectatorsWatching": "{count} watching · {connections} connections",
+  "@adminSpectatorsWatching": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "connections": {
+        "type": "int"
+      }
+    }
+  },
+  "setPassword": "Table password (empty = none)",
+  "setPasswordKeep": "Leave empty to keep the current password",
+  "setPasswordClear": "Remove password",
+  "setMaxPlayers": "Max players",
+  "setStartMoney": "Start money",
+  "setSmallBlind": "Small blind",
+  "setBigBlind": "Big blind",
+  "setAnte": "Ante",
+  "setTurnTime": "Turn time (s)",
+  "setDisconnectedTurnTime": "Turn time when disconnected (s)",
+  "setSitOutAfter": "Sit out after missed turns",
+  "setJoinPolicy": "Join policy",
+  "joinPolicyAlways": "Always",
+  "joinPolicyBeforeStart": "Only before the start",
+  "joinPolicyClosed": "Closed",
+  "setAllowSpectators": "Allow spectators",
+  "setSpectatorChat": "Spectators may chat",
+  "setChatEnabled": "Chat enabled",
+  "setAllowRebuy": "Allow rebuys",
+  "setShowdownReveal": "Showdown reveal",
+  "revealAll": "All hands",
+  "revealWinnersOnly": "Winners only",
+  "setAutoStart": "Start automatically",
+  "setHandDelay": "Pause between hands (ms)",
+  "valRange": "Must be between {min} and {max}",
+  "@valRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "valMin": "Must be at least {min}",
+  "@valMin": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "valInteger": "Must be a whole number",
+  "valBigBlind": "Must be at least the small blind",
+  "valDisconnected": "Must be between 3 and the turn time",
+  "valPassword": "Must be empty or 4-64 characters",
+  "fourColorDeck": "Four-color deck",
+  "landingCreateTitle": "Host a game",
+  "landingCreateHint": "Whoever creates a table hosts it: an Admin tab at the table lets you change settings, manage players and end the game. No account needed.",
+  "landingCreate": "Create a table",
+  "tabAdmin": "Admin",
+  "adminKey": "Admin key",
+  "adminKeyHint": "Keep this key. It lets you manage the table from another device or browser; anyone who has it can do the same.",
+  "adminKeyCopy": "Copy key",
+  "adminKeyCopied": "Key copied",
+  "adminKeyRejected": "This admin key is not valid for this table.",
+  "adminDeleted": "Table deleted",
+  "joinHostBadge": "You host this table",
+  "joinHostEnter": "I host this table: enter the admin key",
+  "joinHostUse": "Use key",
+  "adminTabHands": "Hands",
+  "setBlindsUpMinutes": "Blinds up every (minutes, 0 = off)",
+  "setBlindsUpPercent": "Blinds up by (%)",
+  "setAllowRabbitHunt": "Allow rabbit hunting",
+  "logRabbitHunt": "{name} rabbit hunts: {cards}",
+  "@logRabbitHunt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "logBlindsChanged": "Blinds are now {small}/{big}",
+  "@logBlindsChanged": {
+    "placeholders": {
+      "small": {
+        "type": "String"
+      },
+      "big": {
+        "type": "String"
+      }
+    }
+  },
+  "foldCheckTitle": "Check for free?",
+  "foldCheckBody": "Nobody has bet. You can check and see the next card without paying anything.",
+  "foldCheckInstead": "Check instead",
+  "foldAnyway": "Fold anyway",
+  "showFirstCard": "Show 1st",
+  "showSecondCard": "Show 2nd",
+  "rabbitHunt": "Rabbit hunt",
+  "preCheckFold": "Check / Fold",
+  "preCallAny": "Call any",
+  "yourHand": "Your hand: {description}",
+  "@yourHand": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "sittingOutNotice": "You are away and are not dealt in.",
+  "showCoins": "Show amounts in chips",
+  "showBigBlinds": "Show amounts in big blinds",
+  "yourTurnBanner": "Your turn",
+  "yourTurnBannerTime": "Your turn · {seconds} s",
+  "@yourTurnBannerTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "blindsUpIn": "blinds up in {time}",
+  "@blindsUpIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "adminBlindsUp": "Blinds up now",
+  "adminBlindsRaised": "Blinds raised to {blinds}",
+  "@adminBlindsRaised": {
+    "placeholders": {
+      "blinds": {
+        "type": "String"
+      }
+    }
+  },
+  "joinSeatLabel": "Seat",
+  "joinSeatAny": "Any free seat",
+  "joinAvatarLabel": "Avatar",
+  "errSeatTaken": "That seat was just taken. Pick another one.",
+  "replayTitle": "Replay a hand",
+  "replayOpen": "Replay",
+  "replayNoHands": "No hands played yet",
+  "replayLoadFailed": "Could not load the hands: {message}",
+  "@replayLoadFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "replayStart": "Before the deal",
+  "replayPlay": "Play",
+  "replayPause": "Pause",
+  "replayPrev": "Back",
+  "replayNext": "Next",
+  "replayStep": "{step} / {total}",
+  "@replayStep": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "replayBackToList": "All hands",
+  "logDeadBlind": "{name} posts a dead big blind {amount} (seat change)",
+  "@logDeadBlind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logPlayerMoved": "{name} moves to seat {seat}",
+  "@logPlayerMoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "takeSeatHint": "Move here at the next deal",
+  "seatPendingYou": "You, next hand",
+  "changeSeatTitle": "Move to seat {seat}?",
+  "@changeSeatTitle": {
+    "placeholders": {
+      "seat": {
+        "type": "int"
+      }
+    }
+  },
+  "changeSeatBody": "You move at the next deal. Changing seats costs a dead big blind of {amount} in your next hand (this keeps seat changes from dodging the blinds), and you can move again after three hands.",
+  "@changeSeatBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "changeSeatConfirm": "Move",
+  "menuMore": "Menu",
+  "takeSeat": "Take a seat",
+  "panelClose": "Close panel",
+  "otherTable": "Other table",
+  "voiceJoin": "Join the voice chat",
+  "voiceJoinHint": "Browser-to-browser audio; the server never hears it. Needs a microphone and HTTPS (or localhost).",
+  "voiceTitle": "Voice chat",
+  "voiceOn": "Voice chat on",
+  "voiceOff": "Voice chat off",
+  "voiceMute": "Mute microphone",
+  "voiceUnmute": "Unmute microphone",
+  "voiceUnavailable": "Voice chat is not available here: the browser only grants the microphone on HTTPS or localhost.",
+  "voiceSpeaking": "speaking",
+  "menuPreferences": "Preferences",
+  "menuTable": "Table",
+  "turnOf": "{name} to act · {seconds} s",
+  "@turnOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "showdownStrip": "Showdown · {seconds} s",
+  "@showdownStrip": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "nextHandIn": "Next hand in {seconds} s",
+  "@nextHandIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "adminUnsavedChanges": "You have unsaved changes.",
+  "adminDiscard": "Discard",
+  "voiceMicOn": "Microphone on",
+  "voiceMicMuted": "Microphone muted",
+  "joinAvatarChange": "Change avatar",
+  "joinPickSeat": "Pick a seat (optional)",
+  "joinPickSeatHide": "Hide seats",
+  "displaySize": "Display size",
+  "displaySizeHint": "Larger cards, chips, buttons and text.",
+  "displayNormal": "Normal",
+  "displayLarge": "Large",
+  "displayExtraLarge": "Extra large",
+  "invite": "Invite",
+  "inviteTitle": "Invite players",
+  "inviteHint": "Share this link or let them scan the code. The link was copied to your clipboard.",
+  "invitePlayers": "Players ({count})",
+  "@invitePlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteSpectators": "Spectators ({count})",
+  "@inviteSpectators": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteNobody": "Nobody yet",
+  "winnerBadge": "Winner",
+  "winsLine": "{name} wins {amount}",
+  "@winsLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "winsLineWith": "{name} wins {amount} with {description}",
+  "@winsLineWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "revealInOrder": "In order (beaten hands muck)",
+  "badgeMucked": "Mucked",
+  "logMucks": "{name} mucks",
+  "@logMucks": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "micTitle": "Microphone",
+  "micHint": "Voice chat runs browser to browser. Your microphone is only sent to the other players at this table.",
+  "micStateOff": "Voice chat off",
+  "micStateOn": "Microphone on",
+  "micStateMuted": "Microphone muted",
+  "voiceMutedByHost": "The host muted your microphone. You can unmute yourself.",
+  "adminMuteVoice": "Mute microphone",
+  "adminMutedVoice": "Microphone muted",
+  "adminPlayerActions": "{name}",
+  "@adminPlayerActions": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMuteChat": "Mute chat",
+  "adminUnmuteChat": "Unmute chat",
+  "sayTitle": "Say something",
+  "sayButton": "Quick phrase",
+  "phraseNiceHand": "Nice hand",
+  "phraseNiceCall": "Nice call",
+  "phraseNiceFold": "Nice fold",
+  "phraseNiceBluff": "Nice bluff",
+  "phraseWellPlayed": "Well played",
+  "phraseGg": "GG",
+  "phraseThanks": "Thanks",
+  "phraseSorry": "Sorry",
+  "phraseWow": "Wow",
+  "phraseOops": "Oops",
+  "phraseFurious": "I'm furious",
+  "phraseLol": "LOL",
+  "phraseHurryUp": "Hurry up",
+  "phraseBrb": "Be right back"
+}
