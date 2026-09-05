@@ -1,0 +1,16 @@
+# Join an existing reverse-proxy network (Traefik, Dokploy, nginx-proxy, ...) instead of
+# publishing a port. The proxy reaches the web container as "showdown-web" (or the
+# compose project name plus "-web-1") on port 80; api stays on the private default
+# network.
+# Usage: set PROXY_NETWORK (and optionally COMPOSE_FILE) in .env, or run
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.proxy.yml up -d
+services:
+  web:
+    ports: !override []
+    networks:
+      - default
+      - proxy
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:?set PROXY_NETWORK to the name of your existing proxy network}

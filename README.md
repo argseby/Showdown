@@ -61,6 +61,19 @@ forwarded for `/ws/*` (Traefik and Caddy do this by default; for nginx add the u
 `Upgrade`/`Connection` headers). With Dokploy, deploy the repository as a compose
 application and expose service `web`, port 80.
 
+If your proxy already runs in its own Docker network (say `proxy-network`), attach
+`web` to it instead of publishing a port. Put this in `.env`:
+
+```
+PROXY_NETWORK=proxy-network
+COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.proxy.yml
+```
+
+Then `docker compose up -d` as usual: `web` joins that network and publishes no port,
+`api` stays on the stack's private network. Point the proxy at the `web` container on
+port 80 (Traefik: `traefik.http.services.showdown.loadbalancer.server.port=80`). The
+network must already exist (`docker network create proxy-network` if it does not).
+
 Rate limiting uses `X-Forwarded-For` (`TRUST_PROXY=true`), which Caddy sets from the
 real client address. If `web` is directly on the internet, that header comes from Caddy
 itself and is trustworthy as well.
