@@ -21,9 +21,9 @@ docker compose up -d        # pulls ghcr.io/argseby/showdown-web and -api, start
 ```
 
 Optional `.env` (copy `.env.example`): the port, limits, `IMAGE_TAG` to pin a release
-(`v1.0.1`, default `latest`), `IMAGE_OWNER` only for a fork that publishes its own
-images. Updates: `docker compose pull && docker compose up -d`. Nothing is compiled on
-your machine.
+(`v1.0.1`; default `latest` = newest release; `edge` = every commit on `main`),
+`IMAGE_OWNER` only for a fork that publishes its own images. Updates:
+`docker compose pull && docker compose up -d`. Nothing is compiled on your machine.
 
 Then open `http://localhost:8080`, create a table and share the link (the **Invite**
 button at the table copies it and shows a QR code) with your group. Players open the link, pick a name and play. Reloading the page or
@@ -80,9 +80,10 @@ make up      # = docker compose -f docker-compose.yml -f deploy/docker-compose.b
 The web image compiles the Flutter app and needs network access to github.com and
 storage.googleapis.com, about 2 GB of disk and a few minutes of CPU, which is why the
 default is to pull. Releases are published by the CI: push a tag `v*` and the
-`publish` job pushes `ghcr.io/argseby/showdown-api` and `showdown-web` (a fork
-publishes under its own owner and sets `IMAGE_OWNER`); make both packages public in the
-GitHub package settings so they can be pulled without a login.
+`publish` job pushes `ghcr.io/argseby/showdown-api` and `showdown-web` as that version
+and `latest`; every green push to `main` publishes `edge` (a fork publishes under its
+own owner and sets `IMAGE_OWNER`). Make both packages public in the GitHub package
+settings so they can be pulled without a login.
 
 ## Behind an existing reverse proxy (Dokploy, Traefik, nginx, Caddy)
 
