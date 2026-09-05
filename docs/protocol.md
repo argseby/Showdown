@@ -113,7 +113,7 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `action` | `{kind: "fold"\|"check"\|"call"\|"bet"\|"raise"\|"all_in", amount?}` | `bet`/`raise` amount is the **total** the player bets/raises to |
 | `sit_out` / `sit_in` / `rebuy` / `leave` | `{}` | |
 | `show_cards` | `{cards?: "both"\|"first"\|"second"}` | only during the result phase, by an uncontested winner or a mucked player; one card at a time is allowed (a partial reveal lists the hidden card as `""`) |
-| `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | performed automatically when the turn arrives (check if free else fold / call any bet else check); cleared after a manual action and at hand end; `you.pre_action` mirrors it |
+| `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | an automatic action performed at every turn of the player (check if free else fold / call any bet else check), in this hand and the following ones, until they send `none`, sit out or leave; may be armed between hands; `you.pre_action` mirrors it |
 | `change_seat` | `{seat}` | move to a free seat at the next deal (errors `seat_taken`, `invalid_state` during the cooldown); `you.pending_seat`, `you.can_change_seat`; events `player_moved {seat, name, delta = old seat}` and `blind_posted {blind: "dead"}` |
 | `voice` | `{state: "off"\|"on"\|"muted"}` | voice-chat presence, shown to everyone as `seats[].player.voice`; reset to off when the connection drops |
 | `voice_signal` | `{to, kind: "offer"\|"answer"\|"ice", data}` | WebRTC setup message relayed to the target player as `voice_signal {from, kind, data}` (server push); the audio itself is browser-to-browser and never touches the server; `data` is opaque, at most 6 KB |

@@ -281,15 +281,6 @@ class ActionBarState extends State<ActionBar> {
     final snap = widget.snapshot;
     final you = snap?.you;
     final sittingOut = widget.myStatus == 'sitting_out';
-    final inHand =
-        you?.seat != null &&
-        snap?.hand != null &&
-        (snap!.seats
-                .where((s) => s.seat == you!.seat)
-                .firstOrNull
-                ?.player
-                ?.inHand ??
-            false);
     final myTurn = m != null;
 
     final handLine = widget.isPlayer && (you?.handDescription ?? '').isNotEmpty
@@ -345,7 +336,7 @@ class ActionBarState extends State<ActionBar> {
     } else if (myTurn) {
       content = _turnRows(context, m);
     } else {
-      content = _offTurnRow(context, you!, inHand);
+      content = _offTurnRow(context, you!);
     }
 
     return Container(
@@ -480,13 +471,13 @@ class ActionBarState extends State<ActionBar> {
 
   /// Not the viewer's turn: pre-actions during a hand, otherwise the
   /// result-phase controls (show cards, rabbit hunt, rebuy).
-  Widget _offTurnRow(BuildContext context, You you, bool inHand) {
+  Widget _offTurnRow(BuildContext context, You you) {
     final l10n = context.l10n;
     final snap = widget.snapshot!;
     final items = <Widget>[];
-    if (inHand &&
-        widget.callbacks.preAction != null &&
-        snap.hand?.phase == 'betting') {
+    // Pre-actions stay armed across hands, so they can be toggled whenever
+    // it is not the viewer's turn, including between hands.
+    if (widget.callbacks.preAction != null) {
       Widget toggle(String kind, String label, Key key) {
         final on = you.preAction == kind;
         void cb() => widget.callbacks.preAction!(on ? 'none' : kind);

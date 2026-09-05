@@ -334,7 +334,11 @@ func (t *Table) finishHand() {
 		if p == nil || !p.inHand {
 			continue
 		}
-		p.preAction = ""
+		// The sit-out fold is per hand; check/fold and call any stay armed
+		// until the player switches them off.
+		if p.preAction == preFold {
+			p.preAction = ""
+		}
 		if p.Stack == 0 && p.Status == StatusActive {
 			p.Status = StatusBusted
 			t.emit(protocol.Event{Kind: "player_busted", Seat: protocol.Int(p.Seat), Name: p.Name})

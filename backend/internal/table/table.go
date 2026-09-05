@@ -101,7 +101,7 @@ type Player struct {
 	inHand    bool
 	leaving   bool
 	kicked    bool
-	preAction string // pending automatic action: "", "fold", "check_fold", "call_any"
+	preAction string // automatic action at every turn: "", "fold" (sit-out, this hand), "check_fold", "call_any"
 
 	// Seat changes: the wanted seat (-1 none) is taken at the next deal; the
 	// mover then posts a dead big blind, and may move again after a cooldown.
@@ -837,9 +837,10 @@ func (t *Table) applyPendingSeatChanges() {
 	}
 }
 
-// SetPreAction stores an action that is performed automatically when the
-// player's turn comes (check/fold or call any). If it is their turn already,
-// it is performed at once.
+// SetPreAction arms an automatic action (check/fold or call any) that is
+// performed at every turn of the player, in this hand and the following
+// ones, until they switch it off (PreNone), sit out or leave. It may be armed
+// between hands; if it is their turn already, it is performed at once.
 func (t *Table) SetPreAction(playerID, kind string) error {
 	return t.callErr(func() error {
 		p, err := t.seatedPlayer(playerID)
@@ -848,31 +849,38 @@ func (t *Table) SetPreAction(playerID, kind string) error {
 		}
 		switch kind {
 		case PreNone:
-			p.preAction = ""
+			if p.preAction != preFold {
+				p.preAction = ""
+			}
 			t.touch()
 			return nil
 		case PreCheckFold, PreCallAny:
 		default:
 			return ErrIllegalAction
 		}
-		if !t.handInProgress() || !p.inHand {
-			return poker.ErrWrongPhase
+		if p.preAction == preFold {
+			return poker.ErrWrongPhase // sitting out: the hand is folded anyway
 		}
 		p.preAction = kind
 		t.touch()
-		if seat, ok := t.hand.ToAct(); ok && seat == p.Seat {
-			t.applyPreAction(p)
-			t.afterEngine()
+		if t.handInProgress() && p.inHand {
+			if seat, ok := t.hand.ToAct(); ok && seat == p.Seat {
+				t.applyPreAction(p)
+				t.afterEngine()
+			}
 		}
 		return nil
 	})
 }
 
-// applyPreAction performs the player's pending pre-action now (it must be
-// their turn). Unknown or impossible actions fall back to the timeout rule.
+// applyPreAction performs the player's armed action now (it must be their
+// turn). Check/fold and call any stay armed; the sit-out fold is one-shot.
+// Impossible actions fall back to the timeout rule.
 func (t *Table) applyPreAction(p *Player) {
 	kind := p.preAction
-	p.preAction = ""
+	if kind == preFold {
+		p.preAction = ""
+	}
 	o := t.hand.Options(p.Seat)
 	var a poker.Action
 	switch kind {

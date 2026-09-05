@@ -894,7 +894,7 @@ func TestPreActionsAndSitOutFold(t *testing.T) {
 			others = append(others, id)
 		}
 	}
-	// A pre-action is rejected between hands / for a wrong kind.
+	// A pre-action of a wrong kind is rejected.
 	if err := tbl.SetPreAction(others[0], "jump"); !errors.Is(err, ErrIllegalAction) {
 		t.Fatalf("bad kind: %v", err)
 	}
@@ -919,8 +919,8 @@ func TestPreActionsAndSitOutFold(t *testing.T) {
 		p := tbl.players[others[0]]
 		st, _ := tbl.hand.State(p.Seat)
 		called = st.LastAction != nil && st.LastAction.Kind == poker.Call && st.BetThisStreet == 300
-		if p.preAction != "" {
-			t.Errorf("pre-action not cleared: %q", p.preAction)
+		if p.preAction != PreCallAny {
+			t.Errorf("pre-action must stay armed, got %q", p.preAction)
 		}
 	})
 	if !called {
@@ -1107,4 +1107,47 @@ func TestSeatChangeCostsADeadBlind(t *testing.T) {
 	if stack < s.BigBlind {
 		t.Fatalf("dead blind not in the pot: total bet %d", stack)
 	}
+}
+
+func TestPreActionsStayArmedAcrossHands(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.HandDelayMs = 2000
+	tbl := newTestTable(t, s)
+	a, connA := join(t, tbl, "Alice")
+	b, _ := join(t, tbl, "Bob")
+	// Armed before the first hand is dealt: both call any bet and check
+	// otherwise, so every hand runs to the showdown without a manual action.
+	for _, id := range []string{a.PlayerID, b.PlayerID} {
+		if err := tbl.SetPreAction(id, PreCallAny); err != nil {
+			t.Fatal(err)
+		}
+	}
+	waitFor(t, "hand 1", func() bool { return handNumber(tbl) >= 1 })
+	waitFor(t, "hand 2 (hand 1 played itself out)", func() bool { return handNumber(tbl) >= 2 })
+	waitFor(t, "hand 3", func() bool { return handNumber(tbl) >= 3 })
+	tbl.call(func() {
+		for _, id := range []string{a.PlayerID, b.PlayerID} {
+			if tbl.players[id].preAction != PreCallAny {
+				t.Errorf("%s: pre-action lost: %q", tbl.players[id].Name, tbl.players[id].preAction)
+			}
+		}
+	})
+	waitFor(t, "armed in snapshot", func() bool { return connA.lastSnapshot(t).You.PreAction == PreCallAny })
+	// Switching off stops the automation: Alice's next turn waits for her.
+	if err := tbl.SetPreAction(a.PlayerID, PreNone); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "Alice on turn", func() bool {
+		id, _ := toAct(tbl)
+		return id == a.PlayerID
+	})
+	// Check/fold folds when facing a bet.
+	if err := tbl.SetPreAction(a.PlayerID, PreCheckFold); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "auto action", func() bool {
+		id, _ := toAct(tbl)
+		return id != a.PlayerID
+	})
 }
