@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -30,6 +31,7 @@ func run() error {
 	password := flag.String("password", "", "table password if set")
 	count := flag.Int("count", 6, "number of bots")
 	prefix := flag.String("prefix", "Bot", "display name prefix")
+	names := flag.String("names", "", "comma-separated display names (overrides -prefix and -count)")
 	strategy := flag.String("strategy", "random", "random | passive | aggressive | idle")
 	hands := flag.Int("hands", 0, "stop after this many hands (0 = run until interrupted)")
 	delay := flag.Duration("delay", 300*time.Millisecond, "thinking time before acting")
@@ -47,10 +49,18 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	bots := make([]*botclient.Bot, 0, *count)
-	for i := 0; i < *count; i++ {
+	var nameList []string
+	if *names != "" {
+		nameList = strings.Split(*names, ",")
+	} else {
+		for i := 0; i < *count; i++ {
+			nameList = append(nameList, fmt.Sprintf("%s%d", *prefix, i+1))
+		}
+	}
+	bots := make([]*botclient.Bot, 0, len(nameList))
+	for i, name := range nameList {
 		b := botclient.New(botclient.Config{
-			BaseURL: *server, TableID: *tableID, Name: fmt.Sprintf("%s%d", *prefix, i+1), Password: *password,
+			BaseURL: *server, TableID: *tableID, Name: strings.TrimSpace(name), Password: *password, Avatar: (i * 7) % 20,
 			Strategy: botclient.Strategy(*strategy), Log: log, ActDelay: *delay,
 		})
 		if err := b.Join(ctx); err != nil {

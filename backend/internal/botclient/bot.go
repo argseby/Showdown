@@ -46,6 +46,7 @@ type Config struct {
 	BaseURL  string // http://host:port
 	TableID  string
 	Name     string
+	Avatar   int // 0-19, the seat icon
 	Password string
 	Role     string   // player (default), spectator or admin
 	Token    string   // existing token (admin token, or a stored session)
@@ -148,7 +149,7 @@ func (b *Bot) Join(ctx context.Context) error {
 		PlayerID string `json:"player_id"`
 		Seat     int    `json:"seat"`
 	}
-	if err := b.postJSON(ctx, "/api/tables/"+b.cfg.TableID+"/join", map[string]string{"name": b.cfg.Name, "password": b.cfg.Password}, &res); err != nil {
+	if err := b.postJSON(ctx, "/api/tables/"+b.cfg.TableID+"/join", map[string]any{"name": b.cfg.Name, "password": b.cfg.Password, "avatar": b.cfg.Avatar}, &res); err != nil {
 		return err
 	}
 	b.Token, b.PlayerID, b.Seat = res.Token, res.PlayerID, res.Seat

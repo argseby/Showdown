@@ -6,6 +6,8 @@ table and becomes its host; the host shares the link, players join with a displa
 the browser. Everything runs on your own server, and the app makes no external requests
 at all.
 
+![A full table in Showdown: eight players, community cards and the pot](promo.png)
+
 Poker rules: `docs/rules.md`. Wire protocol: `docs/protocol.md`.
 
 ## Quick start
