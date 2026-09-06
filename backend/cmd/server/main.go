@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"showdown/internal/buildinfo"
 	"showdown/internal/config"
 	"showdown/internal/server"
 	"showdown/internal/store"
@@ -23,10 +24,15 @@ import (
 const shutdownTimeout = 10 * time.Second
 
 func main() {
+	showVersion := flag.Bool("version", false, "print the build this binary was made from and exit")
 	healthcheck := flag.Bool("healthcheck", false, "probe the running server's /readyz and exit (used by the container healthcheck)")
 	backup := flag.String("backup", "", "write a consistent copy of the database to this file and exit (safe while the server runs)")
 	flag.Parse()
 
+	if *showVersion {
+		fmt.Println(buildinfo.Version())
+		return
+	}
 	if *healthcheck {
 		if err := runHealthcheck(os.Getenv("LISTEN_ADDR")); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -109,7 +115,7 @@ func run() error {
 
 	errCh := make(chan error, 1)
 	go func() {
-		log.Info("listening", "addr", cfg.ListenAddr, "data_dir", cfg.DataDir)
+		log.Info("listening", "addr", cfg.ListenAddr, "data_dir", cfg.DataDir, "version", buildinfo.Version())
 		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}

@@ -188,6 +188,18 @@ class RestClient {
   Future<TableInfoDto> tableInfo(String tableId) async =>
       TableInfoDto.fromJson(await getJson('/api/tables/$tableId/info'));
 
+  /// The build the instance runs, shown on the start screen. Null when the
+  /// server cannot be reached or reports no version.
+  Future<String?> serverVersion() async {
+    try {
+      final json = await getJson('/api/config');
+      final version = json['version'] as String?;
+      return (version == null || version.isEmpty) ? null : version;
+    } on Object catch (_) {
+      return null;
+    }
+  }
+
   /// STUN and TURN servers the instance hands to browsers for voice and
   /// video.
   Future<List<IceServer>> iceServers() async {

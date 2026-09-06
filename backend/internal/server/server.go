@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"showdown/internal/buildinfo"
 	"showdown/internal/config"
 	"showdown/internal/store"
 	"showdown/internal/table"
@@ -141,7 +142,11 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 			"credential": s.cfg.TurnCredential,
 		})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"ice_servers": ice})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ice_servers": ice,
+		// The build this instance runs, shown on the client's start screen.
+		"version": buildinfo.Version(),
+	})
 }
 
 func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {

@@ -9,6 +9,25 @@
   "landingCodePlaceholder": "https://example.com/t/k7m2p9xq4w or k7m2p9xq4w",
   "landingJoin": "Open table",
   "landingInvalidCode": "That doesn't look like a table link or code.",
+  "landingServerVersion": "Server {version}",
+  "@landingServerVersion": {
+    "description": "Footer line naming the build the API reports",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "landingSource": "Source on GitHub",
+  "landingCreatedBy": "Created by {author}",
+  "@landingCreatedBy": {
+    "description": "Footer credit on the start screen",
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
   "notFoundTitle": "Page not found",
   "notFoundBody": "There is nothing at this address.",
   "notFoundHome": "Back to start",

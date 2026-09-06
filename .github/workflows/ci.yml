@@ -86,9 +86,11 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "TAGS_API=ghcr.io/$owner/showdown-api:$GITHUB_REF_NAME,ghcr.io/$owner/showdown-api:latest" >> "$GITHUB_ENV"
             echo "TAGS_WEB=ghcr.io/$owner/showdown-web:$GITHUB_REF_NAME,ghcr.io/$owner/showdown-web:latest" >> "$GITHUB_ENV"
+            echo "VERSION=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
           else
             echo "TAGS_API=ghcr.io/$owner/showdown-api:edge" >> "$GITHUB_ENV"
             echo "TAGS_WEB=ghcr.io/$owner/showdown-web:edge" >> "$GITHUB_ENV"
+            echo "VERSION=edge-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
           fi
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -102,6 +104,8 @@ jobs:
           context: backend
           push: true
           tags: ${{ env.TAGS_API }}
+          build-args: |
+            VERSION=${{ env.VERSION }}
       - name: Build and push web
         uses: docker/build-push-action@v6
         with:

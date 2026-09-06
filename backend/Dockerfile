@@ -5,7 +5,12 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/showdown ./cmd/server \
+# The release this image is built from, reported by `showdown -version`, the
+# startup log and GET /api/config. CI passes the pushed tag.
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
+    -ldflags="-s -w -X showdown/internal/buildinfo.version=${VERSION}" \
+    -o /out/showdown ./cmd/server \
     && mkdir -p /out/data
 
 FROM gcr.io/distroless/static-debian12:nonroot

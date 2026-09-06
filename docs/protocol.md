@@ -82,6 +82,13 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   offer collisions with perfect negotiation: the side that answered the first offer
 >   is polite and yields, the other keeps its own offer and answers `null` (nothing is
 >   sent). The kinds stay `offer`, `answer`, `ice`.
+> - **`GET /api/config` (2026-09-06).** Public, unauthenticated, no rate limit:
+>   `{"ice_servers": [...], "version": "v1.2.3"}`. `version` is the build the API
+>   runs, stamped into the binary at build time (the pushed tag for a release,
+>   `edge-<sha>` on main, the commit or `dev` for a local build). It is never empty,
+>   and the client shows it in the start screen's footer. `showdown -version` prints
+>   the same string, which is how a running container can be identified without a
+>   shell.
 > - **Message size caps (2026-09-06).** A frame may be 32 KiB; every message except
 >   `voice_signal` is capped at 8 KiB and an oversized one closes the connection with
 >   `1008`. Only `voice_signal` may be larger, and its `data` is capped at 24 KiB:

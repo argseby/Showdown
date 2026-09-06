@@ -3,10 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../core/providers.dart';
 import '../../core/session_store.dart';
 import '../../shared/top_bar.dart';
 import '../admin/new_table_dialog.dart';
 import 'table_code.dart';
+
+/// The project's public page, linked from the footer.
+const projectUrl = 'https://github.com/argseby/Showdown';
+
+/// The author credited in the footer, and their site.
+const authorName = 'kiunke.dev';
+const authorUrl = 'https://kiunke.dev';
 
 class LandingPage extends ConsumerStatefulWidget {
   const LandingPage({super.key});
@@ -124,11 +132,53 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                     ],
                   ),
                 ),
+                const Gap(24),
+                const _LandingFooter(),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The build the server reports, the project page and the author credit.
+class _LandingFooter extends ConsumerWidget {
+  const _LandingFooter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final opener = ref.read(linkOpenerProvider);
+    // The version is a nicety: while it loads, or when the API cannot be
+    // reached, the rest of the footer still shows.
+    final version = ref.watch(serverVersionProvider).value;
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
+      children: [
+        if (version != null)
+          Text(
+            l10n.landingServerVersion(version),
+            key: const Key('landing-version'),
+          ).muted().small(),
+        LinkButton(
+          key: const Key('landing-source'),
+          onPressed: () => opener.open(projectUrl),
+          leading: const Icon(LucideIcons.github),
+          size: ButtonSize.small,
+          child: Text(l10n.landingSource),
+        ),
+        LinkButton(
+          key: const Key('landing-author'),
+          onPressed: () => opener.open(authorUrl),
+          size: ButtonSize.small,
+          child: Text(l10n.landingCreatedBy(authorName)),
+        ),
+      ],
     );
   }
 }

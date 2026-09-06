@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showdown/app/app.dart';
 import 'package:showdown/app/l10n.dart';
 import 'package:showdown/app/router.dart';
+import 'package:showdown/core/link_opener.dart';
 import 'package:showdown/core/providers.dart';
 import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/features/landing/landing_page.dart';
@@ -85,6 +86,67 @@ void main() {
     expect(find.byKey(const Key('landing-create')), findsOneWidget);
   });
 
+  testWidgets('the footer shows the server build, the project and the author', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final rest = RestClient(
+      baseUrl: 'http://test',
+      client: MockClient((req) async {
+        if (req.url.path == '/api/config') {
+          return http.Response('{"ice_servers":[],"version":"v1.2.3"}', 200);
+        }
+        return http.Response('{}', 404);
+      }),
+    );
+    final opener = _RecordingLinkOpener();
+    await tester.pumpWidget(
+      app(
+        overrides: [
+          restClientProvider.overrideWithValue(rest),
+          linkOpenerProvider.overrideWithValue(opener),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Server v1.2.3'), findsOneWidget);
+    expect(find.text('Created by kiunke.dev'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('landing-source')));
+    await tester.tap(find.byKey(const Key('landing-source')));
+    await tester.pumpAndSettle();
+    expect(opener.opened, [projectUrl]);
+
+    await tester.ensureVisible(find.byKey(const Key('landing-author')));
+    await tester.tap(find.byKey(const Key('landing-author')));
+    await tester.pumpAndSettle();
+    expect(opener.opened, [projectUrl, authorUrl]);
+  });
+
+  testWidgets('an unreachable API only costs the footer its version', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final rest = RestClient(
+      baseUrl: 'http://test',
+      client: MockClient((req) async => http.Response('nope', 500)),
+    );
+    await tester.pumpWidget(
+      app(
+        overrides: [
+          restClientProvider.overrideWithValue(rest),
+          linkOpenerProvider.overrideWithValue(_RecordingLinkOpener()),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('landing-version')), findsNothing);
+    expect(find.byKey(const Key('landing-source')), findsOneWidget);
+    expect(find.byKey(const Key('landing-author')), findsOneWidget);
+  });
+
   testWidgets('German locale is complete for the landing page', (tester) async {
     await tester.pumpWidget(app(locale: const Locale('de')));
     await tester.pumpAndSettle();
@@ -93,4 +155,11 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+class _RecordingLinkOpener implements LinkOpener {
+  final opened = <String>[];
+
+  @override
+  void open(String url) => opened.add(url);
 }

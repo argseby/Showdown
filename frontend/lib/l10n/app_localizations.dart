@@ -134,6 +134,24 @@ abstract class AppLocalizations {
   /// **'That doesn\'t look like a table link or code.'**
   String get landingInvalidCode;
 
+  /// Footer line naming the build the API reports
+  ///
+  /// In en, this message translates to:
+  /// **'Server {version}'**
+  String landingServerVersion(String version);
+
+  /// No description provided for @landingSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source on GitHub'**
+  String get landingSource;
+
+  /// Footer credit on the start screen
+  ///
+  /// In en, this message translates to:
+  /// **'Created by {author}'**
+  String landingCreatedBy(String author);
+
   /// No description provided for @notFoundTitle.
   ///
   /// In en, this message translates to:

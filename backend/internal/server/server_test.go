@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"showdown/internal/buildinfo"
 	"showdown/internal/config"
 	"showdown/internal/store"
 	"showdown/internal/table"
@@ -165,5 +166,19 @@ func TestConfigEndpoint(t *testing.T) {
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"ice_servers":[{"urls":["stun:stun.example.org:3478"]},`) ||
 		!strings.Contains(rec.Body.String(), `{"credential":"p","urls":["turn:relay.example.org:3478"],"username":"u"}`) {
 		t.Fatalf("config = %d %s", rec.Code, rec.Body.String())
+	}
+	// The client shows this build on its start screen, so it must always
+	// be there and never be empty.
+	var body struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Version == "" {
+		t.Errorf("config carries no version: %s", rec.Body.String())
+	}
+	if body.Version != buildinfo.Version() {
+		t.Errorf("version = %q, want %q", body.Version, buildinfo.Version())
 	}
 }

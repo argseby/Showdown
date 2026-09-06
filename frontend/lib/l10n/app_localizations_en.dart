@@ -30,6 +30,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'That doesn\'t look like a table link or code.';
 
   @override
+  String landingServerVersion(String version) {
+    return 'Server $version';
+  }
+
+  @override
+  String get landingSource => 'Source on GitHub';
+
+  @override
+  String landingCreatedBy(String author) {
+    return 'Created by $author';
+  }
+
+  @override
   String get notFoundTitle => 'Page not found';
 
   @override
