@@ -1994,6 +1994,24 @@ abstract class AppLocalizations {
   /// **'All hands'**
   String get replayBackToList;
 
+  /// No description provided for @replayReveals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One player shows their cards} other{{count} players show their cards}}'**
+  String replayReveals(int count);
+
+  /// No description provided for @replayPrevHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous hand'**
+  String get replayPrevHand;
+
+  /// No description provided for @replayNextHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Next hand'**
+  String get replayNextHand;
+
   /// No description provided for @logDeadBlind.
   ///
   /// In en, this message translates to:
@@ -2467,6 +2485,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'0 to 120 seconds'**
   String get errTimeBank;
+
+  /// No description provided for @setTimeBankRefill.
+  ///
+  /// In en, this message translates to:
+  /// **'Time bank refill per hand (seconds)'**
+  String get setTimeBankRefill;
+
+  /// No description provided for @errTimeBankRefill.
+  ///
+  /// In en, this message translates to:
+  /// **'0 to 30 seconds'**
+  String get errTimeBankRefill;
 
   /// No description provided for @setAllowStraddle.
   ///

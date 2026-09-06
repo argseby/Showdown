@@ -11,6 +11,7 @@ import '../../../protocol/protocol.dart';
 import '../../../shared/chip_stack.dart';
 import '../../../shared/phrases.dart';
 import '../../../shared/playing_card.dart';
+import '../../../shared/pot_colors.dart';
 import '../table_session.dart';
 import 'seat_widget.dart';
 
@@ -92,16 +93,37 @@ class TableView extends ConsumerWidget {
     final chipDisplay = ref.watch(chipDisplayProvider);
     final scale = ref.watch(uiScaleProvider);
     final bigBlind = snap.table.settings.bigBlind;
-    // Once the pots are awarded, the winners' best five are highlighted in
-    // gold (board and hole cards). Nothing else is ever framed.
+    // Once a pot is awarded, every one of its winners has their best five
+    // highlighted (board and hole cards) in the pot's colour, a split pot
+    // included. Nothing else is ever framed.
+    List<String>? bestOf(int seat) {
+      for (final sv in snap.seats) {
+        if (sv.seat == seat && (sv.player?.bestCards?.isNotEmpty ?? false)) {
+          return sv.player!.bestCards;
+        }
+      }
+      return session.best[seat];
+    }
+
     final winnerBest = <String>{
-      for (final seat in session.winners) ...?session.best[seat],
+      for (final seat in session.winners) ...?bestOf(seat),
     };
     // Showdown spotlight (preference): the hand being shown, or the winner,
     // gets its five cards lifted and highlighted with its name in the middle.
     final spotlightOn = ref.watch(showdownSpotlightProvider);
-    final spot = spotlightOn ? session.spotlight : null;
+    final spot = _currentSpotlight(
+      spotlightOn ? session.spotlight : null,
+      snap,
+    );
     final spotCards = spot?.cards.toSet() ?? const <String>{};
+    final locale = Localizations.localeOf(context).toString();
+    // Winner visuals take the colour of the pot being presented: gold for
+    // the main pot, silver for the first side pot, bronze after that.
+    final winnerColor = potColor(session.winnerPotIndex ?? 0);
+    final highlightColor = spot != null && spot.winner
+        ? potColor(spot.potIndex ?? session.winnerPotIndex ?? 0)
+        : winnerColor;
+    final yourHand = session.isPlayer ? snap.you.handDescription : '';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -120,20 +142,62 @@ class TableView extends ConsumerWidget {
         // The seat ring: seat boxes are centered on this ellipse and stay
         // fully inside the available area (the bottom seat can never run
         // under the action bar).
+        // A little air between the viewer's seat and the action bar.
+        const bottomAir = 12.0;
         final oval = Rect.fromLTWH(
           seatW / 2 + 4,
           seatH / 2 + 4,
           math.max(40, size.width - seatW - 8),
-          math.max(40, size.height - seatH - 8),
+          math.max(40, size.height - seatH - 8 - bottomAir),
         );
-        // The felt sits inside the ring, clear of every seat box (the boxes
-        // are centered on the ring, so half a box plus a margin keeps them
-        // off the table at any position).
-        final felt = Rect.fromLTRB(
-          oval.left + seatW * (compact ? 0.5 : 0.55) + (compact ? 4 : 10),
-          oval.top + seatH * 0.55 + 8,
-          oval.right - seatW * (compact ? 0.5 : 0.55) - (compact ? 4 : 10),
-          oval.bottom - seatH * 0.55 - 8,
+        // A seat's content (cards, avatar, name, stack, badges) is shorter
+        // than its box; the spare height is kept on the felt side, so the
+        // upper seats hug the top of their box and the lower seats the
+        // bottom, and the felt may use that slack.
+        final contentH = (compact ? 130.0 : 156.0) * scale;
+        final slack = (seatH - contentH).clamp(0.0, seatH * 0.2);
+        // Every seat box (occupied or not) at its clamped place, and the
+        // part of it the content really occupies.
+        final boxes = <int, Rect>{};
+        final lowerHalf = <int, bool>{};
+        final occupied = <Rect>[];
+        for (var seat = 0; seat < maxPlayers; seat++) {
+          final pos = positionOf(seat, viewerSeat, maxPlayers);
+          final point = seatPoint(pos, maxPlayers, oval);
+          final box = Rect.fromLTWH(
+            (point.dx - seatW / 2).clamp(0.0, size.width - seatW),
+            (point.dy - seatH / 2).clamp(0.0, size.height - seatH),
+            seatW,
+            seatH,
+          );
+          boxes[seat] = box;
+          final lower = point.dy > oval.center.dy;
+          lowerHalf[seat] = lower;
+          occupied.add(
+            lower
+                ? Rect.fromLTRB(
+                    box.left,
+                    box.top + slack,
+                    box.right,
+                    box.bottom,
+                  )
+                : Rect.fromLTRB(
+                    box.left,
+                    box.top,
+                    box.right,
+                    box.bottom - slack,
+                  ),
+          );
+        }
+        // The felt is the largest stadium inside the ring that stays clear
+        // of every seat's content by a margin, so no card ever touches its
+        // line.
+        final felt = feltRect(
+          oval: oval,
+          boxes: occupied,
+          seatW: seatW,
+          seatH: seatH,
+          compact: compact,
         );
         final children = <Widget>[
           Positioned(
@@ -161,16 +225,15 @@ class TableView extends ConsumerWidget {
                   if (hand != null) ...[
                     _Board(
                       board: hand.board,
-                      best: spot != null
-                          ? spot.cards
-                          : winnerBest.isEmpty
-                          ? null
-                          : winnerBest.toList(),
+                      best: winnerBest.isNotEmpty
+                          ? winnerBest.toList()
+                          : spot?.cards,
                       lift: spotCards,
                       rabbit: hand.rabbitCards ?? const [],
                       fourColor: fourColor,
                       compact: compact,
                       scale: scale,
+                      highlightColor: highlightColor,
                     ),
                     if (spot != null) ...[
                       const Gap(4),
@@ -182,9 +245,35 @@ class TableView extends ConsumerWidget {
                           fontSize: compact ? 11 : 13,
                           fontWeight: FontWeight.w700,
                           color: spot.winner
-                              ? winnerGold
+                              ? highlightColor
                               : theme.colorScheme.foreground,
                         ),
+                      ),
+                    ],
+                    if (yourHand.isNotEmpty) ...[
+                      // The viewer's own hand, right under the community
+                      // cards where the eyes already are; it stays after a
+                      // fold and through the showdown.
+                      const Gap(4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.sparkles,
+                            size: 12,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                          const Gap(6),
+                          Text(
+                            l10n.yourHand(yourHand),
+                            key: const Key('your-hand'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: compact ? 11 : 12,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     if (hand.runTwice ?? false) ...[
@@ -206,6 +295,7 @@ class TableView extends ConsumerWidget {
                       compact: compact,
                       bigBlind: bigBlind,
                       chipDisplay: chipDisplay,
+                      activeIndex: session.winnerPotIndex,
                     ),
                   ] else
                     Text(
@@ -226,36 +316,43 @@ class TableView extends ConsumerWidget {
         for (final sv in snap.seats) {
           final pos = positionOf(sv.seat, viewerSeat, maxPlayers);
           final point = seatPoint(pos, maxPlayers, oval);
-          final left = (point.dx - seatW / 2).clamp(0.0, size.width - seatW);
-          final top = (point.dy - seatH / 2).clamp(0.0, size.height - seatH);
+          final box =
+              boxes[sv.seat] ??
+              Rect.fromCenter(center: point, width: seatW, height: seatH);
           children.add(
             Positioned(
-              left: left,
-              top: top,
+              left: box.left,
+              top: box.top,
               width: seatW,
               height: seatH,
               child: Align(
-                alignment: Alignment.topCenter,
+                alignment: lowerHalf[sv.seat] ?? false
+                    ? Alignment.bottomCenter
+                    : Alignment.topCenter,
                 child: SeatWidget(
                   seat: sv.seat,
                   player: sv.player,
                   hand: hand,
                   isViewer: session.isPlayer && sv.seat == session.mySeat,
                   turnTimeMs: snap.table.settings.turnTime * 1000,
-                  best: spot != null && spot.seat == sv.seat
+                  best: session.winners.contains(sv.seat)
+                      ? bestOf(sv.seat)
+                      : spot != null && spot.seat == sv.seat
                       ? spot.cards
-                      : spot == null && session.winners.contains(sv.seat)
-                      ? session.best[sv.seat]
                       : null,
+                  wonAmount: session.winnerAmounts[sv.seat],
+                  timeBankSeconds: snap.table.settings.timeBankSeconds,
                   handNumber: snap.table.handNumber,
                   bigBlind: bigBlind,
                   chipDisplay: chipDisplay,
                   winner: session.winners.contains(sv.seat),
+                  winnerColor: winnerColor,
                   compact: compact,
                   scale: scale,
-                  phrase: session.phrases[sv.seat] == null
-                      ? null
-                      : phraseLabel(l10n, session.phrases[sv.seat]!.phrase),
+                  // A quick phrase or a fresh chat line next to the avatar.
+                  phrase: session.phrases[sv.seat] != null
+                      ? phraseLabel(l10n, session.phrases[sv.seat]!.phrase)
+                      : session.chatBubbles[sv.seat],
                   onAdminTap:
                       onAdminTap != null &&
                           sv.player != null &&
@@ -292,59 +389,95 @@ class TableView extends ConsumerWidget {
               ),
             ),
           );
-          final bet = sv.player?.betThisStreet ?? 0;
-          final showBet =
-              hand != null && bet > 0 && (sv.player?.inHand ?? false);
-          // Bet chips sit just outside the seat box, towards the table,
-          // never over the seat's cards.
-          final toCenter = oval.center - point;
-          final dist = toCenter.distance;
-          final dir = dist == 0 ? const Offset(0, -1) : toCenter / dist;
-          final exitX = dir.dx == 0
-              ? double.infinity
-              : (seatW / 2) / dir.dx.abs();
-          final exitY = dir.dy == 0
-              ? double.infinity
-              : (seatH / 2) / dir.dy.abs();
-          final betDist = math.min(math.min(exitX, exitY) + 16, dist * 0.6);
-          final betPoint = point + dir * betDist;
+          final player = sv.player;
+          final bet = player?.betThisStreet ?? 0;
+          final inHand = hand != null && (player?.inHand ?? false);
+          final showBet = inHand && bet > 0;
+          final isTurn = hand?.toActSeat == sv.seat && hand?.phase == 'betting';
+          final lastAction = inHand && !isTurn ? player?.lastAction : null;
+          // The bet chips and the last action ("Check", "Raise to 300")
+          // straddle the felt's edge on the straight line from the seat to
+          // the middle of the table: the same spot for every seat, out of
+          // the middle where the board and the pots are, and off the seat's
+          // cards thanks to the slack kept on the felt side.
+          final betPoint = actionPoint(felt, box.center);
           children.add(
             Positioned(
-              left: betPoint.dx - 40,
-              top: betPoint.dy - 10,
-              width: 80,
-              // Bets fade out when the street ends and the chips move to the pot.
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: !showBet
-                    ? const SizedBox.shrink()
-                    : Center(
-                        key: ValueKey('bet-${sv.seat}-$bet'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.background.withValues(
-                              alpha: 0.85,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ChipAmount(
-                            amount: bet,
-                            bigBlind: bigBlind,
-                            size: 12,
-                            style: TextStyle(
-                              fontSize: compact ? 11 : 12,
-                              fontFamily: 'GeistMono',
-                            ),
-                          ),
-                        ),
+              key: ValueKey('seat-action-${sv.seat}'),
+              left: betPoint.dx - 60,
+              top: betPoint.dy - 20,
+              width: 120,
+              height: 40,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (lastAction != null)
+                    FadingActionLabel(
+                      key: ValueKey(
+                        'action-${sv.seat}-${lastAction.kind}-${lastAction.amount}-${hand?.street}',
                       ),
+                      text: actionLabel(
+                        l10n,
+                        lastAction,
+                        chipDisplay: chipDisplay,
+                        bigBlind: bigBlind,
+                        locale: locale,
+                      ),
+                    ),
+                  // Bets fade out when the street ends and the chips move
+                  // to the pot.
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: !showBet
+                        ? const SizedBox.shrink()
+                        : Container(
+                            key: ValueKey('bet-${sv.seat}-$bet'),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.background.withValues(
+                                alpha: 0.85,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ChipAmount(
+                              amount: bet,
+                              bigBlind: bigBlind,
+                              size: 12,
+                              style: TextStyle(
+                                fontSize: compact ? 11 : 12,
+                                fontFamily: 'GeistMono',
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
               ),
             ),
           );
+        }
+        // Chips fly from the pot on display to each of its winners.
+        if (hand != null && session.winnerPotIndex != null) {
+          final from = Offset(
+            felt.center.dx,
+            felt.center.dy + (compact ? 34 : 48),
+          );
+          for (final seat in session.winners) {
+            final box = boxes[seat];
+            if (box == null) continue;
+            children.add(
+              _FlyingChips(
+                key: ValueKey(
+                  'fly-${snap.table.handNumber}-${session.winnerPotIndex}-$seat',
+                ),
+                from: from,
+                to: box.center,
+                color: winnerColor,
+              ),
+            );
+          }
         }
         if (hand == null && snap.spectators > 0) {
           children.add(
@@ -367,6 +500,127 @@ class TableView extends ConsumerWidget {
   }
 }
 
+/// The largest stadium (a rectangle with semicircular ends, which is what
+/// the felt is drawn as) centred in [oval] that keeps a margin from every
+/// seat box. For a given height the straight part is as long as the boxes
+/// beside the ends allow; the height is chosen so that the stadium's area
+/// is the largest (a flatter felt clears the diagonal seats with a longer
+/// straight part), never below a third of the ring's height.
+Rect feltRect({
+  required Rect oval,
+  required Iterable<Rect> boxes,
+  required double seatW,
+  required double seatH,
+  required bool compact,
+}) {
+  final c = oval.center;
+  final margin = compact ? 6.0 : 10.0;
+  // Never larger than the plain inset of the ring by half a box.
+  var hMax = oval.height / 2 - seatH * 0.55 - 8;
+  final maxW = oval.width / 2 - seatW * (compact ? 0.5 : 0.55) - margin;
+  final gaps = <(double, double)>[];
+  for (final b in boxes) {
+    final dx = math.max(0.0, math.max(b.left - c.dx, c.dx - b.right));
+    final dy = math.max(0.0, math.max(b.top - c.dy, c.dy - b.bottom));
+    gaps.add((dx, dy));
+    // The rounded ends have radius h, so no box corner may come closer
+    // than h plus the margin to the centre line.
+    hMax = math.min(hMax, math.sqrt(dx * dx + dy * dy) - margin);
+  }
+  hMax = math.max(hMax, 20);
+  final hMin = math.max(20.0, math.min(hMax, oval.height / 6));
+  double straight(double h) {
+    final r = h + margin;
+    var l = math.max(0.0, maxW - h);
+    for (final (dx, dy) in gaps) {
+      if (dy >= r) continue;
+      l = math.min(l, dx - math.sqrt(r * r - dy * dy));
+    }
+    return math.max(l, 0);
+  }
+
+  var bestH = hMax;
+  var bestL = straight(hMax);
+  var bestArea = (bestH + bestL) * bestH;
+  const steps = 40;
+  for (var i = 1; i <= steps; i++) {
+    final h = hMax - (hMax - hMin) * i / steps;
+    final l = straight(h);
+    final area = (h + l) * h;
+    if (area > bestArea) {
+      bestH = h;
+      bestL = l;
+      bestArea = area;
+    }
+  }
+  final best = Rect.fromCenter(
+    center: c,
+    width: 2 * (bestH + bestL),
+    height: 2 * bestH,
+  );
+  // On a phone the seat boxes leave no room for a clear felt that still
+  // holds the board; there the plain inset of the ring wins, overlaps and
+  // all, as before.
+  final fallback = Rect.fromLTRB(
+    oval.left + seatW * (compact ? 0.5 : 0.55) + (compact ? 4 : 10),
+    oval.top + seatH * 0.55 + 8,
+    oval.right - seatW * (compact ? 0.5 : 0.55) - (compact ? 4 : 10),
+    oval.bottom - seatH * 0.55 - 8,
+  );
+  final minWidth = math.min(fallback.width, compact ? 190.0 : 320.0);
+  return best.width < minWidth ? fallback : best;
+}
+
+/// Where a seat's bet chips and action label go: at the point of the
+/// felt's edge nearest to the seat (straight in front of it, whatever the
+/// width of the table), pulled in a little so the pill straddles the edge.
+Offset actionPoint(Rect felt, Offset seat) {
+  final c = felt.center;
+  final h = felt.height / 2;
+  final half = math.max(0.0, felt.width / 2 - h);
+  // The felt is a stadium: the nearest edge point lies on the ray from the
+  // nearest point of its centre segment to the seat.
+  final anchor = Offset((seat.dx - c.dx).clamp(-half, half) + c.dx, c.dy);
+  final toSeat = seat - anchor;
+  final dist = toSeat.distance;
+  if (dist == 0) return anchor;
+  final dir = toSeat / dist;
+  // The pill straddles the edge: a little more than half of it lies on
+  // the felt (it is wider than tall, so the pull-in follows the direction).
+  final inset = dir.dx.abs() * 30 + dir.dy.abs() * 10;
+  return anchor + dir * math.max(0.0, math.min(h, dist) - inset);
+}
+
+/// The spotlight as it should be drawn now: the reveal event names the hand
+/// as it was when the cards were turned over, but during a run-out the
+/// board keeps growing, so the snapshot's description and best five of the
+/// revealed seat win whenever the server provides them.
+Spotlight? _currentSpotlight(Spotlight? spot, Snapshot snap) {
+  if (spot == null) return null;
+  for (final sv in snap.seats) {
+    if (sv.seat != spot.seat) continue;
+    final p = sv.player;
+    if (p == null || !p.inHand || p.folded) return spot;
+    final cards = p.bestCards;
+    final description = p.handDescription;
+    if (cards == null || cards.isEmpty || description == null) return spot;
+    if (cards.length == spot.cards.length &&
+        cards.toSet().containsAll(spot.cards) &&
+        description == spot.description) {
+      return spot;
+    }
+    return Spotlight(
+      seat: spot.seat,
+      name: spot.name,
+      cards: cards,
+      description: description.isEmpty ? spot.description : description,
+      winner: spot.winner,
+      potIndex: spot.potIndex,
+    );
+  }
+  return spot;
+}
+
 class _Board extends StatelessWidget {
   const _Board({
     super.key,
@@ -377,9 +631,13 @@ class _Board extends StatelessWidget {
     required this.compact,
     required this.scale,
     this.lift = const {},
+    this.highlightColor = winnerGold,
   });
   final List<String> board;
   final List<String>? best;
+
+  /// Frame colour of the highlighted cards (the pot's colour).
+  final Color highlightColor;
 
   /// Cards drawn a little higher (the hand under the spotlight).
   final Set<String> lift;
@@ -414,7 +672,7 @@ class _Board extends StatelessWidget {
                         width: w,
                         fourColor: fourColor,
                         highlighted: best != null && best!.contains(board[i]),
-                        highlightColor: winnerGold,
+                        highlightColor: highlightColor,
                       ),
                     ),
                   )
@@ -483,6 +741,63 @@ class _DealCardState extends State<_DealCard>
   }
 }
 
+/// A stack of chips sliding from the pot to a winner's seat, fading out
+/// as it arrives.
+class _FlyingChips extends StatelessWidget {
+  const _FlyingChips({
+    super.key,
+    required this.from,
+    required this.to,
+    required this.color,
+  });
+  final Offset from;
+  final Offset to;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOutCubic,
+      builder: (context, t, child) {
+        final p = Offset.lerp(from, to, t)!;
+        final opacity = t < 0.8 ? 1.0 : (1 - (t - 0.8) / 0.2).clamp(0.0, 1.0);
+        return Positioned(
+          left: p.dx - 14,
+          top: p.dy - 14,
+          child: IgnorePointer(
+            child: Opacity(opacity: opacity, child: child),
+          ),
+        );
+      },
+      child: SizedBox(
+        width: 28,
+        height: 28,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 8,
+              child: ChipIcon(size: 18, color: color),
+            ),
+            Positioned(
+              left: 6,
+              top: 4,
+              child: ChipIcon(size: 18, color: color),
+            ),
+            Positioned(
+              left: 12,
+              top: 0,
+              child: ChipIcon(size: 18, color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _Pots extends StatelessWidget {
   const _Pots({
     required this.pots,
@@ -490,12 +805,17 @@ class _Pots extends StatelessWidget {
     required this.compact,
     required this.bigBlind,
     required this.chipDisplay,
+    this.activeIndex,
   });
   final List<PotView> pots;
   final String phase;
   final bool compact;
   final int bigBlind;
   final ChipDisplay chipDisplay;
+
+  /// The pot being presented right now: drawn filled in its colour and a
+  /// little larger, the others muted.
+  final int? activeIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -509,38 +829,60 @@ class _Pots extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: [
         for (var i = 0; i < pots.length; i++)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.muted,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${i == 0 ? l10n.mainPot : l10n.sidePot(i)}: ',
-                  style: TextStyle(
-                    fontSize: compact ? 11 : 12,
-                    color: theme.colorScheme.mutedForeground,
+          AnimatedScale(
+            scale: activeIndex == i ? 1.12 : 1,
+            duration: const Duration(milliseconds: 250),
+            child: AnimatedOpacity(
+              opacity: activeIndex == null || activeIndex == i ? 1 : 0.45,
+              duration: const Duration(milliseconds: 250),
+              child: Container(
+                key: ValueKey('pot-$i'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: activeIndex == i
+                      ? potColor(i)
+                      : theme.colorScheme.muted,
+                  borderRadius: BorderRadius.circular(12),
+                  // Main pot gold, first side pot silver, the rest bronze.
+                  border: Border.all(
+                    color: potColor(i).withValues(alpha: 0.8),
+                    width: 1.5,
                   ),
                 ),
-                ChipIcon(size: 12, color: theme.colorScheme.primary),
-                const Gap(4),
-                Text(
-                  formatAmount(
-                    pots[i].amount,
-                    mode: chipDisplay,
-                    bigBlind: bigBlind,
-                    locale: locale,
-                  ),
-                  style: TextStyle(
-                    fontSize: compact ? 11 : 12,
-                    fontFamily: 'GeistMono',
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${i == 0 ? l10n.mainPot : l10n.sidePot(i)}: ',
+                      style: TextStyle(
+                        fontSize: compact ? 11 : 12,
+                        color: activeIndex == i
+                            ? potInk
+                            : theme.colorScheme.mutedForeground,
+                      ),
+                    ),
+                    ChipIcon(
+                      size: 12,
+                      color: activeIndex == i ? potInk : potColor(i),
+                    ),
+                    const Gap(4),
+                    Text(
+                      formatAmount(
+                        pots[i].amount,
+                        mode: chipDisplay,
+                        bigBlind: bigBlind,
+                        locale: locale,
+                      ),
+                      style: TextStyle(
+                        fontSize: compact ? 11 : 12,
+                        fontFamily: 'GeistMono',
+                        fontWeight: FontWeight.w600,
+                        color: activeIndex == i ? potInk : null,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
       ],

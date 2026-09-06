@@ -108,7 +108,7 @@ void main() {
     expect(acted, ['sit_in']);
   });
 
-  testWidgets('show one card, rabbit hunt and the hand line', (tester) async {
+  testWidgets('show one card and rabbit hunt after the hand', (tester) async {
     final s = fixtureSnapshot();
     final result = s.copyWith(
       you: s.you.copyWith(
@@ -119,7 +119,8 @@ void main() {
       ),
     );
     final (_, acted) = await pump(tester, result, shown: const [true, false]);
-    expect(find.byKey(const Key('your-hand')), findsOneWidget);
+    // The hand line lives on the felt now, not in the action bar.
+    expect(find.byKey(const Key('your-hand')), findsNothing);
     expect(
       tester
           .widget<OutlineButton>(find.byKey(const Key('show-first')))

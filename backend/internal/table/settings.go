@@ -55,8 +55,10 @@ type Settings struct {
 	BlindsUpMinutes int
 	BlindsUpPercent int
 	// TimeBankSeconds is the extra thinking time each player can spend when
-	// the turn clock runs out (0 = off); it refills by timeBankRefill per hand.
-	TimeBankSeconds int
+	// the turn clock runs out (0 = off). TimeBankRefillSeconds is regained
+	// after every hand the player was dealt in without using the bank.
+	TimeBankSeconds       int
+	TimeBankRefillSeconds int
 	// AllowStraddle lets the seat left of the big blind post 2x the big blind.
 	AllowStraddle bool
 	// RunItTwice offers to run the board twice when everyone is all-in.
@@ -71,7 +73,7 @@ func DefaultSettings() Settings {
 		JoinPolicy: JoinAlways, AllowSpectators: true, SpectatorChat: true, ChatEnabled: true,
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
 		AllowRabbitHunt: true, BlindsUpMinutes: 0, BlindsUpPercent: 100,
-		TimeBankSeconds: 30, AllowStraddle: false, RunItTwice: false,
+		TimeBankSeconds: 30, TimeBankRefillSeconds: 1, AllowStraddle: false, RunItTwice: false,
 	}
 }
 
@@ -83,7 +85,7 @@ func (s Settings) Public() protocol.PublicSettings {
 		AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal, ChatEnabled: s.ChatEnabled,
 		SpectatorChat: s.SpectatorChat, RequiresPassword: s.PasswordHash != "",
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
-		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -97,7 +99,7 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
-		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -111,7 +113,7 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 		ChatEnabled: r.ChatEnabled, AllowRebuy: r.AllowRebuy, ShowdownReveal: r.ShowdownReveal,
 		AutoStart: r.AutoStart, HandDelayMs: r.HandDelayMs,
 		AllowRabbitHunt: r.AllowRabbitHunt, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
-		TimeBankSeconds: r.TimeBankSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
+		TimeBankSeconds: r.TimeBankSeconds, TimeBankRefillSeconds: r.TimeBankRefillSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
 	}
 }
 
@@ -139,6 +141,7 @@ type AdminView struct {
 	BlindsUpMinutes        int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        int    `json:"blinds_up_percent"`
 	TimeBankSeconds        int    `json:"time_bank_seconds"`
+	TimeBankRefillSeconds  int    `json:"time_bank_refill_seconds"`
 	AllowStraddle          bool   `json:"allow_straddle"`
 	RunItTwice             bool   `json:"run_it_twice"`
 }
@@ -153,7 +156,7 @@ func (s Settings) Admin() AdminView {
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
-		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -182,6 +185,7 @@ type SettingsPatch struct {
 	BlindsUpMinutes        *int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        *int    `json:"blinds_up_percent"`
 	TimeBankSeconds        *int    `json:"time_bank_seconds"`
+	TimeBankRefillSeconds  *int    `json:"time_bank_refill_seconds"`
 	AllowStraddle          *bool   `json:"allow_straddle"`
 	RunItTwice             *bool   `json:"run_it_twice"`
 }
@@ -309,6 +313,10 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 		out.TimeBankSeconds = *p.TimeBankSeconds
 		set("time_bank_seconds")
 	}
+	if p.TimeBankRefillSeconds != nil {
+		out.TimeBankRefillSeconds = *p.TimeBankRefillSeconds
+		set("time_bank_refill_seconds")
+	}
 	if p.AllowStraddle != nil {
 		out.AllowStraddle = *p.AllowStraddle
 		set("allow_straddle")
@@ -388,6 +396,9 @@ func (s Settings) Validate(seated int) error {
 	}
 	if s.TimeBankSeconds < 0 || s.TimeBankSeconds > 120 {
 		ve.add("time_bank_seconds", "must be between 0 (off) and 120")
+	}
+	if s.TimeBankRefillSeconds < 0 || s.TimeBankRefillSeconds > 30 {
+		ve.add("time_bank_refill_seconds", "must be between 0 and 30")
 	}
 	if len(ve.Fields) > 0 {
 		return &ve

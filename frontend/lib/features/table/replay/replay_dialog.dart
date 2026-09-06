@@ -75,11 +75,26 @@ class _ReplayDialogState extends ConsumerState<ReplayDialog> {
   @override
   void initState() {
     super.initState();
-    if (widget.initial != null) {
-      _select(widget.initial!);
-    } else {
-      _load();
-    }
+    if (widget.initial != null) _select(widget.initial!);
+    // The list is loaded either way: it drives "previous/next hand".
+    _load();
+  }
+
+  /// The playable hands in table order (oldest first).
+  List<HandRecord> get _playable => [
+    for (final h in _hands ?? const <HandRecord>[])
+      if (!h.voided) h,
+  ]..sort((a, b) => a.number.compareTo(b.number));
+
+  /// The hand before/after the current one, when the list has it.
+  HandRecord? _neighbour(int delta) {
+    final current = _hand;
+    if (current == null) return null;
+    final list = _playable;
+    final i = list.indexWhere((h) => h.number == current.number);
+    if (i < 0) return null;
+    final j = i + delta;
+    return j >= 0 && j < list.length ? list[j] : null;
   }
 
   @override
@@ -195,9 +210,16 @@ class _ReplayDialogState extends ConsumerState<ReplayDialog> {
         best: frame.best,
         revealed: frame.revealed,
         winners: frame.winners,
+        winnerPotIndex: frame.potIndex,
+        winnerAmounts: frame.amounts,
+        spotlight: frame.spotlight,
       );
+      // The reveal step names nobody here (the table shows the cards); a
+      // list of every hand would not fit on a phone.
       final line = frame.event == null
           ? l10n.replayStart
+          : frame.event!.kind == 'hands_revealed'
+          ? l10n.replayReveals(frame.event!.reveals?.length ?? 0)
           : logLineText(
                   l10n,
                   LogEntry(
@@ -270,6 +292,24 @@ class _ReplayDialogState extends ConsumerState<ReplayDialog> {
                       : () => _seek(_step + 1),
                   leading: const Icon(LucideIcons.skipForward),
                   child: Text(l10n.replayNext),
+                ),
+                GhostButton(
+                  key: const Key('replay-prev-hand'),
+                  size: ButtonSize.small,
+                  onPressed: _neighbour(-1) == null
+                      ? null
+                      : () => _select(_neighbour(-1)!),
+                  leading: const Icon(LucideIcons.chevronsLeft),
+                  child: Text(l10n.replayPrevHand),
+                ),
+                GhostButton(
+                  key: const Key('replay-next-hand'),
+                  size: ButtonSize.small,
+                  onPressed: _neighbour(1) == null
+                      ? null
+                      : () => _select(_neighbour(1)!),
+                  leading: const Icon(LucideIcons.chevronsRight),
+                  child: Text(l10n.replayNextHand),
                 ),
                 if (widget.initial == null)
                   GhostButton(

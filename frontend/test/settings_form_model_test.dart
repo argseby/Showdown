@@ -9,7 +9,7 @@ void main() {
     expect(f.toPatch(), isEmpty);
     expect(f.hasChanges, isFalse);
     final all = f.toPatch(all: true);
-    expect(all.length, 22);
+    expect(all.length, 23);
     expect(all['big_blind'], 100);
     expect(all.containsKey('password'), isFalse);
   });

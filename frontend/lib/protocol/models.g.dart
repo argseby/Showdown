@@ -213,6 +213,8 @@ _PublicSettings _$PublicSettingsFromJson(Map<String, dynamic> json) =>
       blindsUpMinutes: (json['blinds_up_minutes'] as num).toInt(),
       blindsUpPercent: (json['blinds_up_percent'] as num).toInt(),
       timeBankSeconds: (json['time_bank_seconds'] as num?)?.toInt() ?? 0,
+      timeBankRefillSeconds:
+          (json['time_bank_refill_seconds'] as num?)?.toInt() ?? 1,
       allowStraddle: json['allow_straddle'] as bool? ?? false,
       runItTwice: json['run_it_twice'] as bool? ?? false,
     );
@@ -235,6 +237,7 @@ Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
       'blinds_up_minutes': instance.blindsUpMinutes,
       'blinds_up_percent': instance.blindsUpPercent,
       'time_bank_seconds': instance.timeBankSeconds,
+      'time_bank_refill_seconds': instance.timeBankRefillSeconds,
       'allow_straddle': instance.allowStraddle,
       'run_it_twice': instance.runItTwice,
     };
@@ -276,6 +279,10 @@ _PlayerView _$PlayerViewFromJson(Map<String, dynamic> json) => _PlayerView(
   lastAction: json['last_action'] == null
       ? null
       : LastAction.fromJson(json['last_action'] as Map<String, dynamic>),
+  handDescription: json['hand_description'] as String?,
+  bestCards: (json['best_cards'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$PlayerViewToJson(_PlayerView instance) =>
@@ -300,6 +307,8 @@ Map<String, dynamic> _$PlayerViewToJson(_PlayerView instance) =>
       'total_bet': instance.totalBet,
       'hole_cards': ?instance.holeCards,
       'last_action': instance.lastAction?.toJson(),
+      'hand_description': ?instance.handDescription,
+      'best_cards': ?instance.bestCards,
     };
 
 _LastAction _$LastActionFromJson(Map<String, dynamic> json) => _LastAction(

@@ -117,6 +117,7 @@ func (t *Table) startHand(eligible []*Player) {
 		}
 		stacks[p.Seat] = p.Stack
 		p.vpipThisHand = false
+		p.usedTimeBank = false
 	}
 	// Straddle: the third eligible seat clockwise from the button (left of
 	// the big blind) posts 2x the big blind when armed and allowed.
@@ -241,6 +242,10 @@ func (t *Table) afterEngine() {
 			showdown := t.deps.Delays.Showdown
 			if !t.hand.Staged() {
 				showdown += time.Duration(max(t.revealedCount()-1, 0)) * t.deps.Delays.ShowdownPerHand
+			}
+			// Every additional pot is presented on its own by the clients.
+			if res := t.hand.Results(); res != nil && len(res.Pots) > 1 {
+				showdown += time.Duration(len(res.Pots)-1) * t.deps.Delays.PotAward
 			}
 			t.handPhase = "showdown"
 			t.phaseEndsAt = t.nowMs() + showdown.Milliseconds()
@@ -400,6 +405,7 @@ func (t *Table) onTurnTimeout(seat int) {
 		// The clock ran out: the time bank kicks in once, for whatever is
 		// left of it. Unused seconds are refunded when the player acts.
 		t.timeBankUsing = true
+		p.usedTimeBank = true
 		t.deadline = t.nowMs() + int64(p.TimeBank)*1000
 		t.touch()
 		t.schedule(time.Duration(p.TimeBank)*time.Second, func() { t.onTurnTimeout(seat) })
@@ -422,10 +428,6 @@ func (t *Table) onTurnTimeout(seat int) {
 
 // finishHand does the between-hands bookkeeping as soon as the engine
 // reaches the result phase (stacks are final at that point).
-// timeBankRefill is how many seconds of time bank a player regains per hand
-// (up to the table's time_bank_seconds).
-const timeBankRefill = 5
-
 func (t *Table) finishHand() {
 	res := t.hand.Results()
 	contested := t.contested()
@@ -461,11 +463,9 @@ func (t *Table) finishHand() {
 		if p == nil || !p.inHand {
 			continue
 		}
-		// The sit-out fold is per hand; check/fold and call any stay armed
-		// until the player switches them off.
-		if p.preAction == preFold {
-			p.preAction = ""
-		}
+		// Every pre-action is per hand: the sit-out fold, check/fold and
+		// call any are cleared when the hand ends so nothing carries over.
+		p.preAction = ""
 		if p.vpipThisHand {
 			p.VPIPHands++
 			p.vpipThisHand = false
@@ -478,9 +478,11 @@ func (t *Table) finishHand() {
 				}
 			}
 		}
-		if t.settings.TimeBankSeconds > 0 {
-			p.TimeBank = min(t.settings.TimeBankSeconds, p.TimeBank+timeBankRefill)
+		if t.settings.TimeBankSeconds > 0 && !p.usedTimeBank {
+			// A hand played on the plain clock earns time bank back.
+			p.TimeBank = min(t.settings.TimeBankSeconds, p.TimeBank+t.settings.TimeBankRefillSeconds)
 		}
+		p.usedTimeBank = false
 		if p.Stack == 0 && p.Status == StatusActive {
 			p.Status = StatusBusted
 			t.emit(protocol.Event{Kind: "player_busted", Seat: protocol.Int(p.Seat), Name: p.Name})
@@ -588,6 +590,7 @@ func (t *Table) voidHand(reason string) {
 		if p := t.seats[seat]; p != nil {
 			p.Stack = stack
 			p.inHand = false
+			p.preAction = ""
 			t.persistPlayer(p)
 		}
 	}
@@ -627,8 +630,9 @@ func (t *Table) endTable() {
 	t.closeAfterFlush = &closeRequest{code: protocol.CloseTableGone, reason: "table_ended"}
 }
 
-// assignPlaces gives every seated player without a placement one, by stack
-// (the chip leader is first); busted players already hold theirs.
+// assignPlaces gives every seated player without a placement one, by net
+// result (stack minus everything bought in, so rebuys count against a
+// player); the stack breaks ties. Busted players already hold theirs.
 func (t *Table) assignPlaces() {
 	var open []*Player
 	taken := 0
@@ -642,7 +646,13 @@ func (t *Table) assignPlaces() {
 			open = append(open, p)
 		}
 	}
-	sort.SliceStable(open, func(i, j int) bool { return open[i].Stack > open[j].Stack })
+	sort.SliceStable(open, func(i, j int) bool {
+		ni, nj := open[i].Stack-open[i].BuyInTotal, open[j].Stack-open[j].BuyInTotal
+		if ni != nj {
+			return ni > nj
+		}
+		return open[i].Stack > open[j].Stack
+	})
 	for i, p := range open {
 		p.Place = i + 1
 	}

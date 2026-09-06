@@ -77,8 +77,10 @@ abstract class VoiceEngine {
   /// Creates an offer for [peerId] and returns its serialized description.
   Future<String> createOffer(String peerId);
 
-  /// Accepts a remote offer and returns the serialized answer.
-  Future<String> acceptOffer(String peerId, String offer);
+  /// Accepts a remote offer and returns the serialized answer, or null when
+  /// the offer was ignored because this side is in the middle of its own
+  /// offer and is the impolite peer (perfect negotiation).
+  Future<String?> acceptOffer(String peerId, String offer);
   Future<void> acceptAnswer(String peerId, String answer);
   Future<void> addIceCandidate(String peerId, String candidate);
   void closePeer(String peerId);

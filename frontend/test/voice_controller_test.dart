@@ -39,15 +39,23 @@ class FakeEngine implements VoiceEngine {
     return 'offer-for-$peerId';
   }
 
+  /// When set, answers take a moment to apply (as setRemoteDescription
+  /// does in a browser), so the order of the calls shows whether the
+  /// controller serialises the signals of one peer.
+  bool slow = false;
+
   @override
-  Future<String> acceptOffer(String peerId, String offer) async {
+  Future<String?> acceptOffer(String peerId, String offer) async {
     calls.add('accept:$peerId:$offer');
     return 'answer-for-$peerId';
   }
 
   @override
-  Future<void> acceptAnswer(String peerId, String answer) async =>
-      calls.add('answer:$peerId:$answer');
+  Future<void> acceptAnswer(String peerId, String answer) async {
+    if (slow) await Future<void>.delayed(const Duration(milliseconds: 5));
+    calls.add('answer:$peerId:$answer');
+  }
+
   @override
   Future<void> addIceCandidate(String peerId, String candidate) async =>
       calls.add('ice:$peerId:$candidate');
@@ -200,5 +208,54 @@ void main() {
     expect(s.enabled, isFalse);
     expect(s.unavailable, isTrue);
     expect(sentTypes(), isNot(contains('voice')));
+  });
+  _orderTests();
+}
+
+void _orderTests() {
+  group('signal order', () {
+    late FakeEngine engine;
+    late ScriptedTransport transport;
+    late ProviderContainer container;
+    setUp(() {
+      engine = FakeEngine();
+      transport = ScriptedTransport();
+      VoiceController.engineFactory = () => engine;
+      TableSessionNotifier.transportFactoryOverride = (_) => transport;
+      TableSessionNotifier.urlOverride = (id) => Uri.parse('ws://test/$id');
+      container = ProviderContainer();
+    });
+    tearDown(() {
+      VoiceController.engineFactory = null;
+      TableSessionNotifier.transportFactoryOverride = null;
+      TableSessionNotifier.urlOverride = null;
+      container.dispose();
+    });
+
+    test(
+      'an ice candidate never overtakes the answer of the same peer',
+      () async {
+        engine.slow = true;
+        container.read(tableSessionProvider('t1').notifier).start('tok');
+        await Future<void>.delayed(Duration.zero);
+        final voice = container.read(voiceControllerProvider('t1').notifier);
+        await voice.enable();
+        transport.push('voice_signal', {
+          'from': 'p4',
+          'kind': 'answer',
+          'data': 'a',
+        });
+        transport.push('voice_signal', {
+          'from': 'p4',
+          'kind': 'ice',
+          'data': 'c',
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        final order = engine.calls
+            .where((c) => c.startsWith('answer:') || c.startsWith('ice:'))
+            .toList();
+        expect(order, ['answer:p4:a', 'ice:p4:c']);
+      },
+    );
   });
 }

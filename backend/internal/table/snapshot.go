@@ -114,6 +114,12 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 							}
 						}
 					}
+					if st.Revealed && !st.Folded {
+						// Public cards, public hand: everyone sees what the
+						// revealed hand makes on the board as it runs out.
+						pv.HandDescription = t.hand.Description(seat)
+						pv.BestCards = cardStrings(t.hand.BestCards(seat))
+					}
 				}
 			}
 			sv.Player = pv
@@ -183,10 +189,10 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 				if seat, ok := t.hand.ToAct(); ok && seat == p.Seat {
 					you.Options = optionsView(t.hand.Options(seat))
 				}
-				if st, _ := t.hand.State(p.Seat); !st.Folded {
-					you.HandDescription = t.hand.Description(p.Seat)
-					you.BestCards = cardStrings(t.hand.BestCards(p.Seat))
-				}
+				// The viewer's own hand is described for the whole hand,
+				// folded or not, so they can still talk about it.
+				you.HandDescription = t.hand.Description(p.Seat)
+				you.BestCards = cardStrings(t.hand.BestCards(p.Seat))
 				you.CanShowCards = t.hand.CanShowCards(p.Seat)
 				you.CanRabbitHunt = t.canRabbitHunt(p)
 			}

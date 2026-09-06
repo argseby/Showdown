@@ -23,6 +23,7 @@ class AdminSettings {
     this.blindsUpMinutes = 0,
     this.blindsUpPercent = 100,
     this.timeBankSeconds = 30,
+    this.timeBankRefillSeconds = 1,
     this.allowStraddle = false,
     this.runItTwice = false,
   });
@@ -49,6 +50,7 @@ class AdminSettings {
     blindsUpMinutes: json['blinds_up_minutes'] as int? ?? 0,
     blindsUpPercent: json['blinds_up_percent'] as int? ?? 100,
     timeBankSeconds: json['time_bank_seconds'] as int? ?? 30,
+    timeBankRefillSeconds: json['time_bank_refill_seconds'] as int? ?? 1,
     allowStraddle: json['allow_straddle'] as bool? ?? false,
     runItTwice: json['run_it_twice'] as bool? ?? false,
   );
@@ -95,6 +97,7 @@ class AdminSettings {
   final int blindsUpMinutes;
   final int blindsUpPercent;
   final int timeBankSeconds;
+  final int timeBankRefillSeconds;
   final bool allowStraddle;
   final bool runItTwice;
 
@@ -120,6 +123,7 @@ class AdminSettings {
     'blinds_up_minutes': blindsUpMinutes,
     'blinds_up_percent': blindsUpPercent,
     'time_bank_seconds': timeBankSeconds,
+    'time_bank_refill_seconds': timeBankRefillSeconds,
     'allow_straddle': allowStraddle,
     'run_it_twice': runItTwice,
   };

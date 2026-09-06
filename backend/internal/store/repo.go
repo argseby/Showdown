@@ -62,8 +62,9 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 		INSERT INTO table_settings (table_id, password_hash, max_players, start_money, small_blind, big_blind, ante,
 			turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 			spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
-			allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice,
+			time_bank_refill_seconds)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(table_id) DO UPDATE SET
 			password_hash = excluded.password_hash, max_players = excluded.max_players,
 			start_money = excluded.start_money, small_blind = excluded.small_blind,
@@ -76,11 +77,13 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 			auto_start = excluded.auto_start, hand_delay_ms = excluded.hand_delay_ms,
 			allow_rabbit_hunt = excluded.allow_rabbit_hunt, blinds_up_minutes = excluded.blinds_up_minutes,
 			blinds_up_percent = excluded.blinds_up_percent, time_bank_seconds = excluded.time_bank_seconds,
-			allow_straddle = excluded.allow_straddle, run_it_twice = excluded.run_it_twice`,
+			allow_straddle = excluded.allow_straddle, run_it_twice = excluded.run_it_twice,
+			time_bank_refill_seconds = excluded.time_bank_refill_seconds`,
 		st.TableID, st.PasswordHash, st.MaxPlayers, st.StartMoney, st.SmallBlind, st.BigBlind, st.Ante,
 		st.TurnTime, st.DisconnectedTurnTime, st.SitOutAfterMissedTurns, st.JoinPolicy, b2i(st.AllowSpectators),
 		b2i(st.SpectatorChat), b2i(st.ChatEnabled), b2i(st.AllowRebuy), st.ShowdownReveal, b2i(st.AutoStart), st.HandDelayMs,
-		b2i(st.AllowRabbitHunt), st.BlindsUpMinutes, st.BlindsUpPercent, st.TimeBankSeconds, b2i(st.AllowStraddle), b2i(st.RunItTwice))
+		b2i(st.AllowRabbitHunt), st.BlindsUpMinutes, st.BlindsUpPercent, st.TimeBankSeconds, b2i(st.AllowStraddle), b2i(st.RunItTwice),
+		st.TimeBankRefillSeconds)
 	if err != nil {
 		return fmt.Errorf("upsert settings: %w", err)
 	}
@@ -132,7 +135,8 @@ func (s *Store) GetTable(ctx context.Context, id string) (TableRow, SettingsRow,
 const settingsCols = `table_id, password_hash, max_players, start_money, small_blind, big_blind, ante,
 	turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 	spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
-	allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice`
+	allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice,
+	time_bank_refill_seconds`
 
 func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error) {
 	var st SettingsRow
@@ -141,7 +145,7 @@ func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error)
 		&st.TableID, &st.PasswordHash, &st.MaxPlayers, &st.StartMoney, &st.SmallBlind, &st.BigBlind, &st.Ante,
 		&st.TurnTime, &st.DisconnectedTurnTime, &st.SitOutAfterMissedTurns, &st.JoinPolicy, &allowSpec,
 		&specChat, &chat, &rebuy, &st.ShowdownReveal, &auto, &st.HandDelayMs, &rabbit, &st.BlindsUpMinutes, &st.BlindsUpPercent,
-		&st.TimeBankSeconds, &straddle, &rit)
+		&st.TimeBankSeconds, &straddle, &rit, &st.TimeBankRefillSeconds)
 	if errors.Is(err, sql.ErrNoRows) {
 		return SettingsRow{}, ErrNotFound
 	}

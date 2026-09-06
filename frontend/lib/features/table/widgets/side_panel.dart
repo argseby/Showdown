@@ -97,7 +97,6 @@ class _SidePanelState extends ConsumerState<SidePanel> {
       case PanelTab.chat:
         n.markChatRead();
       case PanelTab.log:
-        n.markLogRead();
       case PanelTab.leaderboard:
       case PanelTab.admin:
       case PanelTab.settings:
@@ -138,12 +137,8 @@ class _SidePanelState extends ConsumerState<SidePanel> {
             tab == PanelTab.chat ? 0 : session.unreadChat,
           ),
         ),
-        TabItem(
-          child: label(
-            l10n.tabLog,
-            tab == PanelTab.log ? 0 : session.unreadLog,
-          ),
-        ),
+        // The log carries no counter: only chat messages are announced.
+        TabItem(child: Text(l10n.tabLog)),
         TabItem(child: Text(l10n.tabLeaderboard)),
         if (adminToken != null)
           TabItem(key: const Key('tab-admin'), child: Text(l10n.tabAdmin)),
@@ -249,8 +244,8 @@ class _ChatPanelState extends State<ChatPanel> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final s = widget.session;
-    final locale = Localizations.localeOf(context).toString();
-    final mySeat = s.mySeat;
+    // Only what people wrote (and the server's own notices): table events
+    // live in the log tab and are not repeated here.
     final lines = <_ChatLine>[
       for (final m in s.chat)
         _ChatLine(
@@ -259,11 +254,6 @@ class _ChatPanelState extends State<ChatPanel> {
           author: m.authorName,
           kind: m.authorKind,
         ),
-      for (final e in s.log)
-        if (systemChatKinds.contains(e.event.kind))
-          if (logLineText(l10n, e, mySeat: mySeat, locale: locale)
-              case final text?)
-            _ChatLine(ts: e.event.ts, text: text),
     ]..sort((a, b) => a.ts.compareTo(b.ts));
 
     final settings = s.snapshot?.table.settings;

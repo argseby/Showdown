@@ -306,31 +306,6 @@ class ActionBarState extends State<ActionBar> {
     final sittingOut = widget.myStatus == 'sitting_out';
     final myTurn = m != null;
 
-    final handLine = widget.isPlayer && (you?.handDescription ?? '').isNotEmpty
-        ? Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  LucideIcons.sparkles,
-                  size: 12,
-                  color: theme.colorScheme.mutedForeground,
-                ),
-                const Gap(6),
-                Text(
-                  l10n.yourHand(you!.handDescription),
-                  key: const Key('your-hand'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          )
-        : null;
-
     Widget content;
     if (!widget.isPlayer) {
       content = Center(
@@ -371,7 +346,7 @@ class ActionBarState extends State<ActionBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [?handLine, content],
+        children: [content],
       ),
     );
   }
@@ -498,8 +473,9 @@ class ActionBarState extends State<ActionBar> {
     final l10n = context.l10n;
     final snap = widget.snapshot!;
     final items = <Widget>[];
-    // Pre-actions stay armed across hands, so they can be toggled whenever
-    // it is not the viewer's turn, including between hands.
+    // Pre-actions apply to the current hand (armed between hands: the next
+    // one) and reset when it ends; they can be toggled whenever it is not
+    // the viewer's turn, including between hands.
     if (widget.callbacks.preAction != null) {
       Widget toggle(String kind, String label, Key key) {
         final on = you.preAction == kind;

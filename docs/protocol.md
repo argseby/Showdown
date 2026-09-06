@@ -74,7 +74,19 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   a connected player's turn clock runs out, their remaining time bank is added once
 >   (`hand.time_bank_active`, `deadline_ts` moves); unused seconds are refunded when they
 >   act, the bank is emptied when the extension runs out too, and every hand played
->   refills 5 s up to the maximum. `seats[].player.time_bank` shows the balance.
+>   without the bank kicking in refills `time_bank_refill_seconds` (setting, default 1,
+>   0–30; public settings and admin settings carry it) up to the maximum.
+>   `seats[].player.time_bank` shows the balance.
+> - **Voice signalling (2026-09-06).** Clients apply the signals of one peer strictly in
+>   order, keep ICE candidates that arrive before the remote description and resolve
+>   offer collisions with perfect negotiation: the side that answered the first offer
+>   is polite and yields, the other keeps its own offer and answers `null` (nothing is
+>   sent). The kinds stay `offer`, `answer`, `ice`.
+> - **Staged pot awards (2026-09-06).** The `pot_awarded` events of a hand still arrive
+>   in one batch (main pot first), but clients present the pots one after another,
+>   side pots first and the main pot last, 2.5 s each (main pot gold, first side pot
+>   silver, further pots bronze). The server adds the same 2.5 s per pot beyond the
+>   first to the showdown phase (`hand.phase_ends_ts`) so the presentation fits.
 > - **Run-out equity.** During a run-out (`hand.phase = "runout"`, everyone all-in) each
 >   live seat carries `player.equity`, its share of the pot in percent for the cards to
 >   come (exhaustive with two or fewer cards to come, 20 000 samples otherwise); it is
@@ -133,7 +145,7 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `action` | `{kind: "fold"\|"check"\|"call"\|"bet"\|"raise"\|"all_in", amount?}` | `bet`/`raise` amount is the **total** the player bets/raises to |
 | `sit_out` / `sit_in` / `rebuy` / `leave` | `{}` | |
 | `show_cards` | `{cards?: "both"\|"first"\|"second"}` | only during the result phase, by an uncontested winner or a mucked player; one card at a time is allowed (a partial reveal lists the hidden card as `""`) |
-| `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | an automatic action performed at every turn of the player (check if free else fold / call any bet else check), in this hand and the following ones, until they send `none`, sit out or leave; may be armed between hands; `you.pre_action` mirrors it |
+| `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | an automatic action performed at every turn of the player (check if free else fold / call any bet else check) for the rest of the current hand (armed between hands: for the next one); it is cleared when that hand ends and never carries over; the player may send `none` earlier, sitting out or leaving clears it too; `you.pre_action` mirrors it |
 | `change_seat` | `{seat}` | move to a free seat at the next deal (errors `seat_taken`, `invalid_state` during the cooldown); `you.pending_seat`, `you.can_change_seat`; events `player_moved {seat, name, delta = old seat}` and `blind_posted {blind: "dead"}` |
 | `voice` | `{state: "off"\|"on"\|"muted", camera?}` | voice-chat presence, shown to everyone as `seats[].player.voice`, and whether the player's camera is on (`seats[].player.camera`; the video travels browser to browser like the audio); reset when the connection drops |
 | `voice_signal` | `{to, kind: "offer"\|"answer"\|"ice", data}` | WebRTC setup message relayed to the target player as `voice_signal {from, kind, data}` (server push); the audio itself is browser-to-browser and never touches the server; `data` is opaque, at most 6 KB |
@@ -213,7 +225,10 @@ plus table events `player_joined`, `player_left`, `player_kicked`, `player_sat_o
 
 `hole_cards` is present only for the recipient's own seat and for seats revealed in the
 current hand; otherwise it is omitted (not `null`-ed with a count — the client draws two
-face-down cards for any `in_hand && !folded` player). `hand` is `null` while idle.
+face-down cards for any `in_hand && !folded` player). A seat whose hand is fully revealed
+also carries `hand_description` and `best_cards` (its best five against the current board,
+recomputed on every run-out street, so a hand shown after an all-in on the flop is
+described correctly on the turn and the river); both are absent for hidden hands. `hand` is `null` while idle.
 `hand.phase` ∈ `betting | runout | showdown | result`. `you.options` is `null` unless it
 is the recipient's turn; `pots` shows chips collected from completed streets, while bets
 of the current street are in `bet_this_street`. `you.hand_description` is computed

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/preferences.dart';
@@ -99,6 +100,14 @@ class VoiceController extends Notifier<VoiceState> {
   StreamSubscription<VoiceEvent>? _eventSub;
   StreamSubscription<VoiceSignal>? _signalSub;
   final _peers = <String>{};
+
+  /// Signals of one peer are applied strictly in order (an ICE candidate
+  /// right behind an answer must not overtake it).
+  final _chains = <String, Future<void>>{};
+
+  /// One line per signalling step in the browser console, so a failing
+  /// connection can be traced from the two ends.
+  static void log(String message) => debugPrint('voice: $message');
 
   @override
   VoiceState build() {
@@ -276,26 +285,49 @@ class VoiceController extends Notifier<VoiceState> {
       if (_peers.contains(id)) continue;
       if (me.compareTo(id) < 0) {
         _peers.add(id);
+        log('offering to $id');
         engine
             .createOffer(id)
-            .then((offer) => _session.sendVoiceSignal(id, 'offer', offer));
+            .then((offer) => _session.sendVoiceSignal(id, 'offer', offer))
+            .catchError((Object e) {
+              log('offer to $id failed: $e');
+              _peers.remove(id);
+            });
       }
     }
   }
 
-  Future<void> _onSignal(VoiceSignal sig) async {
-    final engine = _engine;
+  void _onSignal(VoiceSignal sig) {
     final from = sig.from;
-    if (engine == null || from == null) return;
-    switch (sig.kind) {
-      case 'offer':
-        _peers.add(from);
-        final answer = await engine.acceptOffer(from, sig.data);
-        await _session.sendVoiceSignal(from, 'answer', answer);
-      case 'answer':
-        await engine.acceptAnswer(from, sig.data);
-      case 'ice':
-        await engine.addIceCandidate(from, sig.data);
+    if (from == null) return;
+    final previous = _chains[from] ?? Future<void>.value();
+    _chains[from] = previous.then((_) => _handleSignal(from, sig));
+  }
+
+  Future<void> _handleSignal(String from, VoiceSignal sig) async {
+    final engine = _engine;
+    if (engine == null) return;
+    try {
+      switch (sig.kind) {
+        case 'offer':
+          _peers.add(from);
+          log('offer from $from');
+          final answer = await engine.acceptOffer(from, sig.data);
+          if (answer == null) {
+            log('offer from $from ignored (collision, our offer stands)');
+            return;
+          }
+          await _session.sendVoiceSignal(from, 'answer', answer);
+        case 'answer':
+          log('answer from $from');
+          await engine.acceptAnswer(from, sig.data);
+        case 'ice':
+          await engine.addIceCandidate(from, sig.data);
+        default:
+          log('unknown signal ${sig.kind} from $from');
+      }
+    } on Object catch (e) {
+      log('${sig.kind} from $from failed: $e');
     }
   }
 
@@ -312,6 +344,7 @@ class VoiceController extends Notifier<VoiceState> {
         }
         state = state.copyWith(speaking: set);
       case VoiceConnectedEvent(:final peerId, :final connected):
+        log('connection to $peerId ${connected ? 'up' : 'down'}');
         final set = {...state.connected};
         if (connected) {
           set.add(peerId);

@@ -22,7 +22,7 @@ class _StubVoiceEngine implements VoiceEngine {
   @override
   Future<String> createOffer(String peerId) async => '';
   @override
-  Future<String> acceptOffer(String peerId, String offer) async => '';
+  Future<String?> acceptOffer(String peerId, String offer) async => '';
   @override
   Future<void> acceptAnswer(String peerId, String answer) async {}
   @override

@@ -343,8 +343,10 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('winner-0')), findsOneWidget);
-    expect(find.byKey(const Key('winner-line')), findsOneWidget);
-    expect(find.text('Alice wins 900 with Pair of Aces'), findsOneWidget);
+    // The strip stays a plain phase line; the table tells who won.
+    expect(find.byKey(const Key('winner-line')), findsNothing);
+    expect(find.text('Alice wins 900 with Pair of Aces'), findsNothing);
+    expect(find.byKey(const Key('won-0')), findsOneWidget);
   });
 }
 

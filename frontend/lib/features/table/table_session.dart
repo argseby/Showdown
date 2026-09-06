@@ -34,7 +34,6 @@ class TableSessionState {
     this.chat = const [],
     this.unreadChat = 0,
     this.log = const [],
-    this.unreadLog = 0,
     this.ended,
     this.kicked,
     this.serverRestarting = false,
@@ -44,7 +43,10 @@ class TableSessionState {
     this.shown = const {},
     this.winnerLines = const [],
     this.phrases = const {},
+    this.chatBubbles = const {},
     this.spotlight,
+    this.winnerPotIndex,
+    this.winnerAmounts = const {},
     this.lastError,
   });
 
@@ -54,7 +56,6 @@ class TableSessionState {
   final List<ChatMessage> chat;
   final int unreadChat;
   final List<LogEntry> log;
-  final int unreadLog;
   final TableEnded? ended;
   final Kicked? kicked;
   final bool serverRestarting;
@@ -78,6 +79,18 @@ class TableSessionState {
   /// Quick phrases currently shown next to avatars, by seat.
   final Map<int, PhrasePayload> phrases;
 
+  /// Chat lines just written by seated players, shown next to their avatar
+  /// for a few seconds, by seat.
+  final Map<int, String> chatBubbles;
+
+  /// The pot whose award is being presented (0 = main pot, 1 = first side
+  /// pot, ...); null when no pot is on display. Colours the winner visuals.
+  final int? winnerPotIndex;
+
+  /// Chips won this hand per seat, summed over the pots presented so far
+  /// (shown as "+amount" next to the stack until the next deal).
+  final Map<int, int> winnerAmounts;
+
   /// The hand under the spotlight at the showdown: the last revealed hand
   /// while players show one after another, the winner once the pots are
   /// awarded. Null outside the showdown.
@@ -94,7 +107,6 @@ class TableSessionState {
     List<ChatMessage>? chat,
     int? unreadChat,
     List<LogEntry>? log,
-    int? unreadLog,
     TableEnded? ended,
     Kicked? kicked,
     bool? serverRestarting,
@@ -104,8 +116,12 @@ class TableSessionState {
     Map<int, List<bool>>? shown,
     List<String>? winnerLines,
     Map<int, PhrasePayload>? phrases,
+    Map<int, String>? chatBubbles,
     Spotlight? spotlight,
     bool clearSpotlight = false,
+    int? winnerPotIndex,
+    bool clearWinnerPot = false,
+    Map<int, int>? winnerAmounts,
     ServerError? lastError,
     bool clearError = false,
   }) => TableSessionState(
@@ -115,7 +131,6 @@ class TableSessionState {
     chat: chat ?? this.chat,
     unreadChat: unreadChat ?? this.unreadChat,
     log: log ?? this.log,
-    unreadLog: unreadLog ?? this.unreadLog,
     ended: ended ?? this.ended,
     kicked: kicked ?? this.kicked,
     serverRestarting: serverRestarting ?? this.serverRestarting,
@@ -125,7 +140,12 @@ class TableSessionState {
     shown: shown ?? this.shown,
     winnerLines: winnerLines ?? this.winnerLines,
     phrases: phrases ?? this.phrases,
+    chatBubbles: chatBubbles ?? this.chatBubbles,
     spotlight: clearSpotlight ? null : (spotlight ?? this.spotlight),
+    winnerPotIndex: clearWinnerPot
+        ? null
+        : (winnerPotIndex ?? this.winnerPotIndex),
+    winnerAmounts: winnerAmounts ?? this.winnerAmounts,
     lastError: clearError ? null : (lastError ?? this.lastError),
   );
 }
@@ -141,13 +161,43 @@ class Spotlight {
     required this.cards,
     required this.description,
     this.winner = false,
+    this.potIndex,
   });
   final int seat;
   final String name;
   final List<String> cards;
   final String description;
   final bool winner;
+
+  /// The pot a winner spotlight belongs to (colours it).
+  final int? potIndex;
 }
+
+/// One pot of a finished hand as it is presented: its winners, the strip
+/// lines and the spotlight of the (first) winner.
+class PotStage {
+  const PotStage({
+    required this.potIndex,
+    required this.seats,
+    required this.lines,
+    this.amounts = const {},
+    this.spotlight,
+  });
+  final int potIndex;
+  final Set<int> seats;
+  final List<String> lines;
+
+  /// Chips of this pot per winning seat.
+  final Map<int, int> amounts;
+  final Spotlight? spotlight;
+}
+
+/// How long each pot of a multi-pot showdown stays on display before the
+/// next one (the server extends the showdown by the same amount per pot).
+const Duration potAwardStageDuration = Duration(milliseconds: 2500);
+
+/// How long a chat line stays next to the author's avatar.
+const Duration chatBubbleDuration = Duration(seconds: 5);
 
 /// Recorded hands loaded into the log after a reload.
 const int historyHands = 30;
@@ -234,6 +284,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
   }
 
   void _teardown() {
+    _stageTimer?.cancel();
     _msgSub?.cancel();
     _stateSub?.cancel();
     _client?.dispose();
@@ -269,6 +320,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         _applyEvents(payload);
       case ChatServerMessage(:final payload):
         _appendChat([payload]);
+        _showChatBubble(payload);
       case ChatHistoryMessage(:final payload):
         state = state.copyWith(
           chat: List.unmodifiable(payload.messages.take(chatCapacity)),
@@ -304,6 +356,71 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         });
       case AckMessage():
         break;
+    }
+  }
+
+  /// Shows a player's chat line next to their avatar for a moment.
+  void _showChatBubble(ChatMessage m) {
+    if (m.authorKind != 'player' && m.authorKind != 'admin') return;
+    final name = m.authorName.toLowerCase();
+    int? seat;
+    for (final sv in state.snapshot?.seats ?? const <SeatView>[]) {
+      if (sv.player?.name.toLowerCase() == name) seat = sv.seat;
+    }
+    if (seat == null) return;
+    final at = seat;
+    state = state.copyWith(chatBubbles: {...state.chatBubbles, at: m.text});
+    Timer(chatBubbleDuration, () {
+      if (state.chatBubbles[at] == m.text) {
+        state = state.copyWith(chatBubbles: {...state.chatBubbles}..remove(at));
+      }
+    });
+  }
+
+  Timer? _stageTimer;
+  List<PotStage> _stages = const [];
+  int _stageIndex = 0;
+
+  /// Presents the pots of a finished hand one after another: side pots
+  /// first, the main pot last, each with its own winners and colour.
+  void _startStages(List<PotStage> stages) {
+    _stageTimer?.cancel();
+    _stages = stages;
+    _stageIndex = 0;
+    _applyStage();
+  }
+
+  void _applyStage() {
+    if (_stageIndex >= _stages.length) return;
+    final stage = _stages[_stageIndex];
+    final amounts = {...state.winnerAmounts};
+    for (final e in stage.amounts.entries) {
+      amounts[e.key] = (amounts[e.key] ?? 0) + e.value;
+    }
+    state = state.copyWith(
+      winners: stage.seats,
+      winnerLines: stage.lines,
+      winnerPotIndex: stage.potIndex,
+      winnerAmounts: amounts,
+      spotlight: stage.spotlight != null
+          ? Spotlight(
+              seat: stage.spotlight!.seat,
+              name: stage.spotlight!.name,
+              cards:
+                  state.best[stage.spotlight!.seat] ?? stage.spotlight!.cards,
+              description: stage.spotlight!.description,
+              winner: true,
+              potIndex: stage.potIndex,
+            )
+          : null,
+      clearSpotlight:
+          stage.spotlight == null && state.spotlight?.winner == true,
+    );
+    if (_stageIndex + 1 < _stages.length) {
+      _stageTimer = Timer(potAwardStageDuration, () {
+        _stageIndex++;
+        _applyStage();
+      });
     }
   }
 
@@ -370,9 +487,15 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     var winnerLines = state.winnerLines;
     Spotlight? spotlight = state.spotlight;
     var clearSpotlight = false;
+    var clearWinnerPot = false;
+    var winnerAmounts = state.winnerAmounts;
+    // Pot awards of this batch, grouped by pot in the order they arrive.
+    final awards = <int, List<GameEvent>>{};
     for (final e in payload.events) {
       switch (e.kind) {
         case 'hand_started':
+          _stageTimer?.cancel();
+          _stages = const [];
           revealed = const {};
           best = const {};
           winners = const {};
@@ -380,6 +503,8 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
           winnerLines = const [];
           spotlight = null;
           clearSpotlight = true;
+          clearWinnerPot = true;
+          winnerAmounts = const {};
         case 'hand_ended':
           // The final results carry every revealed hand's best five, which
           // covers run-outs revealed before the board was complete.
@@ -392,25 +517,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
           };
         case 'pot_awarded':
           if (e.seat != null) {
-            winners = {...winners, e.seat!};
-            final name = e.name?.isNotEmpty == true
-                ? e.name!
-                : names[e.seat!] ?? '?';
-            winnerLines = [
-              ...winnerLines,
-              '$name|${e.amount ?? 0}|${e.description ?? ''}',
-            ];
-            if ((e.description ?? '').isNotEmpty &&
-                (spotlight == null || !spotlight.winner)) {
-              spotlight = Spotlight(
-                seat: e.seat!,
-                name: name,
-                cards: best[e.seat!] ?? const [],
-                description: e.description!,
-                winner: true,
-              );
-              clearSpotlight = false;
-            }
+            awards.putIfAbsent(e.potIndex ?? 0, () => []).add(e);
           }
         case 'hands_revealed':
           revealed = {
@@ -444,28 +551,91 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
           }
       }
     }
-    final visible = payload.events
-        .where((e) => e.kind != 'pots_updated')
-        .length;
+    // The stages: one per pot, side pots first, the main pot last, so the
+    // presentation ends on the main pot. A single pot (or an uncontested
+    // hand) is one stage.
+    final stages = <PotStage>[];
+    final potIndexes = awards.keys.toList()..sort((a, b) => b.compareTo(a));
+    final contested = awards.values.any(
+      (l) => l.any((e) => (e.description ?? '').isNotEmpty),
+    );
+    for (final pi in potIndexes) {
+      final events = awards[pi]!;
+      final seats = <int>{};
+      final lines = <String>[];
+      final amounts = <int, int>{};
+      Spotlight? stageSpot;
+      for (final e in events) {
+        seats.add(e.seat!);
+        amounts[e.seat!] = (amounts[e.seat!] ?? 0) + (e.amount ?? 0);
+        final name = e.name?.isNotEmpty == true
+            ? e.name!
+            : names[e.seat!] ?? '?';
+        lines.add('$name|${e.amount ?? 0}|${e.description ?? ''}');
+        if ((e.description ?? '').isNotEmpty && stageSpot == null) {
+          stageSpot = Spotlight(
+            seat: e.seat!,
+            name: name,
+            cards: best[e.seat!] ?? const [],
+            description: e.description!,
+            winner: true,
+            potIndex: pi,
+          );
+        }
+      }
+      stages.add(
+        PotStage(
+          potIndex: pi,
+          seats: seats,
+          lines: lines,
+          amounts: amounts,
+          spotlight: stageSpot,
+        ),
+      );
+    }
+    if (stages.isNotEmpty && (!contested || stages.length == 1)) {
+      // Everything at once, coloured as the main pot.
+      final merged = <int, int>{};
+      for (final st in stages) {
+        for (final e in st.amounts.entries) {
+          merged[e.key] = (merged[e.key] ?? 0) + e.value;
+        }
+      }
+      final all = PotStage(
+        potIndex: 0,
+        seats: {for (final st in stages) ...st.seats},
+        lines: [for (final st in stages.reversed) ...st.lines],
+        amounts: merged,
+        spotlight: stages.last.spotlight,
+      );
+      stages
+        ..clear()
+        ..add(all);
+    }
     state = state.copyWith(
       log: List.unmodifiable(trimmed),
-      unreadLog: state.unreadLog + visible,
       revealed: revealed,
       best: best,
       winners: winners,
       shown: shown,
       winnerLines: winnerLines,
-      spotlight: spotlight != null && spotlight.cards.isEmpty
+      // The batch may carry pot_awarded before hand_ended, and a hand
+      // revealed during a run-out was described on an incomplete board, so
+      // the spotlight always takes the latest best five known for its seat.
+      spotlight: spotlight != null && best[spotlight.seat] != null
           ? Spotlight(
               seat: spotlight.seat,
               name: spotlight.name,
-              cards: best[spotlight.seat] ?? const [],
+              cards: best[spotlight.seat]!,
               description: spotlight.description,
               winner: spotlight.winner,
             )
           : spotlight,
       clearSpotlight: clearSpotlight && spotlight == null,
+      clearWinnerPot: clearWinnerPot,
+      winnerAmounts: winnerAmounts,
     );
+    if (stages.isNotEmpty) _startStages(stages);
   }
 
   void _appendChat(List<ChatMessage> msgs) {
@@ -481,10 +651,6 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
 
   void markChatRead() {
     if (state.unreadChat != 0) state = state.copyWith(unreadChat: 0);
-  }
-
-  void markLogRead() {
-    if (state.unreadLog != 0) state = state.copyWith(unreadLog: 0);
   }
 
   void clearError() {

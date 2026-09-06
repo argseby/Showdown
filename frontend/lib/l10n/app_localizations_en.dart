@@ -1097,6 +1097,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replayBackToList => 'All hands';
 
   @override
+  String replayReveals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count players show their cards',
+      one: 'One player shows their cards',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get replayPrevHand => 'Previous hand';
+
+  @override
+  String get replayNextHand => 'Next hand';
+
+  @override
   String logDeadBlind(String name, String amount) {
     return '$name posts a dead big blind $amount (seat change)';
   }
@@ -1363,6 +1380,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errTimeBank => '0 to 120 seconds';
+
+  @override
+  String get setTimeBankRefill => 'Time bank refill per hand (seconds)';
+
+  @override
+  String get errTimeBankRefill => '0 to 30 seconds';
 
   @override
   String get setAllowStraddle => 'Allow straddle';

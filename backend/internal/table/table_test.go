@@ -1117,7 +1117,7 @@ func TestSeatChangeCostsADeadBlind(t *testing.T) {
 	}
 }
 
-func TestPreActionsStayArmedAcrossHands(t *testing.T) {
+func TestPreActionsResetAfterEachHand(t *testing.T) {
 	t.Parallel()
 	s := testSettings()
 	s.HandDelayMs = 2000
@@ -1125,26 +1125,45 @@ func TestPreActionsStayArmedAcrossHands(t *testing.T) {
 	a, connA := join(t, tbl, "Alice")
 	b, _ := join(t, tbl, "Bob")
 	// Armed before the first hand is dealt: both call any bet and check
-	// otherwise, so every hand runs to the showdown without a manual action.
+	// otherwise, so hand 1 runs to the showdown without a manual action.
 	for _, id := range []string{a.PlayerID, b.PlayerID} {
 		if err := tbl.SetPreAction(id, PreCallAny); err != nil {
 			t.Fatal(err)
 		}
 	}
+	waitFor(t, "armed in snapshot", func() bool { return connA.lastSnapshot(t).You.PreAction == PreCallAny })
 	waitFor(t, "hand 1", func() bool { return handNumber(tbl) >= 1 })
-	waitFor(t, "hand 2 (hand 1 played itself out)", func() bool { return handNumber(tbl) >= 2 })
-	waitFor(t, "hand 3", func() bool { return handNumber(tbl) >= 3 })
+	waitFor(t, "hand 1 played itself out", func() bool {
+		var done bool
+		tbl.call(func() { done = tbl.hand != nil && tbl.hand.Done() })
+		return done
+	})
+	// The pre-actions do not carry over: they are gone once the hand ends
+	// and hand 2 waits for a manual action.
 	tbl.call(func() {
 		for _, id := range []string{a.PlayerID, b.PlayerID} {
-			if tbl.players[id].preAction != PreCallAny {
-				t.Errorf("%s: pre-action lost: %q", tbl.players[id].Name, tbl.players[id].preAction)
+			if tbl.players[id].preAction != "" {
+				t.Errorf("%s: pre-action carried over: %q", tbl.players[id].Name, tbl.players[id].preAction)
 			}
 		}
 	})
-	waitFor(t, "armed in snapshot", func() bool { return connA.lastSnapshot(t).You.PreAction == PreCallAny })
-	// Switching off stops the automation: Alice's next turn waits for her.
-	if err := tbl.SetPreAction(a.PlayerID, PreNone); err != nil {
-		t.Fatal(err)
+	waitFor(t, "cleared in snapshot", func() bool { return connA.lastSnapshot(t).You.PreAction == PreNone })
+	waitFor(t, "hand 2", func() bool { return handNumber(tbl) >= 2 })
+	waitFor(t, "someone on turn in hand 2", func() bool {
+		id, _ := toAct(tbl)
+		return id != ""
+	})
+	acting, _ := toAct(tbl)
+	tbl.call(func() {
+		if tbl.hand == nil || tbl.hand.Done() {
+			t.Error("hand 2 played itself out although no pre-action was armed")
+		}
+	})
+	// Arming again applies to the rest of this hand only.
+	if acting != a.PlayerID {
+		if err := tbl.SetPreAction(b.PlayerID, PreCallAny); err != nil {
+			t.Fatal(err)
+		}
 	}
 	waitFor(t, "Alice on turn", func() bool {
 		id, _ := toAct(tbl)

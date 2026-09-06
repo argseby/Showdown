@@ -23,6 +23,7 @@ import '../../shared/top_bar.dart';
 import '../admin/admin_player_actions.dart';
 import '../admin/admin_widgets.dart';
 import 'focus_utils.dart';
+import 'replay/replay_dialog.dart';
 import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
@@ -125,11 +126,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
 
   String get _locale => Localizations.localeOf(context).toString();
 
-  /// What the strip above the table shows for the current snapshot.
-  _PhaseInfo? _phaseStripFor(
+  /// What the strip above the table shows for the current snapshot. There
+  /// is always something, so the strip never changes height.
+  _PhaseInfo _phaseStripFor(
     Snapshot snap,
     TableSessionState session,
     bool myTurn,
+    AppLocalizations l10n,
   ) {
     final hand = snap.hand;
     if (hand == null) {
@@ -137,7 +140,14 @@ class _PlayPageState extends ConsumerState<PlayPage>
       if (next != null && next > 0) {
         return _PhaseInfo(kind: _PhaseKind.nextHand, deadlineTs: next);
       }
-      return null;
+      return _PhaseInfo(
+        kind: _PhaseKind.idle,
+        name: snap.table.state == 'paused'
+            ? l10n.tablePaused
+            : snap.table.state == 'waiting'
+            ? l10n.tableWaiting
+            : l10n.waitingForPlayers,
+      );
     }
     if (hand.phase == 'showdown' || hand.phase == 'result') {
       return _PhaseInfo(
@@ -167,7 +177,25 @@ class _PlayPageState extends ConsumerState<PlayPage>
         name: name,
       );
     }
-    return null;
+    return const _PhaseInfo(kind: _PhaseKind.idle, name: '');
+  }
+
+  /// Opens the hand replay with the viewer's session (or the admin key).
+  Future<void> _replay() async {
+    final session = ref.read(tableSessionProvider(widget.tableId));
+    final stored = ref.read(sessionProvider(widget.tableId)).value;
+    final adminToken = ref.read(adminTokenProvider(widget.tableId)).value;
+    final token = adminToken ?? stored?.token;
+    final snapshot = session.snapshot;
+    if (token == null || snapshot == null) return;
+    await showReplayDialog(
+      context,
+      tableId: widget.tableId,
+      token: token,
+      admin: adminToken != null && stored == null,
+      base: snapshot,
+      viewerSeat: session.mySeat,
+    );
   }
 
   VoiceController get _voiceController =>
@@ -501,14 +529,12 @@ class _PlayPageState extends ConsumerState<PlayPage>
             trailing: bannerAction,
           ),
         // The phase strip: your turn (highlighted), someone else's turn,
-        // showdown, or the countdown to the next deal.
-        if (snap != null && _phaseStripFor(snap, session, myTurn) != null)
+        // showdown, the countdown to the next deal, or the table state.
+        // Always one line of the same height, so the table never jumps.
+        if (snap != null)
           _PhaseStrip(
             key: const Key('turn-banner'),
-            info: _phaseStripFor(snap, session, myTurn)!,
-            winnerLines: session.winnerLines,
-            chipDisplay: chipDisplay,
-            bigBlind: snap.table.settings.bigBlind,
+            info: _phaseStripFor(snap, session, myTurn, l10n),
           ),
         Expanded(
           child: TableView(
@@ -744,6 +770,18 @@ class _PlayPageState extends ConsumerState<PlayPage>
         const Gap(4),
         ?micButton,
         ?cameraButton,
+        Tooltip(
+          tooltip: TooltipContainer(child: Text(l10n.replayOpen)).call,
+          child: GhostButton(
+            key: const Key('replay-button'),
+            density: ButtonDensity.icon,
+            onPressed: snap == null ? null : _replay,
+            child: Icon(
+              LucideIcons.history,
+              color: theme.colorScheme.mutedForeground,
+            ),
+          ),
+        ),
         panelButton,
       ],
     );
@@ -916,7 +954,7 @@ class _EndedOverlay extends StatelessWidget {
   }
 }
 
-enum _PhaseKind { myTurn, otherTurn, showdown, nextHand }
+enum _PhaseKind { myTurn, otherTurn, showdown, nextHand, idle }
 
 class _PhaseInfo {
   const _PhaseInfo({
@@ -934,20 +972,8 @@ class _PhaseInfo {
 /// The strip above the table: whose turn it is and how long every phase
 /// still lasts (turn, showdown, pause before the next deal).
 class _PhaseStrip extends ConsumerStatefulWidget {
-  const _PhaseStrip({
-    super.key,
-    required this.info,
-    this.winnerLines = const [],
-    this.chipDisplay = ChipDisplay.coins,
-    this.bigBlind = 0,
-  });
+  const _PhaseStrip({super.key, required this.info});
   final _PhaseInfo info;
-
-  /// "name|amount|description" per awarded pot, shown during the showdown
-  /// and the result phase.
-  final List<String> winnerLines;
-  final ChipDisplay chipDisplay;
-  final int bigBlind;
 
   @override
   ConsumerState<_PhaseStrip> createState() => _PhaseStripState();
@@ -969,21 +995,6 @@ class _PhaseStripState extends ConsumerState<_PhaseStrip>
     super.dispose();
   }
 
-  String _winnerText(AppLocalizations l10n, String line, String locale) {
-    final parts = line.split('|');
-    final name = parts[0];
-    final amount = formatAmount(
-      int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0,
-      mode: widget.chipDisplay,
-      bigBlind: widget.bigBlind,
-      locale: locale,
-    );
-    final desc = parts.length > 2 ? parts[2] : '';
-    return desc.isEmpty
-        ? l10n.winsLine(name, amount)
-        : l10n.winsLineWith(name, amount, desc);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -1003,6 +1014,7 @@ class _PhaseStripState extends ConsumerState<_PhaseStrip>
       _PhaseKind.otherTurn => l10n.turnOf(info.name ?? '?', secs),
       _PhaseKind.showdown => l10n.showdownStrip(secs),
       _PhaseKind.nextHand => l10n.nextHandIn(secs),
+      _PhaseKind.idle => info.name ?? '',
     };
     final bg = urgent
         ? theme.colorScheme.destructive
@@ -1012,73 +1024,50 @@ class _PhaseStripState extends ConsumerState<_PhaseStrip>
     final fg = mine
         ? theme.colorScheme.primaryForeground
         : theme.colorScheme.mutedForeground;
-    final showWinners =
-        widget.winnerLines.isNotEmpty &&
-        (info.kind == _PhaseKind.showdown || info.kind == _PhaseKind.nextHand);
-    final locale = Localizations.localeOf(context).toString();
+    // The winners are not named here: the table shows them (pot on
+    // display, chips flying, "+amount" at the stack, spotlight).
+    final style = TextStyle(
+      fontWeight: mine ? FontWeight.w700 : FontWeight.w500,
+      fontSize: 13,
+      color: fg,
+    );
     return Container(
+      key: const Key('phase-strip'),
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      height: phaseStripHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       color: bg,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                mine
-                    ? LucideIcons.play
-                    : info.kind == _PhaseKind.otherTurn
-                    ? LucideIcons.hourglass
-                    : LucideIcons.timer,
-                size: 14,
-                color: fg,
-              ),
-              const Gap(8),
-              Text(
-                text,
-                style: TextStyle(
-                  fontWeight: mine ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: mine ? 14 : 12,
-                  color: fg,
-                ),
-              ),
-            ],
+          if (info.kind != _PhaseKind.idle) ...[
+            Icon(
+              mine
+                  ? LucideIcons.play
+                  : info.kind == _PhaseKind.otherTurn
+                  ? LucideIcons.hourglass
+                  : LucideIcons.timer,
+              size: 14,
+              color: fg,
+            ),
+            const Gap(8),
+          ],
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
           ),
-          if (showWinners)
-            for (final line in widget.winnerLines)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Row(
-                  key: const Key('winner-line'),
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      LucideIcons.trophy,
-                      size: 14,
-                      color: Color(0xFFFFC107),
-                    ),
-                    const Gap(6),
-                    Flexible(
-                      child: Text(
-                        _winnerText(l10n, line, locale),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: theme.colorScheme.foreground,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
         ],
       ),
     );
   }
 }
+
+/// Height of the strip above the table; constant so the felt never moves.
+const double phaseStripHeight = 30;
 
 /// "Blinds up in m:ss" driven by the server clock.
 class _BlindsCountdown extends ConsumerStatefulWidget {

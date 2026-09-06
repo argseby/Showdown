@@ -1,4 +1,5 @@
 import '../../../protocol/protocol.dart';
+import '../table_session.dart';
 
 /// One seat's state while replaying a hand.
 class ReplaySeat {
@@ -49,6 +50,11 @@ class ReplayReducer {
     final best = <int, List<String>>{};
     final revealed = <int>{};
     final winners = <int>{};
+    // The pot on display, the chips won so far and the winner spotlight,
+    // exactly as the live table shows them one pot at a time.
+    int? potIndex;
+    final amounts = <int, int>{};
+    Spotlight? spotlight;
     List<String>? rabbit;
     GameEvent? last;
     for (final e in events.take(step)) {
@@ -136,7 +142,27 @@ class ReplayReducer {
           }
         case 'pot_awarded':
           if (p != null) p.stack += e.amount ?? 0;
-          if (seat != null) winners.add(seat);
+          final pi = e.potIndex ?? 0;
+          if (pi != potIndex) {
+            // A new pot takes the stage: only its winners are shown.
+            winners.clear();
+            spotlight = null;
+          }
+          potIndex = pi;
+          if (seat != null) {
+            winners.add(seat);
+            amounts[seat] = (amounts[seat] ?? 0) + (e.amount ?? 0);
+            if ((e.description ?? '').isNotEmpty && spotlight == null) {
+              spotlight = Spotlight(
+                seat: seat,
+                name: e.name?.isNotEmpty == true ? e.name! : names[seat] ?? '?',
+                cards: best[seat] ?? const [],
+                description: e.description!,
+                winner: true,
+                potIndex: pi,
+              );
+            }
+          }
           phase = 'showdown';
         case 'hand_ended':
           phase = 'result';
@@ -209,6 +235,9 @@ class ReplayReducer {
       best: best,
       revealed: revealed,
       winners: winners,
+      potIndex: potIndex,
+      amounts: amounts,
+      spotlight: spotlight,
       event: last,
     );
   }
@@ -222,10 +251,22 @@ class ReplayFrame {
     required this.revealed,
     required this.winners,
     required this.event,
+    this.potIndex,
+    this.amounts = const {},
+    this.spotlight,
   });
   final Snapshot snapshot;
   final Map<int, List<String>> best;
   final Set<int> revealed;
   final Set<int> winners;
+
+  /// The pot whose award this step shows (null before any award).
+  final int? potIndex;
+
+  /// Chips won per seat up to this step.
+  final Map<int, int> amounts;
+
+  /// The winner under the spotlight at this step.
+  final Spotlight? spotlight;
   final GameEvent? event;
 }

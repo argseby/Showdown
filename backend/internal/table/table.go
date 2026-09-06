@@ -57,6 +57,10 @@ type Delays struct {
 	// RunTwiceDecision is how long the players have to agree to run it twice
 	// when everyone is all-in.
 	RunTwiceDecision time.Duration
+	// PotAward is added to the showdown for every pot beyond the first: the
+	// clients present the pots one after another (side pots first, main pot
+	// last) and each one needs its moment on screen.
+	PotAward time.Duration
 }
 
 // DefaultDelays are the production values.
@@ -64,6 +68,7 @@ var DefaultDelays = Delays{
 	Street: 800 * time.Millisecond, Runout: 1200 * time.Millisecond,
 	Showdown: 3500 * time.Millisecond, ShowdownPerHand: 1500 * time.Millisecond,
 	ResultExtension: 5 * time.Second, RunTwiceDecision: 8 * time.Second,
+	PotAward: 2500 * time.Millisecond,
 }
 
 // Conn is the transport side of a connected client. Send must never block
@@ -105,8 +110,11 @@ type Player struct {
 	VPIPHands    int
 	Showdowns    int
 	ShowdownsWon int
-	// TimeBank is the remaining extra thinking time in seconds.
-	TimeBank int
+	// TimeBank is the remaining extra thinking time in seconds;
+	// usedTimeBank records that it kicked in during the current hand (no
+	// refill for that hand).
+	TimeBank     int
+	usedTimeBank bool
 	// Place is the final placement (1 = winner); 0 while still playing.
 	Place int
 	// Camera: the player's video is on (browser to browser like the voice).
@@ -929,9 +937,11 @@ func (t *Table) applyPendingSeatChanges() {
 }
 
 // SetPreAction arms an automatic action (check/fold or call any) that is
-// performed at every turn of the player, in this hand and the following
-// ones, until they switch it off (PreNone), sit out or leave. It may be armed
-// between hands; if it is their turn already, it is performed at once.
+// performed at every turn of the player for the rest of the current hand
+// (or, armed between hands, for the next one) and is cleared when that hand
+// ends, so it never carries over. The player may switch it off earlier
+// (PreNone); sitting out or leaving clears it too. If it is their turn
+// already, it is performed at once.
 func (t *Table) SetPreAction(playerID, kind string) error {
 	return t.callErr(func() error {
 		p, err := t.seatedPlayer(playerID)
@@ -965,7 +975,8 @@ func (t *Table) SetPreAction(playerID, kind string) error {
 }
 
 // applyPreAction performs the player's armed action now (it must be their
-// turn). Check/fold and call any stay armed; the sit-out fold is one-shot.
+// turn). Check/fold and call any stay armed for the rest of the hand; the
+// sit-out fold is one-shot.
 // Impossible actions fall back to the timeout rule.
 func (t *Table) applyPreAction(p *Player) {
 	kind := p.preAction

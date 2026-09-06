@@ -23,6 +23,7 @@ class SeatWidget extends ConsumerWidget {
     required this.best,
     required this.compact,
     this.winner = false,
+    this.winnerColor = winnerGold,
     this.handNumber = 0,
     this.bigBlind = 0,
     this.chipDisplay = ChipDisplay.coins,
@@ -36,7 +37,17 @@ class SeatWidget extends ConsumerWidget {
     this.equity,
     this.timeBankActive = false,
     this.videoViewType,
+    this.wonAmount,
+    this.timeBankSeconds = 0,
   });
+
+  /// The table's time bank maximum; above zero the player's remaining bank
+  /// is shown left of the stack.
+  final int timeBankSeconds;
+
+  /// Chips won in the current hand so far (shown as "+amount" next to the
+  /// stack while the pots are presented).
+  final int? wonAmount;
 
   /// Pot share in percent during a run-out.
   final double? equity;
@@ -71,6 +82,10 @@ class SeatWidget extends ConsumerWidget {
 
   /// Won a pot in the current hand: glowing avatar ring.
   final bool winner;
+
+  /// Colour of the winner visuals: gold for the main pot, silver and bronze
+  /// for the side pots while they are presented.
+  final Color winnerColor;
 
   /// Current hand number: keys the deal animation.
   final int handNumber;
@@ -152,7 +167,8 @@ class SeatWidget extends ConsumerWidget {
     }
     final isTurn = hand?.toActSeat == seat && hand?.phase == 'betting';
     final inHand = hand != null && p.inHand;
-    // Folded cards stay in the tree so that they can animate away.
+    // Folded cards stay on the table, dimmed, so everyone can still see
+    // that the player was dealt in and threw the hand away.
     final showsCards = inHand;
     final folded = inHand && p.folded;
     final fourColor = ref.watch(fourColorDeckProvider);
@@ -164,7 +180,12 @@ class SeatWidget extends ConsumerWidget {
     final badges = <Widget>[];
     if (winner) {
       badges.add(
-        _Badge(l10n.winnerBadge, key: Key('winner-$seat'), gold: true),
+        _Badge(
+          l10n.winnerBadge,
+          key: Key('winner-$seat'),
+          gold: true,
+          goldColor: winnerColor,
+        ),
       );
     }
     if (hand != null) {
@@ -217,7 +238,7 @@ class SeatWidget extends ConsumerWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: winner
-                ? Border.all(color: _gold, width: 3)
+                ? Border.all(color: winnerColor, width: 3)
                 : speaking && p.voice == 'on'
                 ? Border.all(color: const Color(0xFF43A047), width: 3)
                 : isViewer
@@ -241,7 +262,7 @@ class SeatWidget extends ConsumerWidget {
           Positioned(
             left: compact ? -2 : 0,
             top: compact ? -2 : 0,
-            child: _WinnerMark(size: compact ? 18 : 22),
+            child: _WinnerMark(size: compact ? 18 : 22, color: winnerColor),
           ),
       ],
     );
@@ -252,30 +273,27 @@ class SeatWidget extends ConsumerWidget {
           _DealIn(
             key: ValueKey('deal-$seat-$handNumber'),
             child: AnimatedOpacity(
+              key: ValueKey('hole-cards-$seat'),
               duration: const Duration(milliseconds: 350),
-              opacity: folded ? 0 : 1,
+              opacity: folded ? foldedCardOpacity : 1,
               alwaysIncludeSemantics: true,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 350),
-                offset: folded ? const Offset(0, -0.6) : Offset.zero,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var i = 0; i < 2; i++)
-                      Padding(
-                        padding: EdgeInsets.only(left: i == 0 ? 0 : 3),
-                        child: PlayingCardWidget(
-                          card: p.holeCards != null && p.holeCards!.length > i
-                              ? p.holeCards![i]
-                              : null,
-                          width: cardWidth,
-                          fourColor: fourColor,
-                          highlighted: _inBest(p, i),
-                          highlightColor: winnerGold,
-                        ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < 2; i++)
+                    Padding(
+                      padding: EdgeInsets.only(left: i == 0 ? 0 : 3),
+                      child: PlayingCardWidget(
+                        card: p.holeCards != null && p.holeCards!.length > i
+                            ? p.holeCards![i]
+                            : null,
+                        width: cardWidth,
+                        fourColor: fourColor,
+                        highlighted: _inBest(p, i),
+                        highlightColor: winnerColor,
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             ),
           )
@@ -326,18 +344,68 @@ class SeatWidget extends ConsumerWidget {
             ],
           ],
         ),
-        Text(
-          formatAmount(
-            p.stack,
-            mode: chipDisplay,
-            bigBlind: bigBlind,
-            locale: locale,
-          ),
-          style: TextStyle(
-            fontSize: compact ? 11 : 12,
-            color: theme.colorScheme.mutedForeground,
-            fontFamily: 'GeistMono',
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (timeBankSeconds > 0) ...[
+              Tooltip(
+                tooltip: TooltipContainer(
+                  child: Text(l10n.timeBankLeft(p.timeBank ?? 0)),
+                ).call,
+                child: Row(
+                  key: Key('timebank-stack-$seat'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      LucideIcons.timer,
+                      size: compact ? 10 : 11,
+                      color: timeBankActive
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.mutedForeground,
+                    ),
+                    const Gap(2),
+                    Text(
+                      '${p.timeBank ?? 0}s',
+                      style: TextStyle(
+                        fontSize: compact ? 10 : 11,
+                        color: timeBankActive
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.mutedForeground,
+                        fontFamily: 'GeistMono',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(6),
+            ],
+            Text(
+              formatAmount(
+                p.stack,
+                mode: chipDisplay,
+                bigBlind: bigBlind,
+                locale: locale,
+              ),
+              style: TextStyle(
+                fontSize: compact ? 11 : 12,
+                color: theme.colorScheme.mutedForeground,
+                fontFamily: 'GeistMono',
+              ),
+            ),
+            if ((wonAmount ?? 0) > 0) ...[
+              const Gap(4),
+              Text(
+                '+${formatAmount(wonAmount!, mode: chipDisplay, bigBlind: bigBlind, locale: locale)}',
+                key: Key('won-$seat'),
+                style: TextStyle(
+                  fontSize: compact ? 11 : 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF43A047),
+                  fontFamily: 'GeistMono',
+                ),
+              ),
+            ],
+          ],
         ),
         if (badges.isNotEmpty) ...[
           const Gap(2),
@@ -348,15 +416,8 @@ class SeatWidget extends ConsumerWidget {
             children: badges,
           ),
         ],
-        if (inHand && p.lastAction != null && !isTurn) ...[
-          const Gap(2),
-          _FadingLabel(
-            key: ValueKey(
-              '${p.lastAction!.kind}-${p.lastAction!.amount}-${hand?.street}',
-            ),
-            text: _actionLabel(l10n, p.lastAction!, locale),
-          ),
-        ],
+        // The last action is not part of the seat box: the table view shows
+        // it next to the bet chips, on the felt side of every seat.
       ],
     );
     return SizedBox(
@@ -385,24 +446,34 @@ class SeatWidget extends ConsumerWidget {
     if (cards == null || cards.length <= i) return false;
     return best?.contains(cards[i]) ?? false;
   }
+}
 
-  String _actionLabel(AppLocalizations l10n, LastAction a, String locale) {
-    String amt(int v) =>
-        formatAmount(v, mode: chipDisplay, bigBlind: bigBlind, locale: locale);
-    switch (a.kind) {
-      case 'fold':
-        return l10n.fold;
-      case 'check':
-        return l10n.check;
-      case 'call':
-        return l10n.call(amt(a.amount));
-      case 'bet':
-        return l10n.betAmount(amt(a.amount));
-      case 'raise':
-        return l10n.raiseTo(amt(a.amount));
-    }
-    return a.kind;
+/// Opacity of a folded player's cards: still on the table, clearly out.
+const double foldedCardOpacity = 0.35;
+
+/// The text of a seat's last action ("Check", "Raise to 300").
+String actionLabel(
+  AppLocalizations l10n,
+  LastAction a, {
+  required ChipDisplay chipDisplay,
+  required int bigBlind,
+  required String locale,
+}) {
+  String amt(int v) =>
+      formatAmount(v, mode: chipDisplay, bigBlind: bigBlind, locale: locale);
+  switch (a.kind) {
+    case 'fold':
+      return l10n.fold;
+    case 'check':
+      return l10n.check;
+    case 'call':
+      return l10n.call(amt(a.amount));
+    case 'bet':
+      return l10n.betAmount(amt(a.amount));
+    case 'raise':
+      return l10n.raiseTo(amt(a.amount));
   }
+  return a.kind;
 }
 
 /// Fades and slides a freshly dealt hand in from the table center.
@@ -470,12 +541,18 @@ class _PhraseBubble extends StatelessWidget {
           border: Border.all(color: theme.colorScheme.primary, width: 1.5),
           boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 6)],
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.popoverForeground,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 170),
+          child: Text(
+            text,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.popoverForeground,
+            ),
           ),
         ),
       ),
@@ -486,8 +563,9 @@ class _PhraseBubble extends StatelessWidget {
 /// A small trophy disc pinned to the winner's avatar; pops in with a
 /// short scale animation.
 class _WinnerMark extends StatelessWidget {
-  const _WinnerMark({required this.size});
+  const _WinnerMark({required this.size, this.color = _gold});
   final double size;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -501,7 +579,7 @@ class _WinnerMark extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: _gold,
+          color: color,
           border: Border.all(color: const Color(0xFF3A2A00), width: 1),
         ),
         child: Icon(
@@ -521,19 +599,21 @@ class _Badge extends StatelessWidget {
     this.primary = false,
     this.destructive = false,
     this.gold = false,
+    this.goldColor = _gold,
   });
   final String text;
   final bool primary;
   final bool destructive;
 
-  /// Winner: gold on dark, matching the avatar ring.
+  /// Winner: pot colour on dark, matching the avatar ring.
   final bool gold;
+  final Color goldColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bg = gold
-        ? _gold
+        ? goldColor
         : primary
         ? theme.colorScheme.primary
         : destructive
@@ -560,16 +640,17 @@ class _Badge extends StatelessWidget {
   }
 }
 
-/// A label that fades out a few seconds after it appears.
-class _FadingLabel extends StatefulWidget {
-  const _FadingLabel({super.key, required this.text});
+/// A label that fades a few seconds after it appears (the last action of a
+/// seat, shown on the felt side next to the bet chips).
+class FadingActionLabel extends StatefulWidget {
+  const FadingActionLabel({super.key, required this.text});
   final String text;
 
   @override
-  State<_FadingLabel> createState() => _FadingLabelState();
+  State<FadingActionLabel> createState() => _FadingLabelState();
 }
 
-class _FadingLabelState extends State<_FadingLabel>
+class _FadingLabelState extends State<FadingActionLabel>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
@@ -590,9 +671,20 @@ class _FadingLabelState extends State<_FadingLabel>
         begin: 1,
         end: 0.35,
       ).animate(CurvedAnimation(parent: _c, curve: const Interval(0.5, 1))),
-      child: Text(
-        widget.text,
-        style: TextStyle(fontSize: 11, color: theme.colorScheme.foreground),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.background.withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          widget.text,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.foreground,
+          ),
+        ),
       ),
     );
   }

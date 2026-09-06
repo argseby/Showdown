@@ -78,13 +78,19 @@ class _NewTableDialogState extends ConsumerState<_NewTableDialog> {
     final l10n = context.l10n;
     return AlertDialog(
       title: Text(l10n.adminNewTable),
-      content: SingleChildScrollView(
-        child: SettingsForm(
-          state: _state,
-          errors: _errors,
-          serverErrors: _serverErrors,
-          showName: true,
-          onChanged: (s) => setState(() => _state = s),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 720,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        child: SingleChildScrollView(
+          child: SettingsForm(
+            state: _state,
+            errors: _errors,
+            serverErrors: _serverErrors,
+            showName: true,
+            onChanged: (s) => setState(() => _state = s),
+          ),
         ),
       ),
       actions: [

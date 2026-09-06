@@ -850,6 +850,16 @@
     }
   },
   "replayBackToList": "All hands",
+  "replayReveals": "{count, plural, =1{One player shows their cards} other{{count} players show their cards}}",
+  "@replayReveals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "replayPrevHand": "Previous hand",
+  "replayNextHand": "Next hand",
   "logDeadBlind": "{name} posts a dead big blind {amount} (seat change)",
   "@logDeadBlind": {
     "placeholders": {
@@ -1038,6 +1048,8 @@
   "tabSettings": "Settings",
   "setTimeBank": "Time bank (seconds, 0 = off)",
   "errTimeBank": "0 to 120 seconds",
+  "setTimeBankRefill": "Time bank refill per hand (seconds)",
+  "errTimeBankRefill": "0 to 30 seconds",
   "setAllowStraddle": "Allow straddle",
   "setRunItTwice": "Offer run it twice",
   "logStraddle": "{name} posts a straddle {amount}",

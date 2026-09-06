@@ -38,6 +38,7 @@ type SettingsRow struct {
 	BlindsUpMinutes        int
 	BlindsUpPercent        int
 	TimeBankSeconds        int
+	TimeBankRefillSeconds  int
 	AllowStraddle          bool
 	RunItTwice             bool
 }

@@ -56,6 +56,8 @@ class SettingsForm extends StatelessWidget {
         return l10n.valRange('0', '600');
       case SettingsError.timeBank:
         return l10n.errTimeBank;
+      case SettingsError.timeBankRefill:
+        return l10n.errTimeBankRefill;
       case SettingsError.blindsUpPercent:
         return l10n.valRange('10', '400');
       case SettingsError.password:
@@ -252,6 +254,7 @@ class SettingsForm extends StatelessWidget {
               number('blinds_up_minutes', l10n.setBlindsUpMinutes),
               number('blinds_up_percent', l10n.setBlindsUpPercent),
               number('time_bank_seconds', l10n.setTimeBank),
+              number('time_bank_refill_seconds', l10n.setTimeBankRefill),
               choice('join_policy', l10n.setJoinPolicy, state.joinPolicy, [
                 ('always', l10n.joinPolicyAlways),
                 ('before_start', l10n.joinPolicyBeforeStart),

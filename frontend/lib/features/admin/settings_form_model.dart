@@ -25,6 +25,7 @@ const Map<String, AppliesWhen> settingsApplies = {
   'blinds_up_minutes': AppliesWhen.immediately,
   'blinds_up_percent': AppliesWhen.immediately,
   'time_bank_seconds': AppliesWhen.immediately,
+  'time_bank_refill_seconds': AppliesWhen.immediately,
   'allow_straddle': AppliesWhen.nextHand,
   'run_it_twice': AppliesWhen.nextHand,
 };
@@ -44,6 +45,7 @@ enum SettingsError {
   blindsUpMinutes,
   blindsUpPercent,
   timeBank,
+  timeBankRefill,
   password,
   name,
 }
@@ -103,6 +105,7 @@ class SettingsFormState {
     'blinds_up_minutes',
     'blinds_up_percent',
     'time_bank_seconds',
+    'time_bank_refill_seconds',
   ];
 
   SettingsFormState copyWith({
@@ -208,6 +211,12 @@ class SettingsFormState {
     );
     final tb = number('time_bank_seconds') ?? 30;
     check('time_bank_seconds', tb >= 0 && tb <= 120, SettingsError.timeBank);
+    final tr = number('time_bank_refill_seconds') ?? 1;
+    check(
+      'time_bank_refill_seconds',
+      tr >= 0 && tr <= 30,
+      SettingsError.timeBankRefill,
+    );
     return errors;
   }
 

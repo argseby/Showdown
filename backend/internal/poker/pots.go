@@ -20,20 +20,26 @@ type potPlayer struct {
 // towards the amounts but never towards eligibility.
 func buildPots(players []potPlayer) []Pot {
 	var levels []int64
-	var maxTotal int64
+	var maxLive, contributed int64
 	for _, p := range players {
-		if p.total > maxTotal {
-			maxTotal = p.total
+		contributed += p.total
+		if p.folded {
+			continue
+		}
+		if p.total > maxLive {
+			maxLive = p.total
 		}
 		if p.allIn && p.total > 0 {
 			levels = append(levels, p.total)
 		}
 	}
-	if maxTotal == 0 {
+	if contributed == 0 {
 		return nil
 	}
 	sort.Slice(levels, func(i, j int) bool { return levels[i] < levels[j] })
-	// Dedupe and append the maximum contribution as the final level.
+	// Dedupe and cap at the largest contribution still in the hand: a player
+	// who folded may have put in more (a dead blind or an ante is never
+	// returned), and that excess joins the last pot below.
 	uniq := levels[:0]
 	for i, l := range levels {
 		if i == 0 || l != levels[i-1] {
@@ -41,12 +47,12 @@ func buildPots(players []potPlayer) []Pot {
 		}
 	}
 	levels = uniq
-	if len(levels) == 0 || levels[len(levels)-1] < maxTotal {
-		levels = append(levels, maxTotal)
+	if len(levels) == 0 || levels[len(levels)-1] < maxLive {
+		levels = append(levels, maxLive)
 	}
 
 	var pots []Pot
-	var prev int64
+	var prev, distributed int64
 	for _, level := range levels {
 		var amount int64
 		var eligible []int
@@ -61,13 +67,23 @@ func buildPots(players []potPlayer) []Pot {
 			continue
 		}
 		sort.Ints(eligible)
-		if len(eligible) == 0 && len(pots) > 0 {
-			// Only folded players reached this level (their excess chips);
-			// the chips belong to the previous pot's contenders.
-			pots[len(pots)-1].Amount += amount
-			continue
-		}
 		pots = append(pots, Pot{Amount: amount, Eligible: eligible})
+		distributed += amount
+	}
+	// Chips no one left in the hand could match are dead money and go to the
+	// contenders of the last pot.
+	if rest := contributed - distributed; rest > 0 {
+		if len(pots) == 0 {
+			var eligible []int
+			for _, p := range players {
+				if !p.folded {
+					eligible = append(eligible, p.seat)
+				}
+			}
+			sort.Ints(eligible)
+			return []Pot{{Amount: rest, Eligible: eligible}}
+		}
+		pots[len(pots)-1].Amount += rest
 	}
 	return pots
 }

@@ -28,6 +28,17 @@ class _WebVoiceEngine implements VoiceEngine {
   Timer? _meter;
   List<IceServer> _iceServers = const [];
 
+  // Perfect negotiation (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example):
+  // the side that answered the first offer is polite and yields when both
+  // sides offer at once; the impolite side ignores the colliding offer.
+  final _polite = <String, bool>{};
+  final _makingOffer = <String, bool>{};
+
+  // ICE candidates that arrived before the remote description was set are
+  // kept until it is (a candidate applied too early is rejected).
+  final _remoteReady = <String>{};
+  final _pendingIce = <String, List<web.RTCIceCandidateInit>>{};
+
   @override
   Stream<VoiceEvent> get events => _events.stream;
 
@@ -229,12 +240,14 @@ class _WebVoiceEngine implements VoiceEngine {
         _videoSenders[peerId] = pc.addTrack(t, cam);
       }
     }
-    var negotiating = false;
     pc.onnegotiationneeded = ((web.Event _) {
       // A track was added to a live connection: send a fresh offer. The
       // initial offer goes through createOffer, so skip until connected.
-      if (negotiating || pc.connectionState != 'connected') return;
-      negotiating = true;
+      if ((_makingOffer[peerId] ?? false) ||
+          pc.connectionState != 'connected') {
+        return;
+      }
+      _makingOffer[peerId] = true;
       () async {
         try {
           final offer = (await pc.createOffer().toDart)!;
@@ -255,7 +268,7 @@ class _WebVoiceEngine implements VoiceEngine {
         } on Object catch (_) {
           // Renegotiation failed; audio keeps working.
         } finally {
-          negotiating = false;
+          _makingOffer[peerId] = false;
         }
       }();
     }).toJS;
@@ -338,19 +351,40 @@ class _WebVoiceEngine implements VoiceEngine {
   @override
   Future<String> createOffer(String peerId) async {
     final pc = _pc(peerId);
-    final offer = (await pc.createOffer().toDart)!;
-    await pc
-        .setLocalDescription(
-          web.RTCLocalSessionDescriptionInit(type: offer.type, sdp: offer.sdp),
-        )
-        .toDart;
-    return jsonEncode({'type': offer.type, 'sdp': offer.sdp});
+    // The side that offers first is the impolite one.
+    _polite.putIfAbsent(peerId, () => false);
+    _makingOffer[peerId] = true;
+    try {
+      final offer = (await pc.createOffer().toDart)!;
+      await pc
+          .setLocalDescription(
+            web.RTCLocalSessionDescriptionInit(
+              type: offer.type,
+              sdp: offer.sdp,
+            ),
+          )
+          .toDart;
+      return jsonEncode({'type': offer.type, 'sdp': offer.sdp});
+    } finally {
+      _makingOffer[peerId] = false;
+    }
   }
 
   @override
-  Future<String> acceptOffer(String peerId, String offer) async {
+  Future<String?> acceptOffer(String peerId, String offer) async {
     final pc = _pc(peerId);
+    // The side that answers first is the polite one.
+    final polite = _polite.putIfAbsent(peerId, () => true);
+    final collision =
+        (_makingOffer[peerId] ?? false) || pc.signalingState != 'stable';
+    if (collision && !polite) {
+      // Both sides offered at once: the impolite side keeps its own offer
+      // and expects the polite side to answer it.
+      return null;
+    }
     final o = jsonDecode(offer) as Map<String, dynamic>;
+    // A polite side in the middle of its own offer rolls it back here
+    // (implicit rollback of setRemoteDescription).
     await pc
         .setRemoteDescription(
           web.RTCSessionDescriptionInit(
@@ -359,6 +393,7 @@ class _WebVoiceEngine implements VoiceEngine {
           ),
         )
         .toDart;
+    await _remoteSet(peerId, pc);
     if (!_receiveVideo) _applyVideoDirection(pc);
     final answer = (await pc.createAnswer().toDart)!;
     await pc
@@ -375,6 +410,10 @@ class _WebVoiceEngine implements VoiceEngine {
   @override
   Future<void> acceptAnswer(String peerId, String answer) async {
     final pc = _pc(peerId);
+    if (pc.signalingState != 'have-local-offer') {
+      // A stale answer (our offer was withdrawn by a collision).
+      return;
+    }
     final a = jsonDecode(answer) as Map<String, dynamic>;
     await pc
         .setRemoteDescription(
@@ -384,25 +423,49 @@ class _WebVoiceEngine implements VoiceEngine {
           ),
         )
         .toDart;
+    await _remoteSet(peerId, pc);
+  }
+
+  /// The remote description is in place: apply the candidates that came
+  /// before it.
+  Future<void> _remoteSet(String peerId, web.RTCPeerConnection pc) async {
+    _remoteReady.add(peerId);
+    final pending = _pendingIce.remove(peerId) ?? const [];
+    for (final c in pending) {
+      try {
+        await pc.addIceCandidate(c).toDart;
+      } on Object catch (_) {
+        // A candidate for a description that was rolled back.
+      }
+    }
   }
 
   @override
   Future<void> addIceCandidate(String peerId, String candidate) async {
     final pc = _pc(peerId);
     final c = jsonDecode(candidate) as Map<String, dynamic>;
-    await pc
-        .addIceCandidate(
-          web.RTCIceCandidateInit(
-            candidate: c['candidate'] as String,
-            sdpMid: c['sdpMid'] as String?,
-            sdpMLineIndex: c['sdpMLineIndex'] as int?,
-          ),
-        )
-        .toDart;
+    final init = web.RTCIceCandidateInit(
+      candidate: c['candidate'] as String,
+      sdpMid: c['sdpMid'] as String?,
+      sdpMLineIndex: c['sdpMLineIndex'] as int?,
+    );
+    if (!_remoteReady.contains(peerId)) {
+      _pendingIce.putIfAbsent(peerId, () => []).add(init);
+      return;
+    }
+    try {
+      await pc.addIceCandidate(init).toDart;
+    } on Object catch (_) {
+      // A candidate for a description that was rolled back.
+    }
   }
 
   @override
   void closePeer(String peerId) {
+    _polite.remove(peerId);
+    _makingOffer.remove(peerId);
+    _remoteReady.remove(peerId);
+    _pendingIce.remove(peerId);
     _peers.remove(peerId)?.close();
     _audios.remove(peerId)?.remove();
     _videoSenders.remove(peerId);

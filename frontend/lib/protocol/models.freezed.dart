@@ -4832,7 +4832,7 @@ $PublicSettingsCopyWith<$Res> get settings {
 /// @nodoc
 mixin _$PublicSettings {
 
- int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; int get blindsUpMinutes; int get blindsUpPercent; int get timeBankSeconds; bool get allowStraddle; bool get runItTwice;
+ int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; int get blindsUpMinutes; int get blindsUpPercent; int get timeBankSeconds; int get timeBankRefillSeconds; bool get allowStraddle; bool get runItTwice;
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4846,20 +4846,20 @@ $PublicSettingsCopyWith<PublicSettings> get copyWith => _$PublicSettingsCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as PublicSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent)&&(identical(other.timeBankSeconds, _this.timeBankSeconds) || other.timeBankSeconds == _this.timeBankSeconds)&&(identical(other.allowStraddle, _this.allowStraddle) || other.allowStraddle == _this.allowStraddle)&&(identical(other.runItTwice, _this.runItTwice) || other.runItTwice == _this.runItTwice));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent)&&(identical(other.timeBankSeconds, _this.timeBankSeconds) || other.timeBankSeconds == _this.timeBankSeconds)&&(identical(other.timeBankRefillSeconds, _this.timeBankRefillSeconds) || other.timeBankRefillSeconds == _this.timeBankRefillSeconds)&&(identical(other.allowStraddle, _this.allowStraddle) || other.allowStraddle == _this.allowStraddle)&&(identical(other.runItTwice, _this.runItTwice) || other.runItTwice == _this.runItTwice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PublicSettings;
-  return Object.hash(runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.blindsUpMinutes,_this.blindsUpPercent,_this.timeBankSeconds,_this.allowStraddle,_this.runItTwice);
+  return Object.hashAll([runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.blindsUpMinutes,_this.blindsUpPercent,_this.timeBankSeconds,_this.timeBankRefillSeconds,_this.allowStraddle,_this.runItTwice]);
 }
 
 @override
 String toString() {
   final _this = this as PublicSettings;
-  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent}, timeBankSeconds: ${_this.timeBankSeconds}, allowStraddle: ${_this.allowStraddle}, runItTwice: ${_this.runItTwice})';
+  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent}, timeBankSeconds: ${_this.timeBankSeconds}, timeBankRefillSeconds: ${_this.timeBankRefillSeconds}, allowStraddle: ${_this.allowStraddle}, runItTwice: ${_this.runItTwice})';
 }
 
 
@@ -4870,7 +4870,7 @@ abstract mixin class $PublicSettingsCopyWith<$Res>  {
   factory $PublicSettingsCopyWith(PublicSettings value, $Res Function(PublicSettings) _then) = _$PublicSettingsCopyWithImpl;
 @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, bool allowStraddle, bool runItTwice
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice
 });
 
 
@@ -4887,7 +4887,7 @@ class _$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
   return _then(PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -4905,6 +4905,7 @@ as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allow
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
 as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable
+as int,timeBankRefillSeconds: null == timeBankRefillSeconds ? _self.timeBankRefillSeconds : timeBankRefillSeconds // ignore: cast_nullable_to_non_nullable
 as int,allowStraddle: null == allowStraddle ? _self.allowStraddle : allowStraddle // ignore: cast_nullable_to_non_nullable
 as bool,runItTwice: null == runItTwice ? _self.runItTwice : runItTwice // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -4992,10 +4993,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice);case _:
   return orElse();
 
 }
@@ -5013,10 +5014,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice)  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings():
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5033,10 +5034,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice)?  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice);case _:
   return null;
 
 }
@@ -5048,7 +5049,7 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 @JsonSerializable()
 
 class _PublicSettings implements PublicSettings {
-  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, required this.blindsUpMinutes, required this.blindsUpPercent, this.timeBankSeconds = 0, this.allowStraddle = false, this.runItTwice = false});
+  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, required this.blindsUpMinutes, required this.blindsUpPercent, this.timeBankSeconds = 0, this.timeBankRefillSeconds = 1, this.allowStraddle = false, this.runItTwice = false});
   factory _PublicSettings.fromJson(Map<String, dynamic> json) => _$PublicSettingsFromJson(json);
 
 @override final  int smallBlind;
@@ -5067,6 +5068,7 @@ class _PublicSettings implements PublicSettings {
 @override final  int blindsUpMinutes;
 @override final  int blindsUpPercent;
 @override@JsonKey() final  int timeBankSeconds;
+@override@JsonKey() final  int timeBankRefillSeconds;
 @override@JsonKey() final  bool allowStraddle;
 @override@JsonKey() final  bool runItTwice;
 
@@ -5083,18 +5085,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent)&&(identical(other.timeBankSeconds, timeBankSeconds) || other.timeBankSeconds == timeBankSeconds)&&(identical(other.allowStraddle, allowStraddle) || other.allowStraddle == allowStraddle)&&(identical(other.runItTwice, runItTwice) || other.runItTwice == runItTwice));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent)&&(identical(other.timeBankSeconds, timeBankSeconds) || other.timeBankSeconds == timeBankSeconds)&&(identical(other.timeBankRefillSeconds, timeBankRefillSeconds) || other.timeBankRefillSeconds == timeBankRefillSeconds)&&(identical(other.allowStraddle, allowStraddle) || other.allowStraddle == allowStraddle)&&(identical(other.runItTwice, runItTwice) || other.runItTwice == runItTwice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,blindsUpMinutes,blindsUpPercent,timeBankSeconds,allowStraddle,runItTwice);
+    return Object.hashAll([runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,blindsUpMinutes,blindsUpPercent,timeBankSeconds,timeBankRefillSeconds,allowStraddle,runItTwice]);
 }
 
 @override
 String toString() {
-    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent, timeBankSeconds: $timeBankSeconds, allowStraddle: $allowStraddle, runItTwice: $runItTwice)';
+    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent, timeBankSeconds: $timeBankSeconds, timeBankRefillSeconds: $timeBankRefillSeconds, allowStraddle: $allowStraddle, runItTwice: $runItTwice)';
 }
 
 
@@ -5105,7 +5107,7 @@ abstract mixin class _$PublicSettingsCopyWith<$Res> implements $PublicSettingsCo
   factory _$PublicSettingsCopyWith(_PublicSettings value, $Res Function(_PublicSettings) _then) = __$PublicSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, bool allowStraddle, bool runItTwice
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice
 });
 
 
@@ -5122,7 +5124,7 @@ class __$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
   return _then(_PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -5140,6 +5142,7 @@ as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allow
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
 as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable
+as int,timeBankRefillSeconds: null == timeBankRefillSeconds ? _self.timeBankRefillSeconds : timeBankRefillSeconds // ignore: cast_nullable_to_non_nullable
 as int,allowStraddle: null == allowStraddle ? _self.allowStraddle : allowStraddle // ignore: cast_nullable_to_non_nullable
 as bool,runItTwice: null == runItTwice ? _self.runItTwice : runItTwice // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -5450,7 +5453,9 @@ $PlayerViewCopyWith<$Res>? get player {
 /// @nodoc
 mixin _$PlayerView {
 
- String get id; String get name; int get avatar; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked;@JsonKey(includeIfNull: false) bool? get camera;@JsonKey(includeIfNull: false) double? get equity;@JsonKey(includeIfNull: false) int? get timeBank;@JsonKey(includeIfNull: false) int? get place; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;
+ String get id; String get name; int get avatar; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked;@JsonKey(includeIfNull: false) bool? get camera;@JsonKey(includeIfNull: false) double? get equity;@JsonKey(includeIfNull: false) int? get timeBank;@JsonKey(includeIfNull: false) int? get place; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;/// A fully revealed hand described against the current board (follows
+/// every run-out street); absent for hidden hands.
+@JsonKey(includeIfNull: false) String? get handDescription;@JsonKey(includeIfNull: false) List<String>? get bestCards;
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5464,20 +5469,20 @@ $PlayerViewCopyWith<PlayerView> get copyWith => _$PlayerViewCopyWithImpl<PlayerV
 @override
 bool operator ==(Object other) {
   final _this = this as PlayerView;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.camera, _this.camera) || other.camera == _this.camera)&&(identical(other.equity, _this.equity) || other.equity == _this.equity)&&(identical(other.timeBank, _this.timeBank) || other.timeBank == _this.timeBank)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.camera, _this.camera) || other.camera == _this.camera)&&(identical(other.equity, _this.equity) || other.equity == _this.equity)&&(identical(other.timeBank, _this.timeBank) || other.timeBank == _this.timeBank)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction)&&(identical(other.handDescription, _this.handDescription) || other.handDescription == _this.handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _this.bestCards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlayerView;
-  return Object.hashAll([runtimeType,_this.id,_this.name,_this.avatar,_this.voice,_this.muted,_this.mucked,_this.camera,_this.equity,_this.timeBank,_this.place,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction]);
+  return Object.hashAll([runtimeType,_this.id,_this.name,_this.avatar,_this.voice,_this.muted,_this.mucked,_this.camera,_this.equity,_this.timeBank,_this.place,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction,_this.handDescription,const DeepCollectionEquality().hash(_this.bestCards)]);
 }
 
 @override
 String toString() {
   final _this = this as PlayerView;
-  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, camera: ${_this.camera}, equity: ${_this.equity}, timeBank: ${_this.timeBank}, place: ${_this.place}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction})';
+  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, camera: ${_this.camera}, equity: ${_this.equity}, timeBank: ${_this.timeBank}, place: ${_this.place}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction}, handDescription: ${_this.handDescription}, bestCards: ${_this.bestCards})';
 }
 
 
@@ -5488,7 +5493,7 @@ abstract mixin class $PlayerViewCopyWith<$Res>  {
   factory $PlayerViewCopyWith(PlayerView value, $Res Function(PlayerView) _then) = _$PlayerViewCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
+ String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
 });
 
 
@@ -5505,7 +5510,7 @@ class _$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
   return _then(PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -5527,7 +5532,9 @@ as bool,betThisStreet: null == betThisStreet ? _self.betThisStreet : betThisStre
 as int,totalBet: null == totalBet ? _self.totalBet : totalBet // ignore: cast_nullable_to_non_nullable
 as int,holeCards: freezed == holeCards ? _self.holeCards : holeCards // ignore: cast_nullable_to_non_nullable
 as List<String>?,lastAction: freezed == lastAction ? _self.lastAction : lastAction // ignore: cast_nullable_to_non_nullable
-as LastAction?,
+as LastAction?,handDescription: freezed == handDescription ? _self.handDescription : handDescription // ignore: cast_nullable_to_non_nullable
+as String?,bestCards: freezed == bestCards ? _self.bestCards : bestCards // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 /// Create a copy of PlayerView
@@ -5624,10 +5631,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   return orElse();
 
 }
@@ -5645,10 +5652,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView():
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5665,10 +5672,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   return null;
 
 }
@@ -5680,7 +5687,7 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 @JsonSerializable()
 
 class _PlayerView implements PlayerView {
-  const _PlayerView({required this.id, required this.name, required this.avatar, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, @JsonKey(includeIfNull: false) this.camera, @JsonKey(includeIfNull: false) this.equity, @JsonKey(includeIfNull: false) this.timeBank, @JsonKey(includeIfNull: false) this.place, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction}): _holeCards = holeCards;
+  const _PlayerView({required this.id, required this.name, required this.avatar, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, @JsonKey(includeIfNull: false) this.camera, @JsonKey(includeIfNull: false) this.equity, @JsonKey(includeIfNull: false) this.timeBank, @JsonKey(includeIfNull: false) this.place, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction, @JsonKey(includeIfNull: false) this.handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards}): _holeCards = holeCards,_bestCards = bestCards;
   factory _PlayerView.fromJson(Map<String, dynamic> json) => _$PlayerViewFromJson(json);
 
 @override final  String id;
@@ -5711,6 +5718,18 @@ class _PlayerView implements PlayerView {
 }
 
 @override final  LastAction? lastAction;
+/// A fully revealed hand described against the current board (follows
+/// every run-out street); absent for hidden hands.
+@override@JsonKey(includeIfNull: false) final  String? handDescription;
+ final  List<String>? _bestCards;
+@override@JsonKey(includeIfNull: false) List<String>? get bestCards {
+  final value = _bestCards;
+  if (value == null) return null;
+  if (_bestCards is EqualUnmodifiableListView) return _bestCards;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
@@ -5725,18 +5744,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.camera, camera) || other.camera == camera)&&(identical(other.equity, equity) || other.equity == equity)&&(identical(other.timeBank, timeBank) || other.timeBank == timeBank)&&(identical(other.place, place) || other.place == place)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.camera, camera) || other.camera == camera)&&(identical(other.equity, equity) || other.equity == equity)&&(identical(other.timeBank, timeBank) || other.timeBank == timeBank)&&(identical(other.place, place) || other.place == place)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction)&&(identical(other.handDescription, handDescription) || other.handDescription == handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _bestCards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,id,name,avatar,voice,muted,mucked,camera,equity,timeBank,place,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction]);
+    return Object.hashAll([runtimeType,id,name,avatar,voice,muted,mucked,camera,equity,timeBank,place,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction,handDescription,const DeepCollectionEquality().hash(_bestCards)]);
 }
 
 @override
 String toString() {
-    return 'PlayerView(id: $id, name: $name, avatar: $avatar, voice: $voice, muted: $muted, mucked: $mucked, camera: $camera, equity: $equity, timeBank: $timeBank, place: $place, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction)';
+    return 'PlayerView(id: $id, name: $name, avatar: $avatar, voice: $voice, muted: $muted, mucked: $mucked, camera: $camera, equity: $equity, timeBank: $timeBank, place: $place, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction, handDescription: $handDescription, bestCards: $bestCards)';
 }
 
 
@@ -5747,7 +5766,7 @@ abstract mixin class _$PlayerViewCopyWith<$Res> implements $PlayerViewCopyWith<$
   factory _$PlayerViewCopyWith(_PlayerView value, $Res Function(_PlayerView) _then) = __$PlayerViewCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
+ String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
 });
 
 
@@ -5764,7 +5783,7 @@ class __$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
   return _then(_PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -5786,7 +5805,9 @@ as bool,betThisStreet: null == betThisStreet ? _self.betThisStreet : betThisStre
 as int,totalBet: null == totalBet ? _self.totalBet : totalBet // ignore: cast_nullable_to_non_nullable
 as int,holeCards: freezed == holeCards ? _self._holeCards : holeCards // ignore: cast_nullable_to_non_nullable
 as List<String>?,lastAction: freezed == lastAction ? _self.lastAction : lastAction // ignore: cast_nullable_to_non_nullable
-as LastAction?,
+as LastAction?,handDescription: freezed == handDescription ? _self.handDescription : handDescription // ignore: cast_nullable_to_non_nullable
+as String?,bestCards: freezed == bestCards ? _self._bestCards : bestCards // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 

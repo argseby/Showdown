@@ -95,12 +95,18 @@ returned".
 
 At the end of each street bets are collected. Pots are computed from each player's
 `total_contributed` for the hand using contribution levels: sort the distinct
-`total_contributed` values of all-in players ascending, then append the maximum
-contribution. For level *i*, `pot_i = Σ_players (min(total, level_i) − min(total,
-level_{i−1}))`; eligible for `pot_i` are the non-folded players with
-`total ≥ level_i`. Folded players' chips are included in the amounts but never in
-eligibility. The main pot is level 0; the snapshot lists pots with eligible seats so the
-UI can label "Main pot" / "Side pot 1…".
+`total_contributed` values of the all-in players **still in the hand** ascending, then
+append the largest `total_contributed` of any player still in the hand. For level *i*,
+`pot_i = Σ_players (min(total, level_i) − min(total, level_{i−1}))`; eligible for `pot_i`
+are the non-folded players with `total ≥ level_i`. Folded players' chips are included in
+the amounts but never in eligibility.
+
+A player who folds can end up having contributed more than anyone left in the hand,
+because antes and dead blinds (§7.2 and the seat-change rule under "Additions") go
+straight into the pot and are never returned as an uncalled bet. Those excess chips are
+dead money: they are added to the last pot rather than forming a pot of their own, so
+every pot always has at least one player who can win it. The main pot is level 0; the
+snapshot lists pots with eligible seats so the UI can label "Main pot" / "Side pot 1…".
 
 ### 7.7 Early termination and run-out
 
@@ -154,7 +160,8 @@ event in the randomized simulation (§11).
    player is disconnected when the turn starts). The snapshot carries `deadline_ts`.
 2. **Time bank** (`time_bank_seconds`, default 30, 0 = off): when a connected player's
    clock runs out, their remaining bank is added to the turn once; unused seconds are
-   refunded when they act, and every hand played refills 5 seconds up to the maximum.
+   refunded when they act, and every hand the player was dealt in *without the bank
+   kicking in* refills `time_bank_refill_seconds` (default 1, 0–30) up to the maximum.
    Only when the extension runs out too does the timeout rule apply: `check` if legal,
    else `fold`; `missed_turns++`. A manual action resets
    `missed_turns` to 0. Reaching `sit_out_after_missed_turns` sets the player to
@@ -177,8 +184,9 @@ event in the randomized simulation (§11).
 - **Sitting out during a hand** folds the player immediately (the next time it would be
   their turn, or at once when it is); they are not dealt in until they sit back in.
 - **Pre-actions.** A player who is not to act may pre-select *check/fold* or *call any*;
-  the choice is executed the moment their turn arrives and is cleared by any manual
-  action and at the end of the hand.
+  the choice is executed at every turn of theirs for the rest of the hand (armed between
+  hands: for the next one) and is cleared by any manual action and at the end of the
+  hand, so it never carries over into a later hand.
 - **Showing cards.** After an uncontested win the winner may show one card or both.
 - **Rabbit hunting** (`allow_rabbit_hunt`, default on): after a hand that ended before
   the river, a player who was dealt in may reveal the cards that would have completed

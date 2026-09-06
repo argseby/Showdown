@@ -28,6 +28,15 @@ func TestBuildPots(t *testing.T) {
 			[]Pot{{50, []int{0, 1, 2, 3}}, {40, []int{1, 2, 3}}, {25, []int{2, 3}}, {10, []int{3}}}},
 		{"zero-stack all-in ignored", []potPlayer{{0, 0, false, true}, {1, 100, false, false}, {2, 100, false, false}},
 			[]Pot{{200, []int{1, 2}}}},
+		// A dead blind is never returned, so a player who folds can end up
+		// having contributed more than anyone still in the hand. Those chips
+		// are dead money for the contenders, not a pot of their own.
+		{"folded player contributed the most", []potPlayer{{0, 200, true, false}, {1, 140, false, false}, {2, 140, false, false}},
+			[]Pot{{480, []int{1, 2}}}},
+		{"folded player above the only all-in level", []potPlayer{{0, 500, true, false}, {1, 60, false, true}, {2, 200, false, false}, {3, 200, false, false}},
+			[]Pot{{240, []int{1, 2, 3}}, {720, []int{2, 3}}}},
+		{"only folded players contributed", []potPlayer{{0, 90, true, false}, {1, 0, false, false}, {2, 0, false, false}},
+			[]Pot{{90, []int{1, 2}}}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

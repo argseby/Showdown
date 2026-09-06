@@ -239,8 +239,10 @@ type PublicSettings struct {
 	ChatEnabled      bool   `json:"chat_enabled"`
 	SpectatorChat    bool   `json:"spectator_chat"`
 	RequiresPassword bool   `json:"requires_password"`
-	// TimeBankSeconds is each player's extra thinking time (0 = off).
-	TimeBankSeconds int `json:"time_bank_seconds"`
+	// TimeBankSeconds is each player's extra thinking time (0 = off);
+	// TimeBankRefillSeconds is regained per hand played without the bank.
+	TimeBankSeconds       int `json:"time_bank_seconds"`
+	TimeBankRefillSeconds int `json:"time_bank_refill_seconds"`
 	// AllowStraddle lets the seat left of the big blind post a straddle.
 	AllowStraddle bool `json:"allow_straddle"`
 	// RunItTwice offers to deal the run-out twice when everyone is all-in.
@@ -283,6 +285,11 @@ type PlayerView struct {
 	TotalBet      int64       `json:"total_bet"`
 	HoleCards     []string    `json:"hole_cards,omitempty"`
 	LastAction    *LastAction `json:"last_action"`
+	// HandDescription and BestCards describe a revealed hand against the
+	// current board (they follow every run-out street); only set for seats
+	// whose hole cards are fully revealed.
+	HandDescription string   `json:"hand_description,omitempty"`
+	BestCards       []string `json:"best_cards,omitempty"`
 }
 
 // LastAction is the most recent action of a player in the current hand.

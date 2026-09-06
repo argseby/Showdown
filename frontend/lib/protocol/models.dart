@@ -228,6 +228,7 @@ abstract class PublicSettings with _$PublicSettings {
     required int blindsUpMinutes,
     required int blindsUpPercent,
     @Default(0) int timeBankSeconds,
+    @Default(1) int timeBankRefillSeconds,
     @Default(false) bool allowStraddle,
     @Default(false) bool runItTwice,
   }) = _PublicSettings;
@@ -266,6 +267,11 @@ abstract class PlayerView with _$PlayerView {
     required int totalBet,
     @JsonKey(includeIfNull: false) List<String>? holeCards,
     required LastAction? lastAction,
+
+    /// A fully revealed hand described against the current board (follows
+    /// every run-out street); absent for hidden hands.
+    @JsonKey(includeIfNull: false) String? handDescription,
+    @JsonKey(includeIfNull: false) List<String>? bestCards,
   }) = _PlayerView;
   factory PlayerView.fromJson(Map<String, dynamic> json) =>
       _$PlayerViewFromJson(json);

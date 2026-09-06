@@ -3,6 +3,7 @@ package table
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
@@ -376,4 +377,223 @@ func TestHostTurnsTheCameraOff(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitFor(t, "camera off with voice", func() bool { return !cam() })
+}
+
+// A revealed hand is described against the current board in every snapshot
+// of a run-out (flop, turn, river), and only fully revealed seats carry it.
+func TestRevealedHandFollowsRunOut(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.HandDelayMs = 2000
+	tbl := newTestTable(t, s)
+	a, connA := join(t, tbl, "Alice")
+	b, connB := join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	actor, _ := toAct(tbl)
+	if err := tbl.Action(actor, poker.Action{Kind: poker.AllIn}); err != nil {
+		t.Fatal(err)
+	}
+	other := a.PlayerID
+	if actor == a.PlayerID {
+		other = b.PlayerID
+	}
+	waitFor(t, "other on turn", func() bool { id, _ := toAct(tbl); return id == other })
+	if err := tbl.Action(other, poker.Action{Kind: poker.Call}); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "hand over", func() bool {
+		var done bool
+		tbl.call(func() { done = tbl.hand != nil && tbl.hand.Done() })
+		return done
+	})
+	// seat -> board length -> description, from every snapshot Bob saw.
+	byBoard := map[int]map[int]string{}
+	for _, conn := range []*fakeConn{connA, connB} {
+		for _, m := range conn.all() {
+			var snap protocol.Snapshot
+			switch m.Type {
+			case protocol.TypeSnapshot:
+				if err := json.Unmarshal(m.Payload, &snap); err != nil {
+					t.Fatal(err)
+				}
+			case protocol.TypeWelcome:
+				var w protocol.Welcome
+				if err := json.Unmarshal(m.Payload, &w); err != nil {
+					t.Fatal(err)
+				}
+				snap = w.Snapshot
+			default:
+				continue
+			}
+			for _, sv := range snap.Seats {
+				p := sv.Player
+				if p == nil || p.HandDescription == "" {
+					continue
+				}
+				if len(p.HoleCards) != 2 || p.HoleCards[0] == "" || p.HoleCards[1] == "" || len(p.BestCards) == 0 {
+					t.Fatalf("seat %d: description %q without revealed cards (%v) or best cards (%v)",
+						sv.Seat, p.HandDescription, p.HoleCards, p.BestCards)
+				}
+				if snap.Hand == nil {
+					t.Fatalf("seat %d: description without a hand", sv.Seat)
+				}
+				if byBoard[sv.Seat] == nil {
+					byBoard[sv.Seat] = map[int]string{}
+				}
+				byBoard[sv.Seat][len(snap.Hand.Board)] = p.HandDescription
+			}
+		}
+	}
+	var results *protocol.HandResults
+	for _, e := range connB.events(t) {
+		if e.Kind == "hand_ended" {
+			results = e.Results
+		}
+	}
+	if results == nil {
+		t.Fatal("hand_ended missing")
+	}
+	if len(byBoard) != 2 {
+		t.Fatalf("revealed seats described: %v", byBoard)
+	}
+	for seat, descs := range byBoard {
+		for _, n := range []int{3, 4, 5} {
+			if descs[n] == "" {
+				t.Errorf("seat %d: no description with a %d-card board: %v", seat, n, descs)
+			}
+		}
+		if final := results.Seats[strconv.Itoa(seat)].Description; descs[5] != final {
+			t.Errorf("seat %d: river description %q, hand_ended says %q", seat, descs[5], final)
+		}
+	}
+}
+
+// The final standings order players by net result, so a player who kept
+// rebuying does not lead because of a big stack alone.
+func TestFinalStandingsOrderByNet(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.AutoStart = false
+	tbl := newTestTable(t, s)
+	a, connA := join(t, tbl, "Alice")
+	b, _ := join(t, tbl, "Bob")
+	tbl.call(func() {
+		alice, bob := tbl.players[a.PlayerID], tbl.players[b.PlayerID]
+		alice.Stack, alice.BuyInTotal = 12000, 10000 // +2000
+		bob.Stack, bob.BuyInTotal = 15000, 30000     // -15000 after two rebuys
+	})
+	if err := tbl.End(false); err != nil {
+		t.Fatal(err)
+	}
+	var ended *protocol.TableEnded
+	waitFor(t, "table_ended", func() bool {
+		for _, m := range connA.all() {
+			if m.Type == protocol.TypeTableEnded {
+				ended = &protocol.TableEnded{}
+				if err := json.Unmarshal(m.Payload, ended); err != nil {
+					t.Fatal(err)
+				}
+				return true
+			}
+		}
+		return false
+	})
+	lb := ended.FinalLeaderboard
+	if len(lb) != 2 || lb[0].Name != "Alice" || lb[0].Place != 1 || lb[1].Name != "Bob" || lb[1].Place != 2 {
+		t.Fatalf("final standings = %+v", lb)
+	}
+	if lb[0].Net != 2000 || lb[1].Net != -15000 {
+		t.Fatalf("net = %d / %d", lb[0].Net, lb[1].Net)
+	}
+}
+
+// A hand played without the time bank refills it by time_bank_refill_seconds;
+// a hand in which the bank kicked in refills nothing.
+func TestTimeBankRefillsOnlyWhenUnused(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.TimeBankSeconds = 10
+	s.TimeBankRefillSeconds = 2
+	s.HandDelayMs = 3000
+	tbl := newTestTable(t, s)
+	a, _ := join(t, tbl, "Alice")
+	b, _ := join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	tbl.call(func() {
+		for _, id := range []string{a.PlayerID, b.PlayerID} {
+			tbl.players[id].TimeBank = 4
+		}
+	})
+	actor, _ := toAct(tbl)
+	other := a.PlayerID
+	if actor == a.PlayerID {
+		other = b.PlayerID
+	}
+	// The first actor lets the clock run out: the bank kicks in.
+	waitFor(t, "time bank active", func() bool {
+		var using bool
+		tbl.call(func() { using = tbl.timeBankUsing })
+		return using
+	})
+	// From here on everyone acts at once, so nobody else touches the bank.
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		var done bool
+		tbl.call(func() { done = tbl.hand == nil || tbl.hand.Done() })
+		if done {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("hand did not finish")
+		}
+		if id, _ := toAct(tbl); id != "" {
+			if err := tbl.Action(id, poker.Action{Kind: poker.Check}); err != nil {
+				_ = tbl.Action(id, poker.Action{Kind: poker.Call})
+			}
+		}
+		time.Sleep(2 * time.Millisecond)
+	}
+	var used, unused int
+	tbl.call(func() {
+		used = tbl.players[actor].TimeBank
+		unused = tbl.players[other].TimeBank
+	})
+	if unused != 6 {
+		t.Fatalf("bank of %s after a hand on the plain clock = %d, want 6", other, unused)
+	}
+	if used > 4 {
+		t.Fatalf("bank of %s after using it = %d, must not be refilled", actor, used)
+	}
+}
+
+// The viewer's own hand keeps its description after a fold.
+func TestOwnHandDescribedAfterFold(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.HandDelayMs = 2000
+	tbl := newTestTable(t, s)
+	a, connA := join(t, tbl, "Alice")
+	b, connB := join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	actor, _ := toAct(tbl)
+	if err := tbl.Action(actor, poker.Action{Kind: poker.Fold}); err != nil {
+		t.Fatal(err)
+	}
+	conn := connA
+	if actor == b.PlayerID {
+		conn = connB
+	}
+	_ = a
+	waitFor(t, "folded hand described", func() bool {
+		snap := conn.lastSnapshot(t)
+		if snap.Hand == nil {
+			return false
+		}
+		for _, sv := range snap.Seats {
+			if sv.Player != nil && sv.Player.ID == actor && sv.Player.Folded {
+				return snap.You.HandDescription != "" && len(snap.You.BestCards) > 0
+			}
+		}
+		return false
+	})
 }
