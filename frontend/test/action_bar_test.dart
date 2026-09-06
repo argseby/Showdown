@@ -89,11 +89,15 @@ void main() {
       expect(find.byKey(const Key('action-all-in')), findsNothing);
     });
 
-    testWidgets('no action buttons when it is not your turn', (tester) async {
+    testWidgets('the action buttons are disabled when it is not your turn', (
+      tester,
+    ) async {
       final s = fixtureSnapshot();
       await pump(tester, s.copyWith(you: s.you.copyWith(options: null)));
+      // Still there (the layout never jumps), but nothing can be pressed.
       for (final k in ['action-fold', 'action-check-call', 'action-raise']) {
-        expect(find.byKey(Key(k)), findsNothing, reason: k);
+        expect(find.byKey(Key(k)), findsOneWidget, reason: k);
+        expect(enabled(tester, Key(k)), isFalse, reason: k);
       }
       expect(find.byKey(const Key('sit-out')), findsOneWidget);
     });

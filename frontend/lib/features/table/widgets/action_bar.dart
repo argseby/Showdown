@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -55,6 +57,7 @@ class ActionBar extends StatefulWidget {
     required this.textFieldFocusChanged,
     this.chipDisplay = ChipDisplay.coins,
     this.shown = const [],
+    this.handLine,
   });
 
   final Snapshot? snapshot;
@@ -64,6 +67,14 @@ class ActionBar extends StatefulWidget {
 
   /// Coins or big blinds for every amount, including the raise input.
   final ChipDisplay chipDisplay;
+
+  /// "Your hand: …" shown at the bottom when the preference says so.
+  final String? handLine;
+
+  /// How long the action buttons stay disabled after the turn arrives, so
+  /// a click aimed at something that was under the pointer a moment ago
+  /// cannot fold or call by accident.
+  static const armDelay = Duration(milliseconds: 400);
 
   /// Which of the viewer's cards are already shown this hand.
   final List<bool> shown;
@@ -93,10 +104,29 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
+  /// When the turn arrived; the action buttons ignore presses for
+  /// [armDelay] after that, so a click aimed at something else that was
+  /// under the pointer a moment ago cannot fold or call by accident.
+  Timer? _armTimer;
+  bool _armed = true;
+
   @override
   void didUpdateWidget(covariant ActionBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     final m = _model;
+    final wasTurn =
+        oldWidget.snapshot != null &&
+        ActionBarModel.from(oldWidget.snapshot!) != null;
+    if (m != null && !wasTurn) {
+      _armed = false;
+      _armTimer?.cancel();
+      _armTimer = Timer(ActionBar.armDelay, () {
+        if (mounted) setState(() => _armed = true);
+      });
+    } else if (m == null) {
+      _armTimer?.cancel();
+      _armed = true;
+    }
     if (m == null || !m.canRaise) {
       if (_raiseOpen) setState(() => _raiseOpen = false);
       return;
@@ -109,6 +139,7 @@ class ActionBarState extends State<ActionBar> {
 
   @override
   void dispose() {
+    _armTimer?.cancel();
     _amountController.dispose();
     _amountFocus.dispose();
     super.dispose();
@@ -331,12 +362,33 @@ class ActionBarState extends State<ActionBar> {
           ),
         ],
       );
-    } else if (myTurn) {
-      content = _turnRows(context, m);
     } else {
-      content = _offTurnRow(context, you!);
+      // While a betting round is on and the viewer holds cards, the three
+      // action buttons are always there (disabled off turn) so that nothing
+      // ever changes meaning under the pointer; the pre-actions live in
+      // their own row above them, in a different look. Between hands and
+      // after a fold the result controls take the second row.
+      final betting = _inBetting(snap!, you!);
+      final rows = <Widget>[];
+      // Pre-actions may be armed at any time (also while waiting for the
+      // next hand), so the row is always there for a seated player.
+      if (widget.callbacks.preAction != null) {
+        rows.add(_preActionRow(context, you, enabled: !myTurn));
+        rows.add(const Gap(6));
+      }
+      if (betting) {
+        rows.add(_turnRows(context, m));
+      } else {
+        rows.add(_offTurnRow(context, you));
+      }
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: rows,
+      );
     }
 
+    final handLine = widget.handLine;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -346,7 +398,110 @@ class ActionBarState extends State<ActionBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [content],
+        children: [
+          content,
+          if (handLine != null && handLine.isNotEmpty) ...[
+            const Gap(4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.sparkles,
+                  size: 12,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+                const Gap(6),
+                Text(
+                  l10n.yourHand(handLine),
+                  key: const Key('your-hand-bottom'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// The viewer holds cards in a running betting round (folded players and
+  /// everyone between hands get the result controls instead).
+  bool _inBetting(Snapshot snap, You you) {
+    final hand = snap.hand;
+    if (hand == null || hand.phase != 'betting') return false;
+    // Result controls on offer mean the hand is over for the viewer.
+    if (you.canShowCards || you.canRabbitHunt || you.canRebuy) return false;
+    for (final sv in snap.seats) {
+      if (sv.seat == you.seat) {
+        final p = sv.player;
+        return p != null && p.inHand && !p.folded;
+      }
+    }
+    return false;
+  }
+
+  /// Check/fold and call any as small check-box style toggles, left
+  /// aligned, clearly apart from the action buttons; disabled on turn.
+  Widget _preActionRow(BuildContext context, You you, {required bool enabled}) {
+    final l10n = context.l10n;
+    Widget toggle(String kind, String label, Key key) {
+      final on = you.preAction == kind;
+      void cb() => widget.callbacks.preAction!(on ? 'none' : kind);
+      final icon = Icon(
+        on ? LucideIcons.squareCheck : LucideIcons.square,
+        size: 14,
+      );
+      return on
+          ? PrimaryButton(
+              key: key,
+              size: ButtonSize.small,
+              onPressed: enabled ? cb : null,
+              leading: icon,
+              child: Text(label),
+            )
+          : OutlineButton(
+              key: key,
+              size: ButtonSize.small,
+              onPressed: enabled ? cb : null,
+              leading: icon,
+              child: Text(label),
+            );
+    }
+
+    final snap = widget.snapshot!;
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
+        toggle('call_any', l10n.preCallAny, const Key('pre-call-any')),
+        // The straddle is armed for the next hand: same row, same look.
+        if (snap.table.settings.allowStraddle &&
+            widget.callbacks.straddle != null &&
+            widget.myStatus == 'active')
+          _straddleToggle(context, you),
+      ],
+    );
+  }
+
+  Widget _straddleToggle(BuildContext context, You you) {
+    final l10n = context.l10n;
+    final on = you.straddle ?? false;
+    return Tooltip(
+      tooltip: TooltipContainer(child: Text(l10n.straddleHint)).call,
+      child: (on ? PrimaryButton.new : OutlineButton.new)(
+        key: const Key('straddle-toggle'),
+        size: ButtonSize.small,
+        onPressed: () => widget.callbacks.straddle!(!on),
+        leading: Icon(
+          on ? LucideIcons.squareCheck : LucideIcons.square,
+          size: 14,
+        ),
+        child: Text(l10n.straddleToggle),
       ),
     );
   }
@@ -365,8 +520,53 @@ class ActionBarState extends State<ActionBar> {
 
   /// The viewer's turn: presets and amount (when raising) above the three
   /// colour-coded action buttons.
-  Widget _turnRows(BuildContext context, ActionBarModel m) {
+  /// The action row: live on the viewer's turn (after [armDelay]), shown
+  /// disabled otherwise so the layout never jumps.
+  Widget _turnRows(BuildContext context, ActionBarModel? m) {
     final l10n = context.l10n;
+    final armed = m != null && _armed;
+    if (m == null) {
+      return Row(
+        children: [
+          Expanded(
+            child: _ActionButton(
+              key: const Key('action-fold'),
+              label: l10n.fold,
+              hint: shortcutLabel(ShortcutAction.fold),
+              enabled: false,
+              color: ActionColors.fold,
+              onPressed: () {},
+            ),
+          ),
+          const Gap(6),
+          Expanded(
+            child: _ActionButton(
+              key: const Key('action-check-call'),
+              label: l10n.check,
+              hint: shortcutLabel(ShortcutAction.checkCall),
+              enabled: false,
+              color: ActionColors.check,
+              onPressed: () {},
+            ),
+          ),
+          const Gap(6),
+          Expanded(
+            child: _ActionButton(
+              key: const Key('action-raise'),
+              label: l10n.raise,
+              hint: shortcutLabel(ShortcutAction.openRaise),
+              enabled: false,
+              color: ActionColors.raise,
+              onPressed: () {},
+            ),
+          ),
+          if (widget.myStatus == 'active') ...[
+            const Gap(4),
+            _sitOutButton(context),
+          ],
+        ],
+      );
+    }
     final raiseLabel = m.isOpeningBet ? l10n.bet : l10n.raise;
     final rows = <Widget>[];
     if (_raiseOpen && m.canRaise) {
@@ -409,7 +609,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-fold'),
               label: l10n.fold,
               hint: shortcutLabel(ShortcutAction.fold),
-              enabled: m.canFold,
+              enabled: m.canFold && armed,
               color: ActionColors.fold,
               onPressed: fold,
             ),
@@ -420,7 +620,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-check-call'),
               label: callLabel,
               hint: shortcutLabel(ShortcutAction.checkCall),
-              enabled: m.canCheck || m.canCall,
+              enabled: (m.canCheck || m.canCall) && armed,
               color: m.canCall ? ActionColors.call : ActionColors.check,
               onPressed: checkOrCall,
             ),
@@ -438,7 +638,7 @@ class ActionBarState extends State<ActionBar> {
               hint: shortcutLabel(
                 _raiseOpen ? ShortcutAction.confirm : ShortcutAction.openRaise,
               ),
-              enabled: m.canRaise,
+              enabled: m.canRaise && armed,
               color: ActionColors.raise,
               onPressed: () => _raiseOpen ? confirm() : openRaise(),
             ),
@@ -467,55 +667,13 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
-  /// Not the viewer's turn: pre-actions during a hand, otherwise the
-  /// result-phase controls (show cards, rabbit hunt, rebuy).
+  /// No betting for the viewer right now: the result-phase and
+  /// between-hands controls (straddle, run it twice, rebuy, show cards,
+  /// rabbit hunt, sit out).
   Widget _offTurnRow(BuildContext context, You you) {
     final l10n = context.l10n;
     final snap = widget.snapshot!;
     final items = <Widget>[];
-    // Pre-actions apply to the current hand (armed between hands: the next
-    // one) and reset when it ends; they can be toggled whenever it is not
-    // the viewer's turn, including between hands.
-    if (widget.callbacks.preAction != null) {
-      Widget toggle(String kind, String label, Key key) {
-        final on = you.preAction == kind;
-        void cb() => widget.callbacks.preAction!(on ? 'none' : kind);
-        return on
-            ? PrimaryButton(
-                key: key,
-                size: ButtonSize.small,
-                onPressed: cb,
-                child: Text(label),
-              )
-            : OutlineButton(
-                key: key,
-                size: ButtonSize.small,
-                onPressed: cb,
-                child: Text(label),
-              );
-      }
-
-      items.add(
-        toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
-      );
-      items.add(toggle('call_any', l10n.preCallAny, const Key('pre-call-any')));
-    }
-    if (snap.table.settings.allowStraddle &&
-        widget.callbacks.straddle != null &&
-        widget.myStatus == 'active') {
-      final on = you.straddle ?? false;
-      items.add(
-        Tooltip(
-          tooltip: TooltipContainer(child: Text(l10n.straddleHint)).call,
-          child: (on ? PrimaryButton.new : OutlineButton.new)(
-            key: const Key('straddle-toggle'),
-            size: ButtonSize.small,
-            onPressed: () => widget.callbacks.straddle!(!on),
-            child: Text(l10n.straddleToggle),
-          ),
-        ),
-      );
-    }
     if ((you.canRunTwice ?? false) && widget.callbacks.runTwice != null) {
       items.add(Text(l10n.runTwiceQuestion).semiBold().small());
       items.add(

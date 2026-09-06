@@ -188,13 +188,8 @@ class SeatWidget extends ConsumerWidget {
         ),
       );
     }
-    if (hand != null) {
-      if (hand!.buttonSeat == seat) {
-        badges.add(_Badge(l10n.badgeDealer, primary: true));
-      }
-      if (hand!.sbSeat == seat) badges.add(_Badge(l10n.badgeSmallBlind));
-      if (hand!.bbSeat == seat) badges.add(_Badge(l10n.badgeBigBlind));
-    }
+    // Dealer button and blind markers are drawn on the felt by the table
+    // view, not on the seat.
     if (p.status == 'sitting_out') badges.add(_Badge(l10n.badgeSittingOut));
     if (p.status == 'busted') badges.add(_Badge(l10n.badgeBusted));
     if (!p.connected) {
@@ -205,7 +200,11 @@ class SeatWidget extends ConsumerWidget {
     if (hand?.straddleSeat == seat) badges.add(_Badge(l10n.badgeStraddle));
     if (timeBankActive) {
       badges.add(
-        _Badge(l10n.timeBankLeft(p.timeBank ?? 0), key: Key('timebank-$seat')),
+        _Badge(
+          l10n.timeBankLeft(p.timeBank ?? 0),
+          key: Key('timebank-$seat'),
+          primary: true,
+        ),
       );
     }
     if (equity != null && inHand && !p.folded) {
@@ -352,29 +351,13 @@ class SeatWidget extends ConsumerWidget {
                 tooltip: TooltipContainer(
                   child: Text(l10n.timeBankLeft(p.timeBank ?? 0)),
                 ).call,
-                child: Row(
+                child: _TimeBankLeft(
                   key: Key('timebank-stack-$seat'),
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      LucideIcons.timer,
-                      size: compact ? 10 : 11,
-                      color: timeBankActive
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.mutedForeground,
-                    ),
-                    const Gap(2),
-                    Text(
-                      '${p.timeBank ?? 0}s',
-                      style: TextStyle(
-                        fontSize: compact ? 10 : 11,
-                        color: timeBankActive
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.mutedForeground,
-                        fontFamily: 'GeistMono',
-                      ),
-                    ),
-                  ],
+                  seconds: p.timeBank ?? 0,
+                  // While the bank is running, the seconds count down from
+                  // the server deadline instead of showing the balance.
+                  deadlineTs: timeBankActive ? hand?.deadlineTs : null,
+                  compact: compact,
                 ),
               ),
               const Gap(6),
@@ -686,6 +669,85 @@ class _FadingLabelState extends State<FadingActionLabel>
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The time bank left of the stack: the balance, or, while the bank is
+/// running, the seconds still left on the server deadline (ticking).
+class _TimeBankLeft extends ConsumerStatefulWidget {
+  const _TimeBankLeft({
+    super.key,
+    required this.seconds,
+    required this.deadlineTs,
+    required this.compact,
+  });
+  final int seconds;
+  final int? deadlineTs;
+  final bool compact;
+
+  @override
+  ConsumerState<_TimeBankLeft> createState() => _TimeBankLeftState();
+}
+
+class _TimeBankLeftState extends ConsumerState<_TimeBankLeft>
+    with SingleTickerProviderStateMixin {
+  Ticker? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(covariant _TimeBankLeft old) {
+    super.didUpdateWidget(old);
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    if (widget.deadlineTs != null) {
+      _ticker ??= createTicker((_) => setState(() {}))..start();
+    } else {
+      _ticker?.dispose();
+      _ticker = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final active = widget.deadlineTs != null;
+    var seconds = widget.seconds;
+    if (active) {
+      final now = ref.read(timeSyncProvider.notifier).serverNow();
+      seconds = ((widget.deadlineTs! - now) / 1000).clamp(0, 9999).ceil();
+    }
+    final color = active
+        ? theme.colorScheme.primary
+        : theme.colorScheme.mutedForeground;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(LucideIcons.timer, size: widget.compact ? 10 : 11, color: color),
+        const Gap(2),
+        Text(
+          '${seconds}s',
+          style: TextStyle(
+            fontSize: widget.compact ? 10 : 11,
+            color: color,
+            fontFamily: 'GeistMono',
+            fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 }

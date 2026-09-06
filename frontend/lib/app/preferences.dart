@@ -195,3 +195,38 @@ class UiScaleNotifier extends Notifier<double> {
 final uiScaleProvider = NotifierProvider<UiScaleNotifier, double>(
   UiScaleNotifier.new,
 );
+
+/// Where the viewer's "Your hand: …" line is shown: nowhere, on the felt
+/// under the community cards, or below the table in the action bar.
+enum HandLinePlacement { off, board, bottom }
+
+class HandLineNotifier extends Notifier<HandLinePlacement> {
+  static const _key = 'pref:hand_line';
+
+  @override
+  HandLinePlacement build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getString(_key);
+      for (final o in HandLinePlacement.values) {
+        if (o.name == v) state = o;
+      }
+    }).ignore();
+    return HandLinePlacement.board;
+  }
+
+  void set(HandLinePlacement value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(_key, value.name))
+        .ignore();
+  }
+
+  void next() {
+    const all = HandLinePlacement.values;
+    set(all[(all.indexOf(state) + 1) % all.length]);
+  }
+}
+
+final handLineProvider = NotifierProvider<HandLineNotifier, HandLinePlacement>(
+  HandLineNotifier.new,
+);

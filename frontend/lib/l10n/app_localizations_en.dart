@@ -1241,6 +1241,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get displayExtraLarge => 'Extra large';
 
   @override
+  String get handLine => 'Your hand line';
+
+  @override
+  String get handLineOff => 'Off';
+
+  @override
+  String get handLineBoard => 'On the table';
+
+  @override
+  String get handLineBottom => 'Below the table';
+
+  @override
   String get invite => 'Invite';
 
   @override

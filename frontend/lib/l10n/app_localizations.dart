@@ -2234,6 +2234,30 @@ abstract class AppLocalizations {
   /// **'Extra large'**
   String get displayExtraLarge;
 
+  /// No description provided for @handLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Your hand line'**
+  String get handLine;
+
+  /// No description provided for @handLineOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get handLineOff;
+
+  /// No description provided for @handLineBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'On the table'**
+  String get handLineBoard;
+
+  /// No description provided for @handLineBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Below the table'**
+  String get handLineBottom;
+
   /// No description provided for @invite.
   ///
   /// In en, this message translates to:

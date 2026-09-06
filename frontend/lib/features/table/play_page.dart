@@ -574,6 +574,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
             isPlayer: session.isPlayer,
             myStatus: myPlayer?.status,
             chipDisplay: chipDisplay,
+            handLine:
+                ref.watch(handLineProvider) == HandLinePlacement.bottom &&
+                    session.isPlayer
+                ? snap?.you.handDescription
+                : null,
             shown: session.mySeat != null
                 ? session.shown[session.mySeat!] ?? const []
                 : const [],

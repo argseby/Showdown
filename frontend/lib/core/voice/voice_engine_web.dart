@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:typed_data';
 import 'dart:ui_web' as ui_web;
 
+import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
 import 'voice_engine.dart';
@@ -288,6 +288,10 @@ class _WebVoiceEngine implements VoiceEngine {
     }).toJS;
     pc.ontrack = ((web.RTCTrackEvent e) {
       final streams = e.streams.toDart;
+      debugPrint(
+        'voice: ${e.track.kind} track from $peerId '
+        '(${streams.length} stream${streams.length == 1 ? '' : 's'})',
+      );
       if (streams.isEmpty) return;
       if (e.track.kind == 'video') {
         if (!_receiveVideo) return;
@@ -315,6 +319,62 @@ class _WebVoiceEngine implements VoiceEngine {
     web.document.body?.append(audio);
     _audios[peerId] = audio;
     _attachAnalyser(peerId, stream);
+    _startPlayback(peerId, audio);
+  }
+
+  /// Starts the remote audio explicitly. Browsers may refuse to play until
+  /// the page has been touched (autoplay policy); then the element is
+  /// retried on the next tap or key press, together with the audio context
+  /// that drives the level meter.
+  void _startPlayback(String peerId, web.HTMLAudioElement audio) {
+    _ctx?.resume();
+    audio
+        .play()
+        .toDart
+        .then((_) {
+          debugPrint('voice: playing audio from $peerId');
+        })
+        .catchError((Object e) {
+          debugPrint(
+            'voice: playback of $peerId blocked ($e), waiting for a tap',
+          );
+          _blocked.add(audio);
+          _armGestureRetry();
+        });
+  }
+
+  final _blocked = <web.HTMLAudioElement>{};
+  bool _gestureArmed = false;
+
+  void _armGestureRetry() {
+    if (_gestureArmed) return;
+    _gestureArmed = true;
+    late web.EventListener handler;
+    handler = ((web.Event _) {
+      _gestureArmed = false;
+      for (final kind in ['pointerdown', 'keydown', 'touchstart']) {
+        web.document.removeEventListener(kind, handler);
+      }
+      _ctx?.resume();
+      final pending = _blocked.toList();
+      _blocked.clear();
+      for (final a in pending) {
+        a
+            .play()
+            .toDart
+            .then((_) {
+              debugPrint('voice: playback resumed after a tap');
+            })
+            .catchError((Object e) {
+              debugPrint('voice: playback still blocked ($e)');
+              _blocked.add(a);
+              _armGestureRetry();
+            });
+      }
+    }).toJS;
+    for (final kind in ['pointerdown', 'keydown', 'touchstart']) {
+      web.document.addEventListener(kind, handler);
+    }
   }
 
   void _attachAnalyser(String id, web.MediaStream stream) {

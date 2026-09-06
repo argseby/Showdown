@@ -123,7 +123,11 @@ class TableView extends ConsumerWidget {
     final highlightColor = spot != null && spot.winner
         ? potColor(spot.potIndex ?? session.winnerPotIndex ?? 0)
         : winnerColor;
-    final yourHand = session.isPlayer ? snap.you.handDescription : '';
+    final yourHand =
+        session.isPlayer &&
+            ref.watch(handLineProvider) == HandLinePlacement.board
+        ? snap.you.handDescription
+        : '';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -401,58 +405,86 @@ class TableView extends ConsumerWidget {
           // the middle where the board and the pots are, and off the seat's
           // cards thanks to the slack kept on the felt side.
           final betPoint = actionPoint(felt, box.center);
+          // The dealer button and the blind markers (D white, SB yellow,
+          // BB red) are part of the seat's pill, left of its label and
+          // chips, so they are always aligned with that seat's entries.
+          final role = hand == null || player == null
+              ? null
+              : hand.buttonSeat == sv.seat
+              ? _SeatRole.dealer
+              : hand.sbSeat == sv.seat
+              ? _SeatRole.smallBlind
+              : hand.bbSeat == sv.seat
+              ? _SeatRole.bigBlind
+              : null;
+          final entries = Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (lastAction != null)
+                FadingActionLabel(
+                  key: ValueKey(
+                    'action-${sv.seat}-${lastAction.kind}-${lastAction.amount}-${hand?.street}',
+                  ),
+                  text: actionLabel(
+                    l10n,
+                    lastAction,
+                    chipDisplay: chipDisplay,
+                    bigBlind: bigBlind,
+                    locale: locale,
+                  ),
+                ),
+              // Bets fade out when the street ends and the chips move
+              // to the pot.
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: !showBet
+                    ? const SizedBox.shrink()
+                    : Container(
+                        key: ValueKey('bet-${sv.seat}-$bet'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.background.withValues(
+                            alpha: 0.85,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ChipAmount(
+                          amount: bet,
+                          bigBlind: bigBlind,
+                          size: 12,
+                          style: TextStyle(
+                            fontSize: compact ? 11 : 12,
+                            fontFamily: 'GeistMono',
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          );
           children.add(
             Positioned(
               key: ValueKey('seat-action-${sv.seat}'),
-              left: betPoint.dx - 60,
+              left: betPoint.dx - 80,
               top: betPoint.dy - 20,
-              width: 120,
+              width: 160,
               height: 40,
-              child: Column(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (lastAction != null)
-                    FadingActionLabel(
-                      key: ValueKey(
-                        'action-${sv.seat}-${lastAction.kind}-${lastAction.amount}-${hand?.street}',
-                      ),
-                      text: actionLabel(
-                        l10n,
-                        lastAction,
-                        chipDisplay: chipDisplay,
-                        bigBlind: bigBlind,
-                        locale: locale,
-                      ),
+                  if (role != null) ...[
+                    _RoleMarker(
+                      key: ValueKey('marker-${sv.seat}'),
+                      role: role,
+                      compact: compact,
                     ),
-                  // Bets fade out when the street ends and the chips move
-                  // to the pot.
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: !showBet
-                        ? const SizedBox.shrink()
-                        : Container(
-                            key: ValueKey('bet-${sv.seat}-$bet'),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.background.withValues(
-                                alpha: 0.85,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ChipAmount(
-                              amount: bet,
-                              bigBlind: bigBlind,
-                              size: 12,
-                              style: TextStyle(
-                                fontSize: compact ? 11 : 12,
-                                fontFamily: 'GeistMono',
-                              ),
-                            ),
-                          ),
-                  ),
+                    const Gap(5),
+                  ],
+                  entries,
                 ],
               ),
             ),
@@ -741,6 +773,58 @@ class _DealCardState extends State<_DealCard>
   }
 }
 
+enum _SeatRole { dealer, smallBlind, bigBlind }
+
+/// The dealer button (white) and the blind markers (SB yellow, BB red) on
+/// the felt.
+class _RoleMarker extends StatelessWidget {
+  const _RoleMarker({super.key, required this.role, required this.compact});
+  final _SeatRole role;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final (bg, fg, text) = switch (role) {
+      _SeatRole.dealer => (
+        const Color(0xFFF5F5F5),
+        const Color(0xFF111111),
+        l10n.badgeDealer,
+      ),
+      _SeatRole.smallBlind => (
+        const Color(0xFFFFC107),
+        const Color(0xFF3A2A00),
+        l10n.badgeSmallBlind,
+      ),
+      _SeatRole.bigBlind => (
+        const Color(0xFFE53935),
+        const Color(0xFFFFFFFF),
+        l10n.badgeBigBlind,
+      ),
+    };
+    final size = compact ? 20.0 : 22.0;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: bg,
+        boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 3)],
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: text.length > 1 ? 8 : 10,
+          fontWeight: FontWeight.w800,
+          color: fg,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
 /// A stack of chips sliding from the pot to a winner's seat, fading out
 /// as it arrives.
 class _FlyingChips extends StatelessWidget {
@@ -824,8 +908,8 @@ class _Pots extends StatelessWidget {
     if (pots.isEmpty) return const SizedBox(height: 18);
     final locale = Localizations.localeOf(context).toString();
     return Wrap(
-      spacing: 8,
-      runSpacing: 4,
+      spacing: 16,
+      runSpacing: 6,
       alignment: WrapAlignment.center,
       children: [
         for (var i = 0; i < pots.length; i++)

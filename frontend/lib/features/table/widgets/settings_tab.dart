@@ -43,6 +43,7 @@ class TableSettingsTab extends ConsumerWidget {
     final notify = ref.watch(notifyTurnProvider);
     final showCameras = ref.watch(showCamerasProvider);
     final scale = ref.watch(uiScaleProvider);
+    final handLine = ref.watch(handLineProvider);
     final spotlight = ref.watch(showdownSpotlightProvider);
     final notifier = TurnNotifier.create();
     final voiceCtrl = ref.read(voiceControllerProvider(tableId).notifier);
@@ -240,6 +241,17 @@ class TableSettingsTab extends ConsumerWidget {
                     .set(options[(i + 1) % options.length]);
               },
               key: const Key('display-size'),
+            ),
+            button(
+              LucideIcons.sparkles,
+              l10n.handLine,
+              switch (handLine) {
+                HandLinePlacement.off => l10n.handLineOff,
+                HandLinePlacement.board => l10n.handLineBoard,
+                HandLinePlacement.bottom => l10n.handLineBottom,
+              },
+              () => ref.read(handLineProvider.notifier).next(),
+              key: const Key('hand-line-placement'),
             ),
             button(
               LucideIcons.languages,

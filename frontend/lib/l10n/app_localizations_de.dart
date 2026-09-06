@@ -1249,6 +1249,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get displayExtraLarge => 'Sehr groß';
 
   @override
+  String get handLine => 'Zeile „Deine Hand“';
+
+  @override
+  String get handLineOff => 'Aus';
+
+  @override
+  String get handLineBoard => 'Auf dem Tisch';
+
+  @override
+  String get handLineBottom => 'Unter dem Tisch';
+
+  @override
   String get invite => 'Einladen';
 
   @override

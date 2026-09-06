@@ -1,5 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:showdown/app/preferences.dart';
 import 'package:showdown/core/ws_client.dart';
 import 'package:showdown/features/table/table_session.dart';
 import 'package:showdown/features/table/widgets/seat_widget.dart';
@@ -122,6 +124,7 @@ void main() {
   _moreTests();
   _potTests();
   _showdownTests();
+  _markerTests();
 }
 
 void _moreTests() {
@@ -413,5 +416,69 @@ void _showdownTests() {
     // The main pot is the one on display.
     final pot = tester.widget<Container>(find.byKey(const ValueKey('pot-0')));
     expect((pot.decoration as BoxDecoration).color, potGold);
+  });
+}
+
+void _markerTests() {
+  testWidgets('dealer and blind markers sit on the felt, not on the seat', (
+    tester,
+  ) async {
+    final snap = fixtureSnapshot();
+    // Fixture: button seat 3 (empty), SB seat 4 (Bob), BB seat 0 (Alice).
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('marker-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('marker-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey('marker-3')), findsNothing);
+    expect(find.text('BB'), findsOneWidget);
+    expect(find.text('SB'), findsOneWidget);
+    // Inside the felt, away from the seat box.
+    final table = tester.getRect(find.byType(TableView));
+    final bb = tester.getCenter(find.byKey(const ValueKey('marker-0')));
+    final seat = tester.getRect(
+      find.byWidgetPredicate((w) => w is SeatWidget && w.seat == 0),
+    );
+    expect(seat.contains(bb), isFalse);
+    expect(
+      (bb - table.center).distance,
+      lessThan((seat.center - table.center).distance),
+    );
+  });
+
+  testWidgets('the hand line follows the placement preference', (tester) async {
+    final snap = fixtureSnapshot();
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: wrap(
+          SizedBox(
+            width: 1000,
+            height: 600,
+            child: TableView(session: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('your-hand')), findsOneWidget);
+    container.read(handLineProvider.notifier).set(HandLinePlacement.off);
+    await tester.pump();
+    expect(find.byKey(const Key('your-hand')), findsNothing);
   });
 }

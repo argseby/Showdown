@@ -94,9 +94,14 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('pre-call-any')));
     expect(acted2, ['pre:none']);
-    // On the viewer's turn the toggles disappear.
+    // On the viewer's turn the toggles stay in place but are disabled.
     await pump(tester, s);
-    expect(find.byKey(const Key('pre-check-fold')), findsNothing);
+    expect(
+      tester
+          .widget<OutlineButton>(find.byKey(const Key('pre-check-fold')))
+          .onPressed,
+      isNull,
+    );
   });
 
   testWidgets('sitting out hides the betting buttons', (tester) async {
@@ -149,5 +154,75 @@ void main() {
     state.confirm();
     await tester.pump();
     expect(acted, ['raise:750']);
+  });
+  _graceTests();
+}
+
+void _graceTests() {
+  testWidgets('the action buttons arm shortly after the turn arrives', (
+    tester,
+  ) async {
+    final s = fixtureSnapshot();
+    final offTurn = s.copyWith(you: s.you.copyWith(options: null));
+    // Off turn: the buttons are there, disabled, under a pre-action row.
+    await tester.pumpWidget(
+      wrap(
+        ActionBar(
+          snapshot: offTurn,
+          callbacks: ActionCallbacks(
+            act: (_, {amount}) {},
+            rebuy: () {},
+            sitOut: () {},
+            sitIn: () {},
+            showCards: (_) {},
+            preAction: (_) {},
+          ),
+          isPlayer: true,
+          myStatus: 'active',
+          textFieldFocusChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('action-fold')), findsOneWidget);
+    expect(find.byKey(const Key('pre-check-fold')), findsOneWidget);
+    // The pre-action row is above the action row.
+    final toggles = tester.getCenter(find.byKey(const Key('pre-check-fold')));
+    final fold = tester.getCenter(find.byKey(const Key('action-fold')));
+    expect(toggles.dy, lessThan(fold.dy));
+    // The turn arrives: the buttons stay disabled for the grace period.
+    await tester.pumpWidget(
+      wrap(
+        ActionBar(
+          snapshot: s,
+          callbacks: ActionCallbacks(
+            act: (_, {amount}) {},
+            rebuy: () {},
+            sitOut: () {},
+            sitIn: () {},
+            showCards: (_) {},
+            preAction: (_) {},
+          ),
+          isPlayer: true,
+          myStatus: 'active',
+          textFieldFocusChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    bool foldEnabled() =>
+        tester
+            .widget<Button>(
+              find.descendant(
+                of: find.byKey(const Key('action-fold')),
+                matching: find.byType(Button),
+              ),
+            )
+            .onPressed !=
+        null;
+
+    expect(foldEnabled(), isFalse);
+    await tester.pump(ActionBar.armDelay + const Duration(milliseconds: 50));
+    expect(foldEnabled(), isTrue);
   });
 }
