@@ -53,7 +53,7 @@ network). Game data lives in the `data` volume (a single SQLite file).
 | `SITE_ADDRESS` | `:80` | Caddy site address; a host name enables auto-HTTPS (see below) |
 | `TABLE_RETENTION_DAYS` | `90` | hands and chat of ended tables are deleted after this many days; the tables and their final standings are kept |
 | `MAX_TABLES` | `100` | cap on tables that have not ended |
-| `VOICE_STUN_URLS` | empty | STUN servers for the voice chat across networks, comma-separated (`stun:` / `stuns:`); empty keeps voice within one network and avoids any third party |
+| `VOICE_STUN_URLS` | empty | STUN servers for voice chat and video across networks, comma-separated (`stun:` / `stuns:`). Public ones such as `stun:stun.l.google.com:19302` need no account; STUN only helps browsers find each other, the audio and video stay browser to browser. Empty keeps voice and video within one network. Players behind strict NATs may still fail to connect (that would need a TURN relay, which is not part of this project) |
 | `IMAGE_TAG` | `latest` | release to run, e.g. `v1.0.1` |
 | `IMAGE_OWNER` | `argseby` | only for a fork that publishes its own images |
 
