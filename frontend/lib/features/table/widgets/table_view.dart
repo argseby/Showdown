@@ -21,7 +21,6 @@ class TableView extends ConsumerWidget {
     required this.session,
     this.onTakeSeat,
     this.speaking = const {},
-    this.onToggleMute,
     this.onAdminTap,
     this.onSayTap,
     this.videoViews = const {},
@@ -38,9 +37,6 @@ class TableView extends ConsumerWidget {
 
   /// Player ids currently speaking in the voice chat ("me" for the viewer).
   final Set<String> speaking;
-
-  /// Viewer's mute toggle (null when not in the voice chat).
-  final VoidCallback? onToggleMute;
 
   /// Host only: opens the player actions for a seat that is not the host's.
   final ValueChanged<PlayerView>? onAdminTap;
@@ -245,7 +241,6 @@ class TableView extends ConsumerWidget {
                       (speaking.contains(sv.player!.id) ||
                           (sv.seat == session.mySeat &&
                               speaking.contains('me'))),
-                  onVoiceTap: sv.seat == session.mySeat ? onToggleMute : null,
                   onSayTap: sv.seat == session.mySeat && session.isPlayer
                       ? onSayTap
                       : null,

@@ -12,6 +12,9 @@ class _WebTurnNotifier implements TurnNotifier {
   bool get supported => (web.window as JSObject).has('Notification');
 
   @override
+  String get permission => supported ? web.Notification.permission : 'denied';
+
+  @override
   Future<bool> requestPermission() async {
     if (!supported) return false;
     try {

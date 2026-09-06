@@ -29,7 +29,6 @@ class SeatWidget extends ConsumerWidget {
     this.onTakeSeat,
     this.pendingForViewer = false,
     this.speaking = false,
-    this.onVoiceTap,
     this.scale = 1.0,
     this.phrase,
     this.onAdminTap,
@@ -86,9 +85,6 @@ class SeatWidget extends ConsumerWidget {
 
   /// Voice chat: this player is talking right now (client-side detection).
   final bool speaking;
-
-  /// Own seat only: tapping the microphone badge mutes/unmutes.
-  final VoidCallback? onVoiceTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -222,6 +218,8 @@ class SeatWidget extends ConsumerWidget {
             shape: BoxShape.circle,
             border: winner
                 ? Border.all(color: _gold, width: 3)
+                : speaking && p.voice == 'on'
+                ? Border.all(color: const Color(0xFF43A047), width: 3)
                 : isViewer
                 ? Border.all(color: theme.colorScheme.primary, width: 2)
                 : null,
@@ -244,42 +242,6 @@ class SeatWidget extends ConsumerWidget {
             left: compact ? -2 : 0,
             top: compact ? -2 : 0,
             child: _WinnerMark(size: compact ? 18 : 22),
-          ),
-        if (onSayTap != null)
-          Positioned(
-            left: compact ? -4 : 0,
-            bottom: compact ? -2 : 2,
-            child: Tooltip(
-              tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
-              child: GestureDetector(
-                key: const Key('say-button'),
-                onTap: onSayTap,
-                child: Container(
-                  width: compact ? 18 : 22,
-                  height: compact ? 18 : 22,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.colorScheme.card,
-                    border: Border.all(color: theme.colorScheme.border),
-                  ),
-                  child: Icon(
-                    LucideIcons.messageCircleMore,
-                    size: compact ? 11 : 13,
-                    color: theme.colorScheme.foreground,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        if (p.voice != 'off')
-          Positioned(
-            right: compact ? -2 : 2,
-            bottom: compact ? -2 : 2,
-            child: _VoiceBadge(
-              muted: p.voice == 'muted',
-              speaking: speaking,
-              onTap: onVoiceTap,
-            ),
           ),
       ],
     );
@@ -333,14 +295,36 @@ class SeatWidget extends ConsumerWidget {
         else
           avatarStack,
         const Gap(2),
-        Text(
-          p.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: compact ? 11 : 13,
-            fontWeight: isTurn ? FontWeight.w700 : FontWeight.w500,
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                p.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: compact ? 11 : 13,
+                  fontWeight: isTurn ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+            if (onSayTap != null) ...[
+              const Gap(4),
+              Tooltip(
+                tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
+                child: GestureDetector(
+                  key: const Key('say-button'),
+                  onTap: onSayTap,
+                  child: Icon(
+                    LucideIcons.messageCircleMore,
+                    size: compact ? 13 : 15,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         Text(
           formatAmount(
@@ -455,60 +439,6 @@ class _DealInState extends State<_DealIn> with SingleTickerProviderStateMixin {
         ).animate(curve),
         child: widget.child,
       ),
-    );
-  }
-}
-
-/// Microphone badge next to the avatar: muted, idle or speaking (glow).
-class _VoiceBadge extends StatelessWidget {
-  const _VoiceBadge({
-    required this.muted,
-    required this.speaking,
-    required this.onTap,
-  });
-  final bool muted;
-  final bool speaking;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = muted
-        ? theme.colorScheme.destructive
-        : speaking
-        ? theme.colorScheme.primary
-        : theme.colorScheme.muted;
-    final badge = AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        border: Border.all(color: theme.colorScheme.background, width: 1.5),
-        boxShadow: speaking && !muted
-            ? [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.8),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ]
-            : const [],
-      ),
-      child: Icon(
-        muted ? LucideIcons.micOff : LucideIcons.mic,
-        size: 10,
-        color: muted || speaking
-            ? theme.colorScheme.primaryForeground
-            : theme.colorScheme.mutedForeground,
-      ),
-    );
-    if (onTap == null) return badge;
-    return GestureDetector(
-      key: const Key('voice-badge-self'),
-      onTap: onTap,
-      child: badge,
     );
   }
 }

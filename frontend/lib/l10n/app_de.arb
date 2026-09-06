@@ -499,5 +499,8 @@
   "cameraUnavailable": "Der Browser hat die Kamera nicht freigegeben.",
   "cameraOffByHost": "Der Gastgeber hat deine Kamera ausgeschaltet. Du kannst sie wieder einschalten.",
   "adminCameraOff": "Kamera ausschalten",
-  "adminCameraOffDone": "Kamera ausgeschaltet"
+  "adminCameraOffDone": "Kamera ausgeschaltet",
+  "cameraJoinHint": "Zeigt ein kleines Kamerabild neben deinem Avatar (schaltet auch den Voice-Chat ein). Der Browser fragt einmal nach der Kamera.",
+  "showCameras": "Kameras der anderen anzeigen",
+  "showCamerasHint": "Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt."
 }

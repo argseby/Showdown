@@ -2683,6 +2683,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Camera turned off'**
   String get adminCameraOffDone;
+
+  /// No description provided for @cameraJoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds a small camera tile next to your avatar (turns the voice chat on as well). The browser asks for the camera once.'**
+  String get cameraJoinHint;
+
+  /// No description provided for @showCameras.
+  ///
+  /// In en, this message translates to:
+  /// **'Show other players\' cameras'**
+  String get showCameras;
+
+  /// No description provided for @showCamerasHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.'**
+  String get showCamerasHint;
 }
 
 class _AppLocalizationsDelegate

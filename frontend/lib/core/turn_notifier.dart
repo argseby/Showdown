@@ -9,6 +9,9 @@ abstract class TurnNotifier {
   /// False when the platform has no notifications at all.
   bool get supported;
 
+  /// The current permission: "granted", "denied" or "default" (not asked).
+  String get permission;
+
   /// Asks for permission; true when notifications may be shown.
   Future<bool> requestPermission();
 

@@ -1499,4 +1499,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adminCameraOffDone => 'Kamera ausgeschaltet';
+
+  @override
+  String get cameraJoinHint =>
+      'Zeigt ein kleines Kamerabild neben deinem Avatar (schaltet auch den Voice-Chat ein). Der Browser fragt einmal nach der Kamera.';
+
+  @override
+  String get showCameras => 'Kameras der anderen anzeigen';
+
+  @override
+  String get showCamerasHint =>
+      'Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt.';
 }

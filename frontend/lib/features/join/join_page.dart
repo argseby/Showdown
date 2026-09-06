@@ -30,6 +30,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   final _adminKey = TextEditingController();
   int? _seat; // null = any free seat
   bool _voice = false;
+  bool _camera = false;
   bool _seatsOpen = false;
 
   Future<void> _pickAvatar() async {
@@ -181,6 +182,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           name: r.name,
           playerId: r.playerId,
           voice: _voice,
+          voiceCamera: _camera,
         );
       }
       await ref.read(sessionProvider(widget.tableId).notifier).save(session);
@@ -529,12 +531,37 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                             Switch(
                               key: const Key('join-voice'),
                               value: _voice,
-                              onChanged: (v) => setState(() => _voice = v),
+                              onChanged: (v) => setState(() {
+                                _voice = v;
+                                if (!v) _camera = false;
+                              }),
                             ),
                           ],
                         ),
                         const Gap(4),
                         Text(l10n.voiceJoinHint).muted().small(),
+                        const Gap(8),
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.video,
+                              size: 18,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                            const Gap(8),
+                            Expanded(child: Text(l10n.cameraTitle).semiBold()),
+                            Switch(
+                              key: const Key('join-camera'),
+                              value: _camera,
+                              onChanged: (v) => setState(() {
+                                _camera = v;
+                                if (v) _voice = true;
+                              }),
+                            ),
+                          ],
+                        ),
+                        const Gap(4),
+                        Text(l10n.cameraJoinHint).muted().small(),
                       ],
                     ),
                   ),

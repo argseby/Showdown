@@ -12,10 +12,13 @@ class _StubVoiceEngine implements VoiceEngine {
   void setMuted(bool muted) {}
 
   @override
-  Future<bool> startCamera() async => false;
+  Future<String?> startCamera() async => 'unsupported';
 
   @override
   void stopCamera() {}
+
+  @override
+  void setReceiveVideo(bool on) {}
   @override
   Future<String> createOffer(String peerId) async => '';
   @override

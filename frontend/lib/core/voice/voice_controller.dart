@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/preferences.dart';
 import '../../features/table/table_session.dart';
 import '../../protocol/protocol.dart';
 import '../providers.dart';
@@ -19,9 +20,13 @@ class VoiceState {
     this.speaking = const {},
     this.camera = false,
     this.cameraUnavailable = false,
+    this.cameraError,
     this.hostCameraOff = false,
     this.videoViews = const {},
   });
+
+  /// The browser's reason when the camera could not be started.
+  final String? cameraError;
 
   /// The local camera is on.
   final bool camera;
@@ -61,6 +66,7 @@ class VoiceState {
     Set<String>? speaking,
     bool? camera,
     bool? cameraUnavailable,
+    String? cameraError,
     bool? hostCameraOff,
     Map<String, String>? videoViews,
   }) => VoiceState(
@@ -72,6 +78,7 @@ class VoiceState {
     speaking: speaking ?? this.speaking,
     camera: camera ?? this.camera,
     cameraUnavailable: cameraUnavailable ?? this.cameraUnavailable,
+    cameraError: cameraError ?? this.cameraError,
     hostCameraOff: hostCameraOff ?? this.hostCameraOff,
     videoViews: videoViews ?? this.videoViews,
   );
@@ -134,12 +141,26 @@ class VoiceController extends Notifier<VoiceState> {
     _eventSub = engine.events.listen(_onEngineEvent);
     _signalSub = _session.voiceSignals.listen(_onSignal);
     engine.setMuted(muted);
+    engine.setReceiveVideo(ref.read(showCamerasProvider));
     state = state.copyWith(enabled: true, muted: muted, unavailable: false);
     _confirmedOn = false;
     await _session.setVoice(muted ? 'muted' : 'on');
     _persist(voice: true, voiceMuted: muted);
     _sync(ref.read(tableSessionProvider(tableId)));
     if (camera) await toggleCamera();
+  }
+
+  /// Receive (or stop receiving) the other players' video.
+  void setReceiveVideo(bool on) {
+    _engine?.setReceiveVideo(on);
+    if (!on) {
+      state = state.copyWith(
+        videoViews: {
+          for (final e in state.videoViews.entries)
+            if (e.key == VoiceEngine.self) e.key: e.value,
+        },
+      );
+    }
   }
 
   /// Turns the small camera stream on or off (voice chat must be on).
@@ -151,8 +172,9 @@ class VoiceController extends Notifier<VoiceState> {
       state = state.copyWith(camera: false, hostCameraOff: false);
       _confirmedCamera = false;
     } else {
-      if (!await engine.startCamera()) {
-        state = state.copyWith(cameraUnavailable: true);
+      final error = await engine.startCamera();
+      if (error != null) {
+        state = state.copyWith(cameraUnavailable: true, cameraError: error);
         return;
       }
       state = state.copyWith(

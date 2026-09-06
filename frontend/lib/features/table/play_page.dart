@@ -14,6 +14,7 @@ import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
 import '../../core/turn_notifier.dart';
 import '../../core/voice/voice_controller.dart';
+import '../../core/voice/voice_engine.dart';
 import '../../core/ws_client.dart';
 import '../../protocol/protocol.dart';
 import '../../shared/confirm_dialog.dart';
@@ -26,7 +27,6 @@ import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
 import 'widgets/invite_dialog.dart';
-import 'widgets/mic_dialog.dart';
 import 'widgets/say_dialog.dart';
 import 'widgets/settings_tab.dart';
 import 'widgets/shortcuts_overlay.dart';
@@ -48,7 +48,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
   final _actionBar = GlobalKey<ActionBarState>();
   final _chatFocus = FocusNode();
   final _rootFocus = FocusNode();
-  PanelTab _tab = PanelTab.chat;
+  PanelTab _tab = PanelTab.settings;
   bool _panelOpen = true;
   bool _panelDecided = false;
   bool _voiceRequested = false;
@@ -443,6 +443,17 @@ class _PlayPageState extends ConsumerState<PlayPage>
               SurfaceCard(child: Text(l10n.voiceMutedByHost)),
         );
       }
+      if (next.cameraUnavailable &&
+          !(prev?.cameraUnavailable ?? false) &&
+          next.cameraError != null) {
+        showToast(
+          context: context,
+          location: ToastLocation.bottomCenter,
+          builder: (context, overlay) => SurfaceCard(
+            child: Text('${l10n.cameraUnavailable} ${next.cameraError}'),
+          ),
+        );
+      }
       if (next.hostCameraOff && !(prev?.hostCameraOff ?? false)) {
         showToast(
           context: context,
@@ -502,7 +513,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
             session: session,
             onTakeSeat: _changeSeat,
             speaking: voice.speaking,
-            onToggleMute: voice.enabled ? _voiceController.toggleMute : null,
             onSayTap: session.isPlayer
                 ? () => showSayDialog(context, ref, widget.tableId)
                 : null,
@@ -610,11 +620,18 @@ class _PlayPageState extends ConsumerState<PlayPage>
           );
     // The microphone button shows the voice state at a glance and opens
     // the microphone settings; the phrase button sends a quick phrase.
+    final speakingNow =
+        voice.enabled &&
+        !voice.muted &&
+        voice.speaking.contains(VoiceEngine.self);
     final micColor = !voice.enabled
         ? theme.colorScheme.mutedForeground
         : voice.muted
         ? theme.colorScheme.destructive
         : const Color(0xFF43A047);
+    // Microphone and camera: one press starts or stops each. The microphone
+    // button joins the voice chat on the first press and mutes/unmutes after
+    // that; the camera button joins the voice chat as well when needed.
     final micButton = session.isPlayer
         ? Tooltip(
             tooltip: TooltipContainer(
@@ -626,15 +643,49 @@ class _PlayPageState extends ConsumerState<PlayPage>
                     : l10n.micStateOn,
               ),
             ).call,
-            child: OutlineButton(
+            child: GhostButton(
               key: const Key('mic-button'),
               density: ButtonDensity.icon,
-              onPressed: () => showMicDialog(context, widget.tableId),
+              onPressed: () => !voice.enabled
+                  ? _voiceController.enable()
+                  : _voiceController.toggleMute(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: speakingNow
+                      ? const Color(0xFF43A047).withValues(alpha: 0.25)
+                      : const Color(0x00000000),
+                ),
+                child: Icon(
+                  !voice.enabled || voice.muted
+                      ? LucideIcons.micOff
+                      : speakingNow
+                      ? LucideIcons.audioLines
+                      : LucideIcons.mic,
+                  color: micColor,
+                ),
+              ),
+            ),
+          )
+        : null;
+    final cameraButton = session.isPlayer
+        ? Tooltip(
+            tooltip: TooltipContainer(
+              child: Text(voice.camera ? l10n.cameraOn : l10n.cameraOff),
+            ).call,
+            child: GhostButton(
+              key: const Key('camera-button'),
+              density: ButtonDensity.icon,
+              onPressed: () => voice.enabled
+                  ? _voiceController.toggleCamera()
+                  : _voiceController.enable(camera: true),
               child: Icon(
-                voice.enabled && !voice.muted
-                    ? LucideIcons.mic
-                    : LucideIcons.micOff,
-                color: micColor,
+                voice.camera ? LucideIcons.video : LucideIcons.videoOff,
+                color: voice.camera
+                    ? const Color(0xFF43A047)
+                    : theme.colorScheme.mutedForeground,
               ),
             ),
           )
@@ -686,7 +737,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
                 ],
               ],
             ),
-      trailing: [inviteButton, const Gap(4), ?micButton, panelButton],
+      trailing: [
+        inviteButton,
+        const Gap(4),
+        ?micButton,
+        ?cameraButton,
+        panelButton,
+      ],
     );
 
     Widget body = wide && _panelOpen

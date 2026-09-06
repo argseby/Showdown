@@ -27,7 +27,7 @@ header {
 	defer
 	X-Content-Type-Options nosniff
 	Referrer-Policy same-origin
-	Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+	Permissions-Policy "camera=(self), microphone=(self), geolocation=()"
 	# Cross-origin isolation lets the WebAssembly renderer use threads (without
 	# it the loader logs "wasm will run in single-threaded mode"); every
 	# resource is same-origin, so nothing is blocked by it.

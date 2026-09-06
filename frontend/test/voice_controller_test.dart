@@ -28,9 +28,11 @@ class FakeEngine implements VoiceEngine {
   @override
   void setMuted(bool muted) => calls.add('mute:$muted');
   @override
-  Future<bool> startCamera() async => false;
+  Future<String?> startCamera() async => 'unsupported';
   @override
   void stopCamera() {}
+  @override
+  void setReceiveVideo(bool on) {}
   @override
   Future<String> createOffer(String peerId) async {
     calls.add('offer:$peerId');

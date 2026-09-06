@@ -1489,4 +1489,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminCameraOffDone => 'Camera turned off';
+
+  @override
+  String get cameraJoinHint =>
+      'Adds a small camera tile next to your avatar (turns the voice chat on as well). The browser asks for the camera once.';
+
+  @override
+  String get showCameras => 'Show other players\' cameras';
+
+  @override
+  String get showCamerasHint =>
+      'Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.';
 }

@@ -55,10 +55,15 @@ abstract class VoiceEngine {
   void stop();
   void setMuted(bool muted);
 
-  /// Adds a small camera stream (160x120, 10 fps) to every connection;
-  /// false when the browser refuses the camera.
-  Future<bool> startCamera();
+  /// Adds a small camera stream (160x120, 10 fps) to every connection.
+  /// Returns null on success, otherwise the browser's reason (permission,
+  /// no device, insecure context) for the user.
+  Future<String?> startCamera();
   void stopCamera();
+
+  /// Whether to receive the other players' video at all (off saves the
+  /// bandwidth: the peers stop sending). Sending is unaffected.
+  void setReceiveVideo(bool on);
 
   /// Creates an offer for [peerId] and returns its serialized description.
   Future<String> createOffer(String peerId);

@@ -18,6 +18,8 @@ class _WebVoiceEngine implements VoiceEngine {
   final _peers = <String, web.RTCPeerConnection>{};
   final _audios = <String, web.HTMLAudioElement>{};
   final _videos = <String, web.HTMLVideoElement>{};
+  final _streams = <String, web.MediaStream>{};
+  bool _receiveVideo = true;
   final _videoSenders = <String, web.RTCRtpSender>{};
   static var _viewSeq = 0;
   final _analysers = <String, web.AnalyserNode>{};
@@ -70,8 +72,8 @@ class _WebVoiceEngine implements VoiceEngine {
   }
 
   @override
-  Future<bool> startCamera() async {
-    if (_camera != null) return true;
+  Future<String?> startCamera() async {
+    if (_camera != null) return null;
     try {
       final stream = await web.window.navigator.mediaDevices
           .getUserMedia(
@@ -92,9 +94,39 @@ class _WebVoiceEngine implements VoiceEngine {
         _videoSenders[entry.key] = entry.value.addTrack(track, stream);
       }
       _showVideo(VoiceEngine.self, stream, mirror: true);
-      return true;
-    } on Object catch (_) {
-      return false;
+      return null;
+    } on Object catch (e) {
+      // A DOMException prints as "NotAllowedError: ..." / "NotFoundError:
+      // ..." / "NotReadableError: ...", which is the reason the user needs.
+      return e.toString();
+    }
+  }
+
+  @override
+  void setReceiveVideo(bool on) {
+    if (_receiveVideo == on) return;
+    _receiveVideo = on;
+    for (final entry in _peers.entries) {
+      _applyVideoDirection(entry.value);
+      if (!on && entry.key != VoiceEngine.self) _dropVideo(entry.key);
+    }
+  }
+
+  /// Sets every video transceiver's direction from what we send and whether
+  /// we want to receive; a change triggers renegotiation.
+  void _applyVideoDirection(web.RTCPeerConnection pc) {
+    final sending = _camera != null;
+    final wanted = sending
+        ? (_receiveVideo ? 'sendrecv' : 'sendonly')
+        : (_receiveVideo ? 'recvonly' : 'inactive');
+    for (final t in pc.getTransceivers().toDart) {
+      final kind = t.receiver.track.kind;
+      if (kind != 'video') continue;
+      try {
+        if (t.direction != wanted) t.direction = wanted;
+      } on Object catch (_) {
+        // A stopped transceiver rejects direction changes.
+      }
     }
   }
 
@@ -117,32 +149,39 @@ class _WebVoiceEngine implements VoiceEngine {
     _dropVideo(VoiceEngine.self);
   }
 
-  /// Registers a platform view showing [stream] and tells the controller.
+  /// Registers a platform view for [stream] and tells the controller. The
+  /// factory builds a fresh <video> per view instance: Flutter re-creates the
+  /// platform view whenever the seat is laid out again (side panel opening,
+  /// resize), and a DOM element cannot live in two hosts.
   void _showVideo(
     String peerId,
     web.MediaStream stream, {
     bool mirror = false,
   }) {
     _dropVideo(peerId);
-    final video = web.HTMLVideoElement()
-      ..autoplay = true
-      ..muted = true
-      ..playsInline = true
-      ..srcObject = stream;
-    video.style
-      ..width = '100%'
-      ..height = '100%'
-      ..objectFit = 'cover'
-      ..borderRadius = '50%';
-    if (mirror) video.style.transform = 'scaleX(-1)';
     final viewType = 'showdown-video-${_viewSeq++}';
-    ui_web.platformViewRegistry.registerViewFactory(viewType, (int _) => video);
-    _videos[peerId] = video;
+    ui_web.platformViewRegistry.registerViewFactory(viewType, (int _) {
+      final video = web.HTMLVideoElement()
+        ..autoplay = true
+        ..muted = true
+        ..playsInline = true
+        ..srcObject = stream;
+      video.style
+        ..width = '100%'
+        ..height = '100%'
+        ..objectFit = 'cover'
+        ..borderRadius = '50%';
+      if (mirror) video.style.transform = 'scaleX(-1)';
+      _videos[peerId] = video;
+      return video;
+    });
+    _streams[peerId] = stream;
     _events.add(VoiceVideoEvent(peerId, viewType));
   }
 
   void _dropVideo(String peerId) {
-    if (_videos.remove(peerId) != null) {
+    _videos.remove(peerId);
+    if (_streams.remove(peerId) != null) {
       _events.add(VoiceVideoEvent(peerId, null));
     }
   }
@@ -230,6 +269,7 @@ class _WebVoiceEngine implements VoiceEngine {
       final streams = e.streams.toDart;
       if (streams.isEmpty) return;
       if (e.track.kind == 'video') {
+        if (!_receiveVideo) return;
         _showVideo(peerId, streams.first);
         e.track.onended = ((web.Event _) => _dropVideo(peerId)).toJS;
         e.track.onmute = ((web.Event _) => _dropVideo(peerId)).toJS;
@@ -311,6 +351,7 @@ class _WebVoiceEngine implements VoiceEngine {
           ),
         )
         .toDart;
+    if (!_receiveVideo) _applyVideoDirection(pc);
     final answer = (await pc.createAnswer().toDart)!;
     await pc
         .setLocalDescription(

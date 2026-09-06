@@ -118,6 +118,32 @@ final notifyTurnProvider = NotifierProvider<NotifyTurnNotifier, bool>(
   NotifyTurnNotifier.new,
 );
 
+/// Receive the other players' video (off saves bandwidth; own camera
+/// unaffected).
+class ShowCamerasNotifier extends Notifier<bool> {
+  static const _key = 'pref:show_cameras';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final showCamerasProvider = NotifierProvider<ShowCamerasNotifier, bool>(
+  ShowCamerasNotifier.new,
+);
+
 class UiScaleNotifier extends Notifier<double> {
   static const _key = 'pref:ui_scale';
   static const options = [1.0, 1.25, 1.5];

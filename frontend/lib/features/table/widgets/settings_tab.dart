@@ -6,12 +6,14 @@ import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
-import '../../../shared/display_size_picker.dart';
 import '../../../shared/kbd_hint.dart';
 
-/// The settings tab of the side panel: voice chat, preferences (sound, deck
-/// colours, coins/BB, display size, language, theme, shortcuts) and the
-/// table actions (take a seat, other table, leave).
+/// True while the browser's notification prompt is open.
+bool _notifyPrompt = false;
+
+/// The settings tab of the side panel: one row per setting, icon and label
+/// on the left, the control on the right (a switch, a small button or a
+/// segmented choice). Sections: voice and video, preferences, table.
 class TableSettingsTab extends ConsumerWidget {
   const TableSettingsTab({
     super.key,
@@ -39,49 +41,105 @@ class TableSettingsTab extends ConsumerWidget {
     final chipDisplay = ref.watch(chipDisplayProvider);
     final voice = ref.watch(voiceControllerProvider(tableId));
     final notify = ref.watch(notifyTurnProvider);
+    final showCameras = ref.watch(showCamerasProvider);
+    final scale = ref.watch(uiScaleProvider);
     final notifier = TurnNotifier.create();
+    final voiceCtrl = ref.read(voiceControllerProvider(tableId).notifier);
     final brightness = theme.colorScheme.brightness;
     final locale = Localizations.localeOf(context);
     final wide = MediaQuery.sizeOf(context).width >= KbdHint.minWidth;
 
     Widget section(String title) => Padding(
-      padding: const EdgeInsets.only(top: 14, bottom: 6),
-      child: Text(title).muted().small(),
+      padding: const EdgeInsets.only(top: 16, bottom: 4),
+      child: Text(title.toUpperCase()).muted().xSmall().semiBold(),
     );
-    Widget toggle(
-      String label,
-      IconData icon,
-      bool value,
-      VoidCallback onTap, {
-      Key? key,
-    }) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    Widget row(IconData icon, String label, Widget trailing) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: theme.colorScheme.mutedForeground),
+          Icon(icon, size: 16, color: theme.colorScheme.mutedForeground),
           const Gap(10),
           Expanded(child: Text(label)),
-          Switch(key: key, value: value, onChanged: (_) => onTap()),
+          trailing,
         ],
       ),
     );
-    Widget action(
-      String label,
+    Widget toggle(
       IconData icon,
+      String label,
+      bool value,
+      VoidCallback onTap, {
+      Key? key,
+    }) => row(
+      icon,
+      label,
+      Switch(key: key, value: value, onChanged: (_) => onTap()),
+    );
+    Widget button(
+      IconData icon,
+      String label,
+      String action,
       VoidCallback onTap, {
       Key? key,
       bool destructive = false,
-    }) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: (destructive ? DestructiveButton.new : OutlineButton.new)(
+    }) => row(
+      icon,
+      label,
+      OutlineButton(
         key: key,
         size: ButtonSize.small,
         onPressed: onTap,
-        alignment: Alignment.centerLeft,
-        leading: Icon(icon, size: 16),
-        child: Text(label),
+        child: Text(
+          action,
+          style: destructive
+              ? TextStyle(color: theme.colorScheme.destructive)
+              : null,
+        ),
       ),
     );
+    Widget error(String text) => Padding(
+      padding: const EdgeInsets.only(left: 26, bottom: 4),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12, color: theme.colorScheme.destructive),
+      ),
+    );
+
+    Future<void> toggleNotify() async {
+      if (notify) {
+        ref.read(notifyTurnProvider.notifier).set(false);
+        return;
+      }
+      // Already decided: no prompt. Otherwise ask once and ignore presses
+      // while the browser's prompt is open.
+      if (notifier.permission == 'granted') {
+        ref.read(notifyTurnProvider.notifier).set(true);
+        return;
+      }
+      if (notifier.permission == 'denied' || _notifyPrompt) {
+        if (context.mounted) {
+          showToast(
+            context: context,
+            location: ToastLocation.bottomCenter,
+            builder: (context, overlay) =>
+                SurfaceCard(child: Text(l10n.notifyDenied)),
+          );
+        }
+        return;
+      }
+      _notifyPrompt = true;
+      final ok = await notifier.requestPermission();
+      _notifyPrompt = false;
+      ref.read(notifyTurnProvider.notifier).set(ok);
+      if (!ok && context.mounted) {
+        showToast(
+          context: context,
+          location: ToastLocation.bottomCenter,
+          builder: (context, overlay) =>
+              SurfaceCard(child: Text(l10n.notifyDenied)),
+        );
+      }
+    }
 
     return SingleChildScrollView(
       child: Padding(
@@ -92,167 +150,146 @@ class TableSettingsTab extends ConsumerWidget {
             if (isPlayer) ...[
               section(l10n.voiceTitle),
               toggle(
-                voice.enabled ? l10n.voiceOn : l10n.voiceOff,
                 LucideIcons.headphones,
+                l10n.voiceTitle,
                 voice.enabled,
-                () => voice.enabled
-                    ? ref
-                          .read(voiceControllerProvider(tableId).notifier)
-                          .disable()
-                    : ref
-                          .read(voiceControllerProvider(tableId).notifier)
-                          .enable(),
+                () => voice.enabled ? voiceCtrl.disable() : voiceCtrl.enable(),
                 key: const Key('drawer-voice'),
               ),
+              if (voice.unavailable) error(l10n.voiceUnavailable),
               if (voice.enabled)
                 toggle(
-                  voice.muted ? l10n.voiceMicMuted : l10n.voiceMicOn,
-                  voice.muted ? LucideIcons.micOff : LucideIcons.mic,
+                  LucideIcons.mic,
+                  l10n.voiceMicOn,
                   !voice.muted,
-                  () => ref
-                      .read(voiceControllerProvider(tableId).notifier)
-                      .toggleMute(),
+                  voiceCtrl.toggleMute,
                   key: const Key('drawer-mute'),
                 ),
-              if (voice.unavailable)
-                Text(
-                  l10n.voiceUnavailable,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.destructive,
-                  ),
+              toggle(
+                LucideIcons.video,
+                l10n.cameraTitle,
+                voice.camera,
+                () => voice.enabled
+                    ? voiceCtrl.toggleCamera()
+                    : voiceCtrl.enable(camera: true),
+                key: const Key('drawer-camera'),
+              ),
+              if (voice.cameraUnavailable)
+                error(
+                  '${l10n.cameraUnavailable} ${voice.cameraError ?? ''}'.trim(),
                 ),
+              toggle(LucideIcons.users, l10n.showCameras, showCameras, () {
+                ref.read(showCamerasProvider.notifier).set(!showCameras);
+                voiceCtrl.setReceiveVideo(!showCameras);
+              }, key: const Key('drawer-show-cameras')),
             ],
             section(l10n.menuPreferences),
             toggle(
-              sound ? l10n.soundOn : l10n.soundOff,
-              sound ? LucideIcons.volume2 : LucideIcons.volumeX,
+              LucideIcons.volume2,
+              l10n.soundOn,
               sound,
               () => ref.read(soundEnabledProvider.notifier).toggle(),
               key: const Key('drawer-sound'),
             ),
             toggle(
-              l10n.fourColorDeck,
               LucideIcons.palette,
+              l10n.fourColorDeck,
               fourColor,
               () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
               key: const Key('drawer-deck'),
             ),
             toggle(
-              l10n.showBigBlinds,
               LucideIcons.coins,
+              l10n.showBigBlinds,
               chipDisplay == ChipDisplay.bigBlinds,
               () => ref.read(chipDisplayProvider.notifier).toggle(),
               key: const Key('drawer-chips'),
             ),
-            if (notifier.supported) ...[
-              toggle(l10n.notifyTurn, LucideIcons.bellRing, notify, () async {
-                if (notify) {
-                  ref.read(notifyTurnProvider.notifier).set(false);
-                  return;
-                }
-                final ok = await notifier.requestPermission();
-                ref.read(notifyTurnProvider.notifier).set(ok);
-                if (!ok && context.mounted) {
-                  showToast(
-                    context: context,
-                    location: ToastLocation.bottomCenter,
-                    builder: (context, overlay) =>
-                        SurfaceCard(child: Text(l10n.notifyDenied)),
-                  );
-                }
-              }, key: const Key('drawer-notify')),
-              Padding(
-                padding: const EdgeInsets.only(left: 28, bottom: 4),
-                child: Text(l10n.notifyTurnHint).muted().small(),
+            if (notifier.supported)
+              toggle(
+                LucideIcons.bellRing,
+                l10n.notifyTurn,
+                notify,
+                toggleNotify,
+                key: const Key('drawer-notify'),
               ),
-            ],
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(
-                    LucideIcons.zoomIn,
-                    size: 18,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                  const Gap(10),
-                  Expanded(child: Text(l10n.displaySize)),
-                ],
-              ),
+            // One button like language and theme: shows the current size and
+            // cycles through the options.
+            button(
+              LucideIcons.zoomIn,
+              l10n.displaySize,
+              switch (scale) {
+                1.25 => l10n.displayLarge,
+                1.5 => l10n.displayExtraLarge,
+                _ => l10n.displayNormal,
+              },
+              () {
+                const options = UiScaleNotifier.options;
+                final i = options.indexOf(scale);
+                ref
+                    .read(uiScaleProvider.notifier)
+                    .set(options[(i + 1) % options.length]);
+              },
+              key: const Key('display-size'),
             ),
-            const DisplaySizePicker(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(
-                    LucideIcons.languages,
-                    size: 18,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                  const Gap(10),
-                  Expanded(child: Text(l10n.languageToggle)),
-                  OutlineButton(
-                    size: ButtonSize.small,
-                    onPressed: () => ref
-                        .read(localePreferenceProvider.notifier)
-                        .next(locale),
-                    child: Text(locale.languageCode.toUpperCase()),
-                  ),
-                ],
-              ),
+            button(
+              LucideIcons.languages,
+              l10n.languageToggle,
+              locale.languageCode.toUpperCase(),
+              () => ref.read(localePreferenceProvider.notifier).next(locale),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(
-                    brightness == Brightness.dark
-                        ? LucideIcons.sun
-                        : LucideIcons.moon,
-                    size: 18,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                  const Gap(10),
-                  Expanded(child: Text(l10n.themeToggle)),
-                  OutlineButton(
-                    size: ButtonSize.small,
-                    onPressed: () =>
-                        ref.read(themeModeProvider.notifier).toggle(brightness),
-                    child: Icon(
-                      brightness == Brightness.dark
-                          ? LucideIcons.sun
-                          : LucideIcons.moon,
-                      size: 14,
-                    ),
-                  ),
-                ],
+            row(
+              brightness == Brightness.dark
+                  ? LucideIcons.sun
+                  : LucideIcons.moon,
+              l10n.themeToggle,
+              OutlineButton(
+                size: ButtonSize.small,
+                onPressed: () =>
+                    ref.read(themeModeProvider.notifier).toggle(brightness),
+                child: Icon(
+                  brightness == Brightness.dark
+                      ? LucideIcons.sun
+                      : LucideIcons.moon,
+                  size: 14,
+                ),
               ),
             ),
             if (wide)
-              action(l10n.shortcutsTitle, LucideIcons.keyboard, onShortcuts),
+              row(
+                LucideIcons.keyboard,
+                l10n.shortcutsTitle,
+                OutlineButton(
+                  size: ButtonSize.small,
+                  onPressed: onShortcuts,
+                  child: const Text('?'),
+                ),
+              ),
             section(l10n.menuTable),
             if (!isPlayer)
-              action(
-                l10n.takeSeat,
+              button(
                 LucideIcons.armchair,
+                l10n.takeSeat,
+                l10n.takeSeat,
                 onTakeSeat,
                 key: const Key('menu-take-seat'),
               ),
-            action(
-              l10n.otherTable,
+            button(
               LucideIcons.house,
+              l10n.otherTable,
+              l10n.otherTable,
               onOtherTable,
               key: const Key('menu-other-table'),
             ),
-            action(
-              l10n.leave,
+            button(
               LucideIcons.logOut,
+              l10n.leave,
+              l10n.leave,
               onLeave,
               key: const Key('menu-leave'),
               destructive: true,
             ),
+            const Gap(12),
           ],
         ),
       ),

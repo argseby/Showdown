@@ -273,9 +273,12 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    await tester.ensureVisible(find.byKey(const Key('display-size-2')));
+    await tester.ensureVisible(find.byKey(const Key('display-size')));
     await tester.pump();
-    await tester.tap(find.byKey(const Key('display-size-2')));
+    // Normal -> Large -> Extra large.
+    await tester.tap(find.byKey(const Key('display-size')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('display-size')));
     await tester.pump();
     final after = tester
         .widgetList<PlayingCardWidget>(find.byType(PlayingCardWidget))
@@ -284,17 +287,17 @@ void main() {
     expect(after, greaterThan(before));
   });
 
-  testWidgets('the microphone button shows the state and opens the dialog', (
+  testWidgets('microphone and camera are one-press toggles in the bar', (
     tester,
   ) async {
     await pumpPlay(tester);
     expect(find.byKey(const Key('mic-button')), findsOneWidget);
+    expect(find.byKey(const Key('camera-button')), findsOneWidget);
+    // Without a microphone (test engine) the press reports "unavailable".
     await tester.tap(find.byKey(const Key('mic-button')));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byKey(const Key('mic-status')), findsOneWidget);
-    expect(find.text('Voice chat off'), findsWidgets);
-    expect(find.byKey(const Key('mic-voice')), findsOneWidget);
-    expect(find.byKey(const Key('mic-mute')), findsNothing);
+    expect(find.textContaining('Voice chat is not available'), findsWidgets);
+    await tester.pump(const Duration(seconds: 6));
   });
 
   testWidgets('a quick phrase is sent and shown next to the seat', (
