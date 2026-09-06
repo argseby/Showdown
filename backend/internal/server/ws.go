@@ -17,14 +17,21 @@ import (
 )
 
 const (
-	helloTimeout    = 5 * time.Second
-	wsPingInterval  = 20 * time.Second
-	wsWriteTimeout  = 10 * time.Second
-	wsReadLimit     = 8 << 10
-	wsOutboundQueue = 64
-	wsCommandRate   = 20 // commands per second per connection
-	wsChatRate      = 1  // chat lines per second
-	wsChatBurst     = 5
+	helloTimeout   = 5 * time.Second
+	wsPingInterval = 20 * time.Second
+	wsWriteTimeout = 10 * time.Second
+	// wsReadLimit is the raw frame cap. Only WebRTC signalling comes close:
+	// an SDP offer carrying a video track is around 9 KiB, while every other
+	// message stays far below wsMessageLimit.
+	wsReadLimit = 32 << 10
+	// wsMessageLimit is the size cap for every message except voice_signal.
+	wsMessageLimit = 8 << 10
+	// wsSignalDataLimit caps the opaque WebRTC payload of a voice_signal.
+	wsSignalDataLimit = 24 << 10
+	wsOutboundQueue   = 64
+	wsCommandRate     = 20 // commands per second per connection
+	wsChatRate        = 1  // chat lines per second
+	wsChatBurst       = 5
 )
 
 // outbound is one item of the writer queue: a message or a close request.
@@ -200,8 +207,12 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	// First message must be hello.
 	ctx := r.Context()
 	helloCtx, cancel := context.WithTimeout(ctx, helloTimeout)
-	env, err := readEnvelope(helloCtx, raw)
+	env, size, err := readEnvelope(helloCtx, raw)
 	cancel()
+	if err == nil && size > wsMessageLimit {
+		conn.Close(protocol.ClosePolicy, "message too large")
+		return
+	}
 	if err != nil || env.Type != protocol.TypeHello {
 		conn.Close(protocol.ClosePolicy, "hello expected")
 		return
@@ -259,16 +270,18 @@ func (s *Server) resolveClient(ctx context.Context, conn *wsConn, t *table.Table
 	return nil, protocol.CloseBadToken, "bad token"
 }
 
-func readEnvelope(ctx context.Context, c *websocket.Conn) (protocol.Envelope, error) {
+// readEnvelope decodes one message and reports its wire size, so the caller
+// can apply the per-type size caps.
+func readEnvelope(ctx context.Context, c *websocket.Conn) (protocol.Envelope, int, error) {
 	var env protocol.Envelope
 	_, data, err := c.Read(ctx)
 	if err != nil {
-		return env, err
+		return env, len(data), err
 	}
 	if err := json.Unmarshal(data, &env); err != nil {
-		return env, err
+		return env, len(data), err
 	}
-	return env, nil
+	return env, len(data), nil
 }
 
 func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn, t *table.Table, client *table.Client) {
@@ -280,7 +293,7 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 		send(protocol.TypeError, id, protocol.ErrorPayload{ID: id, Code: code, Message: err.Error()})
 	}
 	for {
-		env, err := readEnvelope(ctx, raw)
+		env, size, err := readEnvelope(ctx, raw)
 		if err != nil {
 			var ce websocket.CloseError
 			if errors.As(err, &ce) || errors.Is(err, context.Canceled) {
@@ -291,6 +304,11 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			}
 			// Malformed JSON or read error: policy close.
 			conn.Close(protocol.ClosePolicy, "bad message")
+			return
+		}
+		// Only WebRTC signalling may exceed the ordinary message cap.
+		if size > wsMessageLimit && env.Type != protocol.TypeVoiceSignal {
+			conn.Close(protocol.ClosePolicy, "message too large")
 			return
 		}
 		if !cmdBucket.allow(s.now()) {
@@ -375,7 +393,7 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 				err2 = t.RunTwice(client.PlayerID, rt.Agree)
 			case protocol.TypeVoiceSignal:
 				var sig protocol.VoiceSignal
-				if json.Unmarshal(env.Payload, &sig) != nil || sig.To == "" || len(sig.Data) > 6000 {
+				if json.Unmarshal(env.Payload, &sig) != nil || sig.To == "" || len(sig.Data) > wsSignalDataLimit {
 					err2 = table.ErrIllegalAction
 					break
 				}

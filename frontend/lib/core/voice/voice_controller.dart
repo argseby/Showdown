@@ -109,6 +109,17 @@ class VoiceController extends Notifier<VoiceState> {
   /// connection can be traced from the two ends.
   static void log(String message) => debugPrint('voice: $message');
 
+  /// Sends one signal and says so when the server refused it. A dropped
+  /// signal otherwise leaves the connection stuck in "connecting" with
+  /// nothing to show for it.
+  void _signal(String to, String kind, String data) {
+    _session.sendVoiceSignal(to, kind, data).then((err) {
+      if (err != null) {
+        log('$kind to $to refused: ${err.code} (${err.message})');
+      }
+    });
+  }
+
   @override
   VoiceState build() {
     // On dispose only release the audio; the session may already be gone.
@@ -288,7 +299,7 @@ class VoiceController extends Notifier<VoiceState> {
         log('offering to $id');
         engine
             .createOffer(id)
-            .then((offer) => _session.sendVoiceSignal(id, 'offer', offer))
+            .then((offer) => _signal(id, 'offer', offer))
             .catchError((Object e) {
               log('offer to $id failed: $e');
               _peers.remove(id);
@@ -317,7 +328,10 @@ class VoiceController extends Notifier<VoiceState> {
             log('offer from $from ignored (collision, our offer stands)');
             return;
           }
-          await _session.sendVoiceSignal(from, 'answer', answer);
+          final err = await _session.sendVoiceSignal(from, 'answer', answer);
+          if (err != null) {
+            log('answer to $from refused: ${err.code} (${err.message})');
+          }
         case 'answer':
           log('answer from $from');
           await engine.acceptAnswer(from, sig.data);
@@ -334,7 +348,7 @@ class VoiceController extends Notifier<VoiceState> {
   void _onEngineEvent(VoiceEvent e) {
     switch (e) {
       case VoiceIceEvent(:final peerId, :final candidate):
-        _session.sendVoiceSignal(peerId, 'ice', candidate);
+        _signal(peerId, 'ice', candidate);
       case VoiceSpeakingEvent(:final peerId, :final speaking):
         final set = {...state.speaking};
         if (speaking) {
@@ -361,7 +375,7 @@ class VoiceController extends Notifier<VoiceState> {
         }
         state = state.copyWith(videoViews: views);
       case VoiceOfferEvent(:final peerId, :final offer):
-        _session.sendVoiceSignal(peerId, 'offer', offer);
+        _signal(peerId, 'offer', offer);
     }
   }
 }

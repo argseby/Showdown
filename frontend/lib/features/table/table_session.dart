@@ -700,9 +700,29 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       _send(ClientMessage.straddle(StraddlePayload(on: on)));
   Future<void> runTwice(bool agree) =>
       _send(ClientMessage.runTwice(RunTwicePayload(agree: agree)));
-  Future<void> sendVoiceSignal(String to, String kind, String data) => _send(
-    ClientMessage.voiceSignal(VoiceSignal(to: to, kind: kind, data: data)),
-  );
+
+  /// Relays one WebRTC signal and reports a refusal to the caller instead of
+  /// raising the table's error banner: a rejected signal (an SDP the server
+  /// will not carry, say) concerns the voice chat alone.
+  Future<ServerError?> sendVoiceSignal(
+    String to,
+    String kind,
+    String data,
+  ) async {
+    final client = _client;
+    if (client == null) {
+      return const ServerError('disconnected', 'not connected');
+    }
+    try {
+      await client.send(
+        ClientMessage.voiceSignal(VoiceSignal(to: to, kind: kind, data: data)),
+      );
+      return null;
+    } on ServerError catch (e) {
+      return e;
+    }
+  }
+
   Future<void> chat(String text) =>
       _send(ClientMessage.chat(ChatPayload(text: text)));
   Future<void> say(String phrase) =>

@@ -82,6 +82,13 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   offer collisions with perfect negotiation: the side that answered the first offer
 >   is polite and yields, the other keeps its own offer and answers `null` (nothing is
 >   sent). The kinds stay `offer`, `answer`, `ice`.
+> - **Message size caps (2026-09-06).** A frame may be 32 KiB; every message except
+>   `voice_signal` is capped at 8 KiB and an oversized one closes the connection with
+>   `1008`. Only `voice_signal` may be larger, and its `data` is capped at 24 KiB:
+>   an SDP offer that carries a video track is around 9 KiB, well over the 6 KB the
+>   first releases allowed, so camera offers and answers were refused and video never
+>   connected. A signal beyond the cap is answered with `illegal_action` and the
+>   connection stays open.
 > - **Staged pot awards (2026-09-06).** The `pot_awarded` events of a hand still arrive
 >   in one batch (main pot first), but clients present the pots one after another,
 >   side pots first and the main pot last, 2.5 s each (main pot gold, first side pot
@@ -148,7 +155,7 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | an automatic action performed at every turn of the player (check if free else fold / call any bet else check) for the rest of the current hand (armed between hands: for the next one); it is cleared when that hand ends and never carries over; the player may send `none` earlier, sitting out or leaving clears it too; `you.pre_action` mirrors it |
 | `change_seat` | `{seat}` | move to a free seat at the next deal (errors `seat_taken`, `invalid_state` during the cooldown); `you.pending_seat`, `you.can_change_seat`; events `player_moved {seat, name, delta = old seat}` and `blind_posted {blind: "dead"}` |
 | `voice` | `{state: "off"\|"on"\|"muted", camera?}` | voice-chat presence, shown to everyone as `seats[].player.voice`, and whether the player's camera is on (`seats[].player.camera`; the video travels browser to browser like the audio); reset when the connection drops |
-| `voice_signal` | `{to, kind: "offer"\|"answer"\|"ice", data}` | WebRTC setup message relayed to the target player as `voice_signal {from, kind, data}` (server push); the audio itself is browser-to-browser and never touches the server; `data` is opaque, at most 6 KB |
+| `voice_signal` | `{to, kind: "offer"\|"answer"\|"ice", data}` | WebRTC setup message relayed to the target player as `voice_signal {from, kind, data}` (server push); the audio itself is browser-to-browser and never touches the server; `data` is opaque, at most 24 KiB (an SDP offer carrying a video track is around 9 KiB; a larger one is refused with `illegal_action` and the connection stays open) |
 | `rabbit_hunt` | `{}` | result phase, once per hand, by a player dealt in, when `allow_rabbit_hunt`: reveals the rest of the board (`rabbit_hunt` event, `hand.rabbit_cards`) |
 | `straddle` | `{on}` | arms/disarms the player's straddle (setting `allow_straddle`): whenever they sit left of the big blind with more than 2 BB they post 2×BB before the deal (`blind_posted {blind: "straddle"}`, `hand.straddle_seat`), act last preflop, and the minimum raise is twice the straddle; `you.straddle` mirrors it |
 | `run_twice` | `{agree}` | answer to the run-it-twice vote (setting `run_it_twice`): when everyone is all-in with cards to come the run-out waits up to 8 s (`hand.run_twice_ends_ts`, `you.can_run_twice`, `you.run_twice_vote`); if every live player agrees the remaining streets are dealt twice (`street_dealt {board: 2}`, `hand.board2`, `hand.run_twice`) and each pot is paid in halves per board (`pot_awarded {board: 1|2}`, odd chip to board 1); a single "no" or the timeout runs it once |
