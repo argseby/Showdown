@@ -175,6 +175,7 @@ img { max-width: 100%; height: auto; display: block; }
 .grid { display: grid; gap: 1.25rem; }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
 
 /* Cards */
 .card {
@@ -264,6 +265,35 @@ img { max-width: 100%; height: auto; display: block; }
 
 .more { text-align: center; margin-top: 2rem; color: var(--muted-foreground); font-size: 0.95rem; }
 
+/* Verification */
+.stats { margin-bottom: 1.25rem; }
+.stat {
+  display: grid; gap: 0.15rem; padding: 1.1rem 1.25rem; text-align: center;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); box-shadow: var(--shadow);
+}
+.stat-num { font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.stat-key { font-size: 0.8rem; color: var(--muted-foreground); }
+.stat-good { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+.stat-good .stat-num { color: var(--success); }
+
+.card-note { font-size: 0.8rem; color: var(--muted-foreground); margin-top: auto; }
+
+.freq { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.freq th { text-align: left; font-weight: 600; color: var(--muted-foreground); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 0.35rem; }
+.freq td { padding: 0.16rem 0; border-top: 1px solid var(--border); }
+.freq td + td, .freq th + th { text-align: right; font-family: var(--mono); }
+.freq tr:first-child td { border-top: 0; }
+
+.checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; font-size: 0.85rem; }
+.checklist li { display: flex; gap: 0.5rem; align-items: flex-start; }
+.checklist .check { margin-top: 0.1rem; }
+
+.reproduce { max-width: 840px; margin: 3rem auto 0; text-align: center; }
+.reproduce h3 { margin-bottom: 0.5rem; }
+.reproduce > p { color: var(--muted-foreground); font-size: 0.95rem; margin-bottom: 1.25rem; }
+.reproduce .code, .reproduce .callout { text-align: left; }
+
 /* FAQ */
 .faq {
   border: 1px solid var(--border); border-radius: var(--radius);
@@ -288,6 +318,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* Responsive */
 @media (max-width: 900px) {
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
   .nav { display: none; }

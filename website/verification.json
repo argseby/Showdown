@@ -1,0 +1,163 @@
+{
+  "seed": 20260906,
+  "workers": 8,
+  "go": "go1.26.2",
+  "seconds": 321.215038292,
+  "evaluator": {
+    "hands": 2598960,
+    "counts": [
+      1302540,
+      1098240,
+      123552,
+      54912,
+      10200,
+      5108,
+      3744,
+      624,
+      40
+    ],
+    "expected": [
+      1302540,
+      1098240,
+      123552,
+      54912,
+      10200,
+      5108,
+      3744,
+      624,
+      40
+    ],
+    "ok": true
+  },
+  "shuffle": {
+    "deals": 2000000,
+    "counts": [
+      347666,
+      875920,
+      469700,
+      97284,
+      92700,
+      60720,
+      52013,
+      3356,
+      641
+    ],
+    "expected": [
+      348238.3916350287,
+      876450.9148140862,
+      469910.7281139169,
+      96597.39509551774,
+      92387.64174281397,
+      60509.88245579311,
+      51922.045413910244,
+      3361.3445378151264,
+      621.6561911180183
+    ],
+    "category_chi_square": 8.792684247822088,
+    "category_p": 0.36008573161999546,
+    "position_chi_square": 58.568258285714265,
+    "position_p": 0.21754670309229093,
+    "ok": true
+  },
+  "play": {
+    "tables": 200000,
+    "hands": 4343686,
+    "actions": 21558639,
+    "checks": 207338793,
+    "violations": 0,
+    "per_check": [
+      {
+        "name": "chip_conservation",
+        "description": "stacks + pots + bets stay constant through every event of a hand (rules.md 7.9)",
+        "passed": 38074339,
+        "failed": 0
+      },
+      {
+        "name": "table_bankroll",
+        "description": "between hands the chips on the table equal buy-ins + adjustments - cash-outs",
+        "passed": 4343686,
+        "failed": 0
+      },
+      {
+        "name": "event_stream",
+        "description": "sequence numbers increase, the log opens with hand_started and closes with hand_ended",
+        "passed": 38074339,
+        "failed": 0
+      },
+      {
+        "name": "deck_integrity",
+        "description": "no card is dealt twice in a hand, holes and board come from one 52-card deck (7.3)",
+        "passed": 29218659,
+        "failed": 0
+      },
+      {
+        "name": "button_and_blinds",
+        "description": "small and big blind sit clockwise from the button, heads-up the button is the small blind (7.2)",
+        "passed": 4343686,
+        "failed": 0
+      },
+      {
+        "name": "turn_order",
+        "description": "the first actor of every street is correct and no other seat can act (7.4)",
+        "passed": 28332606,
+        "failed": 0
+      },
+      {
+        "name": "legal_options",
+        "description": "the offered fold/check/call/raise/all-in set matches the betting rules re-derived independently (7.5)",
+        "passed": 22459528,
+        "failed": 0
+      },
+      {
+        "name": "illegal_actions_rejected",
+        "description": "checks facing a bet, undersized raises and raises over the stack are refused and move no chips (7.5)",
+        "passed": 22459528,
+        "failed": 0
+      },
+      {
+        "name": "pot_construction",
+        "description": "main and side pots recomputed from the contributions match the engine, folded chips count but never win (7.6)",
+        "passed": 5915984,
+        "failed": 0
+      },
+      {
+        "name": "showdown_awards",
+        "description": "every pot goes to the best eligible hand, splits are equal and odd chips go clockwise from the button (7.8)",
+        "passed": 9772752,
+        "failed": 0
+      },
+      {
+        "name": "hand_results",
+        "description": "the result of a hand adds up: net per seat sums to zero and equals end stack minus start stack",
+        "passed": 4343686,
+        "failed": 0
+      }
+    ],
+    "chips_bought_in": 263515321719,
+    "chips_adjusted": 2109872,
+    "chips_cashed_out": 106101379502,
+    "chips_in_stacks": 157416052089,
+    "chips_wagered": 1246374022757,
+    "biggest_pot": 39028688,
+    "showdowns": 3574615,
+    "side_pots": 2543241,
+    "all_ins": 8564506,
+    "timeouts": 900889,
+    "run_twice": 1352917,
+    "rebuys": 3505721,
+    "joins": 1047557,
+    "leaves": 343875,
+    "showdown_categories": [
+      285853,
+      2133418,
+      2090828,
+      554317,
+      633339,
+      414133,
+      382194,
+      26657,
+      5460
+    ]
+  },
+  "ok": true
+}

@@ -25,6 +25,7 @@
       </a>
       <nav class="nav" aria-label="Main">
         <a href="#features">Features</a>
+        <a href="#verified">Verified</a>
         <a href="#managed">Managed</a>
         <a href="#self-host">Self-host</a>
         <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">GitHub</a>
@@ -117,6 +118,151 @@
             <p>Two containers, one SQLite file, zero external requests. The web client is a local WebAssembly build.</p>
           </article>
         </div>
+      </div>
+    </section>
+
+    <!-- Verification -->
+    <section id="verified" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>The rules, checked by machine</h2>
+          <p>
+            Card games run on trust in the maths. Showdown ships a verifier that plays
+            millions of hands against the real engine and counts every chip.
+          </p>
+        </div>
+
+        <div class="grid grid-4 stats">
+          <div class="stat">
+            <span class="stat-num">200,000</span>
+            <span class="stat-key">tables played</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">4,343,686</span>
+            <span class="stat-key">hands dealt</span>
+          </div>
+          <div class="stat stat-good">
+            <span class="stat-num">0</span>
+            <span class="stat-key">rules broken in 207,338,793 checks</span>
+          </div>
+          <div class="stat stat-good">
+            <span class="stat-num">0</span>
+            <span class="stat-key">chips created or lost</span>
+          </div>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M14 3h7v7"/><path d="m21 3-9 9"/></svg>
+            </div>
+            <h3>Every hand that exists</h3>
+            <p>All 2,598,960 distinct five-card hands are ranked and counted. The nine totals match the textbook frequencies exactly &mdash; not approximately.</p>
+            <table class="freq">
+              <thead><tr><th>Category</th><th>Counted</th><th>Expected</th></tr></thead>
+              <tbody>
+                <tr><td>Straight flush</td><td>40</td><td>40</td></tr>
+                <tr><td>Four of a kind</td><td>624</td><td>624</td></tr>
+                <tr><td>Full house</td><td>3,744</td><td>3,744</td></tr>
+                <tr><td>Flush</td><td>5,108</td><td>5,108</td></tr>
+                <tr><td>Straight</td><td>10,200</td><td>10,200</td></tr>
+                <tr><td>Three of a kind</td><td>54,912</td><td>54,912</td></tr>
+                <tr><td>Two pair</td><td>123,552</td><td>123,552</td></tr>
+                <tr><td>One pair</td><td>1,098,240</td><td>1,098,240</td></tr>
+                <tr><td>High card</td><td>1,302,540</td><td>1,302,540</td></tr>
+              </tbody>
+            </table>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M12 12h.01"/><path d="M17 17h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/></svg>
+            </div>
+            <h3>An honest shuffle</h3>
+            <p>
+              Cards are shuffled with Fisher&ndash;Yates driven by the operating system's
+              cryptographic random source &mdash; the same code the live server deals with.
+              A sample of 2,000,000 hands is tested against the theoretical
+              distribution.
+            </p>
+            <table class="freq">
+              <thead><tr><th>Test</th><th>&chi;&sup2;</th><th>p</th></tr></thead>
+              <tbody>
+                <tr><td>Hand categories <span class="muted">(8 df)</span></td><td>8.79</td><td>0.360</td></tr>
+                <tr><td>Card positions <span class="muted">(51 df)</span></td><td>58.57</td><td>0.218</td></tr>
+              </tbody>
+            </table>
+            <p class="card-note">
+              A p-value far above 0 means the deal is indistinguishable from a perfectly
+              uniform shuffle. The second test looks for any of the 52 cards turning up
+              more often than it should.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h3>Checked after every event</h3>
+            <p>Random play with all-ins, side pots, time-outs, re-buys, straddles and a moving button. After every single event the verifier re-checks:</p>
+            <ul class="checklist">
+              <li><span class="check">&check;</span> chips in play never change during a hand</li>
+              <li><span class="check">&check;</span> buy-ins minus cash-outs equal the chips on the table</li>
+              <li><span class="check">&check;</span> no card is ever dealt twice</li>
+              <li><span class="check">&check;</span> blinds and button sit where the rules say</li>
+              <li><span class="check">&check;</span> only the player on turn can act</li>
+              <li><span class="check">&check;</span> the offered fold/call/raise range is the legal one</li>
+              <li><span class="check">&check;</span> illegal bets are refused and move no chips</li>
+              <li><span class="check">&check;</span> main and side pots match a second calculation</li>
+              <li><span class="check">&check;</span> every pot goes to the best eligible hand</li>
+              <li><span class="check">&check;</span> split pots are equal and odd chips go clockwise from the button</li>
+              <li><span class="check">&check;</span> each hand's winnings and losses cancel out exactly</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="grid grid-3 kv">
+          <div class="kv-item">
+            <span class="kv-key">Chips onto the tables</span>
+            <span class="kv-val">263,517,431,591 bought in and adjusted</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-key">Chips off the tables</span>
+            <span class="kv-val">106,101,379,502 cashed out, 157,416,052,089 left in stacks</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-key">Difference</span>
+            <span class="kv-val"><strong>Exactly zero</strong>, across 1.2 trillion chips wagered</span>
+          </div>
+        </div>
+
+        <div class="reproduce">
+          <h3>Don't take our word for it</h3>
+          <p class="muted">
+            The verifier is in the repository. Clone it and run the whole thing yourself
+            &mdash; the short run takes about ten seconds.
+          </p>
+          <div class="code" data-copy>
+            <pre><code>git clone https://github.com/argseby/Showdown.git
+cd Showdown &amp;&amp; make simulate</code></pre>
+            <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+          </div>
+          <p class="callout">
+            <strong>What this does and does not show.</strong> The hand ranking is checked
+            exhaustively &mdash; there is no five-card hand it has not seen. The rules and the
+            chip arithmetic are checked over millions of random hands, which is evidence, not
+            a proof. And none of it says anything about whether the person running a server is
+            looking at the cards. That is why Showdown is built to be self-hosted: run it
+            yourself and the deal is in your hands.
+          </p>
+        </div>
+
+        <p class="more">
+          Recorded run of 6 September 2026 &middot;
+          <a href="verification.json">raw report (JSON)</a> &middot;
+          <a href="https://github.com/argseby/Showdown/tree/main/backend/cmd/simulate" target="_blank" rel="noopener">verifier source</a> &middot;
+          <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">the rules it checks</a>
+        </p>
       </div>
     </section>
 
@@ -309,6 +455,10 @@ cd Showdown</code></pre>
           <p>The browser that created it holds an admin key and sees an Admin tab. The key can be copied to another device. Anyone with the key can manage the table, so share it only with co-hosts.</p>
         </details>
         <details class="faq">
+          <summary>How do I know the deal is fair and no chips go missing?</summary>
+          <p>Every release is run through a verifier that plays millions of hands against the engine and re-checks the rules and the chip count after every single event &mdash; 207 million checks on the last run, with zero failures and not one chip created or lost. The <a href="#verified">summary is above</a> and you can run it yourself with <code>make simulate</code>. It says nothing about the honesty of a server operator, which is the reason to self-host.</p>
+        </details>
+        <details class="faq">
           <summary>Does the server phone home?</summary>
           <p>Never. The API makes no outbound requests and the client is served entirely from your own instance. Voice and video only use a STUN or TURN server if you configure one.</p>
         </details>
@@ -323,6 +473,7 @@ cd Showdown</code></pre>
         <a href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play</a>
         <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">Source</a>
         <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">Rules</a>
+        <a href="#verified">Verified</a>
       </nav>
     </div>
   </footer>

@@ -13,7 +13,7 @@ DEV_WEB_ORIGIN ?= http://localhost:3000
 
 GEN_FILES := find $(WEB_DIR)/lib \( -name '*.g.dart' -o -name '*.freezed.dart' -o -path '*/l10n/app_localizations*.dart' \) -type f | sort
 
-.PHONY: help dev-api dev-web gen check-gen lint test test-engine simulate build up down logs bots loadtest
+.PHONY: help dev-api dev-web gen check-gen lint test test-engine simulate site-verification build up down logs bots loadtest
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
@@ -57,6 +57,12 @@ SIM_TABLES ?= 20000
 SIM_HANDS ?= 100
 simulate: ## verify the rules and the chip accounting over many simulated tables
 	cd $(GO_DIR) && go run ./cmd/simulate -tables $(SIM_TABLES) -hands $(SIM_HANDS)
+
+# The run published on the website. Takes a few minutes; afterwards copy the
+# numbers it prints into the "checked by machine" section of website/index.html.
+site-verification: ## refresh website/verification.json with the published run
+	cd $(GO_DIR) && go run ./cmd/simulate -tables 200000 -hands 120 -deals 2000000 \
+		-json ../website/verification.json
 
 # Building from source uses the build override; IMAGE_OWNER only names the tags.
 COMPOSE_BUILD = IMAGE_OWNER=$${IMAGE_OWNER:-local} docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml
