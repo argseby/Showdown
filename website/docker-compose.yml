@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "2244:2244"
+    container_name: showdown-site
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Showdown — self-hosted Texas Hold'em for private groups</title>
+  <meta name="description" content="Showdown is a self-hosted No-Limit Texas Hold'em table for friends. One docker compose up, no accounts, no external requests. Or play right away on the managed instance.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta property="og:title" content="Showdown — self-hosted poker for private groups">
+  <meta property="og:description" content="No-Limit Texas Hold'em in the browser. Self-host with one command or play on the managed instance.">
+  <meta property="og:image" content="promo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">
+        <img src="logo.svg" alt="" width="28" height="28">
+        <span>Showdown</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#managed">Managed</a>
+        <a href="#self-host">Self-host</a>
+        <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        <a class="btn btn-primary" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play now</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <div class="badge badge-outline">Open source · No accounts · No tracking</div>
+        <h1>Texas Hold'em for your group.<br><span class="muted">On your server, or ours.</span></h1>
+        <p class="lead">
+          Showdown is a No-Limit Hold'em table that runs in the browser. Create a table,
+          share the link, play. The whole thing is one <code>docker compose up</code>
+          and never talks to the outside world.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">
+            Play on play.showdown.kiunke.dev
+          </a>
+          <a class="btn btn-outline btn-lg" href="#self-host">Self-host in 3 steps</a>
+        </div>
+        <p class="hero-note">
+          The managed instance keeps a table and its link for <strong>one day</strong>.
+          Self-host if you want history that lasts.
+        </p>
+        <figure class="screenshot">
+          <img src="promo.png" alt="A full Showdown table: eight players, community cards and the pot" width="1600" height="868" loading="eager">
+        </figure>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>What you get</h2>
+          <p>A complete cash-game table, nothing more, nothing less.</p>
+        </div>
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            </div>
+            <h3>Real No-Limit rules</h3>
+            <p>Side pots, short all-ins, min-raise logic and odd-chip splits done on the server. The client only renders.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3>Up to 10 seats, no sign-up</h3>
+            <p>Players open the link, pick a name and an avatar, and sit down. A refresh or dropped connection returns them to their seat.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            </div>
+            <h3>Voice chat built in</h3>
+            <p>Browser-to-browser WebRTC. The server only relays the handshake and never carries audio.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+            </div>
+            <h3>Host controls</h3>
+            <p>Whoever creates the table is the host: live settings, blind schedules, pause and end, kick, adjust chips, mute, chat moderation.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+            <h3>Log, replay, leaderboard</h3>
+            <p>Every hand is logged and can be replayed step by step. Each table keeps its own leaderboard and final standings.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3>Private by design</h3>
+            <p>Two containers, one SQLite file, zero external requests. The web client is a local WebAssembly build.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Managed vs self-hosted -->
+    <section id="managed" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>Two ways to play</h2>
+          <p>Try it in a minute, or run it for good.</p>
+        </div>
+        <div class="grid grid-2">
+          <article class="card card-highlight">
+            <div class="card-header">
+              <h3>Managed</h3>
+              <span class="badge">play.showdown.kiunke.dev</span>
+            </div>
+            <p>Open the site, create a table and share the link. Nothing to install and no account.</p>
+            <ul class="list">
+              <li><span class="check">✓</span> Ready right now</li>
+              <li><span class="check">✓</span> HTTPS, so voice chat works</li>
+              <li><span class="warn">!</span> Tables and their links are kept for <strong>one day</strong>, then removed together with their history</li>
+              <li><span class="warn">!</span> Shared capacity and a limit on open tables</li>
+            </ul>
+            <a class="btn btn-primary" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Open the managed instance</a>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h3>Self-hosted</h3>
+              <span class="badge badge-outline">Docker Compose</span>
+            </div>
+            <p>Run the same stack on your own machine or server. Your data stays with you.</p>
+            <ul class="list">
+              <li><span class="check">✓</span> Tables, hands and chat kept as long as you like (90 days by default)</li>
+              <li><span class="check">✓</span> Your own domain and limits</li>
+              <li><span class="check">✓</span> Works on a home server, a VPS, Portainer or Dokploy</li>
+              <li><span class="warn">!</span> Needs Docker and, for voice chat, HTTPS</li>
+            </ul>
+            <a class="btn btn-outline" href="#self-host">Show me how</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Self-host -->
+    <section id="self-host" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Self-host in three steps</h2>
+          <p>All you need is Docker with the Compose plugin. The images come from GitHub's registry.</p>
+        </div>
+
+        <div class="tabs" data-tabs>
+          <div class="tabs-list" role="tablist" aria-label="Installation method">
+            <button class="tab" role="tab" type="button" aria-selected="true" aria-controls="tab-compose" id="tab-compose-btn">Docker Compose</button>
+            <button class="tab" role="tab" type="button" aria-selected="false" aria-controls="tab-proxy" id="tab-proxy-btn" tabindex="-1">Behind a reverse proxy</button>
+            <button class="tab" role="tab" type="button" aria-selected="false" aria-controls="tab-source" id="tab-source-btn" tabindex="-1">Build from source</button>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" id="tab-compose" aria-labelledby="tab-compose-btn">
+            <p>The images are published on GitHub's registry; nothing is compiled on your machine.</p>
+            <ol class="steps">
+              <li>
+                <h4>Get the compose file</h4>
+                <div class="code" data-copy>
+                  <pre><code>mkdir showdown &amp;&amp; cd showdown
+curl -fsSLO https://raw.githubusercontent.com/argseby/Showdown/main/docker-compose.yml</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+              <li>
+                <h4>Optional: settings</h4>
+                <p class="muted">Port, table limit, retention, STUN servers for voice chat across networks, or <code>IMAGE_TAG</code> to pin a release.</p>
+                <div class="code" data-copy>
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/argseby/Showdown/main/.env.example -o .env</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+              <li>
+                <h4>Start</h4>
+                <div class="code" data-copy>
+                  <pre><code>docker compose up -d</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+            </ol>
+            <p class="callout">Open <code>http://localhost:8080</code>, create a table and share the link. Done. In Portainer: add a repository stack with compose path <code>docker-compose.yml</code>; updates are "re-pull image and redeploy".</p>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" id="tab-proxy" aria-labelledby="tab-proxy-btn" hidden>
+            <p>Already running Traefik, nginx, Caddy or Dokploy? Point it at the <code>web</code> container on port 80 and let it terminate TLS. WebSockets on <code>/ws/*</code> must be forwarded.</p>
+            <ol class="steps">
+              <li>
+                <h4>Join your proxy network instead of publishing a port</h4>
+                <p class="muted">Also download <code>deploy/docker-compose.proxy.yml</code> from the repository next to the compose file.</p>
+                <div class="code" data-copy>
+                  <pre><code>cat &gt;&gt; .env &lt;&lt;'EOF'
+PROXY_NETWORK=proxy-network
+COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.proxy.yml
+EOF
+docker compose up -d</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+              <li>
+                <h4>Or let Caddy handle HTTPS on its own</h4>
+                <p class="muted">If nothing sits in front of the stack and ports 80/443 are reachable from the internet (needs <code>deploy/docker-compose.tls.yml</code>).</p>
+                <div class="code" data-copy>
+                  <pre><code>echo "SITE_ADDRESS=poker.example.com" &gt;&gt; .env
+docker compose -f docker-compose.yml -f deploy/docker-compose.tls.yml up -d</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+            </ol>
+            <p class="callout">Browsers only grant the microphone on HTTPS, so voice chat needs one of these two setups.</p>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" id="tab-source" aria-labelledby="tab-source-btn" hidden>
+            <p>For development or a fork. The web image compiles the Flutter client: a few minutes and about 2 GB of disk.</p>
+            <ol class="steps">
+              <li>
+                <h4>Clone the repository</h4>
+                <div class="code" data-copy>
+                  <pre><code>git clone https://github.com/argseby/Showdown.git
+cd Showdown</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+              <li>
+                <h4>Copy the example environment</h4>
+                <div class="code" data-copy>
+                  <pre><code>cp .env.example .env</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+              <li>
+                <h4>Build and start</h4>
+                <p class="muted"><code>make up</code> is the same command.</p>
+                <div class="code" data-copy>
+                  <pre><code>docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml up -d --build</code></pre>
+                  <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
+                </div>
+              </li>
+            </ol>
+            <p class="callout">Releases are built by the repository's CI: pushing a tag <code>v*</code> publishes both images.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-3 kv">
+          <div class="kv-item">
+            <span class="kv-key">Stack</span>
+            <span class="kv-val">Go API + Flutter web behind Caddy, one SQLite volume</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-key">Ports</span>
+            <span class="kv-val">Only <code>web</code> is exposed (default 8080); the API stays internal</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-key">Updates</span>
+            <span class="kv-val"><code>docker compose pull && docker compose up -d</code>, migrations run on start</span>
+          </div>
+        </div>
+
+        <p class="more">
+          Full configuration, backups and operations are in the
+          <a href="https://github.com/argseby/Showdown#readme" target="_blank" rel="noopener">README</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section section-alt">
+      <div class="container narrow">
+        <div class="section-head">
+          <h2>Questions</h2>
+        </div>
+        <details class="faq">
+          <summary>How long does a table on the managed instance live?</summary>
+          <p>One day. After that the table, its link, hands and chat are deleted. Start a new table for the next session, or self-host to keep history.</p>
+        </details>
+        <details class="faq">
+          <summary>Do players need an account?</summary>
+          <p>No. A table link and a display name are all it takes. Names are chosen per table and are not identities.</p>
+        </details>
+        <details class="faq">
+          <summary>Is it real money?</summary>
+          <p>No. Chips are just numbers on the table. There is no payment, no wallet, no exchange of any kind.</p>
+        </details>
+        <details class="faq">
+          <summary>Who can manage a table?</summary>
+          <p>The browser that created it holds an admin key and sees an Admin tab. The key can be copied to another device. Anyone with the key can manage the table, so share it only with co-hosts.</p>
+        </details>
+        <details class="faq">
+          <summary>Does the server phone home?</summary>
+          <p>Never. The API makes no outbound requests and the client is served entirely from your own instance. Voice chat only uses a STUN server if you configure one.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>Showdown · self-hosted Texas Hold'em</span>
+      <nav aria-label="Footer">
+        <a href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play</a>
+        <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">Source</a>
+        <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">Rules</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
