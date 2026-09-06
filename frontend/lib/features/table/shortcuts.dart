@@ -7,6 +7,7 @@ enum ShortcutAction {
   fold,
   checkCall,
   openRaise,
+  focusAmount,
   selectAllIn,
   preset1,
   preset2,
@@ -59,6 +60,11 @@ const List<ShortcutBinding> shortcutBindings = [
     ShortcutAction.openRaise,
     LogicalKeyboardKey.keyR,
     label: 'R',
+  ),
+  ShortcutBinding(
+    ShortcutAction.focusAmount,
+    LogicalKeyboardKey.keyN,
+    label: 'N',
   ),
   ShortcutBinding(
     ShortcutAction.selectAllIn,

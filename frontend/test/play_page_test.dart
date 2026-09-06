@@ -150,10 +150,12 @@ void main() {
     expect(find.text('Alice'), findsWidgets);
     expect(find.text('Call 300'), findsOneWidget);
 
-    // R opens the raise control; presets and Enter confirm a raise.
+    // R opens the raise control without focusing the amount field; N does.
     await tester.sendKeyEvent(LogicalKeyboardKey.keyR);
     await tester.pump();
     expect(find.byKey(const Key('raise-control')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
+    await tester.pump();
     // While the amount input has focus letters are not shortcuts, Escape leaves it.
     await tester.sendKeyEvent(LogicalKeyboardKey.keyF);
     await tester.pump();

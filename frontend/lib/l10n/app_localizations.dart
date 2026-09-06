@@ -2701,6 +2701,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.'**
   String get showCamerasHint;
+
+  /// No description provided for @scFocusAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the raise amount (Esc leaves the field)'**
+  String get scFocusAmount;
+
+  /// No description provided for @showdownSpotlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdown spotlight'**
+  String get showdownSpotlight;
 }
 
 class _AppLocalizationsDelegate

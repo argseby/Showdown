@@ -66,6 +66,9 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   event per live player in showdown order, one every 1.5 s; the `pot_awarded` and
 >   `hand_ended` events follow the last one. `seats[].player.mucked` marks a player
 >   who mucked. A run-out (everyone all-in) still reveals all hands at once.
+> - **`hand_ended.results.seats[].best`** (2026-09-06): the five cards making each
+>   revealed hand, so a run-out revealed before the board was complete still ends
+>   with the winning cards known.
 > - **`seats[].player.muted`** (omitted when false): chat-muted by the host.
 > - **Time bank (2026-09-05).** Setting `time_bank_seconds` (default 30, 0 = off): when
 >   a connected player's turn clock runs out, their remaining time bank is added once

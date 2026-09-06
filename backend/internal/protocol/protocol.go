@@ -472,6 +472,7 @@ type SeatResult struct {
 	Revealed    bool     `json:"revealed"`
 	Cards       []string `json:"cards,omitempty"`
 	Description string   `json:"description,omitempty"`
+	Best        []string `json:"best,omitempty"` // the five cards making the hand
 }
 
 // ChatMessage is one chat line (server → client "chat" and history entries).

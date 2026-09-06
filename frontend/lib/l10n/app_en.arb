@@ -1131,5 +1131,7 @@
   "adminCameraOffDone": "Camera turned off",
   "cameraJoinHint": "Adds a small camera tile next to your avatar (turns the voice chat on as well). The browser asks for the camera once.",
   "showCameras": "Show other players' cameras",
-  "showCamerasHint": "Off saves bandwidth: the others stop sending you video. Your own camera is unaffected."
+  "showCamerasHint": "Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.",
+  "scFocusAmount": "Type the raise amount (Esc leaves the field)",
+  "showdownSpotlight": "Showdown spotlight"
 }

@@ -43,6 +43,7 @@ class TableSettingsTab extends ConsumerWidget {
     final notify = ref.watch(notifyTurnProvider);
     final showCameras = ref.watch(showCamerasProvider);
     final scale = ref.watch(uiScaleProvider);
+    final spotlight = ref.watch(showdownSpotlightProvider);
     final notifier = TurnNotifier.create();
     final voiceCtrl = ref.read(voiceControllerProvider(tableId).notifier);
     final brightness = theme.colorScheme.brightness;
@@ -204,6 +205,14 @@ class TableSettingsTab extends ConsumerWidget {
               chipDisplay == ChipDisplay.bigBlinds,
               () => ref.read(chipDisplayProvider.notifier).toggle(),
               key: const Key('drawer-chips'),
+            ),
+            toggle(
+              LucideIcons.sparkles,
+              l10n.showdownSpotlight,
+              spotlight,
+              () =>
+                  ref.read(showdownSpotlightProvider.notifier).set(!spotlight),
+              key: const Key('drawer-spotlight'),
             ),
             if (notifier.supported)
               toggle(

@@ -97,6 +97,11 @@ class TableView extends ConsumerWidget {
     final winnerBest = <String>{
       for (final seat in session.winners) ...?session.best[seat],
     };
+    // Showdown spotlight (preference): the hand being shown, or the winner,
+    // gets its five cards lifted and highlighted with its name in the middle.
+    final spotlightOn = ref.watch(showdownSpotlightProvider);
+    final spot = spotlightOn ? session.spotlight : null;
+    final spotCards = spot?.cards.toSet() ?? const <String>{};
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -156,12 +161,32 @@ class TableView extends ConsumerWidget {
                   if (hand != null) ...[
                     _Board(
                       board: hand.board,
-                      best: winnerBest.isEmpty ? null : winnerBest.toList(),
+                      best: spot != null
+                          ? spot.cards
+                          : winnerBest.isEmpty
+                          ? null
+                          : winnerBest.toList(),
+                      lift: spotCards,
                       rabbit: hand.rabbitCards ?? const [],
                       fourColor: fourColor,
                       compact: compact,
                       scale: scale,
                     ),
+                    if (spot != null) ...[
+                      const Gap(4),
+                      Text(
+                        '${spot.name}: ${spot.description}',
+                        key: const Key('spotlight-label'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: compact ? 11 : 13,
+                          fontWeight: FontWeight.w700,
+                          color: spot.winner
+                              ? winnerGold
+                              : theme.colorScheme.foreground,
+                        ),
+                      ),
+                    ],
                     if (hand.runTwice ?? false) ...[
                       const Gap(4),
                       _Board(
@@ -217,7 +242,9 @@ class TableView extends ConsumerWidget {
                   hand: hand,
                   isViewer: session.isPlayer && sv.seat == session.mySeat,
                   turnTimeMs: snap.table.settings.turnTime * 1000,
-                  best: session.winners.contains(sv.seat)
+                  best: spot != null && spot.seat == sv.seat
+                      ? spot.cards
+                      : spot == null && session.winners.contains(sv.seat)
                       ? session.best[sv.seat]
                       : null,
                   handNumber: snap.table.handNumber,
@@ -349,9 +376,13 @@ class _Board extends StatelessWidget {
     required this.fourColor,
     required this.compact,
     required this.scale,
+    this.lift = const {},
   });
   final List<String> board;
   final List<String>? best;
+
+  /// Cards drawn a little higher (the hand under the spotlight).
+  final Set<String> lift;
 
   /// Rabbit hunt: the cards that would have completed the board, shown
   /// ghosted after the real ones.
@@ -372,12 +403,19 @@ class _Board extends StatelessWidget {
             child: i < board.length
                 ? _DealCard(
                     key: ValueKey('board-$i-${board[i]}'),
-                    child: PlayingCardWidget(
-                      card: board[i],
-                      width: w,
-                      fourColor: fourColor,
-                      highlighted: best != null && best!.contains(board[i]),
-                      highlightColor: winnerGold,
+                    child: AnimatedSlide(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      offset: lift.contains(board[i])
+                          ? const Offset(0, -0.18)
+                          : Offset.zero,
+                      child: PlayingCardWidget(
+                        card: board[i],
+                        width: w,
+                        fourColor: fourColor,
+                        highlighted: best != null && best!.contains(board[i]),
+                        highlightColor: winnerGold,
+                      ),
                     ),
                   )
                 : i - board.length < rabbit.length

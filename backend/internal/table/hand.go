@@ -696,7 +696,7 @@ func convertResults(r *poker.Results) *protocol.HandResults {
 	for seat, s := range r.Seats {
 		out.Seats[strconv.Itoa(seat)] = protocol.SeatResult{
 			Net: s.Net, Won: s.Won, Folded: s.Folded, Revealed: s.Revealed,
-			Cards: cardStrings(s.Cards), Description: s.Description,
+			Cards: cardStrings(s.Cards), Description: s.Description, Best: cardStrings(s.Best),
 		}
 	}
 	return out

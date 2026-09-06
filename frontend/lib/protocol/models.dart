@@ -478,6 +478,7 @@ abstract class SeatResult with _$SeatResult {
     required bool revealed,
     @JsonKey(includeIfNull: false) List<String>? cards,
     @JsonKey(includeIfNull: false) String? description,
+    @JsonKey(includeIfNull: false) List<String>? best,
   }) = _SeatResult;
   factory SeatResult.fromJson(Map<String, dynamic> json) =>
       _$SeatResultFromJson(json);

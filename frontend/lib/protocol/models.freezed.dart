@@ -10057,7 +10057,7 @@ as int,
 /// @nodoc
 mixin _$SeatResult {
 
- int get net; int get won; bool get folded; bool get revealed;@JsonKey(includeIfNull: false) List<String>? get cards;@JsonKey(includeIfNull: false) String? get description;
+ int get net; int get won; bool get folded; bool get revealed;@JsonKey(includeIfNull: false) List<String>? get cards;@JsonKey(includeIfNull: false) String? get description;@JsonKey(includeIfNull: false) List<String>? get best;
 /// Create a copy of SeatResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -10071,20 +10071,20 @@ $SeatResultCopyWith<SeatResult> get copyWith => _$SeatResultCopyWithImpl<SeatRes
 @override
 bool operator ==(Object other) {
   final _this = this as SeatResult;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatResult&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.won, _this.won) || other.won == _this.won)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.revealed, _this.revealed) || other.revealed == _this.revealed)&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&(identical(other.description, _this.description) || other.description == _this.description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatResult&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.won, _this.won) || other.won == _this.won)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.revealed, _this.revealed) || other.revealed == _this.revealed)&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&(identical(other.description, _this.description) || other.description == _this.description)&&const DeepCollectionEquality().equals(other.best, _this.best));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SeatResult;
-  return Object.hash(runtimeType,_this.net,_this.won,_this.folded,_this.revealed,const DeepCollectionEquality().hash(_this.cards),_this.description);
+  return Object.hash(runtimeType,_this.net,_this.won,_this.folded,_this.revealed,const DeepCollectionEquality().hash(_this.cards),_this.description,const DeepCollectionEquality().hash(_this.best));
 }
 
 @override
 String toString() {
   final _this = this as SeatResult;
-  return 'SeatResult(net: ${_this.net}, won: ${_this.won}, folded: ${_this.folded}, revealed: ${_this.revealed}, cards: ${_this.cards}, description: ${_this.description})';
+  return 'SeatResult(net: ${_this.net}, won: ${_this.won}, folded: ${_this.folded}, revealed: ${_this.revealed}, cards: ${_this.cards}, description: ${_this.description}, best: ${_this.best})';
 }
 
 
@@ -10095,7 +10095,7 @@ abstract mixin class $SeatResultCopyWith<$Res>  {
   factory $SeatResultCopyWith(SeatResult value, $Res Function(SeatResult) _then) = _$SeatResultCopyWithImpl;
 @useResult
 $Res call({
- int net, int won, bool folded, bool revealed,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) String? description
+ int net, int won, bool folded, bool revealed,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) List<String>? best
 });
 
 
@@ -10112,7 +10112,7 @@ class _$SeatResultCopyWithImpl<$Res>
 
 /// Create a copy of SeatResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? net = null,Object? won = null,Object? folded = null,Object? revealed = null,Object? cards = freezed,Object? description = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? net = null,Object? won = null,Object? folded = null,Object? revealed = null,Object? cards = freezed,Object? description = freezed,Object? best = freezed,}) {
   return _then(SeatResult(
 net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
 as int,won: null == won ? _self.won : won // ignore: cast_nullable_to_non_nullable
@@ -10120,7 +10120,8 @@ as int,folded: null == folded ? _self.folded : folded // ignore: cast_nullable_t
 as bool,revealed: null == revealed ? _self.revealed : revealed // ignore: cast_nullable_to_non_nullable
 as bool,cards: freezed == cards ? _self.cards : cards // ignore: cast_nullable_to_non_nullable
 as List<String>?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,best: freezed == best ? _self.best : best // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 
@@ -10205,10 +10206,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  List<String>? best)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SeatResult() when $default != null:
-return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description);case _:
+return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description,_that.best);case _:
   return orElse();
 
 }
@@ -10226,10 +10227,10 @@ return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  List<String>? best)  $default,) {final _that = this;
 switch (_that) {
 case _SeatResult():
-return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description);case _:
+return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description,_that.best);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -10246,10 +10247,10 @@ return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int net,  int won,  bool folded,  bool revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  List<String>? best)?  $default,) {final _that = this;
 switch (_that) {
 case _SeatResult() when $default != null:
-return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description);case _:
+return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_that.description,_that.best);case _:
   return null;
 
 }
@@ -10261,7 +10262,7 @@ return $default(_that.net,_that.won,_that.folded,_that.revealed,_that.cards,_tha
 @JsonSerializable()
 
 class _SeatResult implements SeatResult {
-  const _SeatResult({required this.net, required this.won, required this.folded, required this.revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false) this.description}): _cards = cards;
+  const _SeatResult({required this.net, required this.won, required this.folded, required this.revealed, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false) this.description, @JsonKey(includeIfNull: false)  List<String>? best}): _cards = cards,_best = best;
   factory _SeatResult.fromJson(Map<String, dynamic> json) => _$SeatResultFromJson(json);
 
 @override final  int net;
@@ -10278,6 +10279,15 @@ class _SeatResult implements SeatResult {
 }
 
 @override@JsonKey(includeIfNull: false) final  String? description;
+ final  List<String>? _best;
+@override@JsonKey(includeIfNull: false) List<String>? get best {
+  final value = _best;
+  if (value == null) return null;
+  if (_best is EqualUnmodifiableListView) return _best;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of SeatResult
 /// with the given fields replaced by the non-null parameter values.
@@ -10292,18 +10302,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeatResult&&(identical(other.net, net) || other.net == net)&&(identical(other.won, won) || other.won == won)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.revealed, revealed) || other.revealed == revealed)&&const DeepCollectionEquality().equals(other.cards, _cards)&&(identical(other.description, description) || other.description == description));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeatResult&&(identical(other.net, net) || other.net == net)&&(identical(other.won, won) || other.won == won)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.revealed, revealed) || other.revealed == revealed)&&const DeepCollectionEquality().equals(other.cards, _cards)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.best, _best));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,net,won,folded,revealed,const DeepCollectionEquality().hash(_cards),description);
+    return Object.hash(runtimeType,net,won,folded,revealed,const DeepCollectionEquality().hash(_cards),description,const DeepCollectionEquality().hash(_best));
 }
 
 @override
 String toString() {
-    return 'SeatResult(net: $net, won: $won, folded: $folded, revealed: $revealed, cards: $cards, description: $description)';
+    return 'SeatResult(net: $net, won: $won, folded: $folded, revealed: $revealed, cards: $cards, description: $description, best: $best)';
 }
 
 
@@ -10314,7 +10324,7 @@ abstract mixin class _$SeatResultCopyWith<$Res> implements $SeatResultCopyWith<$
   factory _$SeatResultCopyWith(_SeatResult value, $Res Function(_SeatResult) _then) = __$SeatResultCopyWithImpl;
 @override @useResult
 $Res call({
- int net, int won, bool folded, bool revealed,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) String? description
+ int net, int won, bool folded, bool revealed,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) List<String>? best
 });
 
 
@@ -10331,7 +10341,7 @@ class __$SeatResultCopyWithImpl<$Res>
 
 /// Create a copy of SeatResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? net = null,Object? won = null,Object? folded = null,Object? revealed = null,Object? cards = freezed,Object? description = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? net = null,Object? won = null,Object? folded = null,Object? revealed = null,Object? cards = freezed,Object? description = freezed,Object? best = freezed,}) {
   return _then(_SeatResult(
 net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
 as int,won: null == won ? _self.won : won // ignore: cast_nullable_to_non_nullable
@@ -10339,7 +10349,8 @@ as int,folded: null == folded ? _self.folded : folded // ignore: cast_nullable_t
 as bool,revealed: null == revealed ? _self.revealed : revealed // ignore: cast_nullable_to_non_nullable
 as bool,cards: freezed == cards ? _self._cards : cards // ignore: cast_nullable_to_non_nullable
 as List<String>?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,best: freezed == best ? _self._best : best // ignore: cast_nullable_to_non_nullable
+as List<String>?,
   ));
 }
 

@@ -502,5 +502,7 @@
   "adminCameraOffDone": "Kamera ausgeschaltet",
   "cameraJoinHint": "Zeigt ein kleines Kamerabild neben deinem Avatar (schaltet auch den Voice-Chat ein). Der Browser fragt einmal nach der Kamera.",
   "showCameras": "Kameras der anderen anzeigen",
-  "showCamerasHint": "Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt."
+  "showCamerasHint": "Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt.",
+  "scFocusAmount": "Erhöhungsbetrag eintippen (Esc verlässt das Feld)",
+  "showdownSpotlight": "Showdown-Spotlight"
 }

@@ -621,6 +621,7 @@ _SeatResult _$SeatResultFromJson(Map<String, dynamic> json) => _SeatResult(
   revealed: json['revealed'] as bool,
   cards: (json['cards'] as List<dynamic>?)?.map((e) => e as String).toList(),
   description: json['description'] as String?,
+  best: (json['best'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$SeatResultToJson(_SeatResult instance) =>
@@ -631,6 +632,7 @@ Map<String, dynamic> _$SeatResultToJson(_SeatResult instance) =>
       'revealed': instance.revealed,
       'cards': ?instance.cards,
       'description': ?instance.description,
+      'best': ?instance.best,
     };
 
 _ChatMessage _$ChatMessageFromJson(Map<String, dynamic> json) => _ChatMessage(

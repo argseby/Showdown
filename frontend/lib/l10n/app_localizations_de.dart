@@ -1510,4 +1510,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get showCamerasHint =>
       'Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt.';
+
+  @override
+  String get scFocusAmount =>
+      'Erhöhungsbetrag eintippen (Esc verlässt das Feld)';
+
+  @override
+  String get showdownSpotlight => 'Showdown-Spotlight';
 }

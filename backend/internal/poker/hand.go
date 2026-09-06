@@ -154,6 +154,7 @@ type SeatResult struct {
 	Revealed    bool
 	Cards       []Card // only when revealed
 	Description string // only when revealed and evaluable
+	Best        []Card // the five cards making the hand, when revealed and evaluable
 }
 
 // Results summarises a finished hand.
@@ -1245,7 +1246,7 @@ func (h *Hand) finish(events []Event, res *Results, pots []Pot) []Event {
 		}
 		if p.revealed {
 			r := h.reveal(p)
-			sr.Cards, sr.Description = r.Cards, r.Description
+			sr.Cards, sr.Description, sr.Best = r.Cards, r.Description, r.Best
 		}
 		res.Seats[p.seat] = sr
 	}

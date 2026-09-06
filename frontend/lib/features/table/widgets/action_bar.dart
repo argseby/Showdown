@@ -170,7 +170,22 @@ class ActionBarState extends State<ActionBar> {
     }
   }
 
-  void openRaise({bool focusInput = true}) {
+  /// Opens the raise panel and puts the caret into the amount field, so the
+  /// number can be typed; Esc leaves the field again.
+  void focusAmount() {
+    final m = _model;
+    if (m == null || !m.canRaise) return;
+    if (!_raiseOpen) openRaise(focusInput: false);
+    _amountFocus.requestFocus();
+    _amountController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _amountController.text.length,
+    );
+  }
+
+  /// Opens the raise panel. The amount field is not focused by default so
+  /// that the letter shortcuts (A, 1-4) keep working; N focuses it.
+  void openRaise({bool focusInput = false}) {
     final m = _model;
     if (m == null || !m.canRaise) return;
     setState(() {

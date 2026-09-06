@@ -11,6 +11,7 @@ Future<void> showShortcutsOverlay(BuildContext context) {
     (shortcutLabel(ShortcutAction.fold), l10n.scFold),
     (shortcutLabel(ShortcutAction.checkCall), l10n.scCheckCall),
     (shortcutLabel(ShortcutAction.openRaise), l10n.scOpenRaise),
+    (shortcutLabel(ShortcutAction.focusAmount), l10n.scFocusAmount),
     (shortcutLabel(ShortcutAction.selectAllIn), l10n.scAllIn),
     ('1 2 3 4', l10n.scPresets),
     ('Up Down', l10n.scAmount),

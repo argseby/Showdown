@@ -44,6 +44,7 @@ class TableSessionState {
     this.shown = const {},
     this.winnerLines = const [],
     this.phrases = const {},
+    this.spotlight,
     this.lastError,
   });
 
@@ -76,6 +77,11 @@ class TableSessionState {
 
   /// Quick phrases currently shown next to avatars, by seat.
   final Map<int, PhrasePayload> phrases;
+
+  /// The hand under the spotlight at the showdown: the last revealed hand
+  /// while players show one after another, the winner once the pots are
+  /// awarded. Null outside the showdown.
+  final Spotlight? spotlight;
   final ServerError? lastError;
 
   bool get isPlayer => identity?.role == 'player';
@@ -98,6 +104,8 @@ class TableSessionState {
     Map<int, List<bool>>? shown,
     List<String>? winnerLines,
     Map<int, PhrasePayload>? phrases,
+    Spotlight? spotlight,
+    bool clearSpotlight = false,
     ServerError? lastError,
     bool clearError = false,
   }) => TableSessionState(
@@ -117,12 +125,29 @@ class TableSessionState {
     shown: shown ?? this.shown,
     winnerLines: winnerLines ?? this.winnerLines,
     phrases: phrases ?? this.phrases,
+    spotlight: clearSpotlight ? null : (spotlight ?? this.spotlight),
     lastError: clearError ? null : (lastError ?? this.lastError),
   );
 }
 
 const int logCapacity = 500;
 const int chatCapacity = 200;
+
+/// A hand under the showdown spotlight: whose, which five cards, its name.
+class Spotlight {
+  const Spotlight({
+    required this.seat,
+    required this.name,
+    required this.cards,
+    required this.description,
+    this.winner = false,
+  });
+  final int seat;
+  final String name;
+  final List<String> cards;
+  final String description;
+  final bool winner;
+}
 
 /// Recorded hands loaded into the log after a reload.
 const int historyHands = 30;
@@ -343,6 +368,8 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     var winners = state.winners;
     var shown = state.shown;
     var winnerLines = state.winnerLines;
+    Spotlight? spotlight = state.spotlight;
+    var clearSpotlight = false;
     for (final e in payload.events) {
       switch (e.kind) {
         case 'hand_started':
@@ -351,6 +378,18 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
           winners = const {};
           shown = const {};
           winnerLines = const [];
+          spotlight = null;
+          clearSpotlight = true;
+        case 'hand_ended':
+          // The final results carry every revealed hand's best five, which
+          // covers run-outs revealed before the board was complete.
+          final seats = e.results?.seats ?? const {};
+          best = {
+            ...best,
+            for (final entry in seats.entries)
+              if (entry.value.best != null && entry.value.best!.isNotEmpty)
+                int.parse(entry.key): entry.value.best!,
+          };
         case 'pot_awarded':
           if (e.seat != null) {
             winners = {...winners, e.seat!};
@@ -361,6 +400,17 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
               ...winnerLines,
               '$name|${e.amount ?? 0}|${e.description ?? ''}',
             ];
+            if ((e.description ?? '').isNotEmpty &&
+                (spotlight == null || !spotlight.winner)) {
+              spotlight = Spotlight(
+                seat: e.seat!,
+                name: name,
+                cards: best[e.seat!] ?? const [],
+                description: e.description!,
+                winner: true,
+              );
+              clearSpotlight = false;
+            }
           }
         case 'hands_revealed':
           revealed = {
@@ -378,6 +428,20 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
             for (final r in e.reveals ?? const <Reveal>[])
               if (r.best != null) r.seat: r.best!,
           };
+          for (final r in e.reveals ?? const <Reveal>[]) {
+            if (r.best != null &&
+                r.best!.isNotEmpty &&
+                r.description.isNotEmpty &&
+                (spotlight == null || !spotlight.winner)) {
+              spotlight = Spotlight(
+                seat: r.seat,
+                name: names[r.seat] ?? e.name ?? '?',
+                cards: r.best!,
+                description: r.description,
+              );
+              clearSpotlight = false;
+            }
+          }
       }
     }
     final visible = payload.events
@@ -391,6 +455,16 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       winners: winners,
       shown: shown,
       winnerLines: winnerLines,
+      spotlight: spotlight != null && spotlight.cards.isEmpty
+          ? Spotlight(
+              seat: spotlight.seat,
+              name: spotlight.name,
+              cards: best[spotlight.seat] ?? const [],
+              description: spotlight.description,
+              winner: spotlight.winner,
+            )
+          : spotlight,
+      clearSpotlight: clearSpotlight && spotlight == null,
     );
   }
 

@@ -1500,4 +1500,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get showCamerasHint =>
       'Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.';
+
+  @override
+  String get scFocusAmount => 'Type the raise amount (Esc leaves the field)';
+
+  @override
+  String get showdownSpotlight => 'Showdown spotlight';
 }

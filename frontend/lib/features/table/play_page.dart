@@ -190,7 +190,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
       case ShortcutAction.checkCall:
         bar?.checkOrCall();
       case ShortcutAction.openRaise:
-        bar?.openRaise();
+        bar?.openRaise(focusInput: false);
+      case ShortcutAction.focusAmount:
+        bar?.focusAmount();
       case ShortcutAction.selectAllIn:
         bar?.selectAllIn();
       case ShortcutAction.preset1:

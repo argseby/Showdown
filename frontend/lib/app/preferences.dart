@@ -144,6 +144,33 @@ final showCamerasProvider = NotifierProvider<ShowCamerasNotifier, bool>(
   ShowCamerasNotifier.new,
 );
 
+/// Showdown spotlight: lift and highlight each revealed hand's best five
+/// with its name in the middle of the table (default on).
+class ShowdownSpotlightNotifier extends Notifier<bool> {
+  static const _key = 'pref:showdown_spotlight';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final showdownSpotlightProvider =
+    NotifierProvider<ShowdownSpotlightNotifier, bool>(
+      ShowdownSpotlightNotifier.new,
+    );
+
 class UiScaleNotifier extends Notifier<double> {
   static const _key = 'pref:ui_scale';
   static const options = [1.0, 1.25, 1.5];
