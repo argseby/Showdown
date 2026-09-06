@@ -15,11 +15,11 @@ class FakeEngine implements VoiceEngine {
   final calls = <String>[];
   final pushed = StreamController<VoiceEvent>.broadcast();
   bool available = true;
-  List<String> stun = const [];
+  List<IceServer> ice = const [];
   @override
-  Future<bool> start({List<String> stunUrls = const []}) async {
+  Future<bool> start({List<IceServer> iceServers = const []}) async {
     calls.add('start');
-    stun = stunUrls;
+    ice = iceServers;
     return available;
   }
 

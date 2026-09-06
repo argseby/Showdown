@@ -19,7 +19,11 @@ services:
     environment:
       TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
       MAX_TABLES: ${MAX_TABLES:-100}
-      VOICE_STUN_URLS: ${VOICE_STUN_URLS:-}
+      # WEBRTC_STUN_URLS was called VOICE_STUN_URLS in the first releases; both work.
+      WEBRTC_STUN_URLS: ${WEBRTC_STUN_URLS:-${VOICE_STUN_URLS:-}}
+      WEBRTC_TURN_URLS: ${WEBRTC_TURN_URLS:-}
+      WEBRTC_TURN_USERNAME: ${WEBRTC_TURN_USERNAME:-}
+      WEBRTC_TURN_CREDENTIAL: ${WEBRTC_TURN_CREDENTIAL:-}
       LOG_FORMAT: json
     volumes:
       - data:/data

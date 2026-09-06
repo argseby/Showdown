@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'config.dart';
+import 'voice/voice_engine.dart';
 
 /// Error returned by the API's JSON error envelope.
 class ApiException implements Exception {
@@ -187,13 +188,18 @@ class RestClient {
   Future<TableInfoDto> tableInfo(String tableId) async =>
       TableInfoDto.fromJson(await getJson('/api/tables/$tableId/info'));
 
-  /// STUN servers the instance hands to browsers for the voice chat.
-  Future<List<String>> voiceStunUrls() async {
+  /// STUN and TURN servers the instance hands to browsers for voice and
+  /// video.
+  Future<List<IceServer>> iceServers() async {
     try {
       final json = await getJson('/api/config');
       return [
-        for (final u in json['voice_stun_urls'] as List<dynamic>? ?? const [])
-          u as String,
+        for (final e in json['ice_servers'] as List<dynamic>? ?? const [])
+          IceServer(
+            [for (final u in (e as Map)['urls'] as List<dynamic>) u as String],
+            username: e['username'] as String?,
+            credential: e['credential'] as String?,
+          ),
       ];
     } on Object catch (_) {
       return const [];

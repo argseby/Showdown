@@ -4,6 +4,15 @@ import 'voice_engine_stub.dart'
     if (dart.library.js_interop) 'voice_engine_web.dart'
     as impl;
 
+/// One ICE server entry as the instance hands it out: STUN servers without
+/// credentials, a TURN relay with its username and credential.
+class IceServer {
+  const IceServer(this.urls, {this.username, this.credential});
+  final List<String> urls;
+  final String? username;
+  final String? credential;
+}
+
 /// One event from the audio layer.
 sealed class VoiceEvent {
   const VoiceEvent(this.peerId);
@@ -49,9 +58,9 @@ abstract class VoiceEngine {
   static const self = 'me';
 
   /// Asks for the microphone; false when the browser refuses (insecure
-  /// context, no permission, no device). [stunUrls] are the ICE servers the
-  /// instance provides (empty = direct connections only).
-  Future<bool> start({List<String> stunUrls = const []});
+  /// context, no permission, no device). [iceServers] are the STUN/TURN
+  /// servers the instance provides (empty = direct connections only).
+  Future<bool> start({List<IceServer> iceServers = const []});
   void stop();
   void setMuted(bool muted);
 

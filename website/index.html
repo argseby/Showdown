@@ -188,7 +188,7 @@ curl -fsSLO https://raw.githubusercontent.com/argseby/Showdown/main/docker-compo
               </li>
               <li>
                 <h4>Optional: settings</h4>
-                <p class="muted">Port, table limit, retention, STUN servers for voice chat across networks, or <code>IMAGE_TAG</code> to pin a release.</p>
+                <p class="muted">Port, table limit, retention, STUN/TURN servers for voice and video across networks, or <code>IMAGE_TAG</code> to pin a release.</p>
                 <div class="code" data-copy>
                   <pre><code>curl -fsSL https://raw.githubusercontent.com/argseby/Showdown/main/.env.example -o .env</code></pre>
                   <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
@@ -310,7 +310,7 @@ cd Showdown</code></pre>
         </details>
         <details class="faq">
           <summary>Does the server phone home?</summary>
-          <p>Never. The API makes no outbound requests and the client is served entirely from your own instance. Voice chat only uses a STUN server if you configure one.</p>
+          <p>Never. The API makes no outbound requests and the client is served entirely from your own instance. Voice and video only use a STUN or TURN server if you configure one.</p>
         </details>
       </div>
     </section>

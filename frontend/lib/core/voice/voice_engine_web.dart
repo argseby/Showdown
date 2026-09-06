@@ -26,14 +26,14 @@ class _WebVoiceEngine implements VoiceEngine {
   final _speaking = <String, bool>{};
   final _events = StreamController<VoiceEvent>.broadcast();
   Timer? _meter;
-  List<String> _stunUrls = const [];
+  List<IceServer> _iceServers = const [];
 
   @override
   Stream<VoiceEvent> get events => _events.stream;
 
   @override
-  Future<bool> start({List<String> stunUrls = const []}) async {
-    _stunUrls = stunUrls;
+  Future<bool> start({List<IceServer> iceServers = const []}) async {
+    _iceServers = iceServers;
     try {
       final devices = web.window.navigator.mediaDevices;
       final stream = await devices
@@ -198,14 +198,22 @@ class _WebVoiceEngine implements VoiceEngine {
   web.RTCPeerConnection _pc(String peerId) {
     final existing = _peers[peerId];
     if (existing != null) return existing;
-    final pc = _stunUrls.isEmpty
+    final pc = _iceServers.isEmpty
         ? web.RTCPeerConnection()
         : web.RTCPeerConnection(
             web.RTCConfiguration(
               iceServers: [
-                web.RTCIceServer(
-                  urls: [for (final u in _stunUrls) u.toJS].toJS,
-                ),
+                for (final s in _iceServers)
+                  if (s.username != null && s.credential != null)
+                    web.RTCIceServer(
+                      urls: [for (final u in s.urls) u.toJS].toJS,
+                      username: s.username!,
+                      credential: s.credential!,
+                    )
+                  else
+                    web.RTCIceServer(
+                      urls: [for (final u in s.urls) u.toJS].toJS,
+                    ),
               ].toJS,
             ),
           );

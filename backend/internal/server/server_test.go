@@ -150,13 +150,20 @@ func TestConfigEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = st.Close() })
-	cfg := config.Config{MaxTables: 10, MaxConnectionsPerIP: 50, VoiceStunURLs: []string{"stun:stun.example.org:3478"}}
+	cfg := config.Config{
+		MaxTables: 10, MaxConnectionsPerIP: 50,
+		StunURLs:       []string{"stun:stun.example.org:3478"},
+		TurnURLs:       []string{"turn:relay.example.org:3478"},
+		TurnUsername:   "u",
+		TurnCredential: "p",
+	}
 	reg := table.NewRegistry(table.Deps{Store: st, Log: log}, cfg.MaxTables)
 	t.Cleanup(func() { reg.Shutdown(context.Background()) })
 	h := New(cfg, st, reg, log).Handler()
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/config", http.NoBody))
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"voice_stun_urls":["stun:stun.example.org:3478"]`) {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"ice_servers":[{"urls":["stun:stun.example.org:3478"]},`) ||
+		!strings.Contains(rec.Body.String(), `{"credential":"p","urls":["turn:relay.example.org:3478"],"username":"u"}`) {
 		t.Fatalf("config = %d %s", rec.Code, rec.Body.String())
 	}
 }

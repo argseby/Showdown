@@ -132,8 +132,8 @@ class VoiceController extends Notifier<VoiceState> {
   Future<void> enable({bool muted = false, bool camera = false}) async {
     if (state.enabled) return;
     final engine = (engineFactory ?? VoiceEngine.create)();
-    final stun = await ref.read(restClientProvider).voiceStunUrls();
-    if (!await engine.start(stunUrls: stun)) {
+    final ice = await ref.read(restClientProvider).iceServers();
+    if (!await engine.start(iceServers: ice)) {
       state = state.copyWith(unavailable: true);
       return;
     }

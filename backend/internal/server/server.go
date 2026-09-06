@@ -127,11 +127,21 @@ func (s *Server) handleHealthz(w http.ResponseWriter, _ *http.Request) {
 
 // handleConfig exposes the few instance settings the client needs.
 func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
-	stun := s.cfg.VoiceStunURLs
-	if stun == nil {
-		stun = []string{}
+	stun := s.cfg.StunURLs
+	// ICE servers in the shape RTCPeerConnection takes: STUN without
+	// credentials, the TURN relay with its long-term credentials.
+	ice := []map[string]any{}
+	if len(stun) > 0 {
+		ice = append(ice, map[string]any{"urls": stun})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"voice_stun_urls": stun})
+	if len(s.cfg.TurnURLs) > 0 {
+		ice = append(ice, map[string]any{
+			"urls":       s.cfg.TurnURLs,
+			"username":   s.cfg.TurnUsername,
+			"credential": s.cfg.TurnCredential,
+		})
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ice_servers": ice})
 }
 
 func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {

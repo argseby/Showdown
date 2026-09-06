@@ -5,7 +5,7 @@ import 'voice_engine.dart';
 class _StubVoiceEngine implements VoiceEngine {
   final _events = StreamController<VoiceEvent>.broadcast();
   @override
-  Future<bool> start({List<String> stunUrls = const []}) async => false;
+  Future<bool> start({List<IceServer> iceServers = const []}) async => false;
   @override
   void stop() {}
   @override

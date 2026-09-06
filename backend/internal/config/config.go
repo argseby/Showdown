@@ -23,9 +23,14 @@ type Config struct {
 	DevCORSOrigin       string
 	LogLevel            string
 	LogFormat           string
-	// VoiceStunURLs are handed to browsers for the voice chat (WebRTC ICE);
-	// empty means no STUN, which works within one network only.
-	VoiceStunURLs []string
+	// StunURLs are handed to browsers for the voice and video connections
+	// (WebRTC ICE); empty means no STUN, which works within one network only.
+	StunURLs []string
+	// TurnURLs name a TURN relay for browsers that cannot reach each other
+	// directly; the relay needs long-term credentials.
+	TurnURLs       []string
+	TurnUsername   string
+	TurnCredential string
 }
 
 // Load reads the configuration through getenv (usually os.Getenv), applies
@@ -44,12 +49,31 @@ func Load(getenv func(string) string) (Config, error) {
 		DevCORSOrigin:       l.str("DEV_CORS_ORIGIN", ""),
 		LogLevel:            strings.ToLower(l.str("LOG_LEVEL", "info")),
 		LogFormat:           strings.ToLower(l.str("LOG_FORMAT", "json")),
-		VoiceStunURLs:       splitList(l.str("VOICE_STUN_URLS", "")),
+		// VOICE_STUN_URLS is the name of the first release; still honoured.
+		StunURLs:       splitList(l.str("WEBRTC_STUN_URLS", l.str("VOICE_STUN_URLS", ""))),
+		TurnURLs:       splitList(l.str("WEBRTC_TURN_URLS", "")),
+		TurnUsername:   l.str("WEBRTC_TURN_USERNAME", ""),
+		TurnCredential: l.str("WEBRTC_TURN_CREDENTIAL", ""),
 	}
-	for _, u := range cfg.VoiceStunURLs {
-		if !strings.HasPrefix(u, "stun:") && !strings.HasPrefix(u, "stuns:") {
-			l.errorf("VOICE_STUN_URLS: %q must start with stun: or stuns:", u)
+	for _, u := range cfg.StunURLs {
+		switch {
+		case strings.HasPrefix(u, "stun:"), strings.HasPrefix(u, "stuns:"):
+		case strings.HasPrefix(u, "turn:"), strings.HasPrefix(u, "turns:"):
+			l.errorf("WEBRTC_STUN_URLS: %q is a TURN server; put it in WEBRTC_TURN_URLS", u)
+		default:
+			l.errorf("WEBRTC_STUN_URLS: %q must start with stun: or stuns:", u)
 		}
+	}
+	for _, u := range cfg.TurnURLs {
+		if !strings.HasPrefix(u, "turn:") && !strings.HasPrefix(u, "turns:") {
+			l.errorf("WEBRTC_TURN_URLS: %q must start with turn: or turns:", u)
+		}
+	}
+	if len(cfg.TurnURLs) > 0 && (cfg.TurnUsername == "" || cfg.TurnCredential == "") {
+		l.errorf("WEBRTC_TURN_URLS needs WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL")
+	}
+	if len(cfg.TurnURLs) == 0 && (cfg.TurnUsername != "" || cfg.TurnCredential != "") {
+		l.errorf("WEBRTC_TURN_USERNAME / WEBRTC_TURN_CREDENTIAL are set but WEBRTC_TURN_URLS is empty")
 	}
 
 	if cfg.ListenAddr == "" {

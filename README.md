@@ -36,8 +36,8 @@ curl -fsSLO https://raw.githubusercontent.com/argseby/Showdown/main/docker-compo
 curl -fsSL https://raw.githubusercontent.com/argseby/Showdown/main/.env.example -o .env
 ```
 
-Edit `.env` if you want a different port, limits, a pinned release or STUN servers for
-voice and video across networks (see [Settings](#settings)).
+Edit `.env` if you want a different port, limits, a pinned release or STUN/TURN servers
+for voice and video across networks (see [Settings](#settings)).
 
 **3. Start**
 
@@ -101,7 +101,8 @@ All settings live in `.env`; everything has a default.
 |---|---|---|
 | `WEB_PORT` | `8080` | port published on the host |
 | `SITE_ADDRESS` | `:80` | keep `:80` behind a proxy; a host name switches on automatic HTTPS |
-| `VOICE_STUN_URLS` | empty | STUN servers for voice and video across networks, comma-separated, e.g. `stun:stun.l.google.com:19302` (public, no account needed). STUN only tells browsers their public address; audio and video stay browser to browser. Empty = same network only. Strict NATs may still fail (that would need a TURN relay, not part of this project) |
+| `WEBRTC_STUN_URLS` | empty | STUN servers for voice and video across networks, comma-separated, e.g. `stun:stun.l.google.com:19302` (public, no account needed). STUN only tells browsers their public address; audio and video stay browser to browser. Empty = same network only. The old name `VOICE_STUN_URLS` still works |
+| `WEBRTC_TURN_URLS` | empty | TURN relay for players whose networks block direct connections (strict NAT, mobile carriers), `turn:`/`turns:` URLs, comma-separated. Media then passes through that relay, so it needs your own coturn or a hosted TURN service. Requires `WEBRTC_TURN_USERNAME` and `WEBRTC_TURN_CREDENTIAL` |
 | `TABLE_RETENTION_DAYS` | `90` | hands and chat of ended tables are deleted after this many days; tables and final standings stay |
 | `MAX_TABLES` | `100` | cap on tables that have not ended |
 | `IMAGE_TAG` | `latest` | `latest` = newest release, `v1.1.0` = a fixed release, `edge` = every commit on `main` |

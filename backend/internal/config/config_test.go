@@ -114,19 +114,57 @@ func merge(base map[string]string, k, v string) map[string]string {
 	return out
 }
 
-func TestVoiceStunURLs(t *testing.T) {
+func TestStunURLs(t *testing.T) {
 	t.Parallel()
-	cfg, err := Load(env(map[string]string{"VOICE_STUN_URLS": " stun:stun.example.org:3478 , stuns:b.example.org "}))
+	cfg, err := Load(env(map[string]string{"WEBRTC_STUN_URLS": " stun:stun.example.org:3478 , stuns:b.example.org "}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(cfg.VoiceStunURLs) != 2 || cfg.VoiceStunURLs[0] != "stun:stun.example.org:3478" || cfg.VoiceStunURLs[1] != "stuns:b.example.org" {
-		t.Fatalf("urls = %v", cfg.VoiceStunURLs)
+	if len(cfg.StunURLs) != 2 || cfg.StunURLs[0] != "stun:stun.example.org:3478" || cfg.StunURLs[1] != "stuns:b.example.org" {
+		t.Fatalf("urls = %v", cfg.StunURLs)
 	}
-	if _, err := Load(env(map[string]string{"VOICE_STUN_URLS": "https://not-stun"})); err == nil {
+	if _, err := Load(env(map[string]string{"WEBRTC_STUN_URLS": "https://not-stun"})); err == nil {
 		t.Fatal("non-stun url must be rejected")
 	}
-	if cfg, _ := Load(env(map[string]string{})); len(cfg.VoiceStunURLs) != 0 {
+	if cfg, _ := Load(env(map[string]string{})); len(cfg.StunURLs) != 0 {
 		t.Fatal("default is no STUN")
+	}
+	// The name of the first release keeps working; the new name wins when both are set.
+	if cfg, err := Load(env(map[string]string{"VOICE_STUN_URLS": "stun:old.example.org"})); err != nil || len(cfg.StunURLs) != 1 || cfg.StunURLs[0] != "stun:old.example.org" {
+		t.Fatalf("old name: %v %v", cfg.StunURLs, err)
+	}
+	if cfg, _ := Load(env(map[string]string{"VOICE_STUN_URLS": "stun:old.example.org", "WEBRTC_STUN_URLS": "stun:new.example.org"})); len(cfg.StunURLs) != 1 || cfg.StunURLs[0] != "stun:new.example.org" {
+		t.Fatalf("new name must win: %v", cfg.StunURLs)
+	}
+	if _, err := Load(env(map[string]string{"WEBRTC_STUN_URLS": "turn:relay.example.org:3478"})); err == nil || !strings.Contains(err.Error(), "WEBRTC_TURN_URLS") {
+		t.Fatalf("a turn: url in the stun list must point at WEBRTC_TURN_URLS, got %v", err)
+	}
+}
+
+func TestTurn(t *testing.T) {
+	t.Parallel()
+	full := map[string]string{
+		"WEBRTC_TURN_URLS":       "turn:relay.example.org:3478?transport=udp, turns:relay.example.org:5349",
+		"WEBRTC_TURN_USERNAME":   "showdown",
+		"WEBRTC_TURN_CREDENTIAL": "secret",
+	}
+	cfg, err := Load(env(full))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.TurnURLs) != 2 || cfg.TurnURLs[1] != "turns:relay.example.org:5349" ||
+		cfg.TurnUsername != "showdown" || cfg.TurnCredential != "secret" {
+		t.Fatalf("turn = %v %q %q", cfg.TurnURLs, cfg.TurnUsername, cfg.TurnCredential)
+	}
+	bad := []map[string]string{
+		merge(full, "WEBRTC_TURN_URLS", "stun:relay.example.org"),
+		merge(full, "WEBRTC_TURN_USERNAME", ""),
+		merge(full, "WEBRTC_TURN_CREDENTIAL", ""),
+		{"WEBRTC_TURN_USERNAME": "orphan"},
+	}
+	for i, e := range bad {
+		if _, err := Load(env(e)); err == nil {
+			t.Fatalf("case %d must be rejected", i)
+		}
 	}
 }
