@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <filter id="wobble" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="paper" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="3" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0.94  0 0 0 0 0.92  0 0 0 0 0.88  0 0 0 0.12 0" result="t"/>
+      <feBlend in="SourceGraphic" in2="t" mode="multiply"/>
+    </filter>
+  </defs>
+
+  <!-- neutral paper background -->
+  <rect width="500" height="500" fill="#efeae0"/>
+  <rect width="500" height="500" fill="#efeae0" filter="url(#paper)" opacity="0.6"/>
+
+  <g filter="url(#wobble)" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- card 1: ace of spades, tilted left -->
+    <g transform="translate(180 265) rotate(-14)">
+      <path d="M-92 -136 L 96 -132 L 92 138 L -96 134 Z" fill="#fbf7ee" stroke="#2b2b2b" stroke-width="7"/>
+      <!-- corner marks -->
+      <path d="M-74 -78 L-62 -114 L-50 -78 M-70 -92 L-54 -92" fill="none" stroke="#2b2b2b" stroke-width="6"/>
+      <path d="M-62 -66 C-70 -60 -78 -50 -70 -42 C-66 -38 -62 -40 -62 -44 C-62 -40 -58 -38 -54 -42 C-46 -50 -54 -60 -62 -66 Z" fill="#2b2b2b"/>
+      <path d="M74 78 L62 114 L50 78 M70 92 L54 92" fill="none" stroke="#2b2b2b" stroke-width="6"/>
+      <path d="M62 66 C70 60 78 50 70 42 C66 38 62 40 62 44 C62 40 58 38 54 42 C46 50 54 60 62 66 Z" fill="#2b2b2b"/>
+      <!-- big lumpy spade -->
+      <path d="M0 -62 C-30 -32 -62 -6 -56 22 C-50 44 -22 46 -8 30 C-14 46 -22 56 -30 62 L 30 62 C 22 56 14 46 8 30 C 22 46 50 44 56 22 C 62 -6 30 -32 0 -62 Z" fill="#2b2b2b" stroke="#2b2b2b" stroke-width="5"/>
+      <!-- crayon scribble fill lines -->
+      <path d="M-30 -10 L 20 -20 M-40 8 L 40 -4 M-42 24 L 42 14 M-30 38 L 30 30" fill="none" stroke="#555" stroke-width="3" opacity="0.6"/>
+    </g>
+
+    <!-- card 2: ace of hearts, tilted right, on top -->
+    <g transform="translate(318 245) rotate(12)">
+      <path d="M-94 -134 L 92 -138 L 96 136 L -90 132 Z" fill="#fbf7ee" stroke="#2b2b2b" stroke-width="7"/>
+      <!-- corner marks -->
+      <path d="M-74 -78 L-62 -114 L-50 -78 M-70 -92 L-54 -92" fill="none" stroke="#d3382e" stroke-width="6"/>
+      <path d="M-62 -42 C-72 -52 -80 -62 -70 -68 C-66 -70 -62 -66 -62 -62 C-62 -66 -58 -70 -54 -68 C-44 -62 -52 -52 -62 -42 Z" fill="#d3382e"/>
+      <path d="M74 78 L62 114 L50 78 M70 92 L54 92" fill="none" stroke="#d3382e" stroke-width="6"/>
+      <path d="M62 42 C72 52 80 62 70 68 C66 70 62 66 62 62 C62 66 58 70 54 68 C44 62 52 52 62 42 Z" fill="#d3382e"/>
+      <!-- big lumpy heart -->
+      <path d="M0 60 C-40 30 -66 4 -60 -26 C-56 -48 -30 -58 -12 -44 C-6 -40 -2 -34 0 -30 C2 -34 6 -40 12 -44 C30 -58 56 -48 60 -26 C66 4 40 30 0 60 Z" fill="#e2483c" stroke="#b7291f" stroke-width="5"/>
+      <!-- crayon scribble fill lines (going outside the lines a little) -->
+      <path d="M-46 -20 L 50 -34 M-52 -4 L 54 -14 M-46 12 L 48 4 M-34 28 L 34 22 M-16 44 L 18 40" fill="none" stroke="#f18a80" stroke-width="4" opacity="0.8"/>
+      <!-- smiley on the heart -->
+      <circle cx="-16" cy="-8" r="4" fill="#2b2b2b"/>
+      <circle cx="16" cy="-8" r="4" fill="#2b2b2b"/>
+      <path d="M-18 12 Q 0 26 18 12" fill="none" stroke="#2b2b2b" stroke-width="4"/>
+    </g>
+
+    <!-- sparkle/star doodles -->
+    <path d="M60 80 L60 120 M40 100 L80 100 M48 88 L72 112 M72 88 L48 112" fill="none" stroke="#f2b632" stroke-width="5"/>
+    <path d="M440 400 L440 430 M425 415 L455 415" fill="none" stroke="#f2b632" stroke-width="5"/>
+    <path d="M410 70 L416 90 L436 92 L420 104 L426 124 L410 112 L394 124 L400 104 L384 92 L404 90 Z" fill="none" stroke="#5b9bd5" stroke-width="5"/>
+    <path d="M70 430 Q 90 410 110 430 Q 130 450 150 430" fill="none" stroke="#6bb35b" stroke-width="5"/>
+  </g>
+</svg>
