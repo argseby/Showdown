@@ -32,6 +32,9 @@ const (
 	// DeadBlind is an extra big blind owed after a seat change; it goes
 	// straight into the pot like an ante.
 	DeadBlind BlindKind = "dead"
+	// StraddleBlind is the live straddle posted by the seat left of the big
+	// blind.
+	StraddleBlind BlindKind = "straddle"
 )
 
 // HandStart carries the hand_started payload.
@@ -64,10 +67,10 @@ type Reveal struct {
 //	ante_posted       Seat, Amount, AllIn
 //	blind_posted      Seat, Blind, Amount, AllIn
 //	hole_cards_dealt  Seat, Cards
-//	action            Seat, Action (effective kind), Amount, AllIn
+//	action            Seat, Action (effective kind), Amount, AllIn, Street
 //	timeout           Seat, Action (resolved as check or fold)
 //	uncalled_returned Seat, Amount
-//	street_dealt      Street, Cards (the newly dealt cards)
+//	street_dealt      Street, Cards (the newly dealt cards), Board (2 = second board)
 //	pots_updated      Pots
 //	hands_revealed    Reveals
 //	mucked            Seat
@@ -92,4 +95,7 @@ type Event struct {
 	Description string
 	Start       *HandStart
 	Results     *Results
+	// Board is 2 for the second board of a hand run twice (street_dealt,
+	// pot_awarded), 1 for the first in that case, 0 otherwise.
+	Board int
 }

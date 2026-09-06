@@ -92,6 +92,32 @@ final chipDisplayProvider = NotifierProvider<ChipDisplayNotifier, ChipDisplay>(
 
 /// Display size for the table: cards, chips, buttons and text scale
 /// together (accessibility). 1.0 = normal, 1.25 = large, 1.5 = extra large.
+/// Turn notifications while the tab is in the background (default off; the
+/// browser asks for permission when switched on).
+class NotifyTurnNotifier extends Notifier<bool> {
+  static const _key = 'pref:notify_turn';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final notifyTurnProvider = NotifierProvider<NotifyTurnNotifier, bool>(
+  NotifyTurnNotifier.new,
+);
+
 class UiScaleNotifier extends Notifier<double> {
   static const _key = 'pref:ui_scale';
   static const options = [1.0, 1.25, 1.5];

@@ -149,7 +149,7 @@ func (h *harness) createTable(settings map[string]any) (string, string) {
 
 func fastSettings() map[string]any {
 	return map[string]any{
-		"turn_time": 5, "disconnected_turn_time": 3, "hand_delay_ms": 2000, "start_money": 3000,
+		"turn_time": 5, "disconnected_turn_time": 3, "hand_delay_ms": 2000, "start_money": 3000, "time_bank_seconds": 0,
 		"small_blind": 50, "big_blind": 100, "sit_out_after_missed_turns": 3, "max_players": 6,
 	}
 }

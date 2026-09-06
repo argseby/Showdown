@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +10,9 @@ import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
 import '../../core/session_store.dart';
+import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
-import '../../core/turn_sound.dart';
+import '../../core/turn_notifier.dart';
 import '../../core/voice/voice_controller.dart';
 import '../../core/ws_client.dart';
 import '../../protocol/protocol.dart';
@@ -53,7 +56,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
   bool _windowFocused = true;
   bool _turnTitle = false;
   bool _handledTerminal = false;
-  final _turnSound = TurnSound.create();
+  final _sounds = TableSounds.create();
+  final _notifier = TurnNotifier.create();
+  StreamSubscription<GameEvent>? _eventSub;
   bool _wasMyTurn = false;
 
   @override
@@ -71,6 +76,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
 
   @override
   void dispose() {
+    _eventSub?.cancel();
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     WidgetsBinding.instance.removeObserver(this);
     _chatFocus.dispose();
@@ -142,7 +148,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
       );
     }
     if (myTurn) {
-      return _PhaseInfo(kind: _PhaseKind.myTurn, deadlineTs: hand.deadlineTs);
+      return _PhaseInfo(
+        kind: _PhaseKind.myTurn,
+        deadlineTs: hand.deadlineTs,
+        timeBank: hand.timeBankActive ?? false,
+      );
     }
     final seat = hand.toActSeat;
     if (seat != null) {
@@ -319,10 +329,35 @@ class _PlayPageState extends ConsumerState<PlayPage>
     ref.listen(tableSessionProvider(widget.tableId), (prev, next) {
       _updateTitle();
       final myTurn = next.isPlayer && next.snapshot?.you.options != null;
-      if (myTurn && !_wasMyTurn && ref.read(soundEnabledProvider)) {
-        _turnSound.play();
+      if (myTurn && !_wasMyTurn) {
+        if (ref.read(soundEnabledProvider)) _sounds.play(SoundCue.turn);
+        if (!_windowFocused && ref.read(notifyTurnProvider)) {
+          _notifier.notify(
+            l10n.notifyTitle,
+            l10n.notifyBody(next.snapshot?.table.name ?? l10n.appTitle),
+          );
+          _notifier.vibrate();
+        }
       }
       _wasMyTurn = myTurn;
+      // Sounds for the table: cards, checks, chips and the win.
+      _eventSub ??= _session.events.listen((e) {
+        if (!ref.read(soundEnabledProvider)) return;
+        final mySeat = ref.read(tableSessionProvider(widget.tableId)).mySeat;
+        switch (e.kind) {
+          case 'street_dealt':
+            _sounds.play(SoundCue.deal);
+          case 'hole_cards_dealt':
+            if (e.seat == mySeat) _sounds.play(SoundCue.deal);
+          case 'action':
+            _sounds.play(e.action == 'check' ? SoundCue.check : SoundCue.chips);
+          case 'blind_posted':
+          case 'ante_posted':
+            _sounds.play(SoundCue.chips);
+          case 'pot_awarded':
+            if (e.seat == mySeat) _sounds.play(SoundCue.win);
+        }
+      });
       if (next.connection.terminal &&
           !_handledTerminal &&
           next.connection.closeCode == CloseCodes.badToken) {
@@ -380,6 +415,8 @@ class _PlayPageState extends ConsumerState<PlayPage>
       showCards: (which) => _session.showCards(which),
       preAction: _session.preAction,
       rabbitHunt: _session.rabbitHunt,
+      straddle: _session.setStraddle,
+      runTwice: _session.runTwice,
     );
     final chipDisplay = ref.watch(chipDisplayProvider);
     final myTurn = session.isPlayer && snap?.you.options != null;
@@ -392,8 +429,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
         !_voiceRequested) {
       _voiceRequested = true;
       final muted = stored?.voiceMuted ?? false;
+      final camera = stored?.voiceCamera ?? false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _voiceController.enable(muted: muted);
+        if (mounted) _voiceController.enable(muted: muted, camera: camera);
       });
     }
     ref.listen(voiceControllerProvider(widget.tableId), (prev, next) {
@@ -403,6 +441,14 @@ class _PlayPageState extends ConsumerState<PlayPage>
           location: ToastLocation.bottomCenter,
           builder: (context, overlay) =>
               SurfaceCard(child: Text(l10n.voiceMutedByHost)),
+        );
+      }
+      if (next.hostCameraOff && !(prev?.hostCameraOff ?? false)) {
+        showToast(
+          context: context,
+          location: ToastLocation.bottomCenter,
+          builder: (context, overlay) =>
+              SurfaceCard(child: Text(l10n.cameraOffByHost)),
         );
       }
       if (next.unavailable && !(prev?.unavailable ?? false)) {
@@ -460,6 +506,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
             onSayTap: session.isPlayer
                 ? () => showSayDialog(context, ref, widget.tableId)
                 : null,
+            videoViews: voice.videoViews,
             onAdminTap: (snap?.you.isAdmin ?? false) && adminToken != null
                 ? (p) =>
                       AdminPlayerActions(
@@ -472,6 +519,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
                         name: p.name,
                         chatMuted: p.muted ?? false,
                         voice: p.voice,
+                        camera: p.camera ?? false,
                       )
                 : null,
           ),
@@ -764,7 +812,23 @@ class _EndedOverlay extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 3),
                     child: Row(
                       children: [
-                        SizedBox(width: 24, child: Text('${i + 1}.')),
+                        SizedBox(
+                          width: 28,
+                          child: Text(
+                            (e.place ?? 0) > 0
+                                ? l10n.placeLabel(e.place!)
+                                : '${i + 1}.',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        if ((e.place ?? 0) == 1) ...[
+                          const Icon(
+                            LucideIcons.trophy,
+                            size: 16,
+                            color: Color(0xFFE6B422),
+                          ),
+                          const Gap(6),
+                        ],
                         Expanded(child: Text(e.name)),
                         Text(
                           formatChips(e.stack, locale),
@@ -796,10 +860,16 @@ class _EndedOverlay extends StatelessWidget {
 enum _PhaseKind { myTurn, otherTurn, showdown, nextHand }
 
 class _PhaseInfo {
-  const _PhaseInfo({required this.kind, this.deadlineTs, this.name});
+  const _PhaseInfo({
+    this.timeBank = false,
+    required this.kind,
+    this.deadlineTs,
+    this.name,
+  });
   final _PhaseKind kind;
   final int? deadlineTs;
   final String? name;
+  final bool timeBank;
 }
 
 /// The strip above the table: whose turn it is and how long every phase
@@ -868,6 +938,7 @@ class _PhaseStripState extends ConsumerState<_PhaseStrip>
     final mine = info.kind == _PhaseKind.myTurn;
     final urgent = mine && remaining != null && remaining <= 5;
     final text = switch (info.kind) {
+      _PhaseKind.myTurn when info.timeBank => l10n.timeBankStrip(secs),
       _PhaseKind.myTurn =>
         remaining == null ? l10n.yourTurnBanner : l10n.yourTurnBannerTime(secs),
       _PhaseKind.otherTurn => l10n.turnOf(info.name ?? '?', secs),

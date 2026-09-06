@@ -22,6 +22,9 @@ class AdminSettings {
     this.allowRabbitHunt = true,
     this.blindsUpMinutes = 0,
     this.blindsUpPercent = 100,
+    this.timeBankSeconds = 30,
+    this.allowStraddle = false,
+    this.runItTwice = false,
   });
 
   factory AdminSettings.fromJson(Map<String, dynamic> json) => AdminSettings(
@@ -45,6 +48,9 @@ class AdminSettings {
     allowRabbitHunt: json['allow_rabbit_hunt'] as bool? ?? true,
     blindsUpMinutes: json['blinds_up_minutes'] as int? ?? 0,
     blindsUpPercent: json['blinds_up_percent'] as int? ?? 100,
+    timeBankSeconds: json['time_bank_seconds'] as int? ?? 30,
+    allowStraddle: json['allow_straddle'] as bool? ?? false,
+    runItTwice: json['run_it_twice'] as bool? ?? false,
   );
 
   /// The §5.2 defaults, used by the new-table form.
@@ -88,6 +94,9 @@ class AdminSettings {
   final bool allowRabbitHunt;
   final int blindsUpMinutes;
   final int blindsUpPercent;
+  final int timeBankSeconds;
+  final bool allowStraddle;
+  final bool runItTwice;
 
   /// Field values keyed by wire name (password excluded).
   Map<String, Object> toFields() => {
@@ -110,6 +119,9 @@ class AdminSettings {
     'allow_rabbit_hunt': allowRabbitHunt,
     'blinds_up_minutes': blindsUpMinutes,
     'blinds_up_percent': blindsUpPercent,
+    'time_bank_seconds': timeBankSeconds,
+    'allow_straddle': allowStraddle,
+    'run_it_twice': runItTwice,
   };
 }
 
@@ -130,6 +142,7 @@ class AdminPlayer {
     required this.biggestPot,
     required this.joinedAt,
     this.voice = 'off',
+    this.camera = false,
   });
 
   factory AdminPlayer.fromJson(Map<String, dynamic> json) => AdminPlayer(
@@ -147,6 +160,7 @@ class AdminPlayer {
     biggestPot: json['biggest_pot'] as int,
     joinedAt: json['joined_at'] as int,
     voice: json['voice'] as String? ?? 'off',
+    camera: json['camera'] as bool? ?? false,
   );
 
   final String id;
@@ -159,6 +173,9 @@ class AdminPlayer {
 
   /// Voice-chat presence: off, on or muted.
   final String voice;
+
+  /// The player's camera is on.
+  final bool camera;
   final int missedTurns;
   final int buyInTotal;
   final int handsPlayed;
@@ -395,6 +412,14 @@ class AdminApi {
   Future<void> muteVoice(String token, String id, String playerId) =>
       _rest.postJson(
         '/api/admin/tables/$id/players/$playerId/voice-mute',
+        null,
+        token: token,
+      );
+
+  /// Turns a player's camera off; only the player can turn it on again.
+  Future<void> cameraOff(String token, String id, String playerId) =>
+      _rest.postJson(
+        '/api/admin/tables/$id/players/$playerId/camera-off',
         null,
         token: token,
       );

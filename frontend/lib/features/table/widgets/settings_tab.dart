@@ -4,6 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
+import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../shared/display_size_picker.dart';
 import '../../../shared/kbd_hint.dart';
@@ -37,6 +38,8 @@ class TableSettingsTab extends ConsumerWidget {
     final fourColor = ref.watch(fourColorDeckProvider);
     final chipDisplay = ref.watch(chipDisplayProvider);
     final voice = ref.watch(voiceControllerProvider(tableId));
+    final notify = ref.watch(notifyTurnProvider);
+    final notifier = TurnNotifier.create();
     final brightness = theme.colorScheme.brightness;
     final locale = Localizations.localeOf(context);
     final wide = MediaQuery.sizeOf(context).width >= KbdHint.minWidth;
@@ -142,6 +145,28 @@ class TableSettingsTab extends ConsumerWidget {
               () => ref.read(chipDisplayProvider.notifier).toggle(),
               key: const Key('drawer-chips'),
             ),
+            if (notifier.supported) ...[
+              toggle(l10n.notifyTurn, LucideIcons.bellRing, notify, () async {
+                if (notify) {
+                  ref.read(notifyTurnProvider.notifier).set(false);
+                  return;
+                }
+                final ok = await notifier.requestPermission();
+                ref.read(notifyTurnProvider.notifier).set(ok);
+                if (!ok && context.mounted) {
+                  showToast(
+                    context: context,
+                    location: ToastLocation.bottomCenter,
+                    builder: (context, overlay) =>
+                        SurfaceCard(child: Text(l10n.notifyDenied)),
+                  );
+                }
+              }, key: const Key('drawer-notify')),
+              Padding(
+                padding: const EdgeInsets.only(left: 28, bottom: 4),
+                child: Text(l10n.notifyTurnHint).muted().small(),
+              ),
+            ],
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(

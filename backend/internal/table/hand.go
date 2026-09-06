@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"math"
 	"math/big"
+	"sort"
 	"strconv"
 	"time"
 
@@ -103,7 +105,7 @@ func (t *Table) startHand(eligible []*Player) {
 	deadBlinds := map[int]int64{}
 	cfg := poker.HandConfig{
 		SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, Ante: t.settings.Ante,
-		ButtonSeat: button, Reveal: reveal, DeadBlinds: deadBlinds,
+		ButtonSeat: button, Reveal: reveal, DeadBlinds: deadBlinds, StraddleSeat: -1,
 	}
 	seats := make([]poker.Seat, len(eligible))
 	stacks := make(map[int]int64, len(eligible))
@@ -114,7 +116,17 @@ func (t *Table) startHand(eligible []*Player) {
 			p.owesDeadBlind = false
 		}
 		stacks[p.Seat] = p.Stack
+		p.vpipThisHand = false
 	}
+	// Straddle: the third eligible seat clockwise from the button (left of
+	// the big blind) posts 2x the big blind when armed and allowed.
+	if t.settings.AllowStraddle && len(eligible) >= 3 {
+		order := clockwiseFrom(button, eligible)
+		if utg := order[2]; utg.straddleNext && utg.Stack > 2*t.settings.BigBlind {
+			cfg.StraddleSeat, cfg.StraddleAmount = utg.Seat, 2*t.settings.BigBlind
+		}
+	}
+	t.equity, t.ritVotes, t.ritEndsAt, t.ritDecided, t.timeBankUsing = nil, nil, 0, false, false
 	hand, events, err := poker.NewHand(cfg, seats, t.deps.Shuffle)
 	if err != nil {
 		t.log.Error("cannot start hand", "err", err)
@@ -145,6 +157,19 @@ func (t *Table) startHand(eligible []*Player) {
 	t.persistTable()
 	t.applyEngineEvents(events)
 	t.afterEngine()
+}
+
+// clockwiseFrom orders the eligible players by seat starting left of button.
+func clockwiseFrom(button int, eligible []*Player) []*Player {
+	out := append([]*Player(nil), eligible...)
+	key := func(seat int) int {
+		if seat > button {
+			return seat - button
+		}
+		return seat + maxSeats - button
+	}
+	sort.Slice(out, func(i, j int) bool { return key(out[i].Seat) < key(out[j].Seat) })
+	return out
 }
 
 func seatMap(m map[int]int64) map[string]int64 {
@@ -178,12 +203,21 @@ func (t *Table) afterEngine() {
 		}
 		t.toActSeat = seat
 		t.deadline = t.nowMs() + int64(secs)*1000
+		t.timeBankUsing = false
 		t.handPhase = "betting"
 		t.schedule(time.Duration(secs)*time.Second, func() { t.onTurnTimeout(seat) })
 	case poker.PhaseDealPending:
 		t.toActSeat, t.deadline = -1, 0
 		if t.hand.Runout() {
 			t.handPhase = "runout"
+			t.computeEquity()
+			if t.settings.RunItTwice && !t.ritDecided && t.hand.CanRunItTwice() && t.liveSeats() > 1 {
+				// Everyone all-in with cards to come: ask before dealing.
+				t.ritVotes = map[int]bool{}
+				t.ritEndsAt = t.nowMs() + t.deps.Delays.RunTwiceDecision.Milliseconds()
+				t.schedule(t.deps.Delays.RunTwiceDecision, t.resolveRunTwice)
+				return
+			}
 			t.schedule(t.deps.Delays.Runout, t.advanceHand)
 		} else {
 			t.handPhase = "betting"
@@ -253,6 +287,77 @@ func (t *Table) contested() bool {
 	return false
 }
 
+// liveSeats counts the players still in the hand.
+func (t *Table) liveSeats() int {
+	n := 0
+	for _, p := range t.seats[:maxSeats] {
+		if p == nil || !p.inHand {
+			continue
+		}
+		if st, ok := t.hand.State(p.Seat); ok && !st.Folded {
+			n++
+		}
+	}
+	return n
+}
+
+// ritVoteComplete reports whether every live player agreed.
+func (t *Table) ritVoteComplete() bool {
+	for _, p := range t.seats[:maxSeats] {
+		if p == nil || !p.inHand {
+			continue
+		}
+		if st, ok := t.hand.State(p.Seat); ok && !st.Folded {
+			if agree, voted := t.ritVotes[p.Seat]; !voted || !agree {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// resolveRunTwice closes the run-it-twice vote and starts the run-out
+// (twice when everyone agreed).
+func (t *Table) resolveRunTwice() {
+	if t.hand == nil || t.ritVotes == nil {
+		return
+	}
+	if t.ritVoteComplete() {
+		if err := t.hand.RunItTwice(); err != nil {
+			t.log.Error("run it twice", "err", err)
+		}
+	}
+	t.ritVotes, t.ritEndsAt, t.ritDecided = nil, 0, true
+	t.touch()
+	t.schedule(t.deps.Delays.Runout, t.advanceHand)
+}
+
+// computeEquity refreshes each live seat's pot share for the run-out.
+func (t *Table) computeEquity() {
+	var seats []int
+	var hands [][2]poker.Card
+	for _, p := range t.seats[:maxSeats] {
+		if p == nil || !p.inHand {
+			continue
+		}
+		st, ok := t.hand.State(p.Seat)
+		if !ok || st.Folded || len(st.HoleCards) != 2 {
+			continue
+		}
+		seats = append(seats, p.Seat)
+		hands = append(hands, [2]poker.Card{st.HoleCards[0], st.HoleCards[1]})
+	}
+	if len(seats) < 2 {
+		t.equity = nil
+		return
+	}
+	eq := poker.Equity(t.hand.Board(), hands, 20000, uint64(t.handNumber))
+	t.equity = make(map[int]float64, len(seats))
+	for i, seat := range seats {
+		t.equity[seat] = math.Round(eq[i]*1000) / 10
+	}
+}
+
 // revealStep shows or mucks the next player of a staged showdown.
 func (t *Table) revealStep() {
 	if t.hand == nil || t.hand.Phase() != poker.PhaseShowdown {
@@ -277,6 +382,9 @@ func (t *Table) advanceHand() {
 		return
 	}
 	t.applyEngineEvents(events)
+	if t.hand != nil && t.hand.Runout() && !t.hand.Done() {
+		t.computeEquity()
+	}
 	t.afterEngine()
 }
 
@@ -287,8 +395,22 @@ func (t *Table) onTurnTimeout(seat int) {
 	if s, ok := t.hand.ToAct(); !ok || s != seat {
 		return
 	}
+	p := t.seats[seat]
+	if p != nil && !t.timeBankUsing && p.Connected && p.TimeBank > 0 {
+		// The clock ran out: the time bank kicks in once, for whatever is
+		// left of it. Unused seconds are refunded when the player acts.
+		t.timeBankUsing = true
+		t.deadline = t.nowMs() + int64(p.TimeBank)*1000
+		t.touch()
+		t.schedule(time.Duration(p.TimeBank)*time.Second, func() { t.onTurnTimeout(seat) })
+		return
+	}
+	if p != nil && t.timeBankUsing {
+		p.TimeBank = 0
+		t.timeBankUsing = false
+	}
 	events := t.hand.Timeout(seat)
-	if p := t.seats[seat]; p != nil {
+	if p != nil {
 		p.MissedTurns++
 		if p.MissedTurns >= t.settings.SitOutAfterMissedTurns {
 			t.sitOutPending[p.ID] = true
@@ -300,8 +422,13 @@ func (t *Table) onTurnTimeout(seat int) {
 
 // finishHand does the between-hands bookkeeping as soon as the engine
 // reaches the result phase (stacks are final at that point).
+// timeBankRefill is how many seconds of time bank a player regains per hand
+// (up to the table's time_bank_seconds).
+const timeBankRefill = 5
+
 func (t *Table) finishHand() {
 	res := t.hand.Results()
+	contested := t.contested()
 	var startSum, endSum int64
 	for seat, sr := range res.Seats {
 		startSum += sr.StartStack
@@ -339,9 +466,29 @@ func (t *Table) finishHand() {
 		if p.preAction == preFold {
 			p.preAction = ""
 		}
+		if p.vpipThisHand {
+			p.VPIPHands++
+			p.vpipThisHand = false
+		}
+		if contested {
+			if sr, ok := res.Seats[p.Seat]; ok && !sr.Folded {
+				p.Showdowns++
+				if sr.Won > 0 {
+					p.ShowdownsWon++
+				}
+			}
+		}
+		if t.settings.TimeBankSeconds > 0 {
+			p.TimeBank = min(t.settings.TimeBankSeconds, p.TimeBank+timeBankRefill)
+		}
 		if p.Stack == 0 && p.Status == StatusActive {
 			p.Status = StatusBusted
 			t.emit(protocol.Event{Kind: "player_busted", Seat: protocol.Int(p.Seat), Name: p.Name})
+			if !t.settings.AllowRebuy {
+				// Without rebuys a bust is final: the placement is the
+				// number of players still holding chips plus one.
+				p.Place = t.playersWithChips() + 1
+			}
 		}
 		if t.sitOutPending[p.ID] {
 			delete(t.sitOutPending, p.ID)
@@ -368,6 +515,11 @@ func (t *Table) finishHand() {
 				t.log.Warn("queued chip adjustment rejected", "player", c.playerID, "delta", c.delta, "err", err)
 			}
 		}
+	}
+	// A tournament-style table (no rebuys) ends when one player has all the
+	// chips; the standings carry the placements.
+	if !t.settings.AllowRebuy && t.seatedCount() >= 2 && t.playersWithChips() <= 1 {
+		t.endAfterHand = true
 	}
 	t.persistHandEnd(false)
 	t.persistTable()
@@ -415,6 +567,7 @@ func (t *Table) clearHand() {
 	t.handPhase = ""
 	t.phaseEndsAt = 0
 	t.toActSeat, t.deadline = -1, 0
+	t.equity, t.ritVotes, t.ritEndsAt, t.ritDecided, t.timeBankUsing = nil, nil, 0, false, false
 	t.touch()
 	if t.endAfterHand {
 		t.endAfterHand = false
@@ -461,6 +614,7 @@ func (t *Table) endTable() {
 	t.endedAt = t.nowMs()
 	t.blindsUpAt = 0
 	t.emit(protocol.Event{Kind: "table_ended"})
+	t.assignPlaces()
 	for _, p := range t.seats[:maxSeats] {
 		if p == nil {
 			continue
@@ -471,6 +625,39 @@ func (t *Table) endTable() {
 	t.persistTable()
 	t.broadcastMsg(protocol.MustEncode(protocol.TypeTableEnded, "", protocol.TableEnded{FinalLeaderboard: t.leaderboard()}))
 	t.closeAfterFlush = &closeRequest{code: protocol.CloseTableGone, reason: "table_ended"}
+}
+
+// assignPlaces gives every seated player without a placement one, by stack
+// (the chip leader is first); busted players already hold theirs.
+func (t *Table) assignPlaces() {
+	var open []*Player
+	taken := 0
+	for _, p := range t.seats[:maxSeats] {
+		if p == nil {
+			continue
+		}
+		if p.Place > 0 {
+			taken++
+		} else {
+			open = append(open, p)
+		}
+	}
+	sort.SliceStable(open, func(i, j int) bool { return open[i].Stack > open[j].Stack })
+	for i, p := range open {
+		p.Place = i + 1
+	}
+	_ = taken
+}
+
+// playersWithChips counts the seated players who can still play.
+func (t *Table) playersWithChips() int {
+	n := 0
+	for _, p := range t.seats[:maxSeats] {
+		if p != nil && p.Stack > 0 {
+			n++
+		}
+	}
+	return n
 }
 
 // ---- engine event conversion ----------------------------------------------------------
@@ -497,7 +684,7 @@ func potViews(pots []poker.Pot) []protocol.PotView {
 func convertResults(r *poker.Results) *protocol.HandResults {
 	out := &protocol.HandResults{Seats: make(map[string]protocol.SeatResult, len(r.Seats))}
 	for _, p := range r.Pots {
-		pr := protocol.PotResult{Index: p.Index, Amount: p.Amount, Description: p.Description, Winners: []protocol.PotWinner{}}
+		pr := protocol.PotResult{Index: p.Index, Amount: p.Amount, Description: p.Description, Winners: []protocol.PotWinner{}, Board: p.Board}
 		for _, w := range p.Winners {
 			pr.Winners = append(pr.Winners, protocol.PotWinner{Seat: w.Seat, Amount: w.Amount})
 		}
@@ -545,12 +732,18 @@ func (t *Table) applyEngineEvents(events []poker.Event) {
 			pe.Cards = cardStrings(e.Cards)
 		case poker.EvAction:
 			pe.Action, pe.Amount, pe.AllIn = string(e.Action), protocol.Int64(e.Amount), protocol.Bool(e.AllIn)
+			// Voluntarily put in the pot preflop (blinds do not count).
+			if e.Street == poker.Preflop && (e.Action == poker.Call || e.Action == poker.Bet || e.Action == poker.Raise) {
+				if p := t.seats[e.Seat]; p != nil {
+					p.vpipThisHand = true
+				}
+			}
 		case poker.EvTimeout:
 			pe.ResolvedAs = string(e.Action)
 		case poker.EvUncalledReturned:
 			pe.Amount = protocol.Int64(e.Amount)
 		case poker.EvStreetDealt:
-			pe.Street, pe.Cards = e.Street.String(), cardStrings(e.Cards)
+			pe.Street, pe.Cards, pe.Board = e.Street.String(), cardStrings(e.Cards), e.Board
 		case poker.EvPotsUpdated:
 			pe.Pots = potViews(e.Pots)
 		case poker.EvHandsRevealed:
@@ -564,7 +757,7 @@ func (t *Table) applyEngineEvents(events []poker.Event) {
 				pe.Reveals = append(pe.Reveals, protocol.Reveal{Seat: r.Seat, Cards: cards, Description: r.Description, Best: cardStrings(r.Best)})
 			}
 		case poker.EvPotAwarded:
-			pe.PotIndex, pe.Amount, pe.Description = protocol.Int(e.PotIndex), protocol.Int64(e.Amount), e.Description
+			pe.PotIndex, pe.Amount, pe.Description, pe.Board = protocol.Int(e.PotIndex), protocol.Int64(e.Amount), e.Description, e.Board
 		case poker.EvHandEnded:
 			pe.Results = convertResults(e.Results)
 		}

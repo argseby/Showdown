@@ -25,6 +25,8 @@ const clientTypes = {
   'leave',
   'show_cards',
   'say',
+  'straddle',
+  'run_twice',
   'ping',
 };
 

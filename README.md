@@ -85,6 +85,22 @@ and `latest`; every green push to `main` publishes `edge` (a fork publishes unde
 own owner and sets `IMAGE_OWNER`). Make both packages public in the GitHub package
 settings so they can be pulled without a login.
 
+## Backups
+
+The whole state is one SQLite file in the `data` volume. `deploy/backup.sh` writes a
+consistent copy while the server keeps running (the api binary uses SQLite's
+`VACUUM INTO` into the container's `/tmp`, then the file is copied out):
+
+```
+deploy/backup.sh                      # -> backups/showdown-<timestamp>.sqlite
+```
+
+Pass your compose flags after the script name if you use overrides, e.g.
+`deploy/backup.sh -f docker-compose.yml -f deploy/docker-compose.proxy.yml`. Put it in
+a cron job for nightly backups. To restore, stop the stack, replace `showdown.db` in the
+volume with the backup (and delete `showdown.db-wal` / `showdown.db-shm`), then start
+again.
+
 ## Behind an existing reverse proxy (Dokploy, Traefik, nginx, Caddy)
 
 Point your proxy at the `web` container on port 80 and leave `SITE_ADDRESS=:80`. Your

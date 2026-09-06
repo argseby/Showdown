@@ -62,8 +62,8 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 		INSERT INTO table_settings (table_id, password_hash, max_players, start_money, small_blind, big_blind, ante,
 			turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 			spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
-			allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(table_id) DO UPDATE SET
 			password_hash = excluded.password_hash, max_players = excluded.max_players,
 			start_money = excluded.start_money, small_blind = excluded.small_blind,
@@ -75,11 +75,12 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 			allow_rebuy = excluded.allow_rebuy, showdown_reveal = excluded.showdown_reveal,
 			auto_start = excluded.auto_start, hand_delay_ms = excluded.hand_delay_ms,
 			allow_rabbit_hunt = excluded.allow_rabbit_hunt, blinds_up_minutes = excluded.blinds_up_minutes,
-			blinds_up_percent = excluded.blinds_up_percent`,
+			blinds_up_percent = excluded.blinds_up_percent, time_bank_seconds = excluded.time_bank_seconds,
+			allow_straddle = excluded.allow_straddle, run_it_twice = excluded.run_it_twice`,
 		st.TableID, st.PasswordHash, st.MaxPlayers, st.StartMoney, st.SmallBlind, st.BigBlind, st.Ante,
 		st.TurnTime, st.DisconnectedTurnTime, st.SitOutAfterMissedTurns, st.JoinPolicy, b2i(st.AllowSpectators),
 		b2i(st.SpectatorChat), b2i(st.ChatEnabled), b2i(st.AllowRebuy), st.ShowdownReveal, b2i(st.AutoStart), st.HandDelayMs,
-		b2i(st.AllowRabbitHunt), st.BlindsUpMinutes, st.BlindsUpPercent)
+		b2i(st.AllowRabbitHunt), st.BlindsUpMinutes, st.BlindsUpPercent, st.TimeBankSeconds, b2i(st.AllowStraddle), b2i(st.RunItTwice))
 	if err != nil {
 		return fmt.Errorf("upsert settings: %w", err)
 	}
@@ -131,15 +132,16 @@ func (s *Store) GetTable(ctx context.Context, id string) (TableRow, SettingsRow,
 const settingsCols = `table_id, password_hash, max_players, start_money, small_blind, big_blind, ante,
 	turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 	spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
-	allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent`
+	allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice`
 
 func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error) {
 	var st SettingsRow
-	var allowSpec, specChat, chat, rebuy, auto, rabbit int
+	var allowSpec, specChat, chat, rebuy, auto, rabbit, straddle, rit int
 	err := s.db.QueryRowContext(ctx, `SELECT `+settingsCols+` FROM table_settings WHERE table_id = ?`, id).Scan(
 		&st.TableID, &st.PasswordHash, &st.MaxPlayers, &st.StartMoney, &st.SmallBlind, &st.BigBlind, &st.Ante,
 		&st.TurnTime, &st.DisconnectedTurnTime, &st.SitOutAfterMissedTurns, &st.JoinPolicy, &allowSpec,
-		&specChat, &chat, &rebuy, &st.ShowdownReveal, &auto, &st.HandDelayMs, &rabbit, &st.BlindsUpMinutes, &st.BlindsUpPercent)
+		&specChat, &chat, &rebuy, &st.ShowdownReveal, &auto, &st.HandDelayMs, &rabbit, &st.BlindsUpMinutes, &st.BlindsUpPercent,
+		&st.TimeBankSeconds, &straddle, &rit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return SettingsRow{}, ErrNotFound
 	}
@@ -148,6 +150,7 @@ func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error)
 	}
 	st.AllowSpectators, st.SpectatorChat, st.ChatEnabled, st.AllowRebuy, st.AutoStart, st.AllowRabbitHunt =
 		allowSpec == 1, specChat == 1, chat == 1, rebuy == 1, auto == 1, rabbit == 1
+	st.AllowStraddle, st.RunItTwice = straddle == 1, rit == 1
 	return st, nil
 }
 
@@ -211,15 +214,19 @@ func (s *Store) CountTablesByState(ctx context.Context) (map[string]int, error) 
 func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO players (id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
-			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar,
+			vpip_hands, showdowns, showdowns_won, time_bank, place)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			name = excluded.name, seat = excluded.seat, stack = excluded.stack, status = excluded.status,
 			muted = excluded.muted, missed_turns = excluded.missed_turns, buy_in_total = excluded.buy_in_total,
 			hands_played = excluded.hands_played, hands_won = excluded.hands_won, biggest_pot = excluded.biggest_pot,
-			joined_at = excluded.joined_at, left_at = excluded.left_at, avatar = excluded.avatar`,
+			joined_at = excluded.joined_at, left_at = excluded.left_at, avatar = excluded.avatar,
+			vpip_hands = excluded.vpip_hands, showdowns = excluded.showdowns, showdowns_won = excluded.showdowns_won,
+			time_bank = excluded.time_bank, place = excluded.place`,
 		p.ID, p.TableID, p.Name, p.Seat, p.Stack, p.Status, b2i(p.Muted), p.MissedTurns, p.BuyInTotal,
-		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar)
+		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar,
+		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place)
 	if err != nil {
 		return fmt.Errorf("upsert player: %w", err)
 	}
@@ -230,7 +237,8 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
-			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar
+			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar,
+			vpip_hands, showdowns, showdowns_won, time_bank, place
 		FROM players WHERE table_id = ? ORDER BY seat, joined_at`, tableID)
 	if err != nil {
 		return nil, fmt.Errorf("list players: %w", err)
@@ -242,7 +250,8 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 		var muted int
 		var left sql.NullInt64
 		if err := rows.Scan(&p.ID, &p.TableID, &p.Name, &p.Seat, &p.Stack, &p.Status, &muted, &p.MissedTurns,
-			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar); err != nil {
+			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar,
+			&p.VPIPHands, &p.Showdowns, &p.ShowdownsWon, &p.TimeBank, &p.Place); err != nil {
 			return nil, err
 		}
 		p.Muted = muted == 1

@@ -19,7 +19,15 @@ class ActionCallbacks {
     required this.showCards,
     this.preAction,
     this.rabbitHunt,
+    this.straddle,
+    this.runTwice,
   });
+
+  /// Arms or disarms the straddle (table setting allow_straddle).
+  final ValueChanged<bool>? straddle;
+
+  /// Answers the run-it-twice vote.
+  final ValueChanged<bool>? runTwice;
 
   final void Function(String kind, {int? amount}) act;
   final VoidCallback rebuy;
@@ -500,6 +508,49 @@ class ActionBarState extends State<ActionBar> {
         toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
       );
       items.add(toggle('call_any', l10n.preCallAny, const Key('pre-call-any')));
+    }
+    if (snap.table.settings.allowStraddle &&
+        widget.callbacks.straddle != null &&
+        widget.myStatus == 'active') {
+      final on = you.straddle ?? false;
+      items.add(
+        Tooltip(
+          tooltip: TooltipContainer(child: Text(l10n.straddleHint)).call,
+          child: (on ? PrimaryButton.new : OutlineButton.new)(
+            key: const Key('straddle-toggle'),
+            size: ButtonSize.small,
+            onPressed: () => widget.callbacks.straddle!(!on),
+            child: Text(l10n.straddleToggle),
+          ),
+        ),
+      );
+    }
+    if ((you.canRunTwice ?? false) && widget.callbacks.runTwice != null) {
+      items.add(Text(l10n.runTwiceQuestion).semiBold().small());
+      items.add(
+        PrimaryButton(
+          key: const Key('run-twice-yes'),
+          size: ButtonSize.small,
+          onPressed: () => widget.callbacks.runTwice!(true),
+          child: Text(l10n.runTwiceYes),
+        ),
+      );
+      items.add(
+        OutlineButton(
+          key: const Key('run-twice-no'),
+          size: ButtonSize.small,
+          onPressed: () => widget.callbacks.runTwice!(false),
+          child: Text(l10n.runTwiceNo),
+        ),
+      );
+    } else if (you.runTwiceVote != null &&
+        (snap.hand?.runTwiceEndsTs ?? 0) > 0) {
+      items.add(
+        Text(
+          you.runTwiceVote! ? l10n.runTwiceWaiting : l10n.runTwiceDeclined,
+          key: const Key('run-twice-status'),
+        ).muted().small(),
+      );
     }
     if (you.canRebuy) {
       items.add(

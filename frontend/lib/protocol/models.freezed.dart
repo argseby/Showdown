@@ -570,7 +570,7 @@ as String?,
 /// @nodoc
 mixin _$VoicePayload {
 
- String get state;
+ String get state;@JsonKey(includeIfNull: false) bool? get camera;
 /// Create a copy of VoicePayload
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -584,20 +584,20 @@ $VoicePayloadCopyWith<VoicePayload> get copyWith => _$VoicePayloadCopyWithImpl<V
 @override
 bool operator ==(Object other) {
   final _this = this as VoicePayload;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VoicePayload&&(identical(other.state, _this.state) || other.state == _this.state));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VoicePayload&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.camera, _this.camera) || other.camera == _this.camera));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as VoicePayload;
-  return Object.hash(runtimeType,_this.state);
+  return Object.hash(runtimeType,_this.state,_this.camera);
 }
 
 @override
 String toString() {
   final _this = this as VoicePayload;
-  return 'VoicePayload(state: ${_this.state})';
+  return 'VoicePayload(state: ${_this.state}, camera: ${_this.camera})';
 }
 
 
@@ -608,7 +608,7 @@ abstract mixin class $VoicePayloadCopyWith<$Res>  {
   factory $VoicePayloadCopyWith(VoicePayload value, $Res Function(VoicePayload) _then) = _$VoicePayloadCopyWithImpl;
 @useResult
 $Res call({
- String state
+ String state,@JsonKey(includeIfNull: false) bool? camera
 });
 
 
@@ -625,10 +625,11 @@ class _$VoicePayloadCopyWithImpl<$Res>
 
 /// Create a copy of VoicePayload
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? state = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? state = null,Object? camera = freezed,}) {
   return _then(VoicePayload(
 state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as String,
+as String,camera: freezed == camera ? _self.camera : camera // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -713,10 +714,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String state)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String state, @JsonKey(includeIfNull: false)  bool? camera)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VoicePayload() when $default != null:
-return $default(_that.state);case _:
+return $default(_that.state,_that.camera);case _:
   return orElse();
 
 }
@@ -734,10 +735,10 @@ return $default(_that.state);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String state)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String state, @JsonKey(includeIfNull: false)  bool? camera)  $default,) {final _that = this;
 switch (_that) {
 case _VoicePayload():
-return $default(_that.state);case _:
+return $default(_that.state,_that.camera);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -754,10 +755,10 @@ return $default(_that.state);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String state)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String state, @JsonKey(includeIfNull: false)  bool? camera)?  $default,) {final _that = this;
 switch (_that) {
 case _VoicePayload() when $default != null:
-return $default(_that.state);case _:
+return $default(_that.state,_that.camera);case _:
   return null;
 
 }
@@ -769,10 +770,11 @@ return $default(_that.state);case _:
 @JsonSerializable()
 
 class _VoicePayload implements VoicePayload {
-  const _VoicePayload({required this.state});
+  const _VoicePayload({required this.state, @JsonKey(includeIfNull: false) this.camera});
   factory _VoicePayload.fromJson(Map<String, dynamic> json) => _$VoicePayloadFromJson(json);
 
 @override final  String state;
+@override@JsonKey(includeIfNull: false) final  bool? camera;
 
 /// Create a copy of VoicePayload
 /// with the given fields replaced by the non-null parameter values.
@@ -787,18 +789,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VoicePayload&&(identical(other.state, state) || other.state == state));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VoicePayload&&(identical(other.state, state) || other.state == state)&&(identical(other.camera, camera) || other.camera == camera));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,state);
+    return Object.hash(runtimeType,state,camera);
 }
 
 @override
 String toString() {
-    return 'VoicePayload(state: $state)';
+    return 'VoicePayload(state: $state, camera: $camera)';
 }
 
 
@@ -809,7 +811,7 @@ abstract mixin class _$VoicePayloadCopyWith<$Res> implements $VoicePayloadCopyWi
   factory _$VoicePayloadCopyWith(_VoicePayload value, $Res Function(_VoicePayload) _then) = __$VoicePayloadCopyWithImpl;
 @override @useResult
 $Res call({
- String state
+ String state,@JsonKey(includeIfNull: false) bool? camera
 });
 
 
@@ -826,10 +828,11 @@ class __$VoicePayloadCopyWithImpl<$Res>
 
 /// Create a copy of VoicePayload
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? state = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? state = null,Object? camera = freezed,}) {
   return _then(_VoicePayload(
 state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as String,
+as String,camera: freezed == camera ? _self.camera : camera // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -1109,6 +1112,546 @@ as String?,from: freezed == from ? _self.from : from // ignore: cast_nullable_to
 as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$StraddlePayload {
+
+ bool get on;
+/// Create a copy of StraddlePayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StraddlePayloadCopyWith<StraddlePayload> get copyWith => _$StraddlePayloadCopyWithImpl<StraddlePayload>(this as StraddlePayload, _$identity);
+
+  /// Serializes this StraddlePayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as StraddlePayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StraddlePayload&&(identical(other.on, _this.on) || other.on == _this.on));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as StraddlePayload;
+  return Object.hash(runtimeType,_this.on);
+}
+
+@override
+String toString() {
+  final _this = this as StraddlePayload;
+  return 'StraddlePayload(on: ${_this.on})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $StraddlePayloadCopyWith<$Res>  {
+  factory $StraddlePayloadCopyWith(StraddlePayload value, $Res Function(StraddlePayload) _then) = _$StraddlePayloadCopyWithImpl;
+@useResult
+$Res call({
+ bool on
+});
+
+
+
+
+}
+/// @nodoc
+class _$StraddlePayloadCopyWithImpl<$Res>
+    implements $StraddlePayloadCopyWith<$Res> {
+  _$StraddlePayloadCopyWithImpl(this._self, this._then);
+
+  final StraddlePayload _self;
+  final $Res Function(StraddlePayload) _then;
+
+/// Create a copy of StraddlePayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? on = null,}) {
+  return _then(StraddlePayload(
+on: null == on ? _self.on : on // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [StraddlePayload].
+extension StraddlePayloadPatterns on StraddlePayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StraddlePayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _StraddlePayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StraddlePayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _StraddlePayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StraddlePayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _StraddlePayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool on)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _StraddlePayload() when $default != null:
+return $default(_that.on);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool on)  $default,) {final _that = this;
+switch (_that) {
+case _StraddlePayload():
+return $default(_that.on);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool on)?  $default,) {final _that = this;
+switch (_that) {
+case _StraddlePayload() when $default != null:
+return $default(_that.on);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _StraddlePayload implements StraddlePayload {
+  const _StraddlePayload({required this.on});
+  factory _StraddlePayload.fromJson(Map<String, dynamic> json) => _$StraddlePayloadFromJson(json);
+
+@override final  bool on;
+
+/// Create a copy of StraddlePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StraddlePayloadCopyWith<_StraddlePayload> get copyWith => __$StraddlePayloadCopyWithImpl<_StraddlePayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$StraddlePayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StraddlePayload&&(identical(other.on, on) || other.on == on));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,on);
+}
+
+@override
+String toString() {
+    return 'StraddlePayload(on: $on)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$StraddlePayloadCopyWith<$Res> implements $StraddlePayloadCopyWith<$Res> {
+  factory _$StraddlePayloadCopyWith(_StraddlePayload value, $Res Function(_StraddlePayload) _then) = __$StraddlePayloadCopyWithImpl;
+@override @useResult
+$Res call({
+ bool on
+});
+
+
+
+
+}
+/// @nodoc
+class __$StraddlePayloadCopyWithImpl<$Res>
+    implements _$StraddlePayloadCopyWith<$Res> {
+  __$StraddlePayloadCopyWithImpl(this._self, this._then);
+
+  final _StraddlePayload _self;
+  final $Res Function(_StraddlePayload) _then;
+
+/// Create a copy of StraddlePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? on = null,}) {
+  return _then(_StraddlePayload(
+on: null == on ? _self.on : on // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$RunTwicePayload {
+
+ bool get agree;
+/// Create a copy of RunTwicePayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RunTwicePayloadCopyWith<RunTwicePayload> get copyWith => _$RunTwicePayloadCopyWithImpl<RunTwicePayload>(this as RunTwicePayload, _$identity);
+
+  /// Serializes this RunTwicePayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as RunTwicePayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RunTwicePayload&&(identical(other.agree, _this.agree) || other.agree == _this.agree));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as RunTwicePayload;
+  return Object.hash(runtimeType,_this.agree);
+}
+
+@override
+String toString() {
+  final _this = this as RunTwicePayload;
+  return 'RunTwicePayload(agree: ${_this.agree})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RunTwicePayloadCopyWith<$Res>  {
+  factory $RunTwicePayloadCopyWith(RunTwicePayload value, $Res Function(RunTwicePayload) _then) = _$RunTwicePayloadCopyWithImpl;
+@useResult
+$Res call({
+ bool agree
+});
+
+
+
+
+}
+/// @nodoc
+class _$RunTwicePayloadCopyWithImpl<$Res>
+    implements $RunTwicePayloadCopyWith<$Res> {
+  _$RunTwicePayloadCopyWithImpl(this._self, this._then);
+
+  final RunTwicePayload _self;
+  final $Res Function(RunTwicePayload) _then;
+
+/// Create a copy of RunTwicePayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? agree = null,}) {
+  return _then(RunTwicePayload(
+agree: null == agree ? _self.agree : agree // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RunTwicePayload].
+extension RunTwicePayloadPatterns on RunTwicePayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RunTwicePayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RunTwicePayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RunTwicePayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _RunTwicePayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RunTwicePayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RunTwicePayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool agree)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RunTwicePayload() when $default != null:
+return $default(_that.agree);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool agree)  $default,) {final _that = this;
+switch (_that) {
+case _RunTwicePayload():
+return $default(_that.agree);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool agree)?  $default,) {final _that = this;
+switch (_that) {
+case _RunTwicePayload() when $default != null:
+return $default(_that.agree);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RunTwicePayload implements RunTwicePayload {
+  const _RunTwicePayload({required this.agree});
+  factory _RunTwicePayload.fromJson(Map<String, dynamic> json) => _$RunTwicePayloadFromJson(json);
+
+@override final  bool agree;
+
+/// Create a copy of RunTwicePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RunTwicePayloadCopyWith<_RunTwicePayload> get copyWith => __$RunTwicePayloadCopyWithImpl<_RunTwicePayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RunTwicePayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RunTwicePayload&&(identical(other.agree, agree) || other.agree == agree));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,agree);
+}
+
+@override
+String toString() {
+    return 'RunTwicePayload(agree: $agree)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RunTwicePayloadCopyWith<$Res> implements $RunTwicePayloadCopyWith<$Res> {
+  factory _$RunTwicePayloadCopyWith(_RunTwicePayload value, $Res Function(_RunTwicePayload) _then) = __$RunTwicePayloadCopyWithImpl;
+@override @useResult
+$Res call({
+ bool agree
+});
+
+
+
+
+}
+/// @nodoc
+class __$RunTwicePayloadCopyWithImpl<$Res>
+    implements _$RunTwicePayloadCopyWith<$Res> {
+  __$RunTwicePayloadCopyWithImpl(this._self, this._then);
+
+  final _RunTwicePayload _self;
+  final $Res Function(_RunTwicePayload) _then;
+
+/// Create a copy of RunTwicePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? agree = null,}) {
+  return _then(_RunTwicePayload(
+agree: null == agree ? _self.agree : agree // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -4289,7 +4832,7 @@ $PublicSettingsCopyWith<$Res> get settings {
 /// @nodoc
 mixin _$PublicSettings {
 
- int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; int get blindsUpMinutes; int get blindsUpPercent;
+ int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; int get blindsUpMinutes; int get blindsUpPercent; int get timeBankSeconds; bool get allowStraddle; bool get runItTwice;
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4303,20 +4846,20 @@ $PublicSettingsCopyWith<PublicSettings> get copyWith => _$PublicSettingsCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as PublicSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent)&&(identical(other.timeBankSeconds, _this.timeBankSeconds) || other.timeBankSeconds == _this.timeBankSeconds)&&(identical(other.allowStraddle, _this.allowStraddle) || other.allowStraddle == _this.allowStraddle)&&(identical(other.runItTwice, _this.runItTwice) || other.runItTwice == _this.runItTwice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PublicSettings;
-  return Object.hash(runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.blindsUpMinutes,_this.blindsUpPercent);
+  return Object.hash(runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.blindsUpMinutes,_this.blindsUpPercent,_this.timeBankSeconds,_this.allowStraddle,_this.runItTwice);
 }
 
 @override
 String toString() {
   final _this = this as PublicSettings;
-  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent})';
+  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent}, timeBankSeconds: ${_this.timeBankSeconds}, allowStraddle: ${_this.allowStraddle}, runItTwice: ${_this.runItTwice})';
 }
 
 
@@ -4327,7 +4870,7 @@ abstract mixin class $PublicSettingsCopyWith<$Res>  {
   factory $PublicSettingsCopyWith(PublicSettings value, $Res Function(PublicSettings) _then) = _$PublicSettingsCopyWithImpl;
 @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, bool allowStraddle, bool runItTwice
 });
 
 
@@ -4344,7 +4887,7 @@ class _$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
   return _then(PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -4361,7 +4904,10 @@ as bool,requiresPassword: null == requiresPassword ? _self.requiresPassword : re
 as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allowRabbitHunt // ignore: cast_nullable_to_non_nullable
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
-as int,
+as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable
+as int,allowStraddle: null == allowStraddle ? _self.allowStraddle : allowStraddle // ignore: cast_nullable_to_non_nullable
+as bool,runItTwice: null == runItTwice ? _self.runItTwice : runItTwice // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -4446,10 +4992,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
   return orElse();
 
 }
@@ -4467,10 +5013,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings():
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -4487,10 +5033,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  bool allowStraddle,  bool runItTwice)?  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.allowStraddle,_that.runItTwice);case _:
   return null;
 
 }
@@ -4502,7 +5048,7 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 @JsonSerializable()
 
 class _PublicSettings implements PublicSettings {
-  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, required this.blindsUpMinutes, required this.blindsUpPercent});
+  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, required this.blindsUpMinutes, required this.blindsUpPercent, this.timeBankSeconds = 0, this.allowStraddle = false, this.runItTwice = false});
   factory _PublicSettings.fromJson(Map<String, dynamic> json) => _$PublicSettingsFromJson(json);
 
 @override final  int smallBlind;
@@ -4520,6 +5066,9 @@ class _PublicSettings implements PublicSettings {
 @override final  bool allowRabbitHunt;
 @override final  int blindsUpMinutes;
 @override final  int blindsUpPercent;
+@override@JsonKey() final  int timeBankSeconds;
+@override@JsonKey() final  bool allowStraddle;
+@override@JsonKey() final  bool runItTwice;
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -4534,18 +5083,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent)&&(identical(other.timeBankSeconds, timeBankSeconds) || other.timeBankSeconds == timeBankSeconds)&&(identical(other.allowStraddle, allowStraddle) || other.allowStraddle == allowStraddle)&&(identical(other.runItTwice, runItTwice) || other.runItTwice == runItTwice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,blindsUpMinutes,blindsUpPercent);
+    return Object.hash(runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,blindsUpMinutes,blindsUpPercent,timeBankSeconds,allowStraddle,runItTwice);
 }
 
 @override
 String toString() {
-    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent)';
+    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent, timeBankSeconds: $timeBankSeconds, allowStraddle: $allowStraddle, runItTwice: $runItTwice)';
 }
 
 
@@ -4556,7 +5105,7 @@ abstract mixin class _$PublicSettingsCopyWith<$Res> implements $PublicSettingsCo
   factory _$PublicSettingsCopyWith(_PublicSettings value, $Res Function(_PublicSettings) _then) = __$PublicSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, bool allowStraddle, bool runItTwice
 });
 
 
@@ -4573,7 +5122,7 @@ class __$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,}) {
   return _then(_PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -4590,7 +5139,10 @@ as bool,requiresPassword: null == requiresPassword ? _self.requiresPassword : re
 as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allowRabbitHunt // ignore: cast_nullable_to_non_nullable
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
-as int,
+as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable
+as int,allowStraddle: null == allowStraddle ? _self.allowStraddle : allowStraddle // ignore: cast_nullable_to_non_nullable
+as bool,runItTwice: null == runItTwice ? _self.runItTwice : runItTwice // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -4898,7 +5450,7 @@ $PlayerViewCopyWith<$Res>? get player {
 /// @nodoc
 mixin _$PlayerView {
 
- String get id; String get name; int get avatar; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;
+ String get id; String get name; int get avatar; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked;@JsonKey(includeIfNull: false) bool? get camera;@JsonKey(includeIfNull: false) double? get equity;@JsonKey(includeIfNull: false) int? get timeBank;@JsonKey(includeIfNull: false) int? get place; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4912,20 +5464,20 @@ $PlayerViewCopyWith<PlayerView> get copyWith => _$PlayerViewCopyWithImpl<PlayerV
 @override
 bool operator ==(Object other) {
   final _this = this as PlayerView;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.camera, _this.camera) || other.camera == _this.camera)&&(identical(other.equity, _this.equity) || other.equity == _this.equity)&&(identical(other.timeBank, _this.timeBank) || other.timeBank == _this.timeBank)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlayerView;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.avatar,_this.voice,_this.muted,_this.mucked,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction);
+  return Object.hashAll([runtimeType,_this.id,_this.name,_this.avatar,_this.voice,_this.muted,_this.mucked,_this.camera,_this.equity,_this.timeBank,_this.place,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction]);
 }
 
 @override
 String toString() {
   final _this = this as PlayerView;
-  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction})';
+  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, camera: ${_this.camera}, equity: ${_this.equity}, timeBank: ${_this.timeBank}, place: ${_this.place}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction})';
 }
 
 
@@ -4936,7 +5488,7 @@ abstract mixin class $PlayerViewCopyWith<$Res>  {
   factory $PlayerViewCopyWith(PlayerView value, $Res Function(PlayerView) _then) = _$PlayerViewCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
+ String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
 });
 
 
@@ -4953,7 +5505,7 @@ class _$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
   return _then(PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -4961,7 +5513,11 @@ as String,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullabl
 as int,voice: null == voice ? _self.voice : voice // ignore: cast_nullable_to_non_nullable
 as String,muted: freezed == muted ? _self.muted : muted // ignore: cast_nullable_to_non_nullable
 as bool?,mucked: freezed == mucked ? _self.mucked : mucked // ignore: cast_nullable_to_non_nullable
-as bool?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
+as bool?,camera: freezed == camera ? _self.camera : camera // ignore: cast_nullable_to_non_nullable
+as bool?,equity: freezed == equity ? _self.equity : equity // ignore: cast_nullable_to_non_nullable
+as double?,timeBank: freezed == timeBank ? _self.timeBank : timeBank // ignore: cast_nullable_to_non_nullable
+as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,connected: null == connected ? _self.connected : connected // ignore: cast_nullable_to_non_nullable
 as bool,inHand: null == inHand ? _self.inHand : inHand // ignore: cast_nullable_to_non_nullable
@@ -5068,10 +5624,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
   return orElse();
 
 }
@@ -5089,10 +5645,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView():
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5109,10 +5665,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction);case _:
   return null;
 
 }
@@ -5124,7 +5680,7 @@ return $default(_that.id,_that.name,_that.avatar,_that.voice,_that.muted,_that.m
 @JsonSerializable()
 
 class _PlayerView implements PlayerView {
-  const _PlayerView({required this.id, required this.name, required this.avatar, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction}): _holeCards = holeCards;
+  const _PlayerView({required this.id, required this.name, required this.avatar, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, @JsonKey(includeIfNull: false) this.camera, @JsonKey(includeIfNull: false) this.equity, @JsonKey(includeIfNull: false) this.timeBank, @JsonKey(includeIfNull: false) this.place, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction}): _holeCards = holeCards;
   factory _PlayerView.fromJson(Map<String, dynamic> json) => _$PlayerViewFromJson(json);
 
 @override final  String id;
@@ -5133,6 +5689,10 @@ class _PlayerView implements PlayerView {
 @override@JsonKey() final  String voice;
 @override@JsonKey(includeIfNull: false) final  bool? muted;
 @override@JsonKey(includeIfNull: false) final  bool? mucked;
+@override@JsonKey(includeIfNull: false) final  bool? camera;
+@override@JsonKey(includeIfNull: false) final  double? equity;
+@override@JsonKey(includeIfNull: false) final  int? timeBank;
+@override@JsonKey(includeIfNull: false) final  int? place;
 @override final  int stack;
 @override final  String status;
 @override final  bool connected;
@@ -5165,18 +5725,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.camera, camera) || other.camera == camera)&&(identical(other.equity, equity) || other.equity == equity)&&(identical(other.timeBank, timeBank) || other.timeBank == timeBank)&&(identical(other.place, place) || other.place == place)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,avatar,voice,muted,mucked,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction);
+    return Object.hashAll([runtimeType,id,name,avatar,voice,muted,mucked,camera,equity,timeBank,place,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction]);
 }
 
 @override
 String toString() {
-    return 'PlayerView(id: $id, name: $name, avatar: $avatar, voice: $voice, muted: $muted, mucked: $mucked, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction)';
+    return 'PlayerView(id: $id, name: $name, avatar: $avatar, voice: $voice, muted: $muted, mucked: $mucked, camera: $camera, equity: $equity, timeBank: $timeBank, place: $place, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction)';
 }
 
 
@@ -5187,7 +5747,7 @@ abstract mixin class _$PlayerViewCopyWith<$Res> implements $PlayerViewCopyWith<$
   factory _$PlayerViewCopyWith(_PlayerView value, $Res Function(_PlayerView) _then) = __$PlayerViewCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
+ String id, String name, int avatar, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction
 });
 
 
@@ -5204,7 +5764,7 @@ class __$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,}) {
   return _then(_PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -5212,7 +5772,11 @@ as String,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullabl
 as int,voice: null == voice ? _self.voice : voice // ignore: cast_nullable_to_non_nullable
 as String,muted: freezed == muted ? _self.muted : muted // ignore: cast_nullable_to_non_nullable
 as bool?,mucked: freezed == mucked ? _self.mucked : mucked // ignore: cast_nullable_to_non_nullable
-as bool?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
+as bool?,camera: freezed == camera ? _self.camera : camera // ignore: cast_nullable_to_non_nullable
+as bool?,equity: freezed == equity ? _self.equity : equity // ignore: cast_nullable_to_non_nullable
+as double?,timeBank: freezed == timeBank ? _self.timeBank : timeBank // ignore: cast_nullable_to_non_nullable
+as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,connected: null == connected ? _self.connected : connected // ignore: cast_nullable_to_non_nullable
 as bool,inHand: null == inHand ? _self.inHand : inHand // ignore: cast_nullable_to_non_nullable
@@ -5518,7 +6082,7 @@ as int,
 /// @nodoc
 mixin _$HandView {
 
- String get street; List<String> get board; int get buttonSeat; int get sbSeat; int get bbSeat; int? get toActSeat; int? get deadlineTs; int get currentBet; int get minRaiseTo; List<PotView> get pots; String get phase;@JsonKey(includeIfNull: false) List<String>? get rabbitCards;@JsonKey(includeIfNull: false) int? get phaseEndsTs;
+ String get street; List<String> get board; int get buttonSeat; int get sbSeat; int get bbSeat; int? get toActSeat; int? get deadlineTs; int get currentBet; int get minRaiseTo; List<PotView> get pots; String get phase;@JsonKey(includeIfNull: false) List<String>? get rabbitCards;@JsonKey(includeIfNull: false) int? get phaseEndsTs;@JsonKey(includeIfNull: false) List<String>? get board2;@JsonKey(includeIfNull: false) int? get straddleSeat;@JsonKey(includeIfNull: false) bool? get timeBankActive;@JsonKey(includeIfNull: false) bool? get runTwice;@JsonKey(includeIfNull: false) int? get runTwiceEndsTs;
 /// Create a copy of HandView
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5532,20 +6096,20 @@ $HandViewCopyWith<HandView> get copyWith => _$HandViewCopyWithImpl<HandView>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as HandView;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HandView&&(identical(other.street, _this.street) || other.street == _this.street)&&const DeepCollectionEquality().equals(other.board, _this.board)&&(identical(other.buttonSeat, _this.buttonSeat) || other.buttonSeat == _this.buttonSeat)&&(identical(other.sbSeat, _this.sbSeat) || other.sbSeat == _this.sbSeat)&&(identical(other.bbSeat, _this.bbSeat) || other.bbSeat == _this.bbSeat)&&(identical(other.toActSeat, _this.toActSeat) || other.toActSeat == _this.toActSeat)&&(identical(other.deadlineTs, _this.deadlineTs) || other.deadlineTs == _this.deadlineTs)&&(identical(other.currentBet, _this.currentBet) || other.currentBet == _this.currentBet)&&(identical(other.minRaiseTo, _this.minRaiseTo) || other.minRaiseTo == _this.minRaiseTo)&&const DeepCollectionEquality().equals(other.pots, _this.pots)&&(identical(other.phase, _this.phase) || other.phase == _this.phase)&&const DeepCollectionEquality().equals(other.rabbitCards, _this.rabbitCards)&&(identical(other.phaseEndsTs, _this.phaseEndsTs) || other.phaseEndsTs == _this.phaseEndsTs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HandView&&(identical(other.street, _this.street) || other.street == _this.street)&&const DeepCollectionEquality().equals(other.board, _this.board)&&(identical(other.buttonSeat, _this.buttonSeat) || other.buttonSeat == _this.buttonSeat)&&(identical(other.sbSeat, _this.sbSeat) || other.sbSeat == _this.sbSeat)&&(identical(other.bbSeat, _this.bbSeat) || other.bbSeat == _this.bbSeat)&&(identical(other.toActSeat, _this.toActSeat) || other.toActSeat == _this.toActSeat)&&(identical(other.deadlineTs, _this.deadlineTs) || other.deadlineTs == _this.deadlineTs)&&(identical(other.currentBet, _this.currentBet) || other.currentBet == _this.currentBet)&&(identical(other.minRaiseTo, _this.minRaiseTo) || other.minRaiseTo == _this.minRaiseTo)&&const DeepCollectionEquality().equals(other.pots, _this.pots)&&(identical(other.phase, _this.phase) || other.phase == _this.phase)&&const DeepCollectionEquality().equals(other.rabbitCards, _this.rabbitCards)&&(identical(other.phaseEndsTs, _this.phaseEndsTs) || other.phaseEndsTs == _this.phaseEndsTs)&&const DeepCollectionEquality().equals(other.board2, _this.board2)&&(identical(other.straddleSeat, _this.straddleSeat) || other.straddleSeat == _this.straddleSeat)&&(identical(other.timeBankActive, _this.timeBankActive) || other.timeBankActive == _this.timeBankActive)&&(identical(other.runTwice, _this.runTwice) || other.runTwice == _this.runTwice)&&(identical(other.runTwiceEndsTs, _this.runTwiceEndsTs) || other.runTwiceEndsTs == _this.runTwiceEndsTs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as HandView;
-  return Object.hash(runtimeType,_this.street,const DeepCollectionEquality().hash(_this.board),_this.buttonSeat,_this.sbSeat,_this.bbSeat,_this.toActSeat,_this.deadlineTs,_this.currentBet,_this.minRaiseTo,const DeepCollectionEquality().hash(_this.pots),_this.phase,const DeepCollectionEquality().hash(_this.rabbitCards),_this.phaseEndsTs);
+  return Object.hash(runtimeType,_this.street,const DeepCollectionEquality().hash(_this.board),_this.buttonSeat,_this.sbSeat,_this.bbSeat,_this.toActSeat,_this.deadlineTs,_this.currentBet,_this.minRaiseTo,const DeepCollectionEquality().hash(_this.pots),_this.phase,const DeepCollectionEquality().hash(_this.rabbitCards),_this.phaseEndsTs,const DeepCollectionEquality().hash(_this.board2),_this.straddleSeat,_this.timeBankActive,_this.runTwice,_this.runTwiceEndsTs);
 }
 
 @override
 String toString() {
   final _this = this as HandView;
-  return 'HandView(street: ${_this.street}, board: ${_this.board}, buttonSeat: ${_this.buttonSeat}, sbSeat: ${_this.sbSeat}, bbSeat: ${_this.bbSeat}, toActSeat: ${_this.toActSeat}, deadlineTs: ${_this.deadlineTs}, currentBet: ${_this.currentBet}, minRaiseTo: ${_this.minRaiseTo}, pots: ${_this.pots}, phase: ${_this.phase}, rabbitCards: ${_this.rabbitCards}, phaseEndsTs: ${_this.phaseEndsTs})';
+  return 'HandView(street: ${_this.street}, board: ${_this.board}, buttonSeat: ${_this.buttonSeat}, sbSeat: ${_this.sbSeat}, bbSeat: ${_this.bbSeat}, toActSeat: ${_this.toActSeat}, deadlineTs: ${_this.deadlineTs}, currentBet: ${_this.currentBet}, minRaiseTo: ${_this.minRaiseTo}, pots: ${_this.pots}, phase: ${_this.phase}, rabbitCards: ${_this.rabbitCards}, phaseEndsTs: ${_this.phaseEndsTs}, board2: ${_this.board2}, straddleSeat: ${_this.straddleSeat}, timeBankActive: ${_this.timeBankActive}, runTwice: ${_this.runTwice}, runTwiceEndsTs: ${_this.runTwiceEndsTs})';
 }
 
 
@@ -5556,7 +6120,7 @@ abstract mixin class $HandViewCopyWith<$Res>  {
   factory $HandViewCopyWith(HandView value, $Res Function(HandView) _then) = _$HandViewCopyWithImpl;
 @useResult
 $Res call({
- String street, List<String> board, int buttonSeat, int sbSeat, int bbSeat, int? toActSeat, int? deadlineTs, int currentBet, int minRaiseTo, List<PotView> pots, String phase,@JsonKey(includeIfNull: false) List<String>? rabbitCards,@JsonKey(includeIfNull: false) int? phaseEndsTs
+ String street, List<String> board, int buttonSeat, int sbSeat, int bbSeat, int? toActSeat, int? deadlineTs, int currentBet, int minRaiseTo, List<PotView> pots, String phase,@JsonKey(includeIfNull: false) List<String>? rabbitCards,@JsonKey(includeIfNull: false) int? phaseEndsTs,@JsonKey(includeIfNull: false) List<String>? board2,@JsonKey(includeIfNull: false) int? straddleSeat,@JsonKey(includeIfNull: false) bool? timeBankActive,@JsonKey(includeIfNull: false) bool? runTwice,@JsonKey(includeIfNull: false) int? runTwiceEndsTs
 });
 
 
@@ -5573,7 +6137,7 @@ class _$HandViewCopyWithImpl<$Res>
 
 /// Create a copy of HandView
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? street = null,Object? board = null,Object? buttonSeat = null,Object? sbSeat = null,Object? bbSeat = null,Object? toActSeat = freezed,Object? deadlineTs = freezed,Object? currentBet = null,Object? minRaiseTo = null,Object? pots = null,Object? phase = null,Object? rabbitCards = freezed,Object? phaseEndsTs = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? street = null,Object? board = null,Object? buttonSeat = null,Object? sbSeat = null,Object? bbSeat = null,Object? toActSeat = freezed,Object? deadlineTs = freezed,Object? currentBet = null,Object? minRaiseTo = null,Object? pots = null,Object? phase = null,Object? rabbitCards = freezed,Object? phaseEndsTs = freezed,Object? board2 = freezed,Object? straddleSeat = freezed,Object? timeBankActive = freezed,Object? runTwice = freezed,Object? runTwiceEndsTs = freezed,}) {
   return _then(HandView(
 street: null == street ? _self.street : street // ignore: cast_nullable_to_non_nullable
 as String,board: null == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
@@ -5588,6 +6152,11 @@ as int,pots: null == pots ? _self.pots : pots // ignore: cast_nullable_to_non_nu
 as List<PotView>,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
 as String,rabbitCards: freezed == rabbitCards ? _self.rabbitCards : rabbitCards // ignore: cast_nullable_to_non_nullable
 as List<String>?,phaseEndsTs: freezed == phaseEndsTs ? _self.phaseEndsTs : phaseEndsTs // ignore: cast_nullable_to_non_nullable
+as int?,board2: freezed == board2 ? _self.board2 : board2 // ignore: cast_nullable_to_non_nullable
+as List<String>?,straddleSeat: freezed == straddleSeat ? _self.straddleSeat : straddleSeat // ignore: cast_nullable_to_non_nullable
+as int?,timeBankActive: freezed == timeBankActive ? _self.timeBankActive : timeBankActive // ignore: cast_nullable_to_non_nullable
+as bool?,runTwice: freezed == runTwice ? _self.runTwice : runTwice // ignore: cast_nullable_to_non_nullable
+as bool?,runTwiceEndsTs: freezed == runTwiceEndsTs ? _self.runTwiceEndsTs : runTwiceEndsTs // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -5673,10 +6242,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs, @JsonKey(includeIfNull: false)  List<String>? board2, @JsonKey(includeIfNull: false)  int? straddleSeat, @JsonKey(includeIfNull: false)  bool? timeBankActive, @JsonKey(includeIfNull: false)  bool? runTwice, @JsonKey(includeIfNull: false)  int? runTwiceEndsTs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HandView() when $default != null:
-return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs);case _:
+return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs,_that.board2,_that.straddleSeat,_that.timeBankActive,_that.runTwice,_that.runTwiceEndsTs);case _:
   return orElse();
 
 }
@@ -5694,10 +6263,10 @@ return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbS
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs, @JsonKey(includeIfNull: false)  List<String>? board2, @JsonKey(includeIfNull: false)  int? straddleSeat, @JsonKey(includeIfNull: false)  bool? timeBankActive, @JsonKey(includeIfNull: false)  bool? runTwice, @JsonKey(includeIfNull: false)  int? runTwiceEndsTs)  $default,) {final _that = this;
 switch (_that) {
 case _HandView():
-return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs);case _:
+return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs,_that.board2,_that.straddleSeat,_that.timeBankActive,_that.runTwice,_that.runTwiceEndsTs);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5714,10 +6283,10 @@ return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbS
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String street,  List<String> board,  int buttonSeat,  int sbSeat,  int bbSeat,  int? toActSeat,  int? deadlineTs,  int currentBet,  int minRaiseTo,  List<PotView> pots,  String phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false)  int? phaseEndsTs, @JsonKey(includeIfNull: false)  List<String>? board2, @JsonKey(includeIfNull: false)  int? straddleSeat, @JsonKey(includeIfNull: false)  bool? timeBankActive, @JsonKey(includeIfNull: false)  bool? runTwice, @JsonKey(includeIfNull: false)  int? runTwiceEndsTs)?  $default,) {final _that = this;
 switch (_that) {
 case _HandView() when $default != null:
-return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs);case _:
+return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.toActSeat,_that.deadlineTs,_that.currentBet,_that.minRaiseTo,_that.pots,_that.phase,_that.rabbitCards,_that.phaseEndsTs,_that.board2,_that.straddleSeat,_that.timeBankActive,_that.runTwice,_that.runTwiceEndsTs);case _:
   return null;
 
 }
@@ -5729,7 +6298,7 @@ return $default(_that.street,_that.board,_that.buttonSeat,_that.sbSeat,_that.bbS
 @JsonSerializable()
 
 class _HandView implements HandView {
-  const _HandView({required this.street, required  List<String> board, required this.buttonSeat, required this.sbSeat, required this.bbSeat, required this.toActSeat, required this.deadlineTs, required this.currentBet, required this.minRaiseTo, required  List<PotView> pots, required this.phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false) this.phaseEndsTs}): _board = board,_pots = pots,_rabbitCards = rabbitCards;
+  const _HandView({required this.street, required  List<String> board, required this.buttonSeat, required this.sbSeat, required this.bbSeat, required this.toActSeat, required this.deadlineTs, required this.currentBet, required this.minRaiseTo, required  List<PotView> pots, required this.phase, @JsonKey(includeIfNull: false)  List<String>? rabbitCards, @JsonKey(includeIfNull: false) this.phaseEndsTs, @JsonKey(includeIfNull: false)  List<String>? board2, @JsonKey(includeIfNull: false) this.straddleSeat, @JsonKey(includeIfNull: false) this.timeBankActive, @JsonKey(includeIfNull: false) this.runTwice, @JsonKey(includeIfNull: false) this.runTwiceEndsTs}): _board = board,_pots = pots,_rabbitCards = rabbitCards,_board2 = board2;
   factory _HandView.fromJson(Map<String, dynamic> json) => _$HandViewFromJson(json);
 
 @override final  String street;
@@ -5765,6 +6334,19 @@ class _HandView implements HandView {
 }
 
 @override@JsonKey(includeIfNull: false) final  int? phaseEndsTs;
+ final  List<String>? _board2;
+@override@JsonKey(includeIfNull: false) List<String>? get board2 {
+  final value = _board2;
+  if (value == null) return null;
+  if (_board2 is EqualUnmodifiableListView) return _board2;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override@JsonKey(includeIfNull: false) final  int? straddleSeat;
+@override@JsonKey(includeIfNull: false) final  bool? timeBankActive;
+@override@JsonKey(includeIfNull: false) final  bool? runTwice;
+@override@JsonKey(includeIfNull: false) final  int? runTwiceEndsTs;
 
 /// Create a copy of HandView
 /// with the given fields replaced by the non-null parameter values.
@@ -5779,18 +6361,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HandView&&(identical(other.street, street) || other.street == street)&&const DeepCollectionEquality().equals(other.board, _board)&&(identical(other.buttonSeat, buttonSeat) || other.buttonSeat == buttonSeat)&&(identical(other.sbSeat, sbSeat) || other.sbSeat == sbSeat)&&(identical(other.bbSeat, bbSeat) || other.bbSeat == bbSeat)&&(identical(other.toActSeat, toActSeat) || other.toActSeat == toActSeat)&&(identical(other.deadlineTs, deadlineTs) || other.deadlineTs == deadlineTs)&&(identical(other.currentBet, currentBet) || other.currentBet == currentBet)&&(identical(other.minRaiseTo, minRaiseTo) || other.minRaiseTo == minRaiseTo)&&const DeepCollectionEquality().equals(other.pots, _pots)&&(identical(other.phase, phase) || other.phase == phase)&&const DeepCollectionEquality().equals(other.rabbitCards, _rabbitCards)&&(identical(other.phaseEndsTs, phaseEndsTs) || other.phaseEndsTs == phaseEndsTs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HandView&&(identical(other.street, street) || other.street == street)&&const DeepCollectionEquality().equals(other.board, _board)&&(identical(other.buttonSeat, buttonSeat) || other.buttonSeat == buttonSeat)&&(identical(other.sbSeat, sbSeat) || other.sbSeat == sbSeat)&&(identical(other.bbSeat, bbSeat) || other.bbSeat == bbSeat)&&(identical(other.toActSeat, toActSeat) || other.toActSeat == toActSeat)&&(identical(other.deadlineTs, deadlineTs) || other.deadlineTs == deadlineTs)&&(identical(other.currentBet, currentBet) || other.currentBet == currentBet)&&(identical(other.minRaiseTo, minRaiseTo) || other.minRaiseTo == minRaiseTo)&&const DeepCollectionEquality().equals(other.pots, _pots)&&(identical(other.phase, phase) || other.phase == phase)&&const DeepCollectionEquality().equals(other.rabbitCards, _rabbitCards)&&(identical(other.phaseEndsTs, phaseEndsTs) || other.phaseEndsTs == phaseEndsTs)&&const DeepCollectionEquality().equals(other.board2, _board2)&&(identical(other.straddleSeat, straddleSeat) || other.straddleSeat == straddleSeat)&&(identical(other.timeBankActive, timeBankActive) || other.timeBankActive == timeBankActive)&&(identical(other.runTwice, runTwice) || other.runTwice == runTwice)&&(identical(other.runTwiceEndsTs, runTwiceEndsTs) || other.runTwiceEndsTs == runTwiceEndsTs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,street,const DeepCollectionEquality().hash(_board),buttonSeat,sbSeat,bbSeat,toActSeat,deadlineTs,currentBet,minRaiseTo,const DeepCollectionEquality().hash(_pots),phase,const DeepCollectionEquality().hash(_rabbitCards),phaseEndsTs);
+    return Object.hash(runtimeType,street,const DeepCollectionEquality().hash(_board),buttonSeat,sbSeat,bbSeat,toActSeat,deadlineTs,currentBet,minRaiseTo,const DeepCollectionEquality().hash(_pots),phase,const DeepCollectionEquality().hash(_rabbitCards),phaseEndsTs,const DeepCollectionEquality().hash(_board2),straddleSeat,timeBankActive,runTwice,runTwiceEndsTs);
 }
 
 @override
 String toString() {
-    return 'HandView(street: $street, board: $board, buttonSeat: $buttonSeat, sbSeat: $sbSeat, bbSeat: $bbSeat, toActSeat: $toActSeat, deadlineTs: $deadlineTs, currentBet: $currentBet, minRaiseTo: $minRaiseTo, pots: $pots, phase: $phase, rabbitCards: $rabbitCards, phaseEndsTs: $phaseEndsTs)';
+    return 'HandView(street: $street, board: $board, buttonSeat: $buttonSeat, sbSeat: $sbSeat, bbSeat: $bbSeat, toActSeat: $toActSeat, deadlineTs: $deadlineTs, currentBet: $currentBet, minRaiseTo: $minRaiseTo, pots: $pots, phase: $phase, rabbitCards: $rabbitCards, phaseEndsTs: $phaseEndsTs, board2: $board2, straddleSeat: $straddleSeat, timeBankActive: $timeBankActive, runTwice: $runTwice, runTwiceEndsTs: $runTwiceEndsTs)';
 }
 
 
@@ -5801,7 +6383,7 @@ abstract mixin class _$HandViewCopyWith<$Res> implements $HandViewCopyWith<$Res>
   factory _$HandViewCopyWith(_HandView value, $Res Function(_HandView) _then) = __$HandViewCopyWithImpl;
 @override @useResult
 $Res call({
- String street, List<String> board, int buttonSeat, int sbSeat, int bbSeat, int? toActSeat, int? deadlineTs, int currentBet, int minRaiseTo, List<PotView> pots, String phase,@JsonKey(includeIfNull: false) List<String>? rabbitCards,@JsonKey(includeIfNull: false) int? phaseEndsTs
+ String street, List<String> board, int buttonSeat, int sbSeat, int bbSeat, int? toActSeat, int? deadlineTs, int currentBet, int minRaiseTo, List<PotView> pots, String phase,@JsonKey(includeIfNull: false) List<String>? rabbitCards,@JsonKey(includeIfNull: false) int? phaseEndsTs,@JsonKey(includeIfNull: false) List<String>? board2,@JsonKey(includeIfNull: false) int? straddleSeat,@JsonKey(includeIfNull: false) bool? timeBankActive,@JsonKey(includeIfNull: false) bool? runTwice,@JsonKey(includeIfNull: false) int? runTwiceEndsTs
 });
 
 
@@ -5818,7 +6400,7 @@ class __$HandViewCopyWithImpl<$Res>
 
 /// Create a copy of HandView
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? street = null,Object? board = null,Object? buttonSeat = null,Object? sbSeat = null,Object? bbSeat = null,Object? toActSeat = freezed,Object? deadlineTs = freezed,Object? currentBet = null,Object? minRaiseTo = null,Object? pots = null,Object? phase = null,Object? rabbitCards = freezed,Object? phaseEndsTs = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? street = null,Object? board = null,Object? buttonSeat = null,Object? sbSeat = null,Object? bbSeat = null,Object? toActSeat = freezed,Object? deadlineTs = freezed,Object? currentBet = null,Object? minRaiseTo = null,Object? pots = null,Object? phase = null,Object? rabbitCards = freezed,Object? phaseEndsTs = freezed,Object? board2 = freezed,Object? straddleSeat = freezed,Object? timeBankActive = freezed,Object? runTwice = freezed,Object? runTwiceEndsTs = freezed,}) {
   return _then(_HandView(
 street: null == street ? _self.street : street // ignore: cast_nullable_to_non_nullable
 as String,board: null == board ? _self._board : board // ignore: cast_nullable_to_non_nullable
@@ -5833,6 +6415,11 @@ as int,pots: null == pots ? _self._pots : pots // ignore: cast_nullable_to_non_n
 as List<PotView>,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
 as String,rabbitCards: freezed == rabbitCards ? _self._rabbitCards : rabbitCards // ignore: cast_nullable_to_non_nullable
 as List<String>?,phaseEndsTs: freezed == phaseEndsTs ? _self.phaseEndsTs : phaseEndsTs // ignore: cast_nullable_to_non_nullable
+as int?,board2: freezed == board2 ? _self._board2 : board2 // ignore: cast_nullable_to_non_nullable
+as List<String>?,straddleSeat: freezed == straddleSeat ? _self.straddleSeat : straddleSeat // ignore: cast_nullable_to_non_nullable
+as int?,timeBankActive: freezed == timeBankActive ? _self.timeBankActive : timeBankActive // ignore: cast_nullable_to_non_nullable
+as bool?,runTwice: freezed == runTwice ? _self.runTwice : runTwice // ignore: cast_nullable_to_non_nullable
+as bool?,runTwiceEndsTs: freezed == runTwiceEndsTs ? _self.runTwiceEndsTs : runTwiceEndsTs // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -6123,7 +6710,7 @@ as List<int>,
 /// @nodoc
 mixin _$You {
 
- String get role; bool get isAdmin;@JsonKey(includeIfNull: false) String? get playerId;@JsonKey(includeIfNull: false) int? get seat; OptionsView? get options; String get handDescription; bool get canRebuy; bool get canShowCards; String get preAction;@JsonKey(includeIfNull: false) List<String>? get bestCards; bool get canRabbitHunt;@JsonKey(includeIfNull: false) int? get pendingSeat; bool get canChangeSeat;
+ String get role; bool get isAdmin;@JsonKey(includeIfNull: false) String? get playerId;@JsonKey(includeIfNull: false) int? get seat; OptionsView? get options; String get handDescription; bool get canRebuy; bool get canShowCards; String get preAction;@JsonKey(includeIfNull: false) List<String>? get bestCards; bool get canRabbitHunt;@JsonKey(includeIfNull: false) int? get pendingSeat; bool get canChangeSeat;@JsonKey(includeIfNull: false) bool? get straddle;@JsonKey(includeIfNull: false) bool? get canRunTwice;@JsonKey(includeIfNull: false) bool? get runTwiceVote;
 /// Create a copy of You
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6137,20 +6724,20 @@ $YouCopyWith<You> get copyWith => _$YouCopyWithImpl<You>(this as You, _$identity
 @override
 bool operator ==(Object other) {
   final _this = this as You;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is You&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.isAdmin, _this.isAdmin) || other.isAdmin == _this.isAdmin)&&(identical(other.playerId, _this.playerId) || other.playerId == _this.playerId)&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.options, _this.options) || other.options == _this.options)&&(identical(other.handDescription, _this.handDescription) || other.handDescription == _this.handDescription)&&(identical(other.canRebuy, _this.canRebuy) || other.canRebuy == _this.canRebuy)&&(identical(other.canShowCards, _this.canShowCards) || other.canShowCards == _this.canShowCards)&&(identical(other.preAction, _this.preAction) || other.preAction == _this.preAction)&&const DeepCollectionEquality().equals(other.bestCards, _this.bestCards)&&(identical(other.canRabbitHunt, _this.canRabbitHunt) || other.canRabbitHunt == _this.canRabbitHunt)&&(identical(other.pendingSeat, _this.pendingSeat) || other.pendingSeat == _this.pendingSeat)&&(identical(other.canChangeSeat, _this.canChangeSeat) || other.canChangeSeat == _this.canChangeSeat));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is You&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.isAdmin, _this.isAdmin) || other.isAdmin == _this.isAdmin)&&(identical(other.playerId, _this.playerId) || other.playerId == _this.playerId)&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.options, _this.options) || other.options == _this.options)&&(identical(other.handDescription, _this.handDescription) || other.handDescription == _this.handDescription)&&(identical(other.canRebuy, _this.canRebuy) || other.canRebuy == _this.canRebuy)&&(identical(other.canShowCards, _this.canShowCards) || other.canShowCards == _this.canShowCards)&&(identical(other.preAction, _this.preAction) || other.preAction == _this.preAction)&&const DeepCollectionEquality().equals(other.bestCards, _this.bestCards)&&(identical(other.canRabbitHunt, _this.canRabbitHunt) || other.canRabbitHunt == _this.canRabbitHunt)&&(identical(other.pendingSeat, _this.pendingSeat) || other.pendingSeat == _this.pendingSeat)&&(identical(other.canChangeSeat, _this.canChangeSeat) || other.canChangeSeat == _this.canChangeSeat)&&(identical(other.straddle, _this.straddle) || other.straddle == _this.straddle)&&(identical(other.canRunTwice, _this.canRunTwice) || other.canRunTwice == _this.canRunTwice)&&(identical(other.runTwiceVote, _this.runTwiceVote) || other.runTwiceVote == _this.runTwiceVote));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as You;
-  return Object.hash(runtimeType,_this.role,_this.isAdmin,_this.playerId,_this.seat,_this.options,_this.handDescription,_this.canRebuy,_this.canShowCards,_this.preAction,const DeepCollectionEquality().hash(_this.bestCards),_this.canRabbitHunt,_this.pendingSeat,_this.canChangeSeat);
+  return Object.hash(runtimeType,_this.role,_this.isAdmin,_this.playerId,_this.seat,_this.options,_this.handDescription,_this.canRebuy,_this.canShowCards,_this.preAction,const DeepCollectionEquality().hash(_this.bestCards),_this.canRabbitHunt,_this.pendingSeat,_this.canChangeSeat,_this.straddle,_this.canRunTwice,_this.runTwiceVote);
 }
 
 @override
 String toString() {
   final _this = this as You;
-  return 'You(role: ${_this.role}, isAdmin: ${_this.isAdmin}, playerId: ${_this.playerId}, seat: ${_this.seat}, options: ${_this.options}, handDescription: ${_this.handDescription}, canRebuy: ${_this.canRebuy}, canShowCards: ${_this.canShowCards}, preAction: ${_this.preAction}, bestCards: ${_this.bestCards}, canRabbitHunt: ${_this.canRabbitHunt}, pendingSeat: ${_this.pendingSeat}, canChangeSeat: ${_this.canChangeSeat})';
+  return 'You(role: ${_this.role}, isAdmin: ${_this.isAdmin}, playerId: ${_this.playerId}, seat: ${_this.seat}, options: ${_this.options}, handDescription: ${_this.handDescription}, canRebuy: ${_this.canRebuy}, canShowCards: ${_this.canShowCards}, preAction: ${_this.preAction}, bestCards: ${_this.bestCards}, canRabbitHunt: ${_this.canRabbitHunt}, pendingSeat: ${_this.pendingSeat}, canChangeSeat: ${_this.canChangeSeat}, straddle: ${_this.straddle}, canRunTwice: ${_this.canRunTwice}, runTwiceVote: ${_this.runTwiceVote})';
 }
 
 
@@ -6161,7 +6748,7 @@ abstract mixin class $YouCopyWith<$Res>  {
   factory $YouCopyWith(You value, $Res Function(You) _then) = _$YouCopyWithImpl;
 @useResult
 $Res call({
- String role, bool isAdmin,@JsonKey(includeIfNull: false) String? playerId,@JsonKey(includeIfNull: false) int? seat, OptionsView? options, String handDescription, bool canRebuy, bool canShowCards, String preAction,@JsonKey(includeIfNull: false) List<String>? bestCards, bool canRabbitHunt,@JsonKey(includeIfNull: false) int? pendingSeat, bool canChangeSeat
+ String role, bool isAdmin,@JsonKey(includeIfNull: false) String? playerId,@JsonKey(includeIfNull: false) int? seat, OptionsView? options, String handDescription, bool canRebuy, bool canShowCards, String preAction,@JsonKey(includeIfNull: false) List<String>? bestCards, bool canRabbitHunt,@JsonKey(includeIfNull: false) int? pendingSeat, bool canChangeSeat,@JsonKey(includeIfNull: false) bool? straddle,@JsonKey(includeIfNull: false) bool? canRunTwice,@JsonKey(includeIfNull: false) bool? runTwiceVote
 });
 
 
@@ -6178,7 +6765,7 @@ class _$YouCopyWithImpl<$Res>
 
 /// Create a copy of You
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? role = null,Object? isAdmin = null,Object? playerId = freezed,Object? seat = freezed,Object? options = freezed,Object? handDescription = null,Object? canRebuy = null,Object? canShowCards = null,Object? preAction = null,Object? bestCards = freezed,Object? canRabbitHunt = null,Object? pendingSeat = freezed,Object? canChangeSeat = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? role = null,Object? isAdmin = null,Object? playerId = freezed,Object? seat = freezed,Object? options = freezed,Object? handDescription = null,Object? canRebuy = null,Object? canShowCards = null,Object? preAction = null,Object? bestCards = freezed,Object? canRabbitHunt = null,Object? pendingSeat = freezed,Object? canChangeSeat = null,Object? straddle = freezed,Object? canRunTwice = freezed,Object? runTwiceVote = freezed,}) {
   return _then(You(
 role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,isAdmin: null == isAdmin ? _self.isAdmin : isAdmin // ignore: cast_nullable_to_non_nullable
@@ -6193,7 +6780,10 @@ as String,bestCards: freezed == bestCards ? _self.bestCards : bestCards // ignor
 as List<String>?,canRabbitHunt: null == canRabbitHunt ? _self.canRabbitHunt : canRabbitHunt // ignore: cast_nullable_to_non_nullable
 as bool,pendingSeat: freezed == pendingSeat ? _self.pendingSeat : pendingSeat // ignore: cast_nullable_to_non_nullable
 as int?,canChangeSeat: null == canChangeSeat ? _self.canChangeSeat : canChangeSeat // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,straddle: freezed == straddle ? _self.straddle : straddle // ignore: cast_nullable_to_non_nullable
+as bool?,canRunTwice: freezed == canRunTwice ? _self.canRunTwice : canRunTwice // ignore: cast_nullable_to_non_nullable
+as bool?,runTwiceVote: freezed == runTwiceVote ? _self.runTwiceVote : runTwiceVote // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 /// Create a copy of You
@@ -6290,10 +6880,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat, @JsonKey(includeIfNull: false)  bool? straddle, @JsonKey(includeIfNull: false)  bool? canRunTwice, @JsonKey(includeIfNull: false)  bool? runTwiceVote)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _You() when $default != null:
-return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat);case _:
+return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat,_that.straddle,_that.canRunTwice,_that.runTwiceVote);case _:
   return orElse();
 
 }
@@ -6311,10 +6901,10 @@ return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat, @JsonKey(includeIfNull: false)  bool? straddle, @JsonKey(includeIfNull: false)  bool? canRunTwice, @JsonKey(includeIfNull: false)  bool? runTwiceVote)  $default,) {final _that = this;
 switch (_that) {
 case _You():
-return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat);case _:
+return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat,_that.straddle,_that.canRunTwice,_that.runTwiceVote);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -6331,10 +6921,10 @@ return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String role,  bool isAdmin, @JsonKey(includeIfNull: false)  String? playerId, @JsonKey(includeIfNull: false)  int? seat,  OptionsView? options,  String handDescription,  bool canRebuy,  bool canShowCards,  String preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards,  bool canRabbitHunt, @JsonKey(includeIfNull: false)  int? pendingSeat,  bool canChangeSeat, @JsonKey(includeIfNull: false)  bool? straddle, @JsonKey(includeIfNull: false)  bool? canRunTwice, @JsonKey(includeIfNull: false)  bool? runTwiceVote)?  $default,) {final _that = this;
 switch (_that) {
 case _You() when $default != null:
-return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat);case _:
+return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options,_that.handDescription,_that.canRebuy,_that.canShowCards,_that.preAction,_that.bestCards,_that.canRabbitHunt,_that.pendingSeat,_that.canChangeSeat,_that.straddle,_that.canRunTwice,_that.runTwiceVote);case _:
   return null;
 
 }
@@ -6346,7 +6936,7 @@ return $default(_that.role,_that.isAdmin,_that.playerId,_that.seat,_that.options
 @JsonSerializable()
 
 class _You implements You {
-  const _You({required this.role, required this.isAdmin, @JsonKey(includeIfNull: false) this.playerId, @JsonKey(includeIfNull: false) this.seat, required this.options, required this.handDescription, required this.canRebuy, required this.canShowCards, required this.preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards, required this.canRabbitHunt, @JsonKey(includeIfNull: false) this.pendingSeat, this.canChangeSeat = false}): _bestCards = bestCards;
+  const _You({required this.role, required this.isAdmin, @JsonKey(includeIfNull: false) this.playerId, @JsonKey(includeIfNull: false) this.seat, required this.options, required this.handDescription, required this.canRebuy, required this.canShowCards, required this.preAction, @JsonKey(includeIfNull: false)  List<String>? bestCards, required this.canRabbitHunt, @JsonKey(includeIfNull: false) this.pendingSeat, this.canChangeSeat = false, @JsonKey(includeIfNull: false) this.straddle, @JsonKey(includeIfNull: false) this.canRunTwice, @JsonKey(includeIfNull: false) this.runTwiceVote}): _bestCards = bestCards;
   factory _You.fromJson(Map<String, dynamic> json) => _$YouFromJson(json);
 
 @override final  String role;
@@ -6370,6 +6960,9 @@ class _You implements You {
 @override final  bool canRabbitHunt;
 @override@JsonKey(includeIfNull: false) final  int? pendingSeat;
 @override@JsonKey() final  bool canChangeSeat;
+@override@JsonKey(includeIfNull: false) final  bool? straddle;
+@override@JsonKey(includeIfNull: false) final  bool? canRunTwice;
+@override@JsonKey(includeIfNull: false) final  bool? runTwiceVote;
 
 /// Create a copy of You
 /// with the given fields replaced by the non-null parameter values.
@@ -6384,18 +6977,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _You&&(identical(other.role, role) || other.role == role)&&(identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.options, options) || other.options == options)&&(identical(other.handDescription, handDescription) || other.handDescription == handDescription)&&(identical(other.canRebuy, canRebuy) || other.canRebuy == canRebuy)&&(identical(other.canShowCards, canShowCards) || other.canShowCards == canShowCards)&&(identical(other.preAction, preAction) || other.preAction == preAction)&&const DeepCollectionEquality().equals(other.bestCards, _bestCards)&&(identical(other.canRabbitHunt, canRabbitHunt) || other.canRabbitHunt == canRabbitHunt)&&(identical(other.pendingSeat, pendingSeat) || other.pendingSeat == pendingSeat)&&(identical(other.canChangeSeat, canChangeSeat) || other.canChangeSeat == canChangeSeat));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _You&&(identical(other.role, role) || other.role == role)&&(identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.options, options) || other.options == options)&&(identical(other.handDescription, handDescription) || other.handDescription == handDescription)&&(identical(other.canRebuy, canRebuy) || other.canRebuy == canRebuy)&&(identical(other.canShowCards, canShowCards) || other.canShowCards == canShowCards)&&(identical(other.preAction, preAction) || other.preAction == preAction)&&const DeepCollectionEquality().equals(other.bestCards, _bestCards)&&(identical(other.canRabbitHunt, canRabbitHunt) || other.canRabbitHunt == canRabbitHunt)&&(identical(other.pendingSeat, pendingSeat) || other.pendingSeat == pendingSeat)&&(identical(other.canChangeSeat, canChangeSeat) || other.canChangeSeat == canChangeSeat)&&(identical(other.straddle, straddle) || other.straddle == straddle)&&(identical(other.canRunTwice, canRunTwice) || other.canRunTwice == canRunTwice)&&(identical(other.runTwiceVote, runTwiceVote) || other.runTwiceVote == runTwiceVote));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,role,isAdmin,playerId,seat,options,handDescription,canRebuy,canShowCards,preAction,const DeepCollectionEquality().hash(_bestCards),canRabbitHunt,pendingSeat,canChangeSeat);
+    return Object.hash(runtimeType,role,isAdmin,playerId,seat,options,handDescription,canRebuy,canShowCards,preAction,const DeepCollectionEquality().hash(_bestCards),canRabbitHunt,pendingSeat,canChangeSeat,straddle,canRunTwice,runTwiceVote);
 }
 
 @override
 String toString() {
-    return 'You(role: $role, isAdmin: $isAdmin, playerId: $playerId, seat: $seat, options: $options, handDescription: $handDescription, canRebuy: $canRebuy, canShowCards: $canShowCards, preAction: $preAction, bestCards: $bestCards, canRabbitHunt: $canRabbitHunt, pendingSeat: $pendingSeat, canChangeSeat: $canChangeSeat)';
+    return 'You(role: $role, isAdmin: $isAdmin, playerId: $playerId, seat: $seat, options: $options, handDescription: $handDescription, canRebuy: $canRebuy, canShowCards: $canShowCards, preAction: $preAction, bestCards: $bestCards, canRabbitHunt: $canRabbitHunt, pendingSeat: $pendingSeat, canChangeSeat: $canChangeSeat, straddle: $straddle, canRunTwice: $canRunTwice, runTwiceVote: $runTwiceVote)';
 }
 
 
@@ -6406,7 +6999,7 @@ abstract mixin class _$YouCopyWith<$Res> implements $YouCopyWith<$Res> {
   factory _$YouCopyWith(_You value, $Res Function(_You) _then) = __$YouCopyWithImpl;
 @override @useResult
 $Res call({
- String role, bool isAdmin,@JsonKey(includeIfNull: false) String? playerId,@JsonKey(includeIfNull: false) int? seat, OptionsView? options, String handDescription, bool canRebuy, bool canShowCards, String preAction,@JsonKey(includeIfNull: false) List<String>? bestCards, bool canRabbitHunt,@JsonKey(includeIfNull: false) int? pendingSeat, bool canChangeSeat
+ String role, bool isAdmin,@JsonKey(includeIfNull: false) String? playerId,@JsonKey(includeIfNull: false) int? seat, OptionsView? options, String handDescription, bool canRebuy, bool canShowCards, String preAction,@JsonKey(includeIfNull: false) List<String>? bestCards, bool canRabbitHunt,@JsonKey(includeIfNull: false) int? pendingSeat, bool canChangeSeat,@JsonKey(includeIfNull: false) bool? straddle,@JsonKey(includeIfNull: false) bool? canRunTwice,@JsonKey(includeIfNull: false) bool? runTwiceVote
 });
 
 
@@ -6423,7 +7016,7 @@ class __$YouCopyWithImpl<$Res>
 
 /// Create a copy of You
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? role = null,Object? isAdmin = null,Object? playerId = freezed,Object? seat = freezed,Object? options = freezed,Object? handDescription = null,Object? canRebuy = null,Object? canShowCards = null,Object? preAction = null,Object? bestCards = freezed,Object? canRabbitHunt = null,Object? pendingSeat = freezed,Object? canChangeSeat = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? role = null,Object? isAdmin = null,Object? playerId = freezed,Object? seat = freezed,Object? options = freezed,Object? handDescription = null,Object? canRebuy = null,Object? canShowCards = null,Object? preAction = null,Object? bestCards = freezed,Object? canRabbitHunt = null,Object? pendingSeat = freezed,Object? canChangeSeat = null,Object? straddle = freezed,Object? canRunTwice = freezed,Object? runTwiceVote = freezed,}) {
   return _then(_You(
 role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,isAdmin: null == isAdmin ? _self.isAdmin : isAdmin // ignore: cast_nullable_to_non_nullable
@@ -6438,7 +7031,10 @@ as String,bestCards: freezed == bestCards ? _self._bestCards : bestCards // igno
 as List<String>?,canRabbitHunt: null == canRabbitHunt ? _self.canRabbitHunt : canRabbitHunt // ignore: cast_nullable_to_non_nullable
 as bool,pendingSeat: freezed == pendingSeat ? _self.pendingSeat : pendingSeat // ignore: cast_nullable_to_non_nullable
 as int?,canChangeSeat: null == canChangeSeat ? _self.canChangeSeat : canChangeSeat // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,straddle: freezed == straddle ? _self.straddle : straddle // ignore: cast_nullable_to_non_nullable
+as bool?,canRunTwice: freezed == canRunTwice ? _self.canRunTwice : canRunTwice // ignore: cast_nullable_to_non_nullable
+as bool?,runTwiceVote: freezed == runTwiceVote ? _self.runTwiceVote : runTwiceVote // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -7040,7 +7636,7 @@ as int,
 /// @nodoc
 mixin _$LeaderboardEntry {
 
- String get name; int get stack; int get net; int get handsWon; int get biggestPot;
+ String get name; int get stack; int get net; int get handsWon; int get biggestPot;@JsonKey(includeIfNull: false) int? get handsPlayed;@JsonKey(includeIfNull: false) int? get vpipHands;@JsonKey(includeIfNull: false) int? get showdowns;@JsonKey(includeIfNull: false) int? get showdownsWon;@JsonKey(includeIfNull: false) int? get place;
 /// Create a copy of LeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7054,20 +7650,20 @@ $LeaderboardEntryCopyWith<LeaderboardEntry> get copyWith => _$LeaderboardEntryCo
 @override
 bool operator ==(Object other) {
   final _this = this as LeaderboardEntry;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaderboardEntry&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.handsWon, _this.handsWon) || other.handsWon == _this.handsWon)&&(identical(other.biggestPot, _this.biggestPot) || other.biggestPot == _this.biggestPot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LeaderboardEntry&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.handsWon, _this.handsWon) || other.handsWon == _this.handsWon)&&(identical(other.biggestPot, _this.biggestPot) || other.biggestPot == _this.biggestPot)&&(identical(other.handsPlayed, _this.handsPlayed) || other.handsPlayed == _this.handsPlayed)&&(identical(other.vpipHands, _this.vpipHands) || other.vpipHands == _this.vpipHands)&&(identical(other.showdowns, _this.showdowns) || other.showdowns == _this.showdowns)&&(identical(other.showdownsWon, _this.showdownsWon) || other.showdownsWon == _this.showdownsWon)&&(identical(other.place, _this.place) || other.place == _this.place));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as LeaderboardEntry;
-  return Object.hash(runtimeType,_this.name,_this.stack,_this.net,_this.handsWon,_this.biggestPot);
+  return Object.hash(runtimeType,_this.name,_this.stack,_this.net,_this.handsWon,_this.biggestPot,_this.handsPlayed,_this.vpipHands,_this.showdowns,_this.showdownsWon,_this.place);
 }
 
 @override
 String toString() {
   final _this = this as LeaderboardEntry;
-  return 'LeaderboardEntry(name: ${_this.name}, stack: ${_this.stack}, net: ${_this.net}, handsWon: ${_this.handsWon}, biggestPot: ${_this.biggestPot})';
+  return 'LeaderboardEntry(name: ${_this.name}, stack: ${_this.stack}, net: ${_this.net}, handsWon: ${_this.handsWon}, biggestPot: ${_this.biggestPot}, handsPlayed: ${_this.handsPlayed}, vpipHands: ${_this.vpipHands}, showdowns: ${_this.showdowns}, showdownsWon: ${_this.showdownsWon}, place: ${_this.place})';
 }
 
 
@@ -7078,7 +7674,7 @@ abstract mixin class $LeaderboardEntryCopyWith<$Res>  {
   factory $LeaderboardEntryCopyWith(LeaderboardEntry value, $Res Function(LeaderboardEntry) _then) = _$LeaderboardEntryCopyWithImpl;
 @useResult
 $Res call({
- String name, int stack, int net, int handsWon, int biggestPot
+ String name, int stack, int net, int handsWon, int biggestPot,@JsonKey(includeIfNull: false) int? handsPlayed,@JsonKey(includeIfNull: false) int? vpipHands,@JsonKey(includeIfNull: false) int? showdowns,@JsonKey(includeIfNull: false) int? showdownsWon,@JsonKey(includeIfNull: false) int? place
 });
 
 
@@ -7095,14 +7691,19 @@ class _$LeaderboardEntryCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? stack = null,Object? net = null,Object? handsWon = null,Object? biggestPot = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? stack = null,Object? net = null,Object? handsWon = null,Object? biggestPot = null,Object? handsPlayed = freezed,Object? vpipHands = freezed,Object? showdowns = freezed,Object? showdownsWon = freezed,Object? place = freezed,}) {
   return _then(LeaderboardEntry(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
 as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
 as int,biggestPot: null == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
-as int,
+as int,handsPlayed: freezed == handsPlayed ? _self.handsPlayed : handsPlayed // ignore: cast_nullable_to_non_nullable
+as int?,vpipHands: freezed == vpipHands ? _self.vpipHands : vpipHands // ignore: cast_nullable_to_non_nullable
+as int?,showdowns: freezed == showdowns ? _self.showdowns : showdowns // ignore: cast_nullable_to_non_nullable
+as int?,showdownsWon: freezed == showdownsWon ? _self.showdownsWon : showdownsWon // ignore: cast_nullable_to_non_nullable
+as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -7187,10 +7788,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  int stack,  int net,  int handsWon,  int biggestPot)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  int stack,  int net,  int handsWon,  int biggestPot, @JsonKey(includeIfNull: false)  int? handsPlayed, @JsonKey(includeIfNull: false)  int? vpipHands, @JsonKey(includeIfNull: false)  int? showdowns, @JsonKey(includeIfNull: false)  int? showdownsWon, @JsonKey(includeIfNull: false)  int? place)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LeaderboardEntry() when $default != null:
-return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot);case _:
+return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot,_that.handsPlayed,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.place);case _:
   return orElse();
 
 }
@@ -7208,10 +7809,10 @@ return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  int stack,  int net,  int handsWon,  int biggestPot)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  int stack,  int net,  int handsWon,  int biggestPot, @JsonKey(includeIfNull: false)  int? handsPlayed, @JsonKey(includeIfNull: false)  int? vpipHands, @JsonKey(includeIfNull: false)  int? showdowns, @JsonKey(includeIfNull: false)  int? showdownsWon, @JsonKey(includeIfNull: false)  int? place)  $default,) {final _that = this;
 switch (_that) {
 case _LeaderboardEntry():
-return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot);case _:
+return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot,_that.handsPlayed,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.place);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7228,10 +7829,10 @@ return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  int stack,  int net,  int handsWon,  int biggestPot)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  int stack,  int net,  int handsWon,  int biggestPot, @JsonKey(includeIfNull: false)  int? handsPlayed, @JsonKey(includeIfNull: false)  int? vpipHands, @JsonKey(includeIfNull: false)  int? showdowns, @JsonKey(includeIfNull: false)  int? showdownsWon, @JsonKey(includeIfNull: false)  int? place)?  $default,) {final _that = this;
 switch (_that) {
 case _LeaderboardEntry() when $default != null:
-return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot);case _:
+return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot,_that.handsPlayed,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.place);case _:
   return null;
 
 }
@@ -7243,7 +7844,7 @@ return $default(_that.name,_that.stack,_that.net,_that.handsWon,_that.biggestPot
 @JsonSerializable()
 
 class _LeaderboardEntry implements LeaderboardEntry {
-  const _LeaderboardEntry({required this.name, required this.stack, required this.net, required this.handsWon, required this.biggestPot});
+  const _LeaderboardEntry({required this.name, required this.stack, required this.net, required this.handsWon, required this.biggestPot, @JsonKey(includeIfNull: false) this.handsPlayed, @JsonKey(includeIfNull: false) this.vpipHands, @JsonKey(includeIfNull: false) this.showdowns, @JsonKey(includeIfNull: false) this.showdownsWon, @JsonKey(includeIfNull: false) this.place});
   factory _LeaderboardEntry.fromJson(Map<String, dynamic> json) => _$LeaderboardEntryFromJson(json);
 
 @override final  String name;
@@ -7251,6 +7852,11 @@ class _LeaderboardEntry implements LeaderboardEntry {
 @override final  int net;
 @override final  int handsWon;
 @override final  int biggestPot;
+@override@JsonKey(includeIfNull: false) final  int? handsPlayed;
+@override@JsonKey(includeIfNull: false) final  int? vpipHands;
+@override@JsonKey(includeIfNull: false) final  int? showdowns;
+@override@JsonKey(includeIfNull: false) final  int? showdownsWon;
+@override@JsonKey(includeIfNull: false) final  int? place;
 
 /// Create a copy of LeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -7265,18 +7871,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaderboardEntry&&(identical(other.name, name) || other.name == name)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.net, net) || other.net == net)&&(identical(other.handsWon, handsWon) || other.handsWon == handsWon)&&(identical(other.biggestPot, biggestPot) || other.biggestPot == biggestPot));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LeaderboardEntry&&(identical(other.name, name) || other.name == name)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.net, net) || other.net == net)&&(identical(other.handsWon, handsWon) || other.handsWon == handsWon)&&(identical(other.biggestPot, biggestPot) || other.biggestPot == biggestPot)&&(identical(other.handsPlayed, handsPlayed) || other.handsPlayed == handsPlayed)&&(identical(other.vpipHands, vpipHands) || other.vpipHands == vpipHands)&&(identical(other.showdowns, showdowns) || other.showdowns == showdowns)&&(identical(other.showdownsWon, showdownsWon) || other.showdownsWon == showdownsWon)&&(identical(other.place, place) || other.place == place));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,stack,net,handsWon,biggestPot);
+    return Object.hash(runtimeType,name,stack,net,handsWon,biggestPot,handsPlayed,vpipHands,showdowns,showdownsWon,place);
 }
 
 @override
 String toString() {
-    return 'LeaderboardEntry(name: $name, stack: $stack, net: $net, handsWon: $handsWon, biggestPot: $biggestPot)';
+    return 'LeaderboardEntry(name: $name, stack: $stack, net: $net, handsWon: $handsWon, biggestPot: $biggestPot, handsPlayed: $handsPlayed, vpipHands: $vpipHands, showdowns: $showdowns, showdownsWon: $showdownsWon, place: $place)';
 }
 
 
@@ -7287,7 +7893,7 @@ abstract mixin class _$LeaderboardEntryCopyWith<$Res> implements $LeaderboardEnt
   factory _$LeaderboardEntryCopyWith(_LeaderboardEntry value, $Res Function(_LeaderboardEntry) _then) = __$LeaderboardEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String name, int stack, int net, int handsWon, int biggestPot
+ String name, int stack, int net, int handsWon, int biggestPot,@JsonKey(includeIfNull: false) int? handsPlayed,@JsonKey(includeIfNull: false) int? vpipHands,@JsonKey(includeIfNull: false) int? showdowns,@JsonKey(includeIfNull: false) int? showdownsWon,@JsonKey(includeIfNull: false) int? place
 });
 
 
@@ -7304,14 +7910,19 @@ class __$LeaderboardEntryCopyWithImpl<$Res>
 
 /// Create a copy of LeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? stack = null,Object? net = null,Object? handsWon = null,Object? biggestPot = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? stack = null,Object? net = null,Object? handsWon = null,Object? biggestPot = null,Object? handsPlayed = freezed,Object? vpipHands = freezed,Object? showdowns = freezed,Object? showdownsWon = freezed,Object? place = freezed,}) {
   return _then(_LeaderboardEntry(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
 as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
 as int,biggestPot: null == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
-as int,
+as int,handsPlayed: freezed == handsPlayed ? _self.handsPlayed : handsPlayed // ignore: cast_nullable_to_non_nullable
+as int?,vpipHands: freezed == vpipHands ? _self.vpipHands : vpipHands // ignore: cast_nullable_to_non_nullable
+as int?,showdowns: freezed == showdowns ? _self.showdowns : showdowns // ignore: cast_nullable_to_non_nullable
+as int?,showdownsWon: freezed == showdownsWon ? _self.showdownsWon : showdownsWon // ignore: cast_nullable_to_non_nullable
+as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -7601,7 +8212,7 @@ as List<GameEvent>,
 /// @nodoc
 mixin _$GameEvent {
 
- int get seq; int get ts; String get kind;@JsonKey(includeIfNull: false) int? get seat;@JsonKey(includeIfNull: false) String? get name;@JsonKey(includeIfNull: false) int? get amount;@JsonKey(includeIfNull: false) int? get delta;@JsonKey(includeIfNull: false) bool? get allIn;@JsonKey(includeIfNull: false) String? get action;@JsonKey(includeIfNull: false) String? get blind;@JsonKey(includeIfNull: false) String? get resolvedAs;@JsonKey(includeIfNull: false) String? get street;@JsonKey(includeIfNull: false) List<String>? get cards;@JsonKey(includeIfNull: false) List<PotView>? get pots;@JsonKey(includeIfNull: false) List<Reveal>? get reveals;@JsonKey(includeIfNull: false) int? get potIndex;@JsonKey(includeIfNull: false) String? get description;@JsonKey(includeIfNull: false) HandResults? get results;@JsonKey(includeIfNull: false) String? get reason;@JsonKey(includeIfNull: false) List<String>? get fields;@JsonKey(includeIfNull: false) int? get buttonSeat;@JsonKey(includeIfNull: false) int? get sbSeat;@JsonKey(includeIfNull: false) int? get bbSeat;@JsonKey(includeIfNull: false) Blinds? get blinds;@JsonKey(includeIfNull: false) int? get ante;@JsonKey(includeIfNull: false) Map<String, int>? get stacks;
+ int get seq; int get ts; String get kind;@JsonKey(includeIfNull: false) int? get seat;@JsonKey(includeIfNull: false) String? get name;@JsonKey(includeIfNull: false) int? get amount;@JsonKey(includeIfNull: false) int? get delta;@JsonKey(includeIfNull: false) bool? get allIn;@JsonKey(includeIfNull: false) String? get action;@JsonKey(includeIfNull: false) String? get blind;@JsonKey(includeIfNull: false) String? get resolvedAs;@JsonKey(includeIfNull: false) String? get street;@JsonKey(includeIfNull: false) List<String>? get cards;@JsonKey(includeIfNull: false) List<PotView>? get pots;@JsonKey(includeIfNull: false) List<Reveal>? get reveals;@JsonKey(includeIfNull: false) int? get potIndex;@JsonKey(includeIfNull: false) int? get board;@JsonKey(includeIfNull: false) String? get description;@JsonKey(includeIfNull: false) HandResults? get results;@JsonKey(includeIfNull: false) String? get reason;@JsonKey(includeIfNull: false) List<String>? get fields;@JsonKey(includeIfNull: false) int? get buttonSeat;@JsonKey(includeIfNull: false) int? get sbSeat;@JsonKey(includeIfNull: false) int? get bbSeat;@JsonKey(includeIfNull: false) Blinds? get blinds;@JsonKey(includeIfNull: false) int? get ante;@JsonKey(includeIfNull: false) Map<String, int>? get stacks;
 /// Create a copy of GameEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -7615,20 +8226,20 @@ $GameEventCopyWith<GameEvent> get copyWith => _$GameEventCopyWithImpl<GameEvent>
 @override
 bool operator ==(Object other) {
   final _this = this as GameEvent;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameEvent&&(identical(other.seq, _this.seq) || other.seq == _this.seq)&&(identical(other.ts, _this.ts) || other.ts == _this.ts)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.delta, _this.delta) || other.delta == _this.delta)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.action, _this.action) || other.action == _this.action)&&(identical(other.blind, _this.blind) || other.blind == _this.blind)&&(identical(other.resolvedAs, _this.resolvedAs) || other.resolvedAs == _this.resolvedAs)&&(identical(other.street, _this.street) || other.street == _this.street)&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&const DeepCollectionEquality().equals(other.pots, _this.pots)&&const DeepCollectionEquality().equals(other.reveals, _this.reveals)&&(identical(other.potIndex, _this.potIndex) || other.potIndex == _this.potIndex)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.results, _this.results) || other.results == _this.results)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&const DeepCollectionEquality().equals(other.fields, _this.fields)&&(identical(other.buttonSeat, _this.buttonSeat) || other.buttonSeat == _this.buttonSeat)&&(identical(other.sbSeat, _this.sbSeat) || other.sbSeat == _this.sbSeat)&&(identical(other.bbSeat, _this.bbSeat) || other.bbSeat == _this.bbSeat)&&(identical(other.blinds, _this.blinds) || other.blinds == _this.blinds)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&const DeepCollectionEquality().equals(other.stacks, _this.stacks));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameEvent&&(identical(other.seq, _this.seq) || other.seq == _this.seq)&&(identical(other.ts, _this.ts) || other.ts == _this.ts)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.delta, _this.delta) || other.delta == _this.delta)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.action, _this.action) || other.action == _this.action)&&(identical(other.blind, _this.blind) || other.blind == _this.blind)&&(identical(other.resolvedAs, _this.resolvedAs) || other.resolvedAs == _this.resolvedAs)&&(identical(other.street, _this.street) || other.street == _this.street)&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&const DeepCollectionEquality().equals(other.pots, _this.pots)&&const DeepCollectionEquality().equals(other.reveals, _this.reveals)&&(identical(other.potIndex, _this.potIndex) || other.potIndex == _this.potIndex)&&(identical(other.board, _this.board) || other.board == _this.board)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.results, _this.results) || other.results == _this.results)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&const DeepCollectionEquality().equals(other.fields, _this.fields)&&(identical(other.buttonSeat, _this.buttonSeat) || other.buttonSeat == _this.buttonSeat)&&(identical(other.sbSeat, _this.sbSeat) || other.sbSeat == _this.sbSeat)&&(identical(other.bbSeat, _this.bbSeat) || other.bbSeat == _this.bbSeat)&&(identical(other.blinds, _this.blinds) || other.blinds == _this.blinds)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&const DeepCollectionEquality().equals(other.stacks, _this.stacks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as GameEvent;
-  return Object.hashAll([runtimeType,_this.seq,_this.ts,_this.kind,_this.seat,_this.name,_this.amount,_this.delta,_this.allIn,_this.action,_this.blind,_this.resolvedAs,_this.street,const DeepCollectionEquality().hash(_this.cards),const DeepCollectionEquality().hash(_this.pots),const DeepCollectionEquality().hash(_this.reveals),_this.potIndex,_this.description,_this.results,_this.reason,const DeepCollectionEquality().hash(_this.fields),_this.buttonSeat,_this.sbSeat,_this.bbSeat,_this.blinds,_this.ante,const DeepCollectionEquality().hash(_this.stacks)]);
+  return Object.hashAll([runtimeType,_this.seq,_this.ts,_this.kind,_this.seat,_this.name,_this.amount,_this.delta,_this.allIn,_this.action,_this.blind,_this.resolvedAs,_this.street,const DeepCollectionEquality().hash(_this.cards),const DeepCollectionEquality().hash(_this.pots),const DeepCollectionEquality().hash(_this.reveals),_this.potIndex,_this.board,_this.description,_this.results,_this.reason,const DeepCollectionEquality().hash(_this.fields),_this.buttonSeat,_this.sbSeat,_this.bbSeat,_this.blinds,_this.ante,const DeepCollectionEquality().hash(_this.stacks)]);
 }
 
 @override
 String toString() {
   final _this = this as GameEvent;
-  return 'GameEvent(seq: ${_this.seq}, ts: ${_this.ts}, kind: ${_this.kind}, seat: ${_this.seat}, name: ${_this.name}, amount: ${_this.amount}, delta: ${_this.delta}, allIn: ${_this.allIn}, action: ${_this.action}, blind: ${_this.blind}, resolvedAs: ${_this.resolvedAs}, street: ${_this.street}, cards: ${_this.cards}, pots: ${_this.pots}, reveals: ${_this.reveals}, potIndex: ${_this.potIndex}, description: ${_this.description}, results: ${_this.results}, reason: ${_this.reason}, fields: ${_this.fields}, buttonSeat: ${_this.buttonSeat}, sbSeat: ${_this.sbSeat}, bbSeat: ${_this.bbSeat}, blinds: ${_this.blinds}, ante: ${_this.ante}, stacks: ${_this.stacks})';
+  return 'GameEvent(seq: ${_this.seq}, ts: ${_this.ts}, kind: ${_this.kind}, seat: ${_this.seat}, name: ${_this.name}, amount: ${_this.amount}, delta: ${_this.delta}, allIn: ${_this.allIn}, action: ${_this.action}, blind: ${_this.blind}, resolvedAs: ${_this.resolvedAs}, street: ${_this.street}, cards: ${_this.cards}, pots: ${_this.pots}, reveals: ${_this.reveals}, potIndex: ${_this.potIndex}, board: ${_this.board}, description: ${_this.description}, results: ${_this.results}, reason: ${_this.reason}, fields: ${_this.fields}, buttonSeat: ${_this.buttonSeat}, sbSeat: ${_this.sbSeat}, bbSeat: ${_this.bbSeat}, blinds: ${_this.blinds}, ante: ${_this.ante}, stacks: ${_this.stacks})';
 }
 
 
@@ -7639,7 +8250,7 @@ abstract mixin class $GameEventCopyWith<$Res>  {
   factory $GameEventCopyWith(GameEvent value, $Res Function(GameEvent) _then) = _$GameEventCopyWithImpl;
 @useResult
 $Res call({
- int seq, int ts, String kind,@JsonKey(includeIfNull: false) int? seat,@JsonKey(includeIfNull: false) String? name,@JsonKey(includeIfNull: false) int? amount,@JsonKey(includeIfNull: false) int? delta,@JsonKey(includeIfNull: false) bool? allIn,@JsonKey(includeIfNull: false) String? action,@JsonKey(includeIfNull: false) String? blind,@JsonKey(includeIfNull: false) String? resolvedAs,@JsonKey(includeIfNull: false) String? street,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) List<PotView>? pots,@JsonKey(includeIfNull: false) List<Reveal>? reveals,@JsonKey(includeIfNull: false) int? potIndex,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) HandResults? results,@JsonKey(includeIfNull: false) String? reason,@JsonKey(includeIfNull: false) List<String>? fields,@JsonKey(includeIfNull: false) int? buttonSeat,@JsonKey(includeIfNull: false) int? sbSeat,@JsonKey(includeIfNull: false) int? bbSeat,@JsonKey(includeIfNull: false) Blinds? blinds,@JsonKey(includeIfNull: false) int? ante,@JsonKey(includeIfNull: false) Map<String, int>? stacks
+ int seq, int ts, String kind,@JsonKey(includeIfNull: false) int? seat,@JsonKey(includeIfNull: false) String? name,@JsonKey(includeIfNull: false) int? amount,@JsonKey(includeIfNull: false) int? delta,@JsonKey(includeIfNull: false) bool? allIn,@JsonKey(includeIfNull: false) String? action,@JsonKey(includeIfNull: false) String? blind,@JsonKey(includeIfNull: false) String? resolvedAs,@JsonKey(includeIfNull: false) String? street,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) List<PotView>? pots,@JsonKey(includeIfNull: false) List<Reveal>? reveals,@JsonKey(includeIfNull: false) int? potIndex,@JsonKey(includeIfNull: false) int? board,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) HandResults? results,@JsonKey(includeIfNull: false) String? reason,@JsonKey(includeIfNull: false) List<String>? fields,@JsonKey(includeIfNull: false) int? buttonSeat,@JsonKey(includeIfNull: false) int? sbSeat,@JsonKey(includeIfNull: false) int? bbSeat,@JsonKey(includeIfNull: false) Blinds? blinds,@JsonKey(includeIfNull: false) int? ante,@JsonKey(includeIfNull: false) Map<String, int>? stacks
 });
 
 
@@ -7656,7 +8267,7 @@ class _$GameEventCopyWithImpl<$Res>
 
 /// Create a copy of GameEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? seq = null,Object? ts = null,Object? kind = null,Object? seat = freezed,Object? name = freezed,Object? amount = freezed,Object? delta = freezed,Object? allIn = freezed,Object? action = freezed,Object? blind = freezed,Object? resolvedAs = freezed,Object? street = freezed,Object? cards = freezed,Object? pots = freezed,Object? reveals = freezed,Object? potIndex = freezed,Object? description = freezed,Object? results = freezed,Object? reason = freezed,Object? fields = freezed,Object? buttonSeat = freezed,Object? sbSeat = freezed,Object? bbSeat = freezed,Object? blinds = freezed,Object? ante = freezed,Object? stacks = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? seq = null,Object? ts = null,Object? kind = null,Object? seat = freezed,Object? name = freezed,Object? amount = freezed,Object? delta = freezed,Object? allIn = freezed,Object? action = freezed,Object? blind = freezed,Object? resolvedAs = freezed,Object? street = freezed,Object? cards = freezed,Object? pots = freezed,Object? reveals = freezed,Object? potIndex = freezed,Object? board = freezed,Object? description = freezed,Object? results = freezed,Object? reason = freezed,Object? fields = freezed,Object? buttonSeat = freezed,Object? sbSeat = freezed,Object? bbSeat = freezed,Object? blinds = freezed,Object? ante = freezed,Object? stacks = freezed,}) {
   return _then(GameEvent(
 seq: null == seq ? _self.seq : seq // ignore: cast_nullable_to_non_nullable
 as int,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
@@ -7674,6 +8285,7 @@ as String?,cards: freezed == cards ? _self.cards : cards // ignore: cast_nullabl
 as List<String>?,pots: freezed == pots ? _self.pots : pots // ignore: cast_nullable_to_non_nullable
 as List<PotView>?,reveals: freezed == reveals ? _self.reveals : reveals // ignore: cast_nullable_to_non_nullable
 as List<Reveal>?,potIndex: freezed == potIndex ? _self.potIndex : potIndex // ignore: cast_nullable_to_non_nullable
+as int?,board: freezed == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
 as int?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,results: freezed == results ? _self.results : results // ignore: cast_nullable_to_non_nullable
 as HandResults?,reason: freezed == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
@@ -7793,10 +8405,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  int? board, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GameEvent() when $default != null:
-return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
+return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.board,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
   return orElse();
 
 }
@@ -7814,10 +8426,10 @@ return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  int? board, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)  $default,) {final _that = this;
 switch (_that) {
 case _GameEvent():
-return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
+return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.board,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7834,10 +8446,10 @@ return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int seq,  int ts,  String kind, @JsonKey(includeIfNull: false)  int? seat, @JsonKey(includeIfNull: false)  String? name, @JsonKey(includeIfNull: false)  int? amount, @JsonKey(includeIfNull: false)  int? delta, @JsonKey(includeIfNull: false)  bool? allIn, @JsonKey(includeIfNull: false)  String? action, @JsonKey(includeIfNull: false)  String? blind, @JsonKey(includeIfNull: false)  String? resolvedAs, @JsonKey(includeIfNull: false)  String? street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false)  int? potIndex, @JsonKey(includeIfNull: false)  int? board, @JsonKey(includeIfNull: false)  String? description, @JsonKey(includeIfNull: false)  HandResults? results, @JsonKey(includeIfNull: false)  String? reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false)  int? buttonSeat, @JsonKey(includeIfNull: false)  int? sbSeat, @JsonKey(includeIfNull: false)  int? bbSeat, @JsonKey(includeIfNull: false)  Blinds? blinds, @JsonKey(includeIfNull: false)  int? ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks)?  $default,) {final _that = this;
 switch (_that) {
 case _GameEvent() when $default != null:
-return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
+return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount,_that.delta,_that.allIn,_that.action,_that.blind,_that.resolvedAs,_that.street,_that.cards,_that.pots,_that.reveals,_that.potIndex,_that.board,_that.description,_that.results,_that.reason,_that.fields,_that.buttonSeat,_that.sbSeat,_that.bbSeat,_that.blinds,_that.ante,_that.stacks);case _:
   return null;
 
 }
@@ -7849,7 +8461,7 @@ return $default(_that.seq,_that.ts,_that.kind,_that.seat,_that.name,_that.amount
 @JsonSerializable()
 
 class _GameEvent implements GameEvent {
-  const _GameEvent({required this.seq, required this.ts, required this.kind, @JsonKey(includeIfNull: false) this.seat, @JsonKey(includeIfNull: false) this.name, @JsonKey(includeIfNull: false) this.amount, @JsonKey(includeIfNull: false) this.delta, @JsonKey(includeIfNull: false) this.allIn, @JsonKey(includeIfNull: false) this.action, @JsonKey(includeIfNull: false) this.blind, @JsonKey(includeIfNull: false) this.resolvedAs, @JsonKey(includeIfNull: false) this.street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false) this.potIndex, @JsonKey(includeIfNull: false) this.description, @JsonKey(includeIfNull: false) this.results, @JsonKey(includeIfNull: false) this.reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false) this.buttonSeat, @JsonKey(includeIfNull: false) this.sbSeat, @JsonKey(includeIfNull: false) this.bbSeat, @JsonKey(includeIfNull: false) this.blinds, @JsonKey(includeIfNull: false) this.ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks}): _cards = cards,_pots = pots,_reveals = reveals,_fields = fields,_stacks = stacks;
+  const _GameEvent({required this.seq, required this.ts, required this.kind, @JsonKey(includeIfNull: false) this.seat, @JsonKey(includeIfNull: false) this.name, @JsonKey(includeIfNull: false) this.amount, @JsonKey(includeIfNull: false) this.delta, @JsonKey(includeIfNull: false) this.allIn, @JsonKey(includeIfNull: false) this.action, @JsonKey(includeIfNull: false) this.blind, @JsonKey(includeIfNull: false) this.resolvedAs, @JsonKey(includeIfNull: false) this.street, @JsonKey(includeIfNull: false)  List<String>? cards, @JsonKey(includeIfNull: false)  List<PotView>? pots, @JsonKey(includeIfNull: false)  List<Reveal>? reveals, @JsonKey(includeIfNull: false) this.potIndex, @JsonKey(includeIfNull: false) this.board, @JsonKey(includeIfNull: false) this.description, @JsonKey(includeIfNull: false) this.results, @JsonKey(includeIfNull: false) this.reason, @JsonKey(includeIfNull: false)  List<String>? fields, @JsonKey(includeIfNull: false) this.buttonSeat, @JsonKey(includeIfNull: false) this.sbSeat, @JsonKey(includeIfNull: false) this.bbSeat, @JsonKey(includeIfNull: false) this.blinds, @JsonKey(includeIfNull: false) this.ante, @JsonKey(includeIfNull: false)  Map<String, int>? stacks}): _cards = cards,_pots = pots,_reveals = reveals,_fields = fields,_stacks = stacks;
   factory _GameEvent.fromJson(Map<String, dynamic> json) => _$GameEventFromJson(json);
 
 @override final  int seq;
@@ -7892,6 +8504,7 @@ class _GameEvent implements GameEvent {
 }
 
 @override@JsonKey(includeIfNull: false) final  int? potIndex;
+@override@JsonKey(includeIfNull: false) final  int? board;
 @override@JsonKey(includeIfNull: false) final  String? description;
 @override@JsonKey(includeIfNull: false) final  HandResults? results;
 @override@JsonKey(includeIfNull: false) final  String? reason;
@@ -7932,18 +8545,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameEvent&&(identical(other.seq, seq) || other.seq == seq)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.action, action) || other.action == action)&&(identical(other.blind, blind) || other.blind == blind)&&(identical(other.resolvedAs, resolvedAs) || other.resolvedAs == resolvedAs)&&(identical(other.street, street) || other.street == street)&&const DeepCollectionEquality().equals(other.cards, _cards)&&const DeepCollectionEquality().equals(other.pots, _pots)&&const DeepCollectionEquality().equals(other.reveals, _reveals)&&(identical(other.potIndex, potIndex) || other.potIndex == potIndex)&&(identical(other.description, description) || other.description == description)&&(identical(other.results, results) || other.results == results)&&(identical(other.reason, reason) || other.reason == reason)&&const DeepCollectionEquality().equals(other.fields, _fields)&&(identical(other.buttonSeat, buttonSeat) || other.buttonSeat == buttonSeat)&&(identical(other.sbSeat, sbSeat) || other.sbSeat == sbSeat)&&(identical(other.bbSeat, bbSeat) || other.bbSeat == bbSeat)&&(identical(other.blinds, blinds) || other.blinds == blinds)&&(identical(other.ante, ante) || other.ante == ante)&&const DeepCollectionEquality().equals(other.stacks, _stacks));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameEvent&&(identical(other.seq, seq) || other.seq == seq)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.action, action) || other.action == action)&&(identical(other.blind, blind) || other.blind == blind)&&(identical(other.resolvedAs, resolvedAs) || other.resolvedAs == resolvedAs)&&(identical(other.street, street) || other.street == street)&&const DeepCollectionEquality().equals(other.cards, _cards)&&const DeepCollectionEquality().equals(other.pots, _pots)&&const DeepCollectionEquality().equals(other.reveals, _reveals)&&(identical(other.potIndex, potIndex) || other.potIndex == potIndex)&&(identical(other.board, board) || other.board == board)&&(identical(other.description, description) || other.description == description)&&(identical(other.results, results) || other.results == results)&&(identical(other.reason, reason) || other.reason == reason)&&const DeepCollectionEquality().equals(other.fields, _fields)&&(identical(other.buttonSeat, buttonSeat) || other.buttonSeat == buttonSeat)&&(identical(other.sbSeat, sbSeat) || other.sbSeat == sbSeat)&&(identical(other.bbSeat, bbSeat) || other.bbSeat == bbSeat)&&(identical(other.blinds, blinds) || other.blinds == blinds)&&(identical(other.ante, ante) || other.ante == ante)&&const DeepCollectionEquality().equals(other.stacks, _stacks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,seq,ts,kind,seat,name,amount,delta,allIn,action,blind,resolvedAs,street,const DeepCollectionEquality().hash(_cards),const DeepCollectionEquality().hash(_pots),const DeepCollectionEquality().hash(_reveals),potIndex,description,results,reason,const DeepCollectionEquality().hash(_fields),buttonSeat,sbSeat,bbSeat,blinds,ante,const DeepCollectionEquality().hash(_stacks)]);
+    return Object.hashAll([runtimeType,seq,ts,kind,seat,name,amount,delta,allIn,action,blind,resolvedAs,street,const DeepCollectionEquality().hash(_cards),const DeepCollectionEquality().hash(_pots),const DeepCollectionEquality().hash(_reveals),potIndex,board,description,results,reason,const DeepCollectionEquality().hash(_fields),buttonSeat,sbSeat,bbSeat,blinds,ante,const DeepCollectionEquality().hash(_stacks)]);
 }
 
 @override
 String toString() {
-    return 'GameEvent(seq: $seq, ts: $ts, kind: $kind, seat: $seat, name: $name, amount: $amount, delta: $delta, allIn: $allIn, action: $action, blind: $blind, resolvedAs: $resolvedAs, street: $street, cards: $cards, pots: $pots, reveals: $reveals, potIndex: $potIndex, description: $description, results: $results, reason: $reason, fields: $fields, buttonSeat: $buttonSeat, sbSeat: $sbSeat, bbSeat: $bbSeat, blinds: $blinds, ante: $ante, stacks: $stacks)';
+    return 'GameEvent(seq: $seq, ts: $ts, kind: $kind, seat: $seat, name: $name, amount: $amount, delta: $delta, allIn: $allIn, action: $action, blind: $blind, resolvedAs: $resolvedAs, street: $street, cards: $cards, pots: $pots, reveals: $reveals, potIndex: $potIndex, board: $board, description: $description, results: $results, reason: $reason, fields: $fields, buttonSeat: $buttonSeat, sbSeat: $sbSeat, bbSeat: $bbSeat, blinds: $blinds, ante: $ante, stacks: $stacks)';
 }
 
 
@@ -7954,7 +8567,7 @@ abstract mixin class _$GameEventCopyWith<$Res> implements $GameEventCopyWith<$Re
   factory _$GameEventCopyWith(_GameEvent value, $Res Function(_GameEvent) _then) = __$GameEventCopyWithImpl;
 @override @useResult
 $Res call({
- int seq, int ts, String kind,@JsonKey(includeIfNull: false) int? seat,@JsonKey(includeIfNull: false) String? name,@JsonKey(includeIfNull: false) int? amount,@JsonKey(includeIfNull: false) int? delta,@JsonKey(includeIfNull: false) bool? allIn,@JsonKey(includeIfNull: false) String? action,@JsonKey(includeIfNull: false) String? blind,@JsonKey(includeIfNull: false) String? resolvedAs,@JsonKey(includeIfNull: false) String? street,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) List<PotView>? pots,@JsonKey(includeIfNull: false) List<Reveal>? reveals,@JsonKey(includeIfNull: false) int? potIndex,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) HandResults? results,@JsonKey(includeIfNull: false) String? reason,@JsonKey(includeIfNull: false) List<String>? fields,@JsonKey(includeIfNull: false) int? buttonSeat,@JsonKey(includeIfNull: false) int? sbSeat,@JsonKey(includeIfNull: false) int? bbSeat,@JsonKey(includeIfNull: false) Blinds? blinds,@JsonKey(includeIfNull: false) int? ante,@JsonKey(includeIfNull: false) Map<String, int>? stacks
+ int seq, int ts, String kind,@JsonKey(includeIfNull: false) int? seat,@JsonKey(includeIfNull: false) String? name,@JsonKey(includeIfNull: false) int? amount,@JsonKey(includeIfNull: false) int? delta,@JsonKey(includeIfNull: false) bool? allIn,@JsonKey(includeIfNull: false) String? action,@JsonKey(includeIfNull: false) String? blind,@JsonKey(includeIfNull: false) String? resolvedAs,@JsonKey(includeIfNull: false) String? street,@JsonKey(includeIfNull: false) List<String>? cards,@JsonKey(includeIfNull: false) List<PotView>? pots,@JsonKey(includeIfNull: false) List<Reveal>? reveals,@JsonKey(includeIfNull: false) int? potIndex,@JsonKey(includeIfNull: false) int? board,@JsonKey(includeIfNull: false) String? description,@JsonKey(includeIfNull: false) HandResults? results,@JsonKey(includeIfNull: false) String? reason,@JsonKey(includeIfNull: false) List<String>? fields,@JsonKey(includeIfNull: false) int? buttonSeat,@JsonKey(includeIfNull: false) int? sbSeat,@JsonKey(includeIfNull: false) int? bbSeat,@JsonKey(includeIfNull: false) Blinds? blinds,@JsonKey(includeIfNull: false) int? ante,@JsonKey(includeIfNull: false) Map<String, int>? stacks
 });
 
 
@@ -7971,7 +8584,7 @@ class __$GameEventCopyWithImpl<$Res>
 
 /// Create a copy of GameEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? seq = null,Object? ts = null,Object? kind = null,Object? seat = freezed,Object? name = freezed,Object? amount = freezed,Object? delta = freezed,Object? allIn = freezed,Object? action = freezed,Object? blind = freezed,Object? resolvedAs = freezed,Object? street = freezed,Object? cards = freezed,Object? pots = freezed,Object? reveals = freezed,Object? potIndex = freezed,Object? description = freezed,Object? results = freezed,Object? reason = freezed,Object? fields = freezed,Object? buttonSeat = freezed,Object? sbSeat = freezed,Object? bbSeat = freezed,Object? blinds = freezed,Object? ante = freezed,Object? stacks = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? seq = null,Object? ts = null,Object? kind = null,Object? seat = freezed,Object? name = freezed,Object? amount = freezed,Object? delta = freezed,Object? allIn = freezed,Object? action = freezed,Object? blind = freezed,Object? resolvedAs = freezed,Object? street = freezed,Object? cards = freezed,Object? pots = freezed,Object? reveals = freezed,Object? potIndex = freezed,Object? board = freezed,Object? description = freezed,Object? results = freezed,Object? reason = freezed,Object? fields = freezed,Object? buttonSeat = freezed,Object? sbSeat = freezed,Object? bbSeat = freezed,Object? blinds = freezed,Object? ante = freezed,Object? stacks = freezed,}) {
   return _then(_GameEvent(
 seq: null == seq ? _self.seq : seq // ignore: cast_nullable_to_non_nullable
 as int,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
@@ -7989,6 +8602,7 @@ as String?,cards: freezed == cards ? _self._cards : cards // ignore: cast_nullab
 as List<String>?,pots: freezed == pots ? _self._pots : pots // ignore: cast_nullable_to_non_nullable
 as List<PotView>?,reveals: freezed == reveals ? _self._reveals : reveals // ignore: cast_nullable_to_non_nullable
 as List<Reveal>?,potIndex: freezed == potIndex ? _self.potIndex : potIndex // ignore: cast_nullable_to_non_nullable
+as int?,board: freezed == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
 as int?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,results: freezed == results ? _self.results : results // ignore: cast_nullable_to_non_nullable
 as HandResults?,reason: freezed == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable

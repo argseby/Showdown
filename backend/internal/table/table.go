@@ -54,13 +54,16 @@ type Delays struct {
 	// ResultExtension is the minimum time a finished hand stays on screen
 	// after a late reveal or a rabbit hunt.
 	ResultExtension time.Duration
+	// RunTwiceDecision is how long the players have to agree to run it twice
+	// when everyone is all-in.
+	RunTwiceDecision time.Duration
 }
 
 // DefaultDelays are the production values.
 var DefaultDelays = Delays{
 	Street: 800 * time.Millisecond, Runout: 1200 * time.Millisecond,
 	Showdown: 3500 * time.Millisecond, ShowdownPerHand: 1500 * time.Millisecond,
-	ResultExtension: 5 * time.Second,
+	ResultExtension: 5 * time.Second, RunTwiceDecision: 8 * time.Second,
 }
 
 // Conn is the transport side of a connected client. Send must never block
@@ -97,11 +100,24 @@ type Player struct {
 	JoinedAt    int64
 	LeftAt      int64
 	Avatar      int // 0..19, one of the predefined avatars
+	// Statistics: hands with chips put in voluntarily preflop, showdowns
+	// reached and won.
+	VPIPHands    int
+	Showdowns    int
+	ShowdownsWon int
+	// TimeBank is the remaining extra thinking time in seconds.
+	TimeBank int
+	// Place is the final placement (1 = winner); 0 while still playing.
+	Place int
+	// Camera: the player's video is on (browser to browser like the voice).
+	Camera bool
 
-	inHand    bool
-	leaving   bool
-	kicked    bool
-	preAction string // automatic action at every turn: "", "fold" (sit-out, this hand), "check_fold", "call_any"
+	inHand       bool
+	vpipThisHand bool
+	straddleNext bool // posts a straddle whenever seated left of the big blind
+	leaving      bool
+	kicked       bool
+	preAction    string // automatic action at every turn: "", "fold" (sit-out, this hand), "check_fold", "call_any"
 
 	// Seat changes: the wanted seat (-1 none) is taken at the next deal; the
 	// mover then posts a dead big blind, and may move again after a cooldown.
@@ -225,11 +241,16 @@ type Table struct {
 	sitOutPending   map[string]bool
 	endAfterHand    bool
 	startPending    bool
-	rabbitCards     []string // rabbit hunt of the current (finished) hand
-	blindsUpAt      int64    // next scheduled blind increase (ms), 0 = none
-	blindsPausedMs  int64    // remaining schedule time while paused
-	phaseEndsAt     int64    // when the showdown/result phase ends (ms), 0 = n/a
-	nextHandAt      int64    // when a pending hand start fires (ms), 0 = n/a
+	rabbitCards     []string        // rabbit hunt of the current (finished) hand
+	blindsUpAt      int64           // next scheduled blind increase (ms), 0 = none
+	blindsPausedMs  int64           // remaining schedule time while paused
+	phaseEndsAt     int64           // when the showdown/result phase ends (ms), 0 = n/a
+	nextHandAt      int64           // when a pending hand start fires (ms), 0 = n/a
+	timeBankUsing   bool            // the player on turn is spending their time bank
+	equity          map[int]float64 // seat -> pot share in percent during a run-out
+	ritVotes        map[int]bool    // run-it-twice answers by seat (vote open while non-nil)
+	ritEndsAt       int64           // when the run-it-twice vote closes (ms)
+	ritDecided      bool            // the vote of this hand is over
 }
 
 // newTable wires a table but does not start its loop.
@@ -506,6 +527,7 @@ func (t *Table) Join(rawName string, seat, avatar int) (JoinResult, error) {
 		p := &Player{
 			ID: newPlayerID(), Name: name, Seat: seat, Stack: t.settings.StartMoney, Status: StatusActive,
 			BuyInTotal: t.settings.StartMoney, JoinedAt: t.nowMs(), Avatar: avatar, pendingSeat: -1,
+			TimeBank: t.settings.TimeBankSeconds,
 		}
 		t.seats[seat] = p
 		t.players[p.ID] = p
@@ -608,6 +630,7 @@ func (t *Table) Detach(c *Client) {
 			if p, ok := t.players[c.PlayerID]; ok {
 				p.Connected = false
 				p.Voice = VoiceOff
+				p.Camera = false
 			}
 		}
 		t.touch()
@@ -666,14 +689,20 @@ func (t *Table) Action(playerID string, a poker.Action) error {
 		}
 		p.MissedTurns = 0
 		p.preAction = ""
+		if t.timeBankUsing {
+			// Unused time bank goes back to the player.
+			p.TimeBank = max(0, int((t.deadline-t.nowMs())/1000))
+			t.timeBankUsing = false
+		}
 		t.applyEngineEvents(events)
 		t.afterEngine()
 		return nil
 	})
 }
 
-// SetVoice records a player's voice-chat presence for the other clients.
-func (t *Table) SetVoice(playerID, state string) error {
+// SetVoice records a player's voice-chat presence (and camera) for the
+// other clients.
+func (t *Table) SetVoice(playerID, state string, camera bool) error {
 	return t.callErr(func() error {
 		p, err := t.seatedPlayer(playerID)
 		if err != nil {
@@ -685,7 +714,69 @@ func (t *Table) SetVoice(playerID, state string) error {
 			return ErrIllegalAction
 		}
 		p.Voice = state
+		p.Camera = camera && state != VoiceOff
 		t.touch()
+		return nil
+	})
+}
+
+// CameraOff turns a player's camera off on the host's behalf; the player
+// may turn it on again themselves.
+func (t *Table) CameraOff(playerID string) error {
+	return t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		if !p.Camera {
+			return ErrIllegalAction
+		}
+		p.Camera = false
+		t.audit("camera_off", playerID, nil)
+		t.touch()
+		return nil
+	})
+}
+
+// SetStraddle arms or disarms the player's straddle for the hands in which
+// they sit left of the big blind (table setting allow_straddle).
+func (t *Table) SetStraddle(playerID string, on bool) error {
+	return t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		if on && !t.settings.AllowStraddle {
+			return ErrIllegalAction
+		}
+		p.straddleNext = on
+		t.touch()
+		return nil
+	})
+}
+
+// RunTwice records a player's answer to the run-it-twice vote of the
+// current run-out. A "no" ends the vote at once; the last "yes" too.
+func (t *Table) RunTwice(playerID string, agree bool) error {
+	return t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		if t.ritVotes == nil || !p.inHand || t.hand == nil {
+			return poker.ErrWrongPhase
+		}
+		if st, ok := t.hand.State(p.Seat); !ok || st.Folded {
+			return poker.ErrWrongPhase
+		}
+		if _, voted := t.ritVotes[p.Seat]; voted {
+			return ErrIllegalAction
+		}
+		t.ritVotes[p.Seat] = agree
+		t.touch()
+		if !agree || t.ritVoteComplete() {
+			t.resolveRunTwice()
+		}
 		return nil
 	})
 }
@@ -1165,6 +1256,8 @@ type PlayerAdmin struct {
 	JoinedAt    int64  `json:"joined_at"`
 	Avatar      int    `json:"avatar"`
 	Voice       string `json:"voice"` // off | on | muted
+	Camera      bool   `json:"camera"`
+	Place       int    `json:"place"`
 }
 
 // AdminDetail is the full admin view of a table.
@@ -1199,7 +1292,7 @@ func (t *Table) AdminDetail() AdminDetail {
 				ID: p.ID, Name: p.Name, Seat: p.Seat, Stack: t.currentStack(p), Status: p.Status, Connected: p.Connected,
 				Muted: p.Muted, MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed,
 				HandsWon: p.HandsWon, BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, Avatar: p.Avatar,
-				Voice: cmp.Or(p.Voice, VoiceOff),
+				Voice: cmp.Or(p.Voice, VoiceOff), Camera: p.Camera, Place: p.Place,
 			})
 		}
 	})
@@ -1437,6 +1530,7 @@ func (t *Table) persistPlayer(p *Player) {
 		ID: p.ID, TableID: t.ID, Name: p.Name, Seat: p.Seat, Stack: p.Stack, Status: p.Status, Muted: p.Muted,
 		MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed, HandsWon: p.HandsWon,
 		BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, LeftAt: p.LeftAt, Avatar: p.Avatar,
+		VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon, TimeBank: p.TimeBank, Place: p.Place,
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpsertPlayer(ctx, row)

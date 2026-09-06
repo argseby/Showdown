@@ -80,6 +80,11 @@ type HandConfig struct {
 	// DeadBlinds are extra blinds owed by seat (a seat-change penalty),
 	// posted into the pot after the antes without counting as a bet.
 	DeadBlinds map[int]int64
+	// Straddle is a live blind of StraddleAmount posted by StraddleSeat (the
+	// seat left of the big blind) before the deal; 0 = none. The straddler
+	// acts last preflop and the minimum raise is twice the straddle.
+	StraddleSeat   int
+	StraddleAmount int64
 }
 
 // Seat is a participating player at hand start.
@@ -135,6 +140,7 @@ type PotAward struct {
 	Amount      int64
 	Winners     []PotWinner
 	Description string // winning hand, empty when uncontested
+	Board       int    // 0 = single board, 1 or 2 when the hand was run twice
 }
 
 // SeatResult is a player's outcome for the hand.
@@ -189,7 +195,12 @@ type Hand struct {
 	runout  bool
 	sbSeat  int
 	bbSeat  int
-	toAct   int // index into players, -1 when nobody
+	// straddleSeat is -1 unless a straddle was posted.
+	straddleSeat int
+	// runTwice: the run-out deals two boards; board2 holds the second.
+	runTwice bool
+	board2   []Card
+	toAct    int // index into players, -1 when nobody
 	// betting round state
 	currentBet       int64
 	lastFullBetLevel int64
@@ -221,7 +232,7 @@ func NewHand(cfg HandConfig, seats []Seat, shuffle func([]Card)) (*Hand, []Event
 	if shuffle == nil {
 		return nil, nil, fmt.Errorf("poker: shuffle function is required")
 	}
-	h := &Hand{cfg: cfg, bySeat: make(map[int]*player, len(seats)), toAct: -1, aggressor: -1}
+	h := &Hand{cfg: cfg, bySeat: make(map[int]*player, len(seats)), toAct: -1, aggressor: -1, straddleSeat: -1}
 	for _, s := range seats {
 		if s.Seat < 0 {
 			return nil, nil, fmt.Errorf("poker: invalid seat %d", s.Seat)
@@ -298,6 +309,23 @@ func NewHand(cfg HandConfig, seats []Seat, shuffle func([]Card)) (*Hand, []Event
 	h.currentBet = cfg.BigBlind
 	h.lastFullBetLevel = cfg.BigBlind
 	h.lastRaiseSize = cfg.BigBlind
+	// Straddle: a live blind by the seat left of the big blind (three or
+	// more players); it sets the price and the straddler gets the option.
+	if cfg.StraddleAmount > 0 && len(h.players) >= 3 {
+		utg := h.players[h.next(h.index(h.bbSeat))]
+		if utg.seat == cfg.StraddleSeat && utg.stack > 0 {
+			ev := h.postBlind(utg, cfg.StraddleAmount, StraddleBlind)
+			events = h.emit(events, ev)
+			h.straddleSeat = utg.seat
+			if ev.Amount >= cfg.StraddleAmount {
+				h.currentBet = cfg.StraddleAmount
+				h.lastFullBetLevel = cfg.StraddleAmount
+				h.lastRaiseSize = cfg.StraddleAmount
+			} else {
+				h.currentBet = max(h.currentBet, ev.Amount)
+			}
+		}
+	}
 
 	// Hole cards: one at a time, clockwise starting left of the button.
 	for round := 0; round < 2; round++ {
@@ -310,11 +338,15 @@ func NewHand(cfg HandConfig, seats []Seat, shuffle func([]Card)) (*Hand, []Event
 		events = h.emit(events, Event{Kind: EvHoleCardsDealt, Seat: p.seat, Cards: []Card{p.hole[0], p.hole[1]}})
 	}
 
-	// First to act preflop: left of the big blind (heads-up: the button).
+	// First to act preflop: left of the big blind (heads-up: the button),
+	// or left of the straddler.
 	var first int
-	if len(h.players) == 2 {
+	switch {
+	case h.straddleSeat >= 0:
+		first = h.next(h.index(h.straddleSeat))
+	case len(h.players) == 2:
 		first = bi
-	} else {
+	default:
 		first = h.next(h.index(h.bbSeat))
 	}
 	h.phase = PhaseBetting
@@ -396,6 +428,32 @@ func (h *Hand) Done() bool { return h.phase == PhaseResult }
 
 // Street currently being played.
 func (h *Hand) Street() Street { return h.street }
+
+// StraddleSeat is the seat that posted a straddle, -1 when none.
+func (h *Hand) StraddleSeat() int { return h.straddleSeat }
+
+// Board2 is the second board of a hand run twice (nil otherwise).
+func (h *Hand) Board2() []Card { return append([]Card(nil), h.board2...) }
+
+// RunTwice reports whether the run-out deals two boards.
+func (h *Hand) RunTwice() bool { return h.runTwice }
+
+// CanRunItTwice reports whether the hand is at the start of a run-out with
+// cards still to come, so the players may agree to run it twice.
+func (h *Hand) CanRunItTwice() bool {
+	return h.phase == PhaseDealPending && h.runout && !h.runTwice && len(h.board) < 5
+}
+
+// RunItTwice switches the pending run-out to two boards; every pot is split
+// in halves awarded per board (odd chip to the first board).
+func (h *Hand) RunItTwice() error {
+	if !h.CanRunItTwice() {
+		return ErrWrongPhase
+	}
+	h.runTwice = true
+	h.board2 = append([]Card(nil), h.board...)
+	return nil
+}
 
 // Board returns the community cards dealt so far.
 func (h *Hand) Board() []Card { return append([]Card(nil), h.board...) }
@@ -644,7 +702,7 @@ func (h *Hand) Apply(seat int, a Action) ([]Event, error) {
 		h.aggressor = h.toAct
 	}
 	p.lastAction = &Action{Kind: kind, Amount: amount}
-	events := h.emit(nil, Event{Kind: EvAction, Seat: p.seat, Action: kind, Amount: amount, AllIn: p.allIn})
+	events := h.emit(nil, Event{Kind: EvAction, Seat: p.seat, Action: kind, Amount: amount, AllIn: p.allIn, Street: h.street})
 	return h.settle(events, h.toAct, false), nil
 }
 
@@ -872,6 +930,14 @@ func (h *Hand) Advance() ([]Event, error) {
 	}
 	h.board = append(h.board, dealt...)
 	events := h.emit(nil, Event{Kind: EvStreetDealt, Seat: -1, Street: h.street, Cards: dealt})
+	if h.runTwice {
+		second := make([]Card, 0, n)
+		for i := 0; i < n; i++ {
+			second = append(second, h.draw())
+		}
+		h.board2 = append(h.board2, second...)
+		events = h.emit(events, Event{Kind: EvStreetDealt, Seat: -1, Street: h.street, Cards: second, Board: 2})
+	}
 	if h.runout {
 		if h.street == River {
 			return h.showdown(events), nil
@@ -947,10 +1013,15 @@ func (h *Hand) finishUncontested(events []Event, winner *player) []Event {
 // potWinners evaluates every live hand and returns, per pot, the winning
 // seats in clockwise order from the button.
 func (h *Hand) potWinners(pots []Pot) ([][]int, map[int]HandValue) {
+	return h.potWinnersOn(pots, h.board)
+}
+
+// potWinnersOn is potWinners for an explicit board (run it twice).
+func (h *Hand) potWinnersOn(pots []Pot, board []Card) ([][]int, map[int]HandValue) {
 	values := make(map[int]HandValue, len(h.players))
 	for _, p := range h.players {
 		if !p.folded {
-			values[p.seat] = Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...))
+			values[p.seat] = Evaluate(append([]Card{p.hole[0], p.hole[1]}, board...))
 		}
 	}
 	out := make([][]int, len(pots))
@@ -1095,15 +1166,15 @@ func (h *Hand) mustShow(p *player) bool {
 }
 
 // awardPots evaluates the live hands, pays every pot and finishes the hand.
+// A hand run twice pays each pot in two halves, one per board (the odd chip
+// goes with the first board).
 func (h *Hand) awardPots(events []Event) []Event {
 	pots := h.pots()
-	winners, values := h.potWinners(pots)
 	res := &Results{Seats: make(map[int]SeatResult, len(h.players))}
-	for i, pot := range pots {
-		ws := winners[i]
-		share := pot.Amount / int64(len(ws))
-		odd := pot.Amount - share*int64(len(ws))
-		award := PotAward{Index: i, Amount: pot.Amount, Description: values[ws[0]].Describe()}
+	pay := func(i int, amount int64, ws []int, desc string, board int) {
+		share := amount / int64(len(ws))
+		odd := amount - share*int64(len(ws))
+		award := PotAward{Index: i, Amount: amount, Description: desc, Board: board}
 		for _, seat := range ws {
 			amt := share
 			if odd > 0 {
@@ -1117,6 +1188,23 @@ func (h *Hand) awardPots(events []Event) []Event {
 		}
 		res.Pots = append(res.Pots, award)
 	}
+	winners, values := h.potWinners(pots)
+	var winners2 [][]int
+	var values2 map[int]HandValue
+	if h.runTwice {
+		winners2, values2 = h.potWinnersOn(pots, h.board2)
+	}
+	for i, pot := range pots {
+		if !h.runTwice {
+			pay(i, pot.Amount, winners[i], values[winners[i][0]].Describe(), 0)
+			continue
+		}
+		half := pot.Amount / 2
+		pay(i, pot.Amount-half, winners[i], values[winners[i][0]].Describe(), 1)
+		if half > 0 {
+			pay(i, half, winners2[i], values2[winners2[i][0]].Describe(), 2)
+		}
+	}
 	// Winners that have not shown yet (run-out with a late joiner is not
 	// possible, but a winners-only policy without staging is) show now.
 	var reveals []Reveal
@@ -1125,7 +1213,7 @@ func (h *Hand) awardPots(events []Event) []Event {
 			continue
 		}
 		wins := false
-		for _, ws := range winners {
+		for _, ws := range append(append([][]int{}, winners...), winners2...) {
 			for _, seat := range ws {
 				if seat == p.seat {
 					wins = true
@@ -1142,7 +1230,7 @@ func (h *Hand) awardPots(events []Event) []Event {
 	}
 	for _, award := range res.Pots {
 		for _, w := range award.Winners {
-			events = h.emit(events, Event{Kind: EvPotAwarded, PotIndex: award.Index, Seat: w.Seat, Amount: w.Amount, Description: award.Description})
+			events = h.emit(events, Event{Kind: EvPotAwarded, PotIndex: award.Index, Seat: w.Seat, Amount: w.Amount, Description: award.Description, Board: award.Board})
 		}
 	}
 	return h.finish(events, res, pots)

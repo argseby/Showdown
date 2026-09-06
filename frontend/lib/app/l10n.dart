@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_localizations.dart';
 
@@ -7,10 +8,24 @@ export '../l10n/app_localizations.dart';
 
 /// `null` means "follow the browser language".
 class LocalePreferenceNotifier extends Notifier<Locale?> {
-  @override
-  Locale? build() => null;
+  static const _key = 'pref:locale';
 
-  void set(Locale? locale) => state = locale;
+  @override
+  Locale? build() {
+    SharedPreferences.getInstance().then((p) {
+      final code = p.getString(_key);
+      if (code != null && code.isNotEmpty) state = Locale(code);
+    }).ignore();
+    return null;
+  }
+
+  /// Sets the language and remembers it across reloads.
+  void set(Locale? locale) {
+    state = locale;
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(_key, locale?.languageCode ?? ''))
+        .ignore();
+  }
 
   /// Cycles through the supported locales starting from [current].
   void next(Locale current) {
@@ -18,7 +33,7 @@ class LocalePreferenceNotifier extends Notifier<Locale?> {
     final index = supported.indexWhere(
       (l) => l.languageCode == current.languageCode,
     );
-    state = supported[(index + 1) % supported.length];
+    set(supported[(index + 1) % supported.length]);
   }
 }
 

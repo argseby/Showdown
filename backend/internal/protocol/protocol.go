@@ -33,6 +33,8 @@ const (
 	TypeVoiceSignal = "voice_signal"
 	TypeRabbit      = "rabbit_hunt"
 	TypeSay         = "say"
+	TypeStraddle    = "straddle"
+	TypeRunTwice    = "run_twice"
 	TypeChat        = "chat"
 	TypePing        = "ping"
 )
@@ -143,9 +145,22 @@ type PhrasePayload struct {
 	TS     int64  `json:"ts"`
 }
 
-// VoicePayload announces the sender's voice-chat state: "off", "on", "muted".
+// VoicePayload announces the sender's voice-chat state: "off", "on", "muted",
+// plus whether their camera is on (video travels browser to browser too).
 type VoicePayload struct {
-	State string `json:"state"`
+	State  string `json:"state"`
+	Camera bool   `json:"camera,omitempty"`
+}
+
+// StraddlePayload arms or disarms the player's straddle: when they are the
+// seat left of the big blind, they post twice the big blind before the deal.
+type StraddlePayload struct {
+	On bool `json:"on"`
+}
+
+// RunTwicePayload is a player's answer to running out the board twice.
+type RunTwicePayload struct {
+	Agree bool `json:"agree"`
 }
 
 // VoiceSignal is one WebRTC signalling message (offer, answer or ICE
@@ -224,9 +239,15 @@ type PublicSettings struct {
 	ChatEnabled      bool   `json:"chat_enabled"`
 	SpectatorChat    bool   `json:"spectator_chat"`
 	RequiresPassword bool   `json:"requires_password"`
-	AllowRabbitHunt  bool   `json:"allow_rabbit_hunt"`
-	BlindsUpMinutes  int    `json:"blinds_up_minutes"`
-	BlindsUpPercent  int    `json:"blinds_up_percent"`
+	// TimeBankSeconds is each player's extra thinking time (0 = off).
+	TimeBankSeconds int `json:"time_bank_seconds"`
+	// AllowStraddle lets the seat left of the big blind post a straddle.
+	AllowStraddle bool `json:"allow_straddle"`
+	// RunItTwice offers to deal the run-out twice when everyone is all-in.
+	RunItTwice      bool `json:"run_it_twice"`
+	AllowRabbitHunt bool `json:"allow_rabbit_hunt"`
+	BlindsUpMinutes int  `json:"blinds_up_minutes"`
+	BlindsUpPercent int  `json:"blinds_up_percent"`
 }
 
 // SeatView is one seat; Player is null for an empty seat.
@@ -238,12 +259,20 @@ type SeatView struct {
 // PlayerView is a seated player as seen by one recipient. HoleCards is
 // present only for the recipient's own seat and for revealed hands.
 type PlayerView struct {
-	ID            string      `json:"id"`
-	Name          string      `json:"name"`
-	Avatar        int         `json:"avatar"`
-	Voice         string      `json:"voice"`            // off | on | muted
-	Muted         bool        `json:"muted,omitempty"`  // chat muted by the host
-	Mucked        bool        `json:"mucked,omitempty"` // declined to show at the showdown
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Avatar int    `json:"avatar"`
+	Voice  string `json:"voice"`            // off | on | muted
+	Muted  bool   `json:"muted,omitempty"`  // chat muted by the host
+	Mucked bool   `json:"mucked,omitempty"` // declined to show at the showdown
+	Camera bool   `json:"camera,omitempty"` // video on (browser to browser)
+	// Equity is the seat's share of the pot in percent during a run-out.
+	Equity *float64 `json:"equity,omitempty"`
+	// TimeBank is the player's remaining extra thinking time in seconds.
+	TimeBank int `json:"time_bank,omitempty"`
+	// Place is the final placement once the player is out (no rebuy) or the
+	// table ended; 0 = still playing.
+	Place         int         `json:"place,omitempty"`
 	Stack         int64       `json:"stack"`
 	Status        string      `json:"status"`
 	Connected     bool        `json:"connected"`
@@ -281,6 +310,16 @@ type HandView struct {
 	// PhaseEndsTS is when the showdown or result phase ends (the next deal
 	// follows the result phase); absent while betting.
 	PhaseEndsTS int64 `json:"phase_ends_ts,omitempty"`
+	// Board2 is the second board when the hand is run twice.
+	Board2 []string `json:"board2,omitempty"`
+	// StraddleSeat is the seat that posted a straddle this hand.
+	StraddleSeat *int `json:"straddle_seat,omitempty"`
+	// TimeBankActive: the player on turn is spending their time bank.
+	TimeBankActive bool `json:"time_bank_active,omitempty"`
+	// RunTwice is true once everyone agreed to run it twice.
+	RunTwice bool `json:"run_twice,omitempty"`
+	// RunTwiceEndsTS is when the run-it-twice vote closes (during a run-out).
+	RunTwiceEndsTS int64 `json:"run_twice_ends_ts,omitempty"`
 }
 
 // PotView is one pot with the seats that can win it.
@@ -310,6 +349,13 @@ type You struct {
 	PendingSeat *int `json:"pending_seat,omitempty"`
 	// CanChangeSeat is false during the seat-change cooldown.
 	CanChangeSeat bool `json:"can_change_seat"`
+	// Straddle: the player posts a straddle whenever they are left of the
+	// big blind (table setting allow_straddle).
+	Straddle bool `json:"straddle,omitempty"`
+	// CanRunTwice: the player may still answer the run-it-twice vote.
+	CanRunTwice bool `json:"can_run_twice,omitempty"`
+	// RunTwiceVote is the player's answer once given.
+	RunTwiceVote *bool `json:"run_twice_vote,omitempty"`
 }
 
 // OptionsView lists the legal actions when it is the recipient's turn.
@@ -334,6 +380,13 @@ type LeaderboardEntry struct {
 	Net        int64  `json:"net"`
 	HandsWon   int    `json:"hands_won"`
 	BiggestPot int64  `json:"biggest_pot"`
+	// Statistics (omitted when zero): hands dealt in, hands with chips put
+	// in voluntarily preflop, showdowns reached and won, final placement.
+	HandsPlayed  int `json:"hands_played,omitempty"`
+	VPIPHands    int `json:"vpip_hands,omitempty"`
+	Showdowns    int `json:"showdowns,omitempty"`
+	ShowdownsWon int `json:"showdowns_won,omitempty"`
+	Place        int `json:"place,omitempty"`
 }
 
 // EventsPayload carries the events that led to the following snapshot.
@@ -372,6 +425,7 @@ type Event struct {
 	Blinds      *Blinds          `json:"blinds,omitempty"`
 	Ante        *int64           `json:"ante,omitempty"`
 	Stacks      map[string]int64 `json:"stacks,omitempty"` // seat -> stack (JSON object keys are strings)
+	Board       int              `json:"board,omitempty"`  // street_dealt / pot_awarded: 2 = second board (run it twice)
 }
 
 // Blinds in a hand_started event.
@@ -401,6 +455,7 @@ type PotResult struct {
 	Amount      int64       `json:"amount"`
 	Winners     []PotWinner `json:"winners"`
 	Description string      `json:"description"`
+	Board       int         `json:"board,omitempty"` // 1 or 2 when the hand was run twice
 }
 
 // PotWinner is one recipient of a pot.

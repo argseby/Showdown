@@ -67,6 +67,23 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   `hand_ended` events follow the last one. `seats[].player.mucked` marks a player
 >   who mucked. A run-out (everyone all-in) still reveals all hands at once.
 > - **`seats[].player.muted`** (omitted when false): chat-muted by the host.
+> - **Time bank (2026-09-05).** Setting `time_bank_seconds` (default 30, 0 = off): when
+>   a connected player's turn clock runs out, their remaining time bank is added once
+>   (`hand.time_bank_active`, `deadline_ts` moves); unused seconds are refunded when they
+>   act, the bank is emptied when the extension runs out too, and every hand played
+>   refills 5 s up to the maximum. `seats[].player.time_bank` shows the balance.
+> - **Run-out equity.** During a run-out (`hand.phase = "runout"`, everyone all-in) each
+>   live seat carries `player.equity`, its share of the pot in percent for the cards to
+>   come (exhaustive with two or fewer cards to come, 20 000 samples otherwise); it is
+>   refreshed after every street.
+> - **Statistics and placements.** `leaderboard[]` (and `table_ended.final_leaderboard`)
+>   carry `hands_played`, `vpip_hands` (hands with chips put in voluntarily preflop),
+>   `showdowns`, `showdowns_won` and `place`. Without rebuys a bust is final and the
+>   player gets `place` = players still holding chips + 1; when one player holds all the
+>   chips the table ends after the hand and the remaining players are placed by stack.
+>   The leaderboard sorts placed players by place.
+> - **Host camera off.** `POST /api/admin/tables/{id}/players/{pid}/camera-off` clears
+>   `player.camera`; the player can turn it on again.
 > - **Host microphone mute.** `POST /api/admin/tables/{id}/players/{pid}/voice-mute`
 >   sets the player's `voice` to `muted` (error `illegal_action` unless it was `on`);
 >   the player's client mutes its microphone when it sees that and may unmute again
@@ -115,9 +132,11 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `show_cards` | `{cards?: "both"\|"first"\|"second"}` | only during the result phase, by an uncontested winner or a mucked player; one card at a time is allowed (a partial reveal lists the hidden card as `""`) |
 | `pre_action` | `{kind: "none"\|"check_fold"\|"call_any"}` | an automatic action performed at every turn of the player (check if free else fold / call any bet else check), in this hand and the following ones, until they send `none`, sit out or leave; may be armed between hands; `you.pre_action` mirrors it |
 | `change_seat` | `{seat}` | move to a free seat at the next deal (errors `seat_taken`, `invalid_state` during the cooldown); `you.pending_seat`, `you.can_change_seat`; events `player_moved {seat, name, delta = old seat}` and `blind_posted {blind: "dead"}` |
-| `voice` | `{state: "off"\|"on"\|"muted"}` | voice-chat presence, shown to everyone as `seats[].player.voice`; reset to off when the connection drops |
+| `voice` | `{state: "off"\|"on"\|"muted", camera?}` | voice-chat presence, shown to everyone as `seats[].player.voice`, and whether the player's camera is on (`seats[].player.camera`; the video travels browser to browser like the audio); reset when the connection drops |
 | `voice_signal` | `{to, kind: "offer"\|"answer"\|"ice", data}` | WebRTC setup message relayed to the target player as `voice_signal {from, kind, data}` (server push); the audio itself is browser-to-browser and never touches the server; `data` is opaque, at most 6 KB |
 | `rabbit_hunt` | `{}` | result phase, once per hand, by a player dealt in, when `allow_rabbit_hunt`: reveals the rest of the board (`rabbit_hunt` event, `hand.rabbit_cards`) |
+| `straddle` | `{on}` | arms/disarms the player's straddle (setting `allow_straddle`): whenever they sit left of the big blind with more than 2 BB they post 2×BB before the deal (`blind_posted {blind: "straddle"}`, `hand.straddle_seat`), act last preflop, and the minimum raise is twice the straddle; `you.straddle` mirrors it |
+| `run_twice` | `{agree}` | answer to the run-it-twice vote (setting `run_it_twice`): when everyone is all-in with cards to come the run-out waits up to 8 s (`hand.run_twice_ends_ts`, `you.can_run_twice`, `you.run_twice_vote`); if every live player agrees the remaining streets are dealt twice (`street_dealt {board: 2}`, `hand.board2`, `hand.run_twice`) and each pot is paid in halves per board (`pot_awarded {board: 1|2}`, odd chip to board 1); a single "no" or the timeout runs it once |
 | `say` | `{phrase}` | one of the quick phrases `nice_hand, nice_call, nice_fold, nice_bluff, well_played, gg, thanks, sorry, wow, oops, furious, lol, hurry_up, brb`; players only, at most one every 3 s (`rate_limited`), rejected while chat-muted; broadcast as `phrase` and never persisted |
 | `chat` | `{text}` | |
 | `ping` | `{}` | client keepalive; server answers `pong` |

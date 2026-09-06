@@ -79,6 +79,15 @@ func (s *Store) Close() error {
 }
 
 // DB exposes the underlying handle for repositories and tests.
+// BackupTo writes a consistent copy of the database to path (VACUUM INTO);
+// the target must not exist yet.
+func (s *Store) BackupTo(ctx context.Context, path string) error {
+	if _, err := s.db.ExecContext(ctx, `VACUUM INTO ?`, path); err != nil {
+		return fmt.Errorf("backup: %w", err)
+	}
+	return nil
+}
+
 func (s *Store) DB() *sql.DB {
 	return s.db
 }

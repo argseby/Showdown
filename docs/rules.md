@@ -32,6 +32,14 @@ simplification it says so. This section is moved verbatim to `docs/rules.md` in 
    poster's stake is settled through side pots.
 5. Blind and ante amounts are the table settings at the moment the hand starts.
 
+#### 7.2a Straddle (table setting `allow_straddle`, off by default)
+
+With three or more players the seat left of the big blind may post a straddle of twice
+the big blind before the cards are dealt (the player arms it; it applies whenever they
+are in that seat and hold more than 2 BB). The straddle is a live blind: it sets the
+price preflop, the first to act is the seat left of the straddler, the straddler acts
+last with the option, and the minimum raise is twice the straddle.
+
 ### 7.3 Dealing
 
 1. Deck of 52 cards shuffled with Fisher–Yates using `crypto/rand` (engine receives the
@@ -102,6 +110,14 @@ UI can label "Main pot" / "Side pot 1…".
    at most one is all-in), all live hands are revealed immediately and the remaining
    streets are dealt automatically with `runout_delay_ms` between them.
 
+#### 7.7a Run it twice (table setting `run_it_twice`, off by default)
+
+When betting is over with at least two live hands and cards still to come, the run-out
+waits up to 8 seconds for every live player to agree to run it twice. If all agree, the
+remaining streets are dealt twice from the same deck (board 1 first, then board 2, street
+by street) and every pot is paid in two halves, one per board, the odd chip going with
+board 1. A single "no" or the timeout runs the board once.
+
 ### 7.8 Showdown
 
 1. Each live player's best five-card hand is evaluated from their two hole cards plus the
@@ -136,7 +152,11 @@ event in the randomized simulation (§11).
 
 1. Each turn has a deadline: `now + turn_time` (or `disconnected_turn_time` if the
    player is disconnected when the turn starts). The snapshot carries `deadline_ts`.
-2. On timeout: `check` if legal, else `fold`; `missed_turns++`. A manual action resets
+2. **Time bank** (`time_bank_seconds`, default 30, 0 = off): when a connected player's
+   clock runs out, their remaining bank is added to the turn once; unused seconds are
+   refunded when they act, and every hand played refills 5 seconds up to the maximum.
+   Only when the extension runs out too does the timeout rule apply: `check` if legal,
+   else `fold`; `missed_turns++`. A manual action resets
    `missed_turns` to 0. Reaching `sit_out_after_missed_turns` sets the player to
    `sitting_out` after the hand.
 3. A player may `sit_out` at any time (takes effect next hand; if they are in a hand they

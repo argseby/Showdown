@@ -12,6 +12,7 @@ class StoredSession {
     this.playerId,
     this.voice = false,
     this.voiceMuted = false,
+    this.voiceCamera = false,
   });
 
   factory StoredSession.fromJson(Map<String, dynamic> json) => StoredSession(
@@ -21,6 +22,7 @@ class StoredSession {
     playerId: json['player_id'] as String?,
     voice: json['voice'] as bool? ?? false,
     voiceMuted: json['voice_muted'] as bool? ?? false,
+    voiceCamera: json['voice_camera'] as bool? ?? false,
   );
 
   final String token;
@@ -34,14 +36,19 @@ class StoredSession {
   /// The microphone was muted when the page was last open.
   final bool voiceMuted;
 
-  StoredSession copyWith({bool? voice, bool? voiceMuted}) => StoredSession(
-    token: token,
-    role: role,
-    name: name,
-    playerId: playerId,
-    voice: voice ?? this.voice,
-    voiceMuted: voiceMuted ?? this.voiceMuted,
-  );
+  /// The camera was on when the page was last open.
+  final bool voiceCamera;
+
+  StoredSession copyWith({bool? voice, bool? voiceMuted, bool? voiceCamera}) =>
+      StoredSession(
+        token: token,
+        role: role,
+        name: name,
+        playerId: playerId,
+        voice: voice ?? this.voice,
+        voiceMuted: voiceMuted ?? this.voiceMuted,
+        voiceCamera: voiceCamera ?? this.voiceCamera,
+      );
 
   Map<String, dynamic> toJson() => {
     'token': token,
@@ -50,6 +57,7 @@ class StoredSession {
     if (playerId != null) 'player_id': playerId,
     if (voice) 'voice': true,
     if (voiceMuted) 'voice_muted': true,
+    if (voiceCamera) 'voice_camera': true,
   };
 }
 

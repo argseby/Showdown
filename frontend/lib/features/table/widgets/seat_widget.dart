@@ -34,7 +34,19 @@ class SeatWidget extends ConsumerWidget {
     this.phrase,
     this.onAdminTap,
     this.onSayTap,
+    this.equity,
+    this.timeBankActive = false,
+    this.videoViewType,
   });
+
+  /// Pot share in percent during a run-out.
+  final double? equity;
+
+  /// The seat is on turn and spending its time bank.
+  final bool timeBankActive;
+
+  /// Platform view of the player's camera; replaces the avatar picture.
+  final String? videoViewType;
 
   /// Own seat only: opens the quick-phrase picker (small bubble button).
   final VoidCallback? onSayTap;
@@ -173,6 +185,17 @@ class SeatWidget extends ConsumerWidget {
     }
     if (inHand && p.allIn) badges.add(_Badge(l10n.badgeAllIn, primary: true));
     if (inHand && p.folded) badges.add(_Badge(l10n.badgeFolded));
+    if (hand?.straddleSeat == seat) badges.add(_Badge(l10n.badgeStraddle));
+    if (timeBankActive) {
+      badges.add(
+        _Badge(l10n.timeBankLeft(p.timeBank ?? 0), key: Key('timebank-$seat')),
+      );
+    }
+    if (equity != null && inHand && !p.folded) {
+      badges.add(
+        _Badge('${equity!.round()}%', key: Key('equity-$seat'), primary: true),
+      );
+    }
     if (inHand && (p.mucked ?? false)) badges.add(_Badge(l10n.badgeMucked));
     if (hand != null && !p.inHand && p.status == 'active') {
       badges.add(_Badge(l10n.badgeWaiting));
@@ -203,7 +226,18 @@ class SeatWidget extends ConsumerWidget {
                 ? Border.all(color: theme.colorScheme.primary, width: 2)
                 : null,
           ),
-          child: PlayerAvatar(index: p.avatar, size: avatarSize),
+          child: videoViewType != null
+              ? ClipOval(
+                  child: SizedBox(
+                    width: avatarSize,
+                    height: avatarSize,
+                    child: HtmlElementView(
+                      key: ValueKey(videoViewType),
+                      viewType: videoViewType!,
+                    ),
+                  ),
+                )
+              : PlayerAvatar(index: p.avatar, size: avatarSize),
         ),
         if (winner)
           Positioned(

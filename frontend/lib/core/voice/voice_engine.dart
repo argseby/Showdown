@@ -28,6 +28,20 @@ class VoiceConnectedEvent extends VoiceEvent {
   final bool connected;
 }
 
+/// A remote (or, for [VoiceEngine.self], the local) video stream appeared or
+/// went away. [viewType] is the platform view registered for it.
+class VoiceVideoEvent extends VoiceEvent {
+  const VoiceVideoEvent(super.peerId, this.viewType);
+  final String? viewType;
+}
+
+/// The connection to [peerId] needs a new offer (a track was added); the
+/// controller relays [offer] like an initial one.
+class VoiceOfferEvent extends VoiceEvent {
+  const VoiceOfferEvent(super.peerId, this.offer);
+  final String offer;
+}
+
 /// Browser-to-browser audio (WebRTC mesh). The server never carries audio;
 /// it only relays the setup messages that this engine produces and consumes.
 /// Non-web platforms get a stub that reports the feature as unavailable.
@@ -40,6 +54,11 @@ abstract class VoiceEngine {
   Future<bool> start({List<String> stunUrls = const []});
   void stop();
   void setMuted(bool muted);
+
+  /// Adds a small camera stream (160x120, 10 fps) to every connection;
+  /// false when the browser refuses the camera.
+  Future<bool> startCamera();
+  void stopCamera();
 
   /// Creates an offer for [peerId] and returns its serialized description.
   Future<String> createOffer(String peerId);

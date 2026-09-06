@@ -24,10 +24,18 @@ const shutdownTimeout = 10 * time.Second
 
 func main() {
 	healthcheck := flag.Bool("healthcheck", false, "probe the running server's /readyz and exit (used by the container healthcheck)")
+	backup := flag.String("backup", "", "write a consistent copy of the database to this file and exit (safe while the server runs)")
 	flag.Parse()
 
 	if *healthcheck {
 		if err := runHealthcheck(os.Getenv("LISTEN_ADDR")); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
+	if *backup != "" {
+		if err := runBackup(*backup); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -38,6 +46,27 @@ func main() {
 		fmt.Fprintln(os.Stderr, "fatal:", err)
 		os.Exit(1)
 	}
+}
+
+// runBackup copies the live database with SQLite's VACUUM INTO, which yields
+// a consistent single-file snapshot even while the server is writing.
+func runBackup(path string) error {
+	cfg, err := config.Load(os.Getenv)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	st, err := store.Open(ctx, cfg.DataDir, slog.New(slog.DiscardHandler))
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	if err := st.BackupTo(ctx, path); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stdout, "backup written to", path)
+	return nil
 }
 
 func run() error {

@@ -1357,4 +1357,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabSettings => 'Settings';
+
+  @override
+  String get setTimeBank => 'Time bank (seconds, 0 = off)';
+
+  @override
+  String get errTimeBank => '0 to 120 seconds';
+
+  @override
+  String get setAllowStraddle => 'Allow straddle';
+
+  @override
+  String get setRunItTwice => 'Offer run it twice';
+
+  @override
+  String logStraddle(String name, String amount) {
+    return '$name posts a straddle $amount';
+  }
+
+  @override
+  String logBoard2(String street, String cards) {
+    return 'Board 2 · $street: $cards';
+  }
+
+  @override
+  String boardLabel(int n) {
+    return 'Board $n';
+  }
+
+  @override
+  String get badgeStraddle => 'STR';
+
+  @override
+  String timeBankStrip(int seconds) {
+    return 'Time bank · $seconds s';
+  }
+
+  @override
+  String timeBankLeft(int seconds) {
+    return 'Time bank $seconds s';
+  }
+
+  @override
+  String get straddleToggle => 'Straddle';
+
+  @override
+  String get straddleHint =>
+      'Post twice the big blind before the deal when you sit left of the big blind.';
+
+  @override
+  String get runTwiceQuestion => 'Run it twice?';
+
+  @override
+  String get runTwiceYes => 'Yes, twice';
+
+  @override
+  String get runTwiceNo => 'No, once';
+
+  @override
+  String get runTwiceWaiting => 'Waiting for the others…';
+
+  @override
+  String get runTwiceDeclined => 'Running it once';
+
+  @override
+  String get lbHandsPlayed => 'Hands played';
+
+  @override
+  String get lbVpip => 'Voluntarily in the pot';
+
+  @override
+  String get lbShowdowns => 'Showdowns won / seen';
+
+  @override
+  String placeLabel(int place) {
+    return '$place.';
+  }
+
+  @override
+  String get outBadge => 'Out';
+
+  @override
+  String get logExportText => 'Export text';
+
+  @override
+  String get logExportJson => 'Export JSON';
+
+  @override
+  String get logExported => 'History exported';
+
+  @override
+  String get notifyTurn => 'Notify me when it\'s my turn';
+
+  @override
+  String get notifyTurnHint =>
+      'A system notification (and a vibration on phones) when the tab is in the background.';
+
+  @override
+  String get notifyDenied => 'Notifications are blocked in this browser.';
+
+  @override
+  String get notifyTitle => 'Your turn';
+
+  @override
+  String notifyBody(String table) {
+    return 'It\'s your turn at $table';
+  }
+
+  @override
+  String get cameraTitle => 'Camera';
+
+  @override
+  String get cameraOn => 'Camera on';
+
+  @override
+  String get cameraOff => 'Camera off';
+
+  @override
+  String get cameraHint =>
+      'A small video next to your avatar, sent browser to browser like the voice. Works best with up to six players.';
+
+  @override
+  String get cameraUnavailable => 'The browser did not grant the camera.';
+
+  @override
+  String get cameraOffByHost =>
+      'The host turned your camera off. You can turn it on again.';
+
+  @override
+  String get adminCameraOff => 'Turn camera off';
+
+  @override
+  String get adminCameraOffDone => 'Camera turned off';
 }

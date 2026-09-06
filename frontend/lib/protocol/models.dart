@@ -54,7 +54,10 @@ abstract class ShowCardsPayload with _$ShowCardsPayload {
 /// voice payload: the sender's voice-chat state ("off", "on", "muted").
 @freezed
 abstract class VoicePayload with _$VoicePayload {
-  const factory VoicePayload({required String state}) = _VoicePayload;
+  const factory VoicePayload({
+    required String state,
+    @JsonKey(includeIfNull: false) bool? camera,
+  }) = _VoicePayload;
   factory VoicePayload.fromJson(Map<String, dynamic> json) =>
       _$VoicePayloadFromJson(json);
 }
@@ -70,6 +73,22 @@ abstract class VoiceSignal with _$VoiceSignal {
   }) = _VoiceSignal;
   factory VoiceSignal.fromJson(Map<String, dynamic> json) =>
       _$VoiceSignalFromJson(json);
+}
+
+/// straddle payload: arm or disarm the straddle.
+@freezed
+abstract class StraddlePayload with _$StraddlePayload {
+  const factory StraddlePayload({required bool on}) = _StraddlePayload;
+  factory StraddlePayload.fromJson(Map<String, dynamic> json) =>
+      _$StraddlePayloadFromJson(json);
+}
+
+/// run_twice payload: the answer to the run-it-twice vote.
+@freezed
+abstract class RunTwicePayload with _$RunTwicePayload {
+  const factory RunTwicePayload({required bool agree}) = _RunTwicePayload;
+  factory RunTwicePayload.fromJson(Map<String, dynamic> json) =>
+      _$RunTwicePayloadFromJson(json);
 }
 
 /// say payload: one of the predefined quick phrases.
@@ -208,6 +227,9 @@ abstract class PublicSettings with _$PublicSettings {
     required bool allowRabbitHunt,
     required int blindsUpMinutes,
     required int blindsUpPercent,
+    @Default(0) int timeBankSeconds,
+    @Default(false) bool allowStraddle,
+    @Default(false) bool runItTwice,
   }) = _PublicSettings;
   factory PublicSettings.fromJson(Map<String, dynamic> json) =>
       _$PublicSettingsFromJson(json);
@@ -230,6 +252,10 @@ abstract class PlayerView with _$PlayerView {
     @Default('off') String voice,
     @JsonKey(includeIfNull: false) bool? muted,
     @JsonKey(includeIfNull: false) bool? mucked,
+    @JsonKey(includeIfNull: false) bool? camera,
+    @JsonKey(includeIfNull: false) double? equity,
+    @JsonKey(includeIfNull: false) int? timeBank,
+    @JsonKey(includeIfNull: false) int? place,
     required int stack,
     required String status,
     required bool connected,
@@ -269,6 +295,11 @@ abstract class HandView with _$HandView {
     required String phase,
     @JsonKey(includeIfNull: false) List<String>? rabbitCards,
     @JsonKey(includeIfNull: false) int? phaseEndsTs,
+    @JsonKey(includeIfNull: false) List<String>? board2,
+    @JsonKey(includeIfNull: false) int? straddleSeat,
+    @JsonKey(includeIfNull: false) bool? timeBankActive,
+    @JsonKey(includeIfNull: false) bool? runTwice,
+    @JsonKey(includeIfNull: false) int? runTwiceEndsTs,
   }) = _HandView;
   factory HandView.fromJson(Map<String, dynamic> json) =>
       _$HandViewFromJson(json);
@@ -300,6 +331,9 @@ abstract class You with _$You {
     required bool canRabbitHunt,
     @JsonKey(includeIfNull: false) int? pendingSeat,
     @Default(false) bool canChangeSeat,
+    @JsonKey(includeIfNull: false) bool? straddle,
+    @JsonKey(includeIfNull: false) bool? canRunTwice,
+    @JsonKey(includeIfNull: false) bool? runTwiceVote,
   }) = _You;
   factory You.fromJson(Map<String, dynamic> json) => _$YouFromJson(json);
 }
@@ -332,6 +366,11 @@ abstract class LeaderboardEntry with _$LeaderboardEntry {
     required int net,
     required int handsWon,
     required int biggestPot,
+    @JsonKey(includeIfNull: false) int? handsPlayed,
+    @JsonKey(includeIfNull: false) int? vpipHands,
+    @JsonKey(includeIfNull: false) int? showdowns,
+    @JsonKey(includeIfNull: false) int? showdownsWon,
+    @JsonKey(includeIfNull: false) int? place,
   }) = _LeaderboardEntry;
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) =>
       _$LeaderboardEntryFromJson(json);
@@ -367,6 +406,7 @@ abstract class GameEvent with _$GameEvent {
     @JsonKey(includeIfNull: false) List<PotView>? pots,
     @JsonKey(includeIfNull: false) List<Reveal>? reveals,
     @JsonKey(includeIfNull: false) int? potIndex,
+    @JsonKey(includeIfNull: false) int? board,
     @JsonKey(includeIfNull: false) String? description,
     @JsonKey(includeIfNull: false) HandResults? results,
     @JsonKey(includeIfNull: false) String? reason,

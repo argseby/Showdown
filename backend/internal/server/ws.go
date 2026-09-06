@@ -315,7 +315,8 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			}
 			err2 = t.Action(client.PlayerID, poker.Action{Kind: poker.ActionKind(a.Kind), Amount: a.Amount})
 		case protocol.TypeSitOut, protocol.TypeSitIn, protocol.TypeRebuy, protocol.TypeLeave, protocol.TypeShowCards,
-			protocol.TypePreAction, protocol.TypeRabbit, protocol.TypeChangeSeat, protocol.TypeVoice, protocol.TypeVoiceSignal:
+			protocol.TypePreAction, protocol.TypeRabbit, protocol.TypeChangeSeat, protocol.TypeVoice, protocol.TypeVoiceSignal,
+			protocol.TypeStraddle, protocol.TypeRunTwice:
 			if client.Role != table.RolePlayer {
 				err2 = table.ErrNotSeated
 				break
@@ -357,7 +358,21 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 					err2 = table.ErrIllegalAction
 					break
 				}
-				err2 = t.SetVoice(client.PlayerID, v.State)
+				err2 = t.SetVoice(client.PlayerID, v.State, v.Camera)
+			case protocol.TypeStraddle:
+				var sp protocol.StraddlePayload
+				if json.Unmarshal(env.Payload, &sp) != nil {
+					err2 = table.ErrIllegalAction
+					break
+				}
+				err2 = t.SetStraddle(client.PlayerID, sp.On)
+			case protocol.TypeRunTwice:
+				var rt protocol.RunTwicePayload
+				if json.Unmarshal(env.Payload, &rt) != nil {
+					err2 = table.ErrIllegalAction
+					break
+				}
+				err2 = t.RunTwice(client.PlayerID, rt.Agree)
 			case protocol.TypeVoiceSignal:
 				var sig protocol.VoiceSignal
 				if json.Unmarshal(env.Payload, &sig) != nil || sig.To == "" || len(sig.Data) > 6000 {

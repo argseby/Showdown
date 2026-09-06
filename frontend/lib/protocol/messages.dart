@@ -48,6 +48,10 @@ sealed class ClientMessage with _$ClientMessage {
   const factory ClientMessage.voiceSignal(VoiceSignal payload) =
       VoiceSignalClientMessage;
   const factory ClientMessage.say(SayPayload payload) = SayMessage;
+  const factory ClientMessage.straddle(StraddlePayload payload) =
+      StraddleMessage;
+  const factory ClientMessage.runTwice(RunTwicePayload payload) =
+      RunTwiceMessage;
   const factory ClientMessage.chat(ChatPayload payload) = ChatClientMessage;
   const factory ClientMessage.ping() = PingMessage;
 }
@@ -68,6 +72,8 @@ class MessageTypes {
   static const voice = 'voice';
   static const voiceSignal = 'voice_signal';
   static const say = 'say';
+  static const straddle = 'straddle';
+  static const runTwice = 'run_twice';
   static const chat = 'chat';
   static const ping = 'ping';
   static const welcome = 'welcome';
@@ -224,6 +230,10 @@ ClientMessage decodeClientMessage(Envelope env) {
         return ClientMessage.voiceSignal(VoiceSignal.fromJson(_payload(env)));
       case MessageTypes.say:
         return ClientMessage.say(SayPayload.fromJson(_payload(env)));
+      case MessageTypes.straddle:
+        return ClientMessage.straddle(StraddlePayload.fromJson(_payload(env)));
+      case MessageTypes.runTwice:
+        return ClientMessage.runTwice(RunTwicePayload.fromJson(_payload(env)));
       case MessageTypes.chat:
         return ClientMessage.chat(ChatPayload.fromJson(_payload(env)));
       case MessageTypes.ping:
@@ -285,6 +295,16 @@ Envelope encodeClientMessage(ClientMessage msg, {String? id}) => switch (msg) {
   ),
   SayMessage(:final payload) => Envelope(
     type: MessageTypes.say,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  StraddleMessage(:final payload) => Envelope(
+    type: MessageTypes.straddle,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  RunTwiceMessage(:final payload) => Envelope(
+    type: MessageTypes.runTwice,
     id: id,
     payload: payload.toJson(),
   ),

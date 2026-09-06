@@ -2455,6 +2455,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get tabSettings;
+
+  /// No description provided for @setTimeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Time bank (seconds, 0 = off)'**
+  String get setTimeBank;
+
+  /// No description provided for @errTimeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'0 to 120 seconds'**
+  String get errTimeBank;
+
+  /// No description provided for @setAllowStraddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow straddle'**
+  String get setAllowStraddle;
+
+  /// No description provided for @setRunItTwice.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer run it twice'**
+  String get setRunItTwice;
+
+  /// No description provided for @logStraddle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} posts a straddle {amount}'**
+  String logStraddle(String name, String amount);
+
+  /// No description provided for @logBoard2.
+  ///
+  /// In en, this message translates to:
+  /// **'Board 2 · {street}: {cards}'**
+  String logBoard2(String street, String cards);
+
+  /// No description provided for @boardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Board {n}'**
+  String boardLabel(int n);
+
+  /// No description provided for @badgeStraddle.
+  ///
+  /// In en, this message translates to:
+  /// **'STR'**
+  String get badgeStraddle;
+
+  /// No description provided for @timeBankStrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Time bank · {seconds} s'**
+  String timeBankStrip(int seconds);
+
+  /// No description provided for @timeBankLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Time bank {seconds} s'**
+  String timeBankLeft(int seconds);
+
+  /// No description provided for @straddleToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straddle'**
+  String get straddleToggle;
+
+  /// No description provided for @straddleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Post twice the big blind before the deal when you sit left of the big blind.'**
+  String get straddleHint;
+
+  /// No description provided for @runTwiceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Run it twice?'**
+  String get runTwiceQuestion;
+
+  /// No description provided for @runTwiceYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, twice'**
+  String get runTwiceYes;
+
+  /// No description provided for @runTwiceNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, once'**
+  String get runTwiceNo;
+
+  /// No description provided for @runTwiceWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the others…'**
+  String get runTwiceWaiting;
+
+  /// No description provided for @runTwiceDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Running it once'**
+  String get runTwiceDeclined;
+
+  /// No description provided for @lbHandsPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands played'**
+  String get lbHandsPlayed;
+
+  /// No description provided for @lbVpip.
+  ///
+  /// In en, this message translates to:
+  /// **'Voluntarily in the pot'**
+  String get lbVpip;
+
+  /// No description provided for @lbShowdowns.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdowns won / seen'**
+  String get lbShowdowns;
+
+  /// No description provided for @placeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{place}.'**
+  String placeLabel(int place);
+
+  /// No description provided for @outBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get outBadge;
+
+  /// No description provided for @logExportText.
+  ///
+  /// In en, this message translates to:
+  /// **'Export text'**
+  String get logExportText;
+
+  /// No description provided for @logExportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export JSON'**
+  String get logExportJson;
+
+  /// No description provided for @logExported.
+  ///
+  /// In en, this message translates to:
+  /// **'History exported'**
+  String get logExported;
+
+  /// No description provided for @notifyTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when it\'s my turn'**
+  String get notifyTurn;
+
+  /// No description provided for @notifyTurnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A system notification (and a vibration on phones) when the tab is in the background.'**
+  String get notifyTurnHint;
+
+  /// No description provided for @notifyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked in this browser.'**
+  String get notifyDenied;
+
+  /// No description provided for @notifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn'**
+  String get notifyTitle;
+
+  /// No description provided for @notifyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s your turn at {table}'**
+  String notifyBody(String table);
+
+  /// No description provided for @cameraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get cameraTitle;
+
+  /// No description provided for @cameraOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera on'**
+  String get cameraOn;
+
+  /// No description provided for @cameraOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera off'**
+  String get cameraOff;
+
+  /// No description provided for @cameraHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A small video next to your avatar, sent browser to browser like the voice. Works best with up to six players.'**
+  String get cameraHint;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The browser did not grant the camera.'**
+  String get cameraUnavailable;
+
+  /// No description provided for @cameraOffByHost.
+  ///
+  /// In en, this message translates to:
+  /// **'The host turned your camera off. You can turn it on again.'**
+  String get cameraOffByHost;
+
+  /// No description provided for @adminCameraOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn camera off'**
+  String get adminCameraOff;
+
+  /// No description provided for @adminCameraOffDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera turned off'**
+  String get adminCameraOffDone;
 }
 
 class _AppLocalizationsDelegate

@@ -34,9 +34,25 @@ func (t *Table) leaderboard() []protocol.LeaderboardEntry {
 			continue
 		}
 		stack := t.currentStack(p)
-		out = append(out, protocol.LeaderboardEntry{Name: p.Name, Stack: stack, Net: stack - p.BuyInTotal, HandsWon: p.HandsWon, BiggestPot: p.BiggestPot})
+		out = append(out, protocol.LeaderboardEntry{
+			Name: p.Name, Stack: stack, Net: stack - p.BuyInTotal, HandsWon: p.HandsWon, BiggestPot: p.BiggestPot,
+			HandsPlayed: p.HandsPlayed, VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon,
+			Place: p.Place,
+		})
 	}
-	sort.SliceStable(out, func(i, j int) bool { return out[i].Net > out[j].Net })
+	sort.SliceStable(out, func(i, j int) bool {
+		// Placed players (out or final standings) sort by place, the rest by net.
+		if out[i].Place != out[j].Place {
+			if out[i].Place == 0 {
+				return true
+			}
+			if out[j].Place == 0 {
+				return false
+			}
+			return out[i].Place < out[j].Place
+		}
+		return out[i].Net > out[j].Net
+	})
 	return out
 }
 
@@ -72,7 +88,10 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 			}
 			pv := &protocol.PlayerView{
 				ID: p.ID, Name: p.Name, Avatar: p.Avatar, Stack: p.Stack, Status: p.Status, Connected: p.Connected,
-				Voice: voice, Muted: p.Muted,
+				Voice: voice, Muted: p.Muted, Camera: p.Camera, TimeBank: p.TimeBank, Place: p.Place,
+			}
+			if eq, ok := t.equity[seat]; ok && p.inHand {
+				pv.Equity = &eq
 			}
 			if t.hand != nil && p.inHand {
 				if st, ok := t.hand.State(seat); ok {
@@ -111,6 +130,17 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 		if t.handPhase == "showdown" || t.handPhase == "result" {
 			hv.PhaseEndsTS = t.phaseEndsAt
 		}
+		if b2 := h.Board2(); len(b2) > 0 || h.RunTwice() {
+			hv.Board2 = cardStrings(b2)
+			hv.RunTwice = true
+		}
+		if s := h.StraddleSeat(); s >= 0 {
+			hv.StraddleSeat = protocol.Int(s)
+		}
+		hv.TimeBankActive = t.timeBankUsing
+		if t.ritVotes != nil {
+			hv.RunTwiceEndsTS = t.ritEndsAt
+		}
 		if hv.Board == nil {
 			hv.Board = []string{}
 		}
@@ -137,6 +167,16 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 			}
 			if p.pendingSeat >= 0 {
 				you.PendingSeat = protocol.Int(p.pendingSeat)
+			}
+			you.Straddle = p.straddleNext
+			if t.ritVotes != nil && p.inHand && t.hand != nil {
+				if st, ok := t.hand.State(p.Seat); ok && !st.Folded {
+					if v, voted := t.ritVotes[p.Seat]; voted {
+						you.RunTwiceVote = protocol.Bool(v)
+					} else {
+						you.CanRunTwice = true
+					}
+				}
 			}
 			you.CanChangeSeat = t.canChangeSeat(p) && t.state != StateEnded
 			if t.hand != nil && p.inHand {

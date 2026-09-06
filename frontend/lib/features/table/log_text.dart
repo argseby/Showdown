@@ -36,6 +36,7 @@ String? logLineText(
       return switch (e.blind) {
         'small' => l.logSmallBlind(name(), chips(e.amount)),
         'dead' => l.logDeadBlind(name(), chips(e.amount)),
+        'straddle' => l.logStraddle(name(), chips(e.amount)),
         _ => l.logBigBlind(name(), chips(e.amount)),
       };
     case 'hole_cards_dealt':
@@ -63,6 +64,7 @@ String? logLineText(
       return l.logUncalled(chips(e.amount), name());
     case 'street_dealt':
       final cards = prettyCards(e.cards ?? const []);
+      if (e.board == 2) return l.logBoard2(e.street ?? '', cards);
       switch (e.street) {
         case 'flop':
           return l.logFlop(cards);
@@ -83,7 +85,8 @@ String? logLineText(
       }
       return lines.isEmpty ? null : lines.join('\n');
     case 'pot_awarded':
-      final pot = potLabel(l, e.potIndex ?? 0);
+      var pot = potLabel(l, e.potIndex ?? 0);
+      if ((e.board ?? 0) > 0) pot = '$pot, ${l.boardLabel(e.board!)}';
       final desc = e.description ?? '';
       return desc.isEmpty
           ? l.logWinUncontested(name(), chips(e.amount), pot)

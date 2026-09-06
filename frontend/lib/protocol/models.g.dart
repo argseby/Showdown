@@ -25,10 +25,13 @@ Map<String, dynamic> _$ShowCardsPayloadToJson(_ShowCardsPayload instance) =>
     <String, dynamic>{'cards': ?instance.cards};
 
 _VoicePayload _$VoicePayloadFromJson(Map<String, dynamic> json) =>
-    _VoicePayload(state: json['state'] as String);
+    _VoicePayload(
+      state: json['state'] as String,
+      camera: json['camera'] as bool?,
+    );
 
 Map<String, dynamic> _$VoicePayloadToJson(_VoicePayload instance) =>
-    <String, dynamic>{'state': instance.state};
+    <String, dynamic>{'state': instance.state, 'camera': ?instance.camera};
 
 _VoiceSignal _$VoiceSignalFromJson(Map<String, dynamic> json) => _VoiceSignal(
   to: json['to'] as String?,
@@ -44,6 +47,18 @@ Map<String, dynamic> _$VoiceSignalToJson(_VoiceSignal instance) =>
       'kind': instance.kind,
       'data': instance.data,
     };
+
+_StraddlePayload _$StraddlePayloadFromJson(Map<String, dynamic> json) =>
+    _StraddlePayload(on: json['on'] as bool);
+
+Map<String, dynamic> _$StraddlePayloadToJson(_StraddlePayload instance) =>
+    <String, dynamic>{'on': instance.on};
+
+_RunTwicePayload _$RunTwicePayloadFromJson(Map<String, dynamic> json) =>
+    _RunTwicePayload(agree: json['agree'] as bool);
+
+Map<String, dynamic> _$RunTwicePayloadToJson(_RunTwicePayload instance) =>
+    <String, dynamic>{'agree': instance.agree};
 
 _SayPayload _$SayPayloadFromJson(Map<String, dynamic> json) =>
     _SayPayload(phrase: json['phrase'] as String);
@@ -197,6 +212,9 @@ _PublicSettings _$PublicSettingsFromJson(Map<String, dynamic> json) =>
       allowRabbitHunt: json['allow_rabbit_hunt'] as bool,
       blindsUpMinutes: (json['blinds_up_minutes'] as num).toInt(),
       blindsUpPercent: (json['blinds_up_percent'] as num).toInt(),
+      timeBankSeconds: (json['time_bank_seconds'] as num?)?.toInt() ?? 0,
+      allowStraddle: json['allow_straddle'] as bool? ?? false,
+      runItTwice: json['run_it_twice'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
@@ -216,6 +234,9 @@ Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
       'allow_rabbit_hunt': instance.allowRabbitHunt,
       'blinds_up_minutes': instance.blindsUpMinutes,
       'blinds_up_percent': instance.blindsUpPercent,
+      'time_bank_seconds': instance.timeBankSeconds,
+      'allow_straddle': instance.allowStraddle,
+      'run_it_twice': instance.runItTwice,
     };
 
 _SeatView _$SeatViewFromJson(Map<String, dynamic> json) => _SeatView(
@@ -237,6 +258,10 @@ _PlayerView _$PlayerViewFromJson(Map<String, dynamic> json) => _PlayerView(
   voice: json['voice'] as String? ?? 'off',
   muted: json['muted'] as bool?,
   mucked: json['mucked'] as bool?,
+  camera: json['camera'] as bool?,
+  equity: (json['equity'] as num?)?.toDouble(),
+  timeBank: (json['time_bank'] as num?)?.toInt(),
+  place: (json['place'] as num?)?.toInt(),
   stack: (json['stack'] as num).toInt(),
   status: json['status'] as String,
   connected: json['connected'] as bool,
@@ -261,6 +286,10 @@ Map<String, dynamic> _$PlayerViewToJson(_PlayerView instance) =>
       'voice': instance.voice,
       'muted': ?instance.muted,
       'mucked': ?instance.mucked,
+      'camera': ?instance.camera,
+      'equity': ?instance.equity,
+      'time_bank': ?instance.timeBank,
+      'place': ?instance.place,
       'stack': instance.stack,
       'status': instance.status,
       'connected': instance.connected,
@@ -299,6 +328,11 @@ _HandView _$HandViewFromJson(Map<String, dynamic> json) => _HandView(
       ?.map((e) => e as String)
       .toList(),
   phaseEndsTs: (json['phase_ends_ts'] as num?)?.toInt(),
+  board2: (json['board2'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  straddleSeat: (json['straddle_seat'] as num?)?.toInt(),
+  timeBankActive: json['time_bank_active'] as bool?,
+  runTwice: json['run_twice'] as bool?,
+  runTwiceEndsTs: (json['run_twice_ends_ts'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$HandViewToJson(_HandView instance) => <String, dynamic>{
@@ -315,6 +349,11 @@ Map<String, dynamic> _$HandViewToJson(_HandView instance) => <String, dynamic>{
   'phase': instance.phase,
   'rabbit_cards': ?instance.rabbitCards,
   'phase_ends_ts': ?instance.phaseEndsTs,
+  'board2': ?instance.board2,
+  'straddle_seat': ?instance.straddleSeat,
+  'time_bank_active': ?instance.timeBankActive,
+  'run_twice': ?instance.runTwice,
+  'run_twice_ends_ts': ?instance.runTwiceEndsTs,
 };
 
 _PotView _$PotViewFromJson(Map<String, dynamic> json) => _PotView(
@@ -347,6 +386,9 @@ _You _$YouFromJson(Map<String, dynamic> json) => _You(
   canRabbitHunt: json['can_rabbit_hunt'] as bool,
   pendingSeat: (json['pending_seat'] as num?)?.toInt(),
   canChangeSeat: json['can_change_seat'] as bool? ?? false,
+  straddle: json['straddle'] as bool?,
+  canRunTwice: json['can_run_twice'] as bool?,
+  runTwiceVote: json['run_twice_vote'] as bool?,
 );
 
 Map<String, dynamic> _$YouToJson(_You instance) => <String, dynamic>{
@@ -363,6 +405,9 @@ Map<String, dynamic> _$YouToJson(_You instance) => <String, dynamic>{
   'can_rabbit_hunt': instance.canRabbitHunt,
   'pending_seat': ?instance.pendingSeat,
   'can_change_seat': instance.canChangeSeat,
+  'straddle': ?instance.straddle,
+  'can_run_twice': ?instance.canRunTwice,
+  'run_twice_vote': ?instance.runTwiceVote,
 };
 
 _OptionsView _$OptionsViewFromJson(Map<String, dynamic> json) => _OptionsView(
@@ -399,6 +444,11 @@ _LeaderboardEntry _$LeaderboardEntryFromJson(Map<String, dynamic> json) =>
       net: (json['net'] as num).toInt(),
       handsWon: (json['hands_won'] as num).toInt(),
       biggestPot: (json['biggest_pot'] as num).toInt(),
+      handsPlayed: (json['hands_played'] as num?)?.toInt(),
+      vpipHands: (json['vpip_hands'] as num?)?.toInt(),
+      showdowns: (json['showdowns'] as num?)?.toInt(),
+      showdownsWon: (json['showdowns_won'] as num?)?.toInt(),
+      place: (json['place'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$LeaderboardEntryToJson(_LeaderboardEntry instance) =>
@@ -408,6 +458,11 @@ Map<String, dynamic> _$LeaderboardEntryToJson(_LeaderboardEntry instance) =>
       'net': instance.net,
       'hands_won': instance.handsWon,
       'biggest_pot': instance.biggestPot,
+      'hands_played': ?instance.handsPlayed,
+      'vpip_hands': ?instance.vpipHands,
+      'showdowns': ?instance.showdowns,
+      'showdowns_won': ?instance.showdownsWon,
+      'place': ?instance.place,
     };
 
 _EventsPayload _$EventsPayloadFromJson(Map<String, dynamic> json) =>
@@ -445,6 +500,7 @@ _GameEvent _$GameEventFromJson(Map<String, dynamic> json) => _GameEvent(
       ?.map((e) => Reveal.fromJson(e as Map<String, dynamic>))
       .toList(),
   potIndex: (json['pot_index'] as num?)?.toInt(),
+  board: (json['board'] as num?)?.toInt(),
   description: json['description'] as String?,
   results: json['results'] == null
       ? null
@@ -481,6 +537,7 @@ Map<String, dynamic> _$GameEventToJson(_GameEvent instance) =>
       'pots': ?instance.pots?.map((e) => e.toJson()).toList(),
       'reveals': ?instance.reveals?.map((e) => e.toJson()).toList(),
       'pot_index': ?instance.potIndex,
+      'board': ?instance.board,
       'description': ?instance.description,
       'results': ?instance.results?.toJson(),
       'reason': ?instance.reason,

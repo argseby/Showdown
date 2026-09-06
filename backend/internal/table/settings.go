@@ -54,6 +54,13 @@ type Settings struct {
 	// BlindsUpPercent is the increase (100 = double).
 	BlindsUpMinutes int
 	BlindsUpPercent int
+	// TimeBankSeconds is the extra thinking time each player can spend when
+	// the turn clock runs out (0 = off); it refills by timeBankRefill per hand.
+	TimeBankSeconds int
+	// AllowStraddle lets the seat left of the big blind post 2x the big blind.
+	AllowStraddle bool
+	// RunItTwice offers to run the board twice when everyone is all-in.
+	RunItTwice bool
 }
 
 // DefaultSettings returns the §5.2 defaults.
@@ -64,6 +71,7 @@ func DefaultSettings() Settings {
 		JoinPolicy: JoinAlways, AllowSpectators: true, SpectatorChat: true, ChatEnabled: true,
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
 		AllowRabbitHunt: true, BlindsUpMinutes: 0, BlindsUpPercent: 100,
+		TimeBankSeconds: 30, AllowStraddle: false, RunItTwice: false,
 	}
 }
 
@@ -75,6 +83,7 @@ func (s Settings) Public() protocol.PublicSettings {
 		AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal, ChatEnabled: s.ChatEnabled,
 		SpectatorChat: s.SpectatorChat, RequiresPassword: s.PasswordHash != "",
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -88,6 +97,7 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -101,6 +111,7 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 		ChatEnabled: r.ChatEnabled, AllowRebuy: r.AllowRebuy, ShowdownReveal: r.ShowdownReveal,
 		AutoStart: r.AutoStart, HandDelayMs: r.HandDelayMs,
 		AllowRabbitHunt: r.AllowRabbitHunt, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
+		TimeBankSeconds: r.TimeBankSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
 	}
 }
 
@@ -127,6 +138,9 @@ type AdminView struct {
 	AllowRabbitHunt        bool   `json:"allow_rabbit_hunt"`
 	BlindsUpMinutes        int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        int    `json:"blinds_up_percent"`
+	TimeBankSeconds        int    `json:"time_bank_seconds"`
+	AllowStraddle          bool   `json:"allow_straddle"`
+	RunItTwice             bool   `json:"run_it_twice"`
 }
 
 // Admin converts to the admin view.
@@ -139,6 +153,7 @@ func (s Settings) Admin() AdminView {
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		TimeBankSeconds: s.TimeBankSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 	}
 }
 
@@ -166,6 +181,9 @@ type SettingsPatch struct {
 	AllowRabbitHunt        *bool   `json:"allow_rabbit_hunt"`
 	BlindsUpMinutes        *int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        *int    `json:"blinds_up_percent"`
+	TimeBankSeconds        *int    `json:"time_bank_seconds"`
+	AllowStraddle          *bool   `json:"allow_straddle"`
+	RunItTwice             *bool   `json:"run_it_twice"`
 }
 
 // FieldError is a per-field validation problem.
@@ -195,6 +213,7 @@ func (e *ValidationError) add(field, msg string) {
 var appliesNextHand = map[string]bool{
 	"small_blind": true, "big_blind": true, "ante": true, "turn_time": true,
 	"disconnected_turn_time": true, "showdown_reveal": true, "hand_delay_ms": true,
+	"allow_straddle": true, "run_it_twice": true,
 }
 
 // Apply merges the patch into s (password already hashed into passwordHash
@@ -286,6 +305,18 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 		out.BlindsUpPercent = *p.BlindsUpPercent
 		set("blinds_up_percent")
 	}
+	if p.TimeBankSeconds != nil {
+		out.TimeBankSeconds = *p.TimeBankSeconds
+		set("time_bank_seconds")
+	}
+	if p.AllowStraddle != nil {
+		out.AllowStraddle = *p.AllowStraddle
+		set("allow_straddle")
+	}
+	if p.RunItTwice != nil {
+		out.RunItTwice = *p.RunItTwice
+		set("run_it_twice")
+	}
 
 	if err := out.Validate(seated); err != nil {
 		return s, nil, nil, err
@@ -354,6 +385,9 @@ func (s Settings) Validate(seated int) error {
 	}
 	if s.BlindsUpPercent < 10 || s.BlindsUpPercent > 400 {
 		ve.add("blinds_up_percent", "must be between 10 and 400")
+	}
+	if s.TimeBankSeconds < 0 || s.TimeBankSeconds > 120 {
+		ve.add("time_bank_seconds", "must be between 0 (off) and 120")
 	}
 	if len(ve.Fields) > 0 {
 		return &ve

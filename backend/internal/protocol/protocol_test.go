@@ -23,6 +23,8 @@ var payloadTypes = map[string]func() any{
 	"show_cards":        func() any { return &struct{}{} },
 	"chat_client":       func() any { return &ChatPayload{} },
 	"say":               func() any { return &SayPayload{} },
+	"straddle":          func() any { return &StraddlePayload{} },
+	"run_twice":         func() any { return &RunTwicePayload{} },
 	"phrase":            func() any { return &PhrasePayload{} },
 	"ping":              func() any { return &struct{}{} },
 	"welcome":           func() any { return &Welcome{} },

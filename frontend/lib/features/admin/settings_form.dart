@@ -54,6 +54,8 @@ class SettingsForm extends StatelessWidget {
         return l10n.valRange('2000', '15000');
       case SettingsError.blindsUpMinutes:
         return l10n.valRange('0', '600');
+      case SettingsError.timeBank:
+        return l10n.errTimeBank;
       case SettingsError.blindsUpPercent:
         return l10n.valRange('10', '400');
       case SettingsError.password:
@@ -249,6 +251,7 @@ class SettingsForm extends StatelessWidget {
               number('hand_delay_ms', l10n.setHandDelay),
               number('blinds_up_minutes', l10n.setBlindsUpMinutes),
               number('blinds_up_percent', l10n.setBlindsUpPercent),
+              number('time_bank_seconds', l10n.setTimeBank),
               choice('join_policy', l10n.setJoinPolicy, state.joinPolicy, [
                 ('always', l10n.joinPolicyAlways),
                 ('before_start', l10n.joinPolicyBeforeStart),
@@ -300,6 +303,8 @@ class SettingsForm extends StatelessWidget {
         flag('chat_enabled', l10n.setChatEnabled),
         flag('allow_rebuy', l10n.setAllowRebuy),
         flag('allow_rabbit_hunt', l10n.setAllowRabbitHunt),
+        flag('allow_straddle', l10n.setAllowStraddle),
+        flag('run_it_twice', l10n.setRunItTwice),
         flag('auto_start', l10n.setAutoStart),
       ],
     );

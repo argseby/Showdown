@@ -206,6 +206,20 @@ func (s *Server) handleAdminMuteVoice(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"voice": table.VoiceMuted})
 }
 
+// handleAdminCameraOff turns a player's camera off; only the player turns
+// it on again.
+func (s *Server) handleAdminCameraOff(w http.ResponseWriter, r *http.Request) {
+	t, ok := s.tableOr404(w, r.PathValue("id"))
+	if !ok {
+		return
+	}
+	if err := t.CameraOff(r.PathValue("pid")); err != nil {
+		writeErr(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"camera": false})
+}
+
 type handView struct {
 	ID            int64           `json:"id"`
 	Number        int             `json:"number"`

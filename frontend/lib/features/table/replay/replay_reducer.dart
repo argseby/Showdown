@@ -41,6 +41,7 @@ class ReplayReducer {
   ReplayFrame frame(int step) {
     final seats = <int, ReplaySeat>{};
     var board = <String>[];
+    var board2 = <String>[];
     var pots = <PotView>[];
     var street = 'preflop';
     var phase = 'betting';
@@ -117,6 +118,10 @@ class ReplayReducer {
             s.bet = 0;
           }
         case 'street_dealt':
+          if (e.board == 2) {
+            board2 = [...board2, ...?e.cards];
+            break;
+          }
           board = [...board, ...?e.cards];
           street = e.street ?? street;
           for (final s in seats.values) {
@@ -182,6 +187,8 @@ class ReplayReducer {
               pots: pots,
               phase: phase,
               rabbitCards: rabbit,
+              board2: board2.isEmpty ? null : board2,
+              runTwice: board2.isEmpty ? null : true,
             ),
       you: You(
         role: viewerSeat == null ? 'spectator' : 'player',

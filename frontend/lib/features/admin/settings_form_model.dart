@@ -24,6 +24,9 @@ const Map<String, AppliesWhen> settingsApplies = {
   'allow_rabbit_hunt': AppliesWhen.immediately,
   'blinds_up_minutes': AppliesWhen.immediately,
   'blinds_up_percent': AppliesWhen.immediately,
+  'time_bank_seconds': AppliesWhen.immediately,
+  'allow_straddle': AppliesWhen.nextHand,
+  'run_it_twice': AppliesWhen.nextHand,
 };
 
 /// Client-side validation problems, keyed by field.
@@ -40,6 +43,7 @@ enum SettingsError {
   handDelay,
   blindsUpMinutes,
   blindsUpPercent,
+  timeBank,
   password,
   name,
 }
@@ -98,6 +102,7 @@ class SettingsFormState {
     'hand_delay_ms',
     'blinds_up_minutes',
     'blinds_up_percent',
+    'time_bank_seconds',
   ];
 
   SettingsFormState copyWith({
@@ -201,6 +206,8 @@ class SettingsFormState {
       bp >= 10 && bp <= 400,
       SettingsError.blindsUpPercent,
     );
+    final tb = number('time_bank_seconds') ?? 30;
+    check('time_bank_seconds', tb >= 0 && tb <= 120, SettingsError.timeBank);
     return errors;
   }
 

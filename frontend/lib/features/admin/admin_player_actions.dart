@@ -155,12 +155,24 @@ class AdminPlayerActions {
     return r ?? false;
   }
 
+  Future<bool> cameraOff(String playerId) async {
+    final r = await guardAdmin(ref, context, tableId, () async {
+      await ref.read(adminApiProvider).cameraOff(token, tableId, playerId);
+      return true;
+    });
+    if ((r ?? false) && context.mounted) {
+      showAdminToast(context, context.l10n.adminCameraOffDone);
+    }
+    return r ?? false;
+  }
+
   /// The action sheet opened by tapping a player's avatar.
   Future<void> showMenu({
     required String playerId,
     required String name,
     required bool chatMuted,
     required String voice,
+    bool camera = false,
   }) {
     final l10n = context.l10n;
     return showOverlay<void>(
@@ -212,6 +224,19 @@ class AdminPlayerActions {
                   leading: const Icon(LucideIcons.micOff),
                   alignment: Alignment.centerLeft,
                   child: Text(l10n.adminMuteVoice),
+                ),
+              ],
+              if (camera) ...[
+                const Gap(6),
+                OutlineButton(
+                  key: const Key('player-action-camera'),
+                  onPressed: () {
+                    closeOverlay<void>(dialog);
+                    cameraOff(playerId);
+                  },
+                  leading: const Icon(LucideIcons.videoOff),
+                  alignment: Alignment.centerLeft,
+                  child: Text(l10n.adminCameraOff),
                 ),
               ],
               const Gap(6),

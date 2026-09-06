@@ -1,0 +1,9 @@
+-- Time bank, straddle, run it twice, player statistics and placements.
+ALTER TABLE table_settings ADD COLUMN time_bank_seconds INTEGER NOT NULL DEFAULT 30;
+ALTER TABLE table_settings ADD COLUMN allow_straddle INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE table_settings ADD COLUMN run_it_twice INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE players ADD COLUMN vpip_hands INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE players ADD COLUMN showdowns INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE players ADD COLUMN showdowns_won INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE players ADD COLUMN time_bank INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE players ADD COLUMN place INTEGER NOT NULL DEFAULT 0;

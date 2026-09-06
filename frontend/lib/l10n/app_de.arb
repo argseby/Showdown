@@ -406,5 +406,98 @@
   "phraseLol": "LOL",
   "phraseHurryUp": "Mach hinne",
   "phraseBrb": "Bin gleich zurück",
-  "tabSettings": "Einstellungen"
+  "tabSettings": "Einstellungen",
+  "setTimeBank": "Zeitbank (Sekunden, 0 = aus)",
+  "errTimeBank": "0 bis 120 Sekunden",
+  "setAllowStraddle": "Straddle erlauben",
+  "setRunItTwice": "Run it twice anbieten",
+  "logStraddle": "{name} setzt Straddle {amount}",
+  "@logStraddle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logBoard2": "Board 2 · {street}: {cards}",
+  "@logBoard2": {
+    "placeholders": {
+      "street": {
+        "type": "String"
+      },
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "boardLabel": "Board {n}",
+  "@boardLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeStraddle": "STR",
+  "timeBankStrip": "Zeitbank · {seconds} s",
+  "@timeBankStrip": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "timeBankLeft": "Zeitbank {seconds} s",
+  "@timeBankLeft": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "straddleToggle": "Straddle",
+  "straddleHint": "Vor dem Geben den doppelten Big Blind setzen, wenn du links vom Big Blind sitzt.",
+  "runTwiceQuestion": "Run it twice?",
+  "runTwiceYes": "Ja, zweimal",
+  "runTwiceNo": "Nein, einmal",
+  "runTwiceWaiting": "Warte auf die anderen…",
+  "runTwiceDeclined": "Es wird einmal gespielt",
+  "lbHandsPlayed": "Hände gespielt",
+  "lbVpip": "Freiwillig im Pot",
+  "lbShowdowns": "Showdowns gewonnen / gesehen",
+  "placeLabel": "{place}.",
+  "@placeLabel": {
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "outBadge": "Raus",
+  "logExportText": "Als Text exportieren",
+  "logExportJson": "Als JSON exportieren",
+  "logExported": "Verlauf exportiert",
+  "notifyTurn": "Benachrichtigen, wenn ich dran bin",
+  "notifyTurnHint": "Eine Systembenachrichtigung (und Vibration am Handy), wenn der Tab im Hintergrund ist.",
+  "notifyDenied": "Benachrichtigungen sind in diesem Browser blockiert.",
+  "notifyTitle": "Du bist dran",
+  "notifyBody": "Du bist dran bei {table}",
+  "@notifyBody": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraTitle": "Kamera",
+  "cameraOn": "Kamera an",
+  "cameraOff": "Kamera aus",
+  "cameraHint": "Ein kleines Video neben deinem Avatar, direkt zwischen den Browsern wie die Sprache. Am besten bis sechs Spieler.",
+  "cameraUnavailable": "Der Browser hat die Kamera nicht freigegeben.",
+  "cameraOffByHost": "Der Gastgeber hat deine Kamera ausgeschaltet. Du kannst sie wieder einschalten.",
+  "adminCameraOff": "Kamera ausschalten",
+  "adminCameraOffDone": "Kamera ausgeschaltet"
 }

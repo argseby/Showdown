@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
+import '../../../core/file_saver.dart';
 import '../../../core/formatting.dart';
 import '../../../core/session_store.dart';
 import '../../../protocol/protocol.dart';
@@ -469,6 +472,59 @@ class HandLog extends ConsumerWidget {
               child: Text(l10n.replayOpen),
             ),
             OutlineButton(
+              key: const Key('log-export-text'),
+              size: ButtonSize.small,
+              leading: const Icon(LucideIcons.download),
+              onPressed: lines.isEmpty
+                  ? null
+                  : () {
+                      FileSaver.create().saveText(
+                        'showdown-${session.snapshot?.table.id ?? 'table'}.txt',
+                        lines
+                            .map((l) => '${formatClock(l.$1)} ${l.$2}')
+                            .join('\n'),
+                      );
+                      showToast(
+                        context: context,
+                        location: ToastLocation.bottomCenter,
+                        builder: (context, overlay) =>
+                            SurfaceCard(child: Text(l10n.logExported)),
+                      );
+                    },
+              child: Text(l10n.logExportText),
+            ),
+            OutlineButton(
+              key: const Key('log-export-json'),
+              size: ButtonSize.small,
+              leading: const Icon(LucideIcons.fileJson),
+              onPressed: session.log.isEmpty
+                  ? null
+                  : () {
+                      FileSaver.create().saveText(
+                        'showdown-${session.snapshot?.table.id ?? 'table'}.json',
+                        jsonEncode([
+                          for (final e in session.log)
+                            {
+                              'hand': e.handNumber,
+                              'names': {
+                                for (final n in e.names.entries)
+                                  '${n.key}': n.value,
+                              },
+                              'event': e.event.toJson(),
+                            },
+                        ]),
+                        mimeType: 'application/json',
+                      );
+                      showToast(
+                        context: context,
+                        location: ToastLocation.bottomCenter,
+                        builder: (context, overlay) =>
+                            SurfaceCard(child: Text(l10n.logExported)),
+                      );
+                    },
+              child: Text(l10n.logExportJson),
+            ),
+            OutlineButton(
               size: ButtonSize.small,
               leading: const Icon(LucideIcons.copy),
               onPressed: lines.isEmpty
@@ -527,7 +583,17 @@ class TableLeaderboard extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
               children: [
-                SizedBox(width: 18, child: Text('${i + 1}.', style: muted)),
+                SizedBox(
+                  width: 22,
+                  child: Text(
+                    (entries[i].place ?? 0) > 0
+                        ? l10n.placeLabel(entries[i].place!)
+                        : '${i + 1}.',
+                    style: (entries[i].place ?? 0) > 0
+                        ? muted.copyWith(fontWeight: FontWeight.w700)
+                        : muted,
+                  ),
+                ),
                 PlayerAvatar(index: avatars[entries[i].name] ?? 0, size: 28),
                 const Gap(8),
                 Expanded(
@@ -566,6 +632,40 @@ class TableLeaderboard extends ConsumerWidget {
                           ),
                           const Gap(3),
                           Text(amount(entries[i].biggestPot), style: muted),
+                          if ((entries[i].handsPlayed ?? 0) > 0) ...[
+                            const Gap(10),
+                            Tooltip(
+                              tooltip: TooltipContainer(
+                                child: Text(l10n.lbVpip),
+                              ).call,
+                              child: Icon(
+                                LucideIcons.flame,
+                                size: 11,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                            const Gap(3),
+                            Text(
+                              '${(100 * (entries[i].vpipHands ?? 0) / entries[i].handsPlayed!).round()}%',
+                              style: muted,
+                            ),
+                            const Gap(10),
+                            Tooltip(
+                              tooltip: TooltipContainer(
+                                child: Text(l10n.lbShowdowns),
+                              ).call,
+                              child: Icon(
+                                LucideIcons.swords,
+                                size: 11,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                            const Gap(3),
+                            Text(
+                              '${entries[i].showdownsWon ?? 0}/${entries[i].showdowns ?? 0}',
+                              style: muted,
+                            ),
+                          ],
                         ],
                       ),
                     ],

@@ -6,6 +6,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../core/formatting.dart';
+import '../../../core/voice/voice_engine.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/chip_stack.dart';
 import '../../../shared/phrases.dart';
@@ -23,7 +24,12 @@ class TableView extends ConsumerWidget {
     this.onToggleMute,
     this.onAdminTap,
     this.onSayTap,
+    this.videoViews = const {},
   });
+
+  /// Player id -> platform view type of a live camera stream (the viewer's
+  /// own under [VoiceEngine.self]).
+  final Map<String, String> videoViews;
 
   final TableSessionState session;
 
@@ -160,6 +166,18 @@ class TableView extends ConsumerWidget {
                       compact: compact,
                       scale: scale,
                     ),
+                    if (hand.runTwice ?? false) ...[
+                      const Gap(4),
+                      _Board(
+                        key: const Key('board-2'),
+                        board: hand.board2 ?? const [],
+                        best: null,
+                        rabbit: const [],
+                        fourColor: fourColor,
+                        compact: compact,
+                        scale: scale * 0.8,
+                      ),
+                    ],
                     const Gap(8),
                     _Pots(
                       pots: hand.pots,
@@ -231,6 +249,15 @@ class TableView extends ConsumerWidget {
                   onSayTap: sv.seat == session.mySeat && session.isPlayer
                       ? onSayTap
                       : null,
+                  equity: sv.player?.equity,
+                  timeBankActive:
+                      (hand?.timeBankActive ?? false) &&
+                      hand?.toActSeat == sv.seat,
+                  videoViewType: sv.player == null
+                      ? null
+                      : sv.seat == session.mySeat && session.isPlayer
+                      ? videoViews[VoiceEngine.self]
+                      : videoViews[sv.player!.id],
                   onTakeSeat:
                       sv.player == null &&
                           onTakeSeat != null &&
@@ -320,6 +347,7 @@ class TableView extends ConsumerWidget {
 
 class _Board extends StatelessWidget {
   const _Board({
+    super.key,
     required this.board,
     required this.best,
     required this.rabbit,

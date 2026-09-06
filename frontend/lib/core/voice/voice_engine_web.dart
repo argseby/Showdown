@@ -2,18 +2,24 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
+import 'dart:ui_web' as ui_web;
 
 import 'package:web/web.dart' as web;
 
 import 'voice_engine.dart';
 
 /// WebRTC mesh over `package:web`: one peer connection per other player,
-/// audio only, no STUN/TURN by default (same network or a direct route).
+/// audio plus an optional small camera stream, no STUN/TURN by default
+/// (same network or a direct route).
 class _WebVoiceEngine implements VoiceEngine {
   web.MediaStream? _local;
+  web.MediaStream? _camera;
   web.AudioContext? _ctx;
   final _peers = <String, web.RTCPeerConnection>{};
   final _audios = <String, web.HTMLAudioElement>{};
+  final _videos = <String, web.HTMLVideoElement>{};
+  final _videoSenders = <String, web.RTCRtpSender>{};
+  static var _viewSeq = 0;
   final _analysers = <String, web.AnalyserNode>{};
   final _speaking = <String, bool>{};
   final _events = StreamController<VoiceEvent>.broadcast();
@@ -58,8 +64,87 @@ class _WebVoiceEngine implements VoiceEngine {
       }
     }
     _local = null;
+    stopCamera();
     _analysers.clear();
     _speaking.clear();
+  }
+
+  @override
+  Future<bool> startCamera() async {
+    if (_camera != null) return true;
+    try {
+      final stream = await web.window.navigator.mediaDevices
+          .getUserMedia(
+            web.MediaStreamConstraints(
+              audio: false.toJS,
+              video: web.MediaTrackConstraints(
+                width: 160.toJS,
+                height: 120.toJS,
+                frameRate: 10.toJS,
+                facingMode: 'user'.toJS,
+              ),
+            ),
+          )
+          .toDart;
+      _camera = stream;
+      final track = stream.getVideoTracks().toDart.first;
+      for (final entry in _peers.entries) {
+        _videoSenders[entry.key] = entry.value.addTrack(track, stream);
+      }
+      _showVideo(VoiceEngine.self, stream, mirror: true);
+      return true;
+    } on Object catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  void stopCamera() {
+    final cam = _camera;
+    if (cam == null) return;
+    for (final t in cam.getVideoTracks().toDart) {
+      t.stop();
+    }
+    for (final entry in _videoSenders.entries) {
+      try {
+        _peers[entry.key]?.removeTrack(entry.value);
+      } on Object catch (_) {
+        // The connection may be gone already.
+      }
+    }
+    _videoSenders.clear();
+    _camera = null;
+    _dropVideo(VoiceEngine.self);
+  }
+
+  /// Registers a platform view showing [stream] and tells the controller.
+  void _showVideo(
+    String peerId,
+    web.MediaStream stream, {
+    bool mirror = false,
+  }) {
+    _dropVideo(peerId);
+    final video = web.HTMLVideoElement()
+      ..autoplay = true
+      ..muted = true
+      ..playsInline = true
+      ..srcObject = stream;
+    video.style
+      ..width = '100%'
+      ..height = '100%'
+      ..objectFit = 'cover'
+      ..borderRadius = '50%';
+    if (mirror) video.style.transform = 'scaleX(-1)';
+    final viewType = 'showdown-video-${_viewSeq++}';
+    ui_web.platformViewRegistry.registerViewFactory(viewType, (int _) => video);
+    _videos[peerId] = video;
+    _events.add(VoiceVideoEvent(peerId, viewType));
+  }
+
+  void _dropVideo(String peerId) {
+    if (_videos.remove(peerId) != null) {
+      _events.add(VoiceVideoEvent(peerId, null));
+    }
   }
 
   @override
@@ -91,6 +176,42 @@ class _WebVoiceEngine implements VoiceEngine {
         pc.addTrack(t, local);
       }
     }
+    final cam = _camera;
+    if (cam != null) {
+      for (final t in cam.getVideoTracks().toDart) {
+        _videoSenders[peerId] = pc.addTrack(t, cam);
+      }
+    }
+    var negotiating = false;
+    pc.onnegotiationneeded = ((web.Event _) {
+      // A track was added to a live connection: send a fresh offer. The
+      // initial offer goes through createOffer, so skip until connected.
+      if (negotiating || pc.connectionState != 'connected') return;
+      negotiating = true;
+      () async {
+        try {
+          final offer = (await pc.createOffer().toDart)!;
+          await pc
+              .setLocalDescription(
+                web.RTCLocalSessionDescriptionInit(
+                  type: offer.type,
+                  sdp: offer.sdp,
+                ),
+              )
+              .toDart;
+          _events.add(
+            VoiceOfferEvent(
+              peerId,
+              jsonEncode({'type': offer.type, 'sdp': offer.sdp}),
+            ),
+          );
+        } on Object catch (_) {
+          // Renegotiation failed; audio keeps working.
+        } finally {
+          negotiating = false;
+        }
+      }();
+    }).toJS;
     pc.onicecandidate = ((web.RTCPeerConnectionIceEvent e) {
       final c = e.candidate;
       if (c == null) return;
@@ -107,7 +228,14 @@ class _WebVoiceEngine implements VoiceEngine {
     }).toJS;
     pc.ontrack = ((web.RTCTrackEvent e) {
       final streams = e.streams.toDart;
-      if (streams.isNotEmpty) _play(peerId, streams.first);
+      if (streams.isEmpty) return;
+      if (e.track.kind == 'video') {
+        _showVideo(peerId, streams.first);
+        e.track.onended = ((web.Event _) => _dropVideo(peerId)).toJS;
+        e.track.onmute = ((web.Event _) => _dropVideo(peerId)).toJS;
+        return;
+      }
+      _play(peerId, streams.first);
     }).toJS;
     pc.onconnectionstatechange = ((web.Event _) {
       final state = pc.connectionState;
@@ -228,6 +356,8 @@ class _WebVoiceEngine implements VoiceEngine {
   void closePeer(String peerId) {
     _peers.remove(peerId)?.close();
     _audios.remove(peerId)?.remove();
+    _videoSenders.remove(peerId);
+    _dropVideo(peerId);
     _analysers.remove(peerId);
     if (_speaking.remove(peerId) == true) {
       _events.add(VoiceSpeakingEvent(peerId, false));

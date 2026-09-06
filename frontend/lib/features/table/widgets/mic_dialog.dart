@@ -82,7 +82,7 @@ class _MicDialog extends ConsumerWidget {
               () => voice.enabled ? ctrl.disable() : ctrl.enable(),
               key: const Key('mic-voice'),
             ),
-            if (voice.enabled)
+            if (voice.enabled) ...[
               row(
                 voice.muted ? l10n.voiceMicMuted : l10n.voiceMicOn,
                 voice.muted ? LucideIcons.micOff : LucideIcons.mic,
@@ -90,6 +90,23 @@ class _MicDialog extends ConsumerWidget {
                 ctrl.toggleMute,
                 key: const Key('mic-mute'),
               ),
+              row(
+                voice.camera ? l10n.cameraOn : l10n.cameraOff,
+                voice.camera ? LucideIcons.video : LucideIcons.videoOff,
+                voice.camera,
+                ctrl.toggleCamera,
+                key: const Key('mic-camera'),
+              ),
+              Text(l10n.cameraHint).muted().small(),
+              if (voice.cameraUnavailable)
+                Text(
+                  l10n.cameraUnavailable,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.destructive,
+                  ),
+                ),
+            ],
             if (voice.unavailable)
               Text(
                 l10n.voiceUnavailable,

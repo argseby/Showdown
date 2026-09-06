@@ -17,7 +17,24 @@ class VoiceState {
     this.unavailable = false,
     this.connected = const {},
     this.speaking = const {},
+    this.camera = false,
+    this.cameraUnavailable = false,
+    this.hostCameraOff = false,
+    this.videoViews = const {},
   });
+
+  /// The local camera is on.
+  final bool camera;
+
+  /// The browser refused the camera.
+  final bool cameraUnavailable;
+
+  /// The host turned the camera off (shown once).
+  final bool hostCameraOff;
+
+  /// Platform view type per player id with a live video (self under
+  /// [VoiceEngine.self]).
+  final Map<String, String> videoViews;
 
   final bool enabled;
   final bool muted;
@@ -42,6 +59,10 @@ class VoiceState {
     bool? unavailable,
     Set<String>? connected,
     Set<String>? speaking,
+    bool? camera,
+    bool? cameraUnavailable,
+    bool? hostCameraOff,
+    Map<String, String>? videoViews,
   }) => VoiceState(
     enabled: enabled ?? this.enabled,
     muted: muted ?? this.muted,
@@ -49,6 +70,10 @@ class VoiceState {
     unavailable: unavailable ?? this.unavailable,
     connected: connected ?? this.connected,
     speaking: speaking ?? this.speaking,
+    camera: camera ?? this.camera,
+    cameraUnavailable: cameraUnavailable ?? this.cameraUnavailable,
+    hostCameraOff: hostCameraOff ?? this.hostCameraOff,
+    videoViews: videoViews ?? this.videoViews,
   );
 }
 
@@ -92,9 +117,12 @@ class VoiceController extends Notifier<VoiceState> {
   /// doing, not a stale echo of our own change.
   bool _confirmedOn = false;
 
-  /// Joins the voice chat; [muted] restores a muted microphone after a
+  /// True once a snapshot showed the camera on after we switched it on.
+  bool _confirmedCamera = false;
+
+  /// Joins the voice chat; [muted] and [camera] restore the state after a
   /// reload.
-  Future<void> enable({bool muted = false}) async {
+  Future<void> enable({bool muted = false, bool camera = false}) async {
     if (state.enabled) return;
     final engine = (engineFactory ?? VoiceEngine.create)();
     final stun = await ref.read(restClientProvider).voiceStunUrls();
@@ -111,6 +139,31 @@ class VoiceController extends Notifier<VoiceState> {
     await _session.setVoice(muted ? 'muted' : 'on');
     _persist(voice: true, voiceMuted: muted);
     _sync(ref.read(tableSessionProvider(tableId)));
+    if (camera) await toggleCamera();
+  }
+
+  /// Turns the small camera stream on or off (voice chat must be on).
+  Future<void> toggleCamera() async {
+    final engine = _engine;
+    if (engine == null || !state.enabled) return;
+    if (state.camera) {
+      engine.stopCamera();
+      state = state.copyWith(camera: false, hostCameraOff: false);
+      _confirmedCamera = false;
+    } else {
+      if (!await engine.startCamera()) {
+        state = state.copyWith(cameraUnavailable: true);
+        return;
+      }
+      state = state.copyWith(
+        camera: true,
+        cameraUnavailable: false,
+        hostCameraOff: false,
+      );
+      _confirmedCamera = false;
+    }
+    await _session.setVoice(state.muted ? 'muted' : 'on', camera: state.camera);
+    _persist(voiceCamera: state.camera);
   }
 
   Future<void> disable() async {
@@ -132,19 +185,23 @@ class VoiceController extends Notifier<VoiceState> {
     _engine?.setMuted(muted);
     state = state.copyWith(muted: muted, hostMuted: false);
     _confirmedOn = false;
-    await _session.setVoice(muted ? 'muted' : 'on');
+    await _session.setVoice(muted ? 'muted' : 'on', camera: state.camera);
     _persist(voiceMuted: muted);
   }
 
   /// Remembers the voice choice with the table session so that a reload
   /// comes back with the same microphone state.
-  void _persist({bool? voice, bool? voiceMuted}) {
+  void _persist({bool? voice, bool? voiceMuted, bool? voiceCamera}) {
     final store = ref.read(sessionStoreProvider);
     store.load(tableId).then((s) async {
       if (s == null) return;
       await store.save(
         tableId,
-        s.copyWith(voice: voice, voiceMuted: voiceMuted),
+        s.copyWith(
+          voice: voice,
+          voiceMuted: voiceMuted,
+          voiceCamera: voiceCamera,
+        ),
       );
     }).ignore();
   }
@@ -166,6 +223,14 @@ class VoiceController extends Notifier<VoiceState> {
         state = state.copyWith(muted: true, hostMuted: true);
         _confirmedOn = false;
         _persist(voiceMuted: true);
+      }
+      if ((p.camera ?? false) && state.camera) _confirmedCamera = true;
+      if (!(p.camera ?? false) && state.camera && _confirmedCamera) {
+        // The host turned the camera off.
+        engine.stopCamera();
+        state = state.copyWith(camera: false, hostCameraOff: true);
+        _confirmedCamera = false;
+        _persist(voiceCamera: false);
       }
     }
     final wanted = <String>{
@@ -232,6 +297,16 @@ class VoiceController extends Notifier<VoiceState> {
           set.remove(peerId);
         }
         state = state.copyWith(connected: set);
+      case VoiceVideoEvent(:final peerId, :final viewType):
+        final views = {...state.videoViews};
+        if (viewType == null) {
+          views.remove(peerId);
+        } else {
+          views[peerId] = viewType;
+        }
+        state = state.copyWith(videoViews: views);
+      case VoiceOfferEvent(:final peerId, :final offer):
+        _session.sendVoiceSignal(peerId, 'offer', offer);
     }
   }
 }

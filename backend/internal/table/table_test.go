@@ -100,7 +100,7 @@ func (f *fakeConn) count(typ string) int {
 	return n
 }
 
-var testDelays = Delays{Street: 5 * time.Millisecond, Runout: 5 * time.Millisecond, Showdown: 5 * time.Millisecond, ShowdownPerHand: time.Millisecond, ResultExtension: 50 * time.Millisecond}
+var testDelays = Delays{Street: 5 * time.Millisecond, Runout: 5 * time.Millisecond, Showdown: 5 * time.Millisecond, ShowdownPerHand: time.Millisecond, ResultExtension: 50 * time.Millisecond, RunTwiceDecision: 500 * time.Millisecond}
 
 func testSettings() Settings {
 	s := DefaultSettings()
@@ -108,13 +108,21 @@ func testSettings() Settings {
 	s.DisconnectedTurnTime = 1
 	s.HandDelayMs = 30
 	s.SitOutAfterMissedTurns = 1
+	s.TimeBankSeconds = 0 // timeout tests want the plain clock; see features_test.go
 	return s
 }
 
 func newTestTable(t *testing.T, s Settings) *Table {
 	t.Helper()
+	return newTestTableShuffled(t, s, func([]poker.Card) {})
+}
+
+// newTestTableShuffled is newTestTable with a chosen shuffle (the default
+// leaves the deck in order, which makes every heads-up hand a tie).
+func newTestTableShuffled(t *testing.T, s Settings, shuffle func([]poker.Card)) *Table {
+	t.Helper()
 	deps := Deps{Log: slog.New(slog.DiscardHandler), Delays: testDelays,
-		Shuffle: func([]poker.Card) {}, RandIntn: func(int) int { return 0 }}
+		Shuffle: shuffle, RandIntn: func(int) int { return 0 }}
 	tbl := newTable(NewTableID(), deps)
 	tbl.name = "Test"
 	tbl.state = StateWaiting

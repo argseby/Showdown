@@ -17,10 +17,10 @@ func TestVoicePresenceAndRelay(t *testing.T) {
 	tbl := newTestTable(t, s)
 	a, connA := join(t, tbl, "Alice")
 	b, connB := join(t, tbl, "Bob")
-	if err := tbl.SetVoice(a.PlayerID, "loud"); !errors.Is(err, ErrIllegalAction) {
+	if err := tbl.SetVoice(a.PlayerID, "loud", false); !errors.Is(err, ErrIllegalAction) {
 		t.Fatalf("bad state: %v", err)
 	}
-	if err := tbl.SetVoice(a.PlayerID, VoiceOn); err != nil {
+	if err := tbl.SetVoice(a.PlayerID, VoiceOn, false); err != nil {
 		t.Fatal(err)
 	}
 	waitFor(t, "voice in snapshot", func() bool {
@@ -113,7 +113,7 @@ func TestHostMutesMicrophoneButCannotUnmute(t *testing.T) {
 	if err := tbl.MuteVoice(a.PlayerID); !errors.Is(err, ErrIllegalAction) {
 		t.Fatalf("muting a player without voice: %v", err)
 	}
-	if err := tbl.SetVoice(a.PlayerID, VoiceOn); err != nil {
+	if err := tbl.SetVoice(a.PlayerID, VoiceOn, false); err != nil {
 		t.Fatal(err)
 	}
 	if err := tbl.MuteVoice(a.PlayerID); err != nil {
@@ -132,7 +132,7 @@ func TestHostMutesMicrophoneButCannotUnmute(t *testing.T) {
 		t.Fatalf("muting twice: %v", err)
 	}
 	// The player unmutes themselves; the host has no unmute.
-	if err := tbl.SetVoice(a.PlayerID, VoiceOn); err != nil {
+	if err := tbl.SetVoice(a.PlayerID, VoiceOn, false); err != nil {
 		t.Fatal(err)
 	}
 	waitFor(t, "unmuted", func() bool { return voiceOf(connB) == VoiceOn })

@@ -320,7 +320,15 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     state = state.copyWith(log: List.unmodifiable([...trimmed, ...state.log]));
   }
 
+  final _events = StreamController<GameEvent>.broadcast();
+
+  /// Every hand/table event as it arrives (sounds, animations).
+  Stream<GameEvent> get events => _events.stream;
+
   void _applyEvents(EventsPayload payload) {
+    for (final e in payload.events) {
+      _events.add(e);
+    }
     final names = _names(state.snapshot);
     final entries = [
       ...state.log,
@@ -443,8 +451,15 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
 
   /// WebRTC setup messages addressed to this client (relayed by the server).
   Stream<VoiceSignal> get voiceSignals => _voiceSignals.stream;
-  Future<void> setVoice(String state) =>
-      _send(ClientMessage.voice(VoicePayload(state: state)));
+  Future<void> setVoice(String state, {bool camera = false}) => _send(
+    ClientMessage.voice(
+      VoicePayload(state: state, camera: camera ? true : null),
+    ),
+  );
+  Future<void> setStraddle(bool on) =>
+      _send(ClientMessage.straddle(StraddlePayload(on: on)));
+  Future<void> runTwice(bool agree) =>
+      _send(ClientMessage.runTwice(RunTwicePayload(agree: agree)));
   Future<void> sendVoiceSignal(String to, String kind, String data) => _send(
     ClientMessage.voiceSignal(VoiceSignal(to: to, kind: kind, data: data)),
   );

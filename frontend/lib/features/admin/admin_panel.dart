@@ -280,6 +280,12 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
     }
   }
 
+  Future<void> _cameraOff(AdminPlayer p) async {
+    if (await _actions?.cameraOff(p.id) ?? false) {
+      if (mounted) await _load();
+    }
+  }
+
   Future<void> _removeChat(int id) async {
     final token = _token;
     if (token == null) return;
@@ -548,6 +554,16 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
                             ),
                           if (p.voice == 'muted')
                             SecondaryBadge(child: Text(l10n.adminMutedVoice)),
+                          if (p.camera)
+                            OutlineButton(
+                              size: ButtonSize.small,
+                              onPressed: () => _cameraOff(p),
+                              leading: const Icon(
+                                LucideIcons.videoOff,
+                                size: 14,
+                              ),
+                              child: Text(l10n.adminCameraOff),
+                            ),
                           DestructiveButton(
                             size: ButtonSize.small,
                             onPressed: () => _kick(p),

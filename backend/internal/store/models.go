@@ -37,6 +37,9 @@ type SettingsRow struct {
 	AllowRabbitHunt        bool
 	BlindsUpMinutes        int
 	BlindsUpPercent        int
+	TimeBankSeconds        int
+	AllowStraddle          bool
+	RunItTwice             bool
 }
 
 // PlayerRow mirrors players. Zero LeftAt means NULL.
@@ -56,6 +59,12 @@ type PlayerRow struct {
 	JoinedAt    int64
 	LeftAt      int64
 	Avatar      int
+	// Statistics and standing.
+	VPIPHands    int
+	Showdowns    int
+	ShowdownsWon int
+	TimeBank     int
+	Place        int
 }
 
 // SessionRow mirrors sessions.

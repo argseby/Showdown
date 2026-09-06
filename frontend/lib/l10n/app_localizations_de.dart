@@ -1365,4 +1365,138 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tabSettings => 'Einstellungen';
+
+  @override
+  String get setTimeBank => 'Zeitbank (Sekunden, 0 = aus)';
+
+  @override
+  String get errTimeBank => '0 bis 120 Sekunden';
+
+  @override
+  String get setAllowStraddle => 'Straddle erlauben';
+
+  @override
+  String get setRunItTwice => 'Run it twice anbieten';
+
+  @override
+  String logStraddle(String name, String amount) {
+    return '$name setzt Straddle $amount';
+  }
+
+  @override
+  String logBoard2(String street, String cards) {
+    return 'Board 2 · $street: $cards';
+  }
+
+  @override
+  String boardLabel(int n) {
+    return 'Board $n';
+  }
+
+  @override
+  String get badgeStraddle => 'STR';
+
+  @override
+  String timeBankStrip(int seconds) {
+    return 'Zeitbank · $seconds s';
+  }
+
+  @override
+  String timeBankLeft(int seconds) {
+    return 'Zeitbank $seconds s';
+  }
+
+  @override
+  String get straddleToggle => 'Straddle';
+
+  @override
+  String get straddleHint =>
+      'Vor dem Geben den doppelten Big Blind setzen, wenn du links vom Big Blind sitzt.';
+
+  @override
+  String get runTwiceQuestion => 'Run it twice?';
+
+  @override
+  String get runTwiceYes => 'Ja, zweimal';
+
+  @override
+  String get runTwiceNo => 'Nein, einmal';
+
+  @override
+  String get runTwiceWaiting => 'Warte auf die anderen…';
+
+  @override
+  String get runTwiceDeclined => 'Es wird einmal gespielt';
+
+  @override
+  String get lbHandsPlayed => 'Hände gespielt';
+
+  @override
+  String get lbVpip => 'Freiwillig im Pot';
+
+  @override
+  String get lbShowdowns => 'Showdowns gewonnen / gesehen';
+
+  @override
+  String placeLabel(int place) {
+    return '$place.';
+  }
+
+  @override
+  String get outBadge => 'Raus';
+
+  @override
+  String get logExportText => 'Als Text exportieren';
+
+  @override
+  String get logExportJson => 'Als JSON exportieren';
+
+  @override
+  String get logExported => 'Verlauf exportiert';
+
+  @override
+  String get notifyTurn => 'Benachrichtigen, wenn ich dran bin';
+
+  @override
+  String get notifyTurnHint =>
+      'Eine Systembenachrichtigung (und Vibration am Handy), wenn der Tab im Hintergrund ist.';
+
+  @override
+  String get notifyDenied =>
+      'Benachrichtigungen sind in diesem Browser blockiert.';
+
+  @override
+  String get notifyTitle => 'Du bist dran';
+
+  @override
+  String notifyBody(String table) {
+    return 'Du bist dran bei $table';
+  }
+
+  @override
+  String get cameraTitle => 'Kamera';
+
+  @override
+  String get cameraOn => 'Kamera an';
+
+  @override
+  String get cameraOff => 'Kamera aus';
+
+  @override
+  String get cameraHint =>
+      'Ein kleines Video neben deinem Avatar, direkt zwischen den Browsern wie die Sprache. Am besten bis sechs Spieler.';
+
+  @override
+  String get cameraUnavailable =>
+      'Der Browser hat die Kamera nicht freigegeben.';
+
+  @override
+  String get cameraOffByHost =>
+      'Der Gastgeber hat deine Kamera ausgeschaltet. Du kannst sie wieder einschalten.';
+
+  @override
+  String get adminCameraOff => 'Kamera ausschalten';
+
+  @override
+  String get adminCameraOffDone => 'Kamera ausgeschaltet';
 }

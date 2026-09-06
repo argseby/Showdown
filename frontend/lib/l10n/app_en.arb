@@ -1035,5 +1035,98 @@
   "phraseLol": "LOL",
   "phraseHurryUp": "Hurry up",
   "phraseBrb": "Be right back",
-  "tabSettings": "Settings"
+  "tabSettings": "Settings",
+  "setTimeBank": "Time bank (seconds, 0 = off)",
+  "errTimeBank": "0 to 120 seconds",
+  "setAllowStraddle": "Allow straddle",
+  "setRunItTwice": "Offer run it twice",
+  "logStraddle": "{name} posts a straddle {amount}",
+  "@logStraddle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "logBoard2": "Board 2 · {street}: {cards}",
+  "@logBoard2": {
+    "placeholders": {
+      "street": {
+        "type": "String"
+      },
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "boardLabel": "Board {n}",
+  "@boardLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeStraddle": "STR",
+  "timeBankStrip": "Time bank · {seconds} s",
+  "@timeBankStrip": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "timeBankLeft": "Time bank {seconds} s",
+  "@timeBankLeft": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "straddleToggle": "Straddle",
+  "straddleHint": "Post twice the big blind before the deal when you sit left of the big blind.",
+  "runTwiceQuestion": "Run it twice?",
+  "runTwiceYes": "Yes, twice",
+  "runTwiceNo": "No, once",
+  "runTwiceWaiting": "Waiting for the others…",
+  "runTwiceDeclined": "Running it once",
+  "lbHandsPlayed": "Hands played",
+  "lbVpip": "Voluntarily in the pot",
+  "lbShowdowns": "Showdowns won / seen",
+  "placeLabel": "{place}.",
+  "@placeLabel": {
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "outBadge": "Out",
+  "logExportText": "Export text",
+  "logExportJson": "Export JSON",
+  "logExported": "History exported",
+  "notifyTurn": "Notify me when it's my turn",
+  "notifyTurnHint": "A system notification (and a vibration on phones) when the tab is in the background.",
+  "notifyDenied": "Notifications are blocked in this browser.",
+  "notifyTitle": "Your turn",
+  "notifyBody": "It's your turn at {table}",
+  "@notifyBody": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraTitle": "Camera",
+  "cameraOn": "Camera on",
+  "cameraOff": "Camera off",
+  "cameraHint": "A small video next to your avatar, sent browser to browser like the voice. Works best with up to six players.",
+  "cameraUnavailable": "The browser did not grant the camera.",
+  "cameraOffByHost": "The host turned your camera off. You can turn it on again.",
+  "adminCameraOff": "Turn camera off",
+  "adminCameraOffDone": "Camera turned off"
 }
