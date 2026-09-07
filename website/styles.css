@@ -103,7 +103,9 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex; align-items: center; gap: 0.6rem;
   font-weight: 700; text-decoration: none; font-size: 1.05rem;
 }
-.brand img { border-radius: 6px; }
+/* The logo is a transparent banner with black suits: keep it on a light
+   plate so it stays readable on the dark theme too. */
+.brand img { border-radius: 6px; background: #fff; padding: 3px 6px; }
 .nav { display: flex; gap: 1.5rem; }
 .nav a {
   text-decoration: none; color: var(--muted-foreground);
