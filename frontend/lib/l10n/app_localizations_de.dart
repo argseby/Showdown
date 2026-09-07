@@ -358,6 +358,73 @@ class AppLocalizationsDe extends AppLocalizations {
   String get badgeNoAudio => 'Kein Audio';
 
   @override
+  String get networkCheckTitle => 'Netzwerk';
+
+  @override
+  String get networkCheckAgain => 'Prüfen';
+
+  @override
+  String get networkChecking => 'wird geprüft';
+
+  @override
+  String get networkStatusOk => 'direkte Verbindungen möglich';
+
+  @override
+  String get networkStatusRelay => 'Relay-Server funktioniert';
+
+  @override
+  String get networkStatusNoStun => 'kein STUN-Server';
+
+  @override
+  String get networkStatusStunBlocked => 'STUN blockiert';
+
+  @override
+  String get networkStatusSymmetric => 'symmetrisches NAT';
+
+  @override
+  String get networkStatusRelayFailed => 'Relay-Server antwortet nicht';
+
+  @override
+  String get networkStatusUnknown => 'Prüfung nicht möglich';
+
+  @override
+  String get networkNoStun =>
+      'Es ist kein STUN-Server konfiguriert: Sprache und Video funktionieren nur zwischen Geräten im selben Netz. Ein STUN-Server (es gibt kostenlose öffentliche) lässt Browser ihre öffentliche Adresse finden; das reicht, solange einer von zwei Spielern einen normalen Heimrouter hat. Ein Relay-Server (TURN) leitet zusätzlich Ton und Bild weiter, für Spieler im Mobilfunk oder in strengen Netzen. Frag den Host.';
+
+  @override
+  String get networkStunBlocked =>
+      'Dein Netz blockiert die Adressabfrage (STUN), vermutlich eine Firewall. Von hier funktionieren Sprache und Video nur mit Spielern im selben Netz; alle anderen brauchen einen Relay-Server (TURN). Bitte den Host um einen oder nutze ein anderes Netz.';
+
+  @override
+  String get networkSymmetric =>
+      'Dein Netz verwendet ein symmetrisches NAT. Du erreichst Spieler im selben Netz und Spieler, deren Netz nicht symmetrisch ist (ein normaler Heimrouter); Spieler im Mobilfunk oder hinter einem weiteren symmetrischen NAT sind ohne Relay-Server (TURN) nicht erreichbar. Bitte den Host um einen oder nutze ein anderes Netz, zum Beispiel WLAN statt Mobilfunk.';
+
+  @override
+  String get networkRelayFailed =>
+      'Der Relay-Server (TURN) antwortet nicht oder lehnt die Zugangsdaten ab. Spieler in anderen Netzen werden sich nicht verbinden können.';
+
+  @override
+  String get networkHostHintStun =>
+      'Als Host: WEBRTC_STUN_URLS auf dem Server setzen, zum Beispiel stun:stun.l.google.com:19302 (kostenlos, kein Konto), und für Spieler im Mobilfunk oder in strengen Netzen zusätzlich WEBRTC_TURN_URLS mit WEBRTC_TURN_USERNAME und WEBRTC_TURN_CREDENTIAL (eigener coturn oder ein gehosteter TURN-Dienst). Danach den Server neu starten.';
+
+  @override
+  String get networkHostHintTurn =>
+      'Als Host: WEBRTC_TURN_URLS mit WEBRTC_TURN_USERNAME und WEBRTC_TURN_CREDENTIAL auf dem Server setzen (eigener coturn oder ein gehosteter TURN-Dienst; er leitet Ton und Bild für Spieler weiter, deren Netze sich nicht direkt verbinden können) und ihn neu starten.';
+
+  @override
+  String get networkHostHintRelay =>
+      'Als Host: TURN-Server, Zugangsdaten und Firewall prüfen (UDP und TCP 3478, der Relay-Portbereich, external-ip hinter NAT).';
+
+  @override
+  String get networkPeerNoRoute =>
+      'Eure Netze erreichen sich nicht direkt; ein Relay-Server (TURN) würde das lösen.';
+
+  @override
+  String voicePeerFailed(String name) {
+    return 'Keine Audioverbindung zu $name.';
+  }
+
+  @override
   String get mainPot => 'Hauptpot';
 
   @override

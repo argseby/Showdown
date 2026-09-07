@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:showdown/core/voice/network_check.dart';
 import 'package:showdown/core/voice/voice_controller.dart';
 import 'package:showdown/core/voice/voice_engine.dart';
 import 'package:showdown/core/ws_client.dart';
@@ -62,6 +63,15 @@ class FakeEngine implements VoiceEngine {
       calls.add('ice:$peerId:$candidate');
   @override
   void closePeer(String peerId) => calls.add('close:$peerId');
+
+  /// What the network check reports.
+  NetworkReport report = const NetworkReport.unknown();
+  @override
+  Future<NetworkReport> checkNetwork(List<IceServer> iceServers) async {
+    calls.add('check');
+    return report;
+  }
+
   @override
   Stream<VoiceEvent> get events => pushed.stream;
 }
@@ -298,6 +308,37 @@ void main() {
     final s = container.read(voiceControllerProvider('t1'));
     expect(s.failed, isEmpty);
     expect(s.connected, {'p4'});
+  });
+
+  test('the network is checked after joining and on request', () async {
+    engine.report = const NetworkReport(
+      verdict: NetworkVerdict.symmetricNat,
+      stunConfigured: true,
+      stunReachable: true,
+      symmetric: true,
+    );
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await Future<void>.delayed(Duration.zero);
+    final voice = container.read(voiceControllerProvider('t1').notifier);
+    await voice.enable();
+    await Future<void>.delayed(Duration.zero);
+    var s = container.read(voiceControllerProvider('t1'));
+    expect(engine.calls.where((c) => c == 'check'), hasLength(1));
+    expect(s.network?.verdict, NetworkVerdict.symmetricNat);
+    expect(s.network?.problem, isTrue);
+    expect(s.networkChecking, isFalse);
+    engine.report = const NetworkReport(
+      verdict: NetworkVerdict.relayOk,
+      turnConfigured: true,
+      relayWorks: true,
+    );
+    await voice.checkNetwork();
+    s = container.read(voiceControllerProvider('t1'));
+    expect(engine.calls.where((c) => c == 'check'), hasLength(2));
+    expect(s.network?.verdict, NetworkVerdict.relayOk);
+    // Leaving the voice chat forgets the report.
+    await voice.disable();
+    expect(container.read(voiceControllerProvider('t1')).network, isNull);
   });
 
   test('a refused microphone marks the feature unavailable', () async {

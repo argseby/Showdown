@@ -722,6 +722,120 @@ abstract class AppLocalizations {
   /// **'No audio'**
   String get badgeNoAudio;
 
+  /// No description provided for @networkCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get networkCheckTitle;
+
+  /// No description provided for @networkCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get networkCheckAgain;
+
+  /// No description provided for @networkChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'checking'**
+  String get networkChecking;
+
+  /// No description provided for @networkStatusOk.
+  ///
+  /// In en, this message translates to:
+  /// **'direct connections possible'**
+  String get networkStatusOk;
+
+  /// No description provided for @networkStatusRelay.
+  ///
+  /// In en, this message translates to:
+  /// **'relay server working'**
+  String get networkStatusRelay;
+
+  /// No description provided for @networkStatusNoStun.
+  ///
+  /// In en, this message translates to:
+  /// **'no STUN server'**
+  String get networkStatusNoStun;
+
+  /// No description provided for @networkStatusStunBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'STUN blocked'**
+  String get networkStatusStunBlocked;
+
+  /// No description provided for @networkStatusSymmetric.
+  ///
+  /// In en, this message translates to:
+  /// **'symmetric NAT'**
+  String get networkStatusSymmetric;
+
+  /// No description provided for @networkStatusRelayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'relay server not answering'**
+  String get networkStatusRelayFailed;
+
+  /// No description provided for @networkStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'could not check'**
+  String get networkStatusUnknown;
+
+  /// No description provided for @networkNoStun.
+  ///
+  /// In en, this message translates to:
+  /// **'No STUN server is configured: voice and video only work between devices in the same network. A STUN server (free public ones exist) lets browsers find their public address, which is enough as long as one of two players has a normal home router; a relay server (TURN) additionally carries the audio and video for players on mobile data or in strict networks. Ask the host.'**
+  String get networkNoStun;
+
+  /// No description provided for @networkStunBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your network blocks the address lookup (STUN), probably a firewall. From here voice and video only work with players in the same network; everyone else needs a relay server (TURN). Ask the host for one or use another network.'**
+  String get networkStunBlocked;
+
+  /// No description provided for @networkSymmetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Your network uses a symmetric NAT. You can reach players in the same network and players whose network is not symmetric (a normal home router); players on mobile data or behind another symmetric NAT cannot be reached without a relay server (TURN). Ask the host for one or use another network, for example Wi-Fi instead of mobile data.'**
+  String get networkSymmetric;
+
+  /// No description provided for @networkRelayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The relay server (TURN) does not answer or rejects the credentials. Players in other networks will not be able to connect.'**
+  String get networkRelayFailed;
+
+  /// No description provided for @networkHostHintStun.
+  ///
+  /// In en, this message translates to:
+  /// **'As the host: set WEBRTC_STUN_URLS on the server, for example stun:stun.l.google.com:19302 (free, no account), and for players on mobile data or in strict networks also WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL (your own coturn or a hosted TURN service). Restart the server afterwards.'**
+  String get networkHostHintStun;
+
+  /// No description provided for @networkHostHintTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'As the host: set WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL on the server (your own coturn or a hosted TURN service; it relays the audio and video for players whose networks cannot connect directly) and restart it.'**
+  String get networkHostHintTurn;
+
+  /// No description provided for @networkHostHintRelay.
+  ///
+  /// In en, this message translates to:
+  /// **'As the host: check the TURN server, its credentials and the firewall (UDP and TCP 3478, the relay port range, external-ip when the server sits behind NAT).'**
+  String get networkHostHintRelay;
+
+  /// No description provided for @networkPeerNoRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Your networks cannot reach each other directly; a relay server (TURN) would fix this.'**
+  String get networkPeerNoRoute;
+
+  /// No description provided for @voicePeerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No audio connection to {name}.'**
+  String voicePeerFailed(String name);
+
   /// No description provided for @mainPot.
   ///
   /// In en, this message translates to:

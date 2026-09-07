@@ -7,6 +7,8 @@ import '../../../app/theme.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../shared/kbd_hint.dart';
+import '../network_texts.dart';
+import '../table_session.dart';
 
 /// True while the browser's notification prompt is open.
 bool _notifyPrompt = false;
@@ -47,6 +49,10 @@ class TableSettingsTab extends ConsumerWidget {
     final spotlight = ref.watch(showdownSpotlightProvider);
     final notifier = TurnNotifier.create();
     final voiceCtrl = ref.read(voiceControllerProvider(tableId).notifier);
+    final isHost = ref.watch(
+      tableSessionProvider(tableId)
+          .select((s) => s.snapshot?.you.isAdmin ?? false),
+    );
     final brightness = theme.colorScheme.brightness;
     final locale = Localizations.localeOf(context);
     final wide = MediaQuery.sizeOf(context).width >= KbdHint.minWidth;
@@ -184,6 +190,25 @@ class TableSettingsTab extends ConsumerWidget {
                 ref.read(showCamerasProvider.notifier).set(!showCameras);
                 voiceCtrl.setReceiveVideo(!showCameras);
               }, key: const Key('drawer-show-cameras')),
+              // What this network allows, checked after joining: the
+              // reason when nobody can be heard, and what to do about it.
+              if (voice.enabled) ...[
+                row(
+                  LucideIcons.network,
+                  '${l10n.networkCheckTitle}: '
+                  '${networkStatus(l10n, voice.network, checking: voice.networkChecking)}',
+                  OutlineButton(
+                    key: const Key('drawer-network'),
+                    size: ButtonSize.small,
+                    onPressed: voice.networkChecking
+                        ? null
+                        : voiceCtrl.checkNetwork,
+                    child: Text(l10n.networkCheckAgain),
+                  ),
+                ),
+                if (voice.network?.problem ?? false)
+                  error(networkExplanation(l10n, voice.network!, host: isHost)),
+              ],
             ],
             section(l10n.menuPreferences),
             toggle(

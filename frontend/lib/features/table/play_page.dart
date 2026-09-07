@@ -23,6 +23,7 @@ import '../../shared/top_bar.dart';
 import '../admin/admin_player_actions.dart';
 import '../admin/admin_widgets.dart';
 import 'focus_utils.dart';
+import 'network_texts.dart';
 import 'replay/replay_dialog.dart';
 import 'shortcuts.dart';
 import 'table_session.dart';
@@ -53,6 +54,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
   bool _panelOpen = true;
   bool _panelDecided = false;
   bool _voiceRequested = false;
+
+  /// Peers whose failed audio link was already explained in a toast.
+  final _failedToasted = <String>{};
   bool _amountFocused = false;
   bool _windowFocused = true;
   bool _turnTitle = false;
@@ -330,6 +334,15 @@ class _PlayPageState extends ConsumerState<PlayPage>
     );
   }
 
+  /// Display name of a player at the table, or the id when unknown.
+  String _playerName(String id) {
+    final snap = ref.read(tableSessionProvider(widget.tableId)).snapshot;
+    for (final sv in snap?.seats ?? const <SeatView>[]) {
+      if (sv.player?.id == id) return sv.player!.name;
+    }
+    return id;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -498,6 +511,40 @@ class _PlayPageState extends ConsumerState<PlayPage>
           location: ToastLocation.bottomCenter,
           builder: (context, overlay) =>
               SurfaceCard(child: Text(l10n.voiceUnavailable)),
+        );
+      }
+      // The network check says voice and video will not reach other
+      // networks from here: say so once, with what to do about it.
+      final report = next.network;
+      final isHost =
+          ref
+              .read(tableSessionProvider(widget.tableId))
+              .snapshot
+              ?.you
+              .isAdmin ??
+          false;
+      if (report != null && report != prev?.network && report.problem) {
+        showToast(
+          context: context,
+          location: ToastLocation.bottomCenter,
+          builder: (context, overlay) => SurfaceCard(
+            child: Text(networkExplanation(l10n, report, host: isHost)),
+          ),
+        );
+      }
+      // A peer's audio link failed: name the peer and the likely reason.
+      if (!next.enabled) _failedToasted.clear();
+      for (final id in next.failed.difference(prev?.failed ?? const {})) {
+        if (!_failedToasted.add(id)) continue;
+        final reason = report != null && report.problem
+            ? networkExplanation(l10n, report, host: isHost)
+            : l10n.networkPeerNoRoute;
+        showToast(
+          context: context,
+          location: ToastLocation.bottomCenter,
+          builder: (context, overlay) => SurfaceCard(
+            child: Text('${l10n.voicePeerFailed(_playerName(id))} $reason'),
+          ),
         );
       }
     });

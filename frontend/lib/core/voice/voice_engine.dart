@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'network_check.dart';
 import 'voice_engine_stub.dart'
     if (dart.library.js_interop) 'voice_engine_web.dart'
     as impl;
@@ -91,6 +92,11 @@ abstract class VoiceEngine {
   Future<void> acceptAnswer(String peerId, String answer);
   Future<void> addIceCandidate(String peerId, String candidate);
   void closePeer(String peerId);
+
+  /// Finds out what this network allows: a few seconds of ICE gathering
+  /// with [iceServers], once directly and (with a TURN server) once
+  /// relay-only. Never throws; an aborted check reports "unknown".
+  Future<NetworkReport> checkNetwork(List<IceServer> iceServers);
 
   Stream<VoiceEvent> get events;
 

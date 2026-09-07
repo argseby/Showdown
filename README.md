@@ -101,7 +101,7 @@ All settings live in `.env`; everything has a default.
 |---|---|---|
 | `WEB_PORT` | `8080` | port published on the host |
 | `SITE_ADDRESS` | `:80` | keep `:80` behind a proxy; a host name switches on automatic HTTPS |
-| `WEBRTC_STUN_URLS` | empty | STUN servers for voice and video across networks, comma-separated, e.g. `stun:stun.l.google.com:19302` (public, no account needed). STUN only tells browsers their public address; audio and video stay browser to browser. Empty = same network only. The old name `VOICE_STUN_URLS` still works |
+| `WEBRTC_STUN_URLS` | empty | STUN servers for voice and video across networks, comma-separated, e.g. `stun:stun.l.google.com:19302` (public, no account needed). STUN only tells browsers their public address; audio and video stay browser to browser. Empty = same network only. Two servers, e.g. `stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302`, let the app recognise a symmetric NAT and tell the player that a relay is needed. The old name `VOICE_STUN_URLS` still works |
 | `WEBRTC_TURN_URLS` | empty | TURN relay for players whose networks block direct connections (strict NAT, mobile carriers), `turn:`/`turns:` URLs, comma-separated. Media then passes through that relay, so it needs your own coturn or a hosted TURN service. Requires `WEBRTC_TURN_USERNAME` and `WEBRTC_TURN_CREDENTIAL` |
 | `TABLE_RETENTION_DAYS` | `90` | hands and chat of ended tables are deleted after this many days; tables and final standings stay |
 | `MAX_TABLES` | `100` | cap on tables that have not ended |

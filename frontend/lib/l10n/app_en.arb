@@ -219,6 +219,32 @@
   "badgeWaiting": "Next hand",
   "badgeFolded": "Folded",
   "badgeNoAudio": "No audio",
+  "networkCheckTitle": "Network",
+  "networkCheckAgain": "Check",
+  "networkChecking": "checking",
+  "networkStatusOk": "direct connections possible",
+  "networkStatusRelay": "relay server working",
+  "networkStatusNoStun": "no STUN server",
+  "networkStatusStunBlocked": "STUN blocked",
+  "networkStatusSymmetric": "symmetric NAT",
+  "networkStatusRelayFailed": "relay server not answering",
+  "networkStatusUnknown": "could not check",
+  "networkNoStun": "No STUN server is configured: voice and video only work between devices in the same network. A STUN server (free public ones exist) lets browsers find their public address, which is enough as long as one of two players has a normal home router; a relay server (TURN) additionally carries the audio and video for players on mobile data or in strict networks. Ask the host.",
+  "networkStunBlocked": "Your network blocks the address lookup (STUN), probably a firewall. From here voice and video only work with players in the same network; everyone else needs a relay server (TURN). Ask the host for one or use another network.",
+  "networkSymmetric": "Your network uses a symmetric NAT. You can reach players in the same network and players whose network is not symmetric (a normal home router); players on mobile data or behind another symmetric NAT cannot be reached without a relay server (TURN). Ask the host for one or use another network, for example Wi-Fi instead of mobile data.",
+  "networkRelayFailed": "The relay server (TURN) does not answer or rejects the credentials. Players in other networks will not be able to connect.",
+  "networkHostHintStun": "As the host: set WEBRTC_STUN_URLS on the server, for example stun:stun.l.google.com:19302 (free, no account), and for players on mobile data or in strict networks also WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL (your own coturn or a hosted TURN service). Restart the server afterwards.",
+  "networkHostHintTurn": "As the host: set WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL on the server (your own coturn or a hosted TURN service; it relays the audio and video for players whose networks cannot connect directly) and restart it.",
+  "networkHostHintRelay": "As the host: check the TURN server, its credentials and the firewall (UDP and TCP 3478, the relay port range, external-ip when the server sits behind NAT).",
+  "networkPeerNoRoute": "Your networks cannot reach each other directly; a relay server (TURN) would fix this.",
+  "voicePeerFailed": "No audio connection to {name}.",
+  "@voicePeerFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "mainPot": "Main pot",
   "sidePot": "Side pot {n}",
   "@sidePot": {

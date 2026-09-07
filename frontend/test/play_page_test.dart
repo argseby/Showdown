@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showdown/core/session_store.dart';
+import 'package:showdown/core/voice/network_check.dart';
+import 'package:showdown/core/voice/voice_controller.dart';
+import 'package:showdown/core/voice/voice_engine.dart';
 import 'package:showdown/core/ws_transport.dart';
 import 'package:showdown/features/table/play_page.dart';
 import 'package:showdown/features/table/table_session.dart';
@@ -289,6 +292,20 @@ void main() {
     expect(after, greaterThan(before));
   });
 
+  testWidgets('a bad network check is explained in a toast and the tab', (
+    tester,
+  ) async {
+    VoiceController.engineFactory = _ProbeEngine.new;
+    addTearDown(() => VoiceController.engineFactory = null);
+    await pumpPlay(tester);
+    await tester.tap(find.byKey(const Key('mic-button')));
+    await tester.pump(const Duration(milliseconds: 300));
+    // The toast and the settings row both name the problem.
+    expect(find.textContaining('symmetric NAT'), findsWidgets);
+    expect(find.byKey(const Key('drawer-network')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
   testWidgets('microphone and camera are one-press toggles in the bar', (
     tester,
   ) async {
@@ -371,4 +388,41 @@ void _pushEvents(ScriptedTransport transport) {
       },
     }),
   );
+}
+
+/// Engine with a microphone whose network check finds a symmetric NAT.
+class _ProbeEngine implements VoiceEngine {
+  final _events = StreamController<VoiceEvent>.broadcast();
+  @override
+  Future<bool> start({List<IceServer> iceServers = const []}) async => true;
+  @override
+  void stop() {}
+  @override
+  void setMuted(bool muted) {}
+  @override
+  Future<String?> startCamera() async => 'unsupported';
+  @override
+  void stopCamera() {}
+  @override
+  void setReceiveVideo(bool on) {}
+  @override
+  Future<String> createOffer(String peerId) async => '';
+  @override
+  Future<String?> acceptOffer(String peerId, String offer) async => '';
+  @override
+  Future<void> acceptAnswer(String peerId, String answer) async {}
+  @override
+  Future<void> addIceCandidate(String peerId, String candidate) async {}
+  @override
+  void closePeer(String peerId) {}
+  @override
+  Future<NetworkReport> checkNetwork(List<IceServer> iceServers) async =>
+      const NetworkReport(
+        verdict: NetworkVerdict.symmetricNat,
+        stunConfigured: true,
+        stunReachable: true,
+        symmetric: true,
+      );
+  @override
+  Stream<VoiceEvent> get events => _events.stream;
 }

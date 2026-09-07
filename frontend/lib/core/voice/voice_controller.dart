@@ -9,6 +9,7 @@ import '../../protocol/protocol.dart';
 import '../providers.dart';
 import '../session_store.dart';
 import '../ws_client.dart';
+import 'network_check.dart';
 import 'voice_engine.dart';
 
 /// Voice-chat state for one table.
@@ -26,7 +27,14 @@ class VoiceState {
     this.cameraError,
     this.hostCameraOff = false,
     this.videoViews = const {},
+    this.network,
+    this.networkChecking = false,
   });
+
+  /// What the browser found out about this network (null until the check
+  /// after joining is through).
+  final NetworkReport? network;
+  final bool networkChecking;
 
   /// The browser's reason when the camera could not be started.
   final String? cameraError;
@@ -77,6 +85,8 @@ class VoiceState {
     String? cameraError,
     bool? hostCameraOff,
     Map<String, String>? videoViews,
+    NetworkReport? network,
+    bool? networkChecking,
   }) => VoiceState(
     enabled: enabled ?? this.enabled,
     muted: muted ?? this.muted,
@@ -90,6 +100,8 @@ class VoiceState {
     cameraError: cameraError ?? this.cameraError,
     hostCameraOff: hostCameraOff ?? this.hostCameraOff,
     videoViews: videoViews ?? this.videoViews,
+    network: network ?? this.network,
+    networkChecking: networkChecking ?? this.networkChecking,
   );
 }
 
@@ -211,7 +223,26 @@ class VoiceController extends Notifier<VoiceState> {
     }
     _persist(voice: true, voiceMuted: muted);
     _sync(ref.read(tableSessionProvider(tableId)));
+    unawaited(checkNetwork());
     if (camera) await toggleCamera();
+  }
+
+  /// Finds out what this network allows (STUN reachable, symmetric NAT,
+  /// relay working) and keeps the report in the state; runs after joining
+  /// and on request from the settings tab.
+  Future<void> checkNetwork() async {
+    final engine = _engine;
+    if (engine == null || state.networkChecking) return;
+    state = state.copyWith(networkChecking: true);
+    final ice = await ref.read(restClientProvider).iceServers();
+    final report = await engine.checkNetwork(ice);
+    if (_engine != engine) return;
+    log(
+      'network check: ${report.verdict.name} (stun reachable '
+      '${report.stunReachable}, symmetric ${report.symmetric}, '
+      'relay ${report.relayWorks})',
+    );
+    state = state.copyWith(network: report, networkChecking: false);
   }
 
   /// Receive (or stop receiving) the other players' video.

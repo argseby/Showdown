@@ -355,6 +355,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get badgeNoAudio => 'No audio';
 
   @override
+  String get networkCheckTitle => 'Network';
+
+  @override
+  String get networkCheckAgain => 'Check';
+
+  @override
+  String get networkChecking => 'checking';
+
+  @override
+  String get networkStatusOk => 'direct connections possible';
+
+  @override
+  String get networkStatusRelay => 'relay server working';
+
+  @override
+  String get networkStatusNoStun => 'no STUN server';
+
+  @override
+  String get networkStatusStunBlocked => 'STUN blocked';
+
+  @override
+  String get networkStatusSymmetric => 'symmetric NAT';
+
+  @override
+  String get networkStatusRelayFailed => 'relay server not answering';
+
+  @override
+  String get networkStatusUnknown => 'could not check';
+
+  @override
+  String get networkNoStun =>
+      'No STUN server is configured: voice and video only work between devices in the same network. A STUN server (free public ones exist) lets browsers find their public address, which is enough as long as one of two players has a normal home router; a relay server (TURN) additionally carries the audio and video for players on mobile data or in strict networks. Ask the host.';
+
+  @override
+  String get networkStunBlocked =>
+      'Your network blocks the address lookup (STUN), probably a firewall. From here voice and video only work with players in the same network; everyone else needs a relay server (TURN). Ask the host for one or use another network.';
+
+  @override
+  String get networkSymmetric =>
+      'Your network uses a symmetric NAT. You can reach players in the same network and players whose network is not symmetric (a normal home router); players on mobile data or behind another symmetric NAT cannot be reached without a relay server (TURN). Ask the host for one or use another network, for example Wi-Fi instead of mobile data.';
+
+  @override
+  String get networkRelayFailed =>
+      'The relay server (TURN) does not answer or rejects the credentials. Players in other networks will not be able to connect.';
+
+  @override
+  String get networkHostHintStun =>
+      'As the host: set WEBRTC_STUN_URLS on the server, for example stun:stun.l.google.com:19302 (free, no account), and for players on mobile data or in strict networks also WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL (your own coturn or a hosted TURN service). Restart the server afterwards.';
+
+  @override
+  String get networkHostHintTurn =>
+      'As the host: set WEBRTC_TURN_URLS with WEBRTC_TURN_USERNAME and WEBRTC_TURN_CREDENTIAL on the server (your own coturn or a hosted TURN service; it relays the audio and video for players whose networks cannot connect directly) and restart it.';
+
+  @override
+  String get networkHostHintRelay =>
+      'As the host: check the TURN server, its credentials and the firewall (UDP and TCP 3478, the relay port range, external-ip when the server sits behind NAT).';
+
+  @override
+  String get networkPeerNoRoute =>
+      'Your networks cannot reach each other directly; a relay server (TURN) would fix this.';
+
+  @override
+  String voicePeerFailed(String name) {
+    return 'No audio connection to $name.';
+  }
+
+  @override
   String get mainPot => 'Main pot';
 
   @override

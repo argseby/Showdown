@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'network_check.dart';
 import 'voice_engine.dart';
 
 class _StubVoiceEngine implements VoiceEngine {
@@ -29,6 +30,9 @@ class _StubVoiceEngine implements VoiceEngine {
   Future<void> addIceCandidate(String peerId, String candidate) async {}
   @override
   void closePeer(String peerId) {}
+  @override
+  Future<NetworkReport> checkNetwork(List<IceServer> iceServers) async =>
+      const NetworkReport.unknown();
   @override
   Stream<VoiceEvent> get events => _events.stream;
 }

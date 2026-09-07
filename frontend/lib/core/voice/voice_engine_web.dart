@@ -6,6 +6,7 @@ import 'dart:ui_web' as ui_web;
 import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
+import 'network_check.dart';
 import 'voice_engine.dart';
 
 /// WebRTC mesh over `package:web`: one peer connection per other player,
@@ -209,25 +210,7 @@ class _WebVoiceEngine implements VoiceEngine {
   web.RTCPeerConnection _pc(String peerId) {
     final existing = _peers[peerId];
     if (existing != null) return existing;
-    final pc = _iceServers.isEmpty
-        ? web.RTCPeerConnection()
-        : web.RTCPeerConnection(
-            web.RTCConfiguration(
-              iceServers: [
-                for (final s in _iceServers)
-                  if (s.username != null && s.credential != null)
-                    web.RTCIceServer(
-                      urls: [for (final u in s.urls) u.toJS].toJS,
-                      username: s.username!,
-                      credential: s.credential!,
-                    )
-                  else
-                    web.RTCIceServer(
-                      urls: [for (final u in s.urls) u.toJS].toJS,
-                    ),
-              ].toJS,
-            ),
-          );
+    final pc = web.RTCPeerConnection(_rtcConfig(_iceServers));
     final local = _local;
     if (local != null) {
       for (final t in local.getAudioTracks().toDart) {
@@ -332,6 +315,122 @@ class _WebVoiceEngine implements VoiceEngine {
     }).toJS;
     _peers[peerId] = pc;
     return pc;
+  }
+
+  static web.RTCConfiguration _rtcConfig(
+    List<IceServer> servers, {
+    bool relayOnly = false,
+  }) => web.RTCConfiguration(
+    iceServers: [
+      for (final s in servers)
+        if (s.username != null && s.credential != null)
+          web.RTCIceServer(
+            urls: [for (final u in s.urls) u.toJS].toJS,
+            username: s.username!,
+            credential: s.credential!,
+          )
+        else
+          web.RTCIceServer(urls: [for (final u in s.urls) u.toJS].toJS),
+    ].toJS,
+    iceTransportPolicy: relayOnly ? 'relay' : 'all',
+  );
+
+  static bool _isStun(String url) =>
+      url.startsWith('stun:') || url.startsWith('stuns:');
+  static bool _isTurn(String url) =>
+      url.startsWith('turn:') || url.startsWith('turns:');
+
+  @override
+  Future<NetworkReport> checkNetwork(List<IceServer> iceServers) async {
+    final stun = [
+      for (final s in iceServers)
+        if (s.urls.any(_isStun))
+          IceServer([
+            for (final u in s.urls)
+              if (_isStun(u)) u,
+          ]),
+    ];
+    final stunUrls = stun.fold(0, (n, s) => n + s.urls.length);
+    final turnConfigured = iceServers.any((s) => s.urls.any(_isTurn));
+    try {
+      final runs = await Future.wait([
+        _gather(_rtcConfig(stun)),
+        if (turnConfigured) _gather(_rtcConfig(iceServers, relayOnly: true)),
+      ]);
+      final report = analyzeNetwork(
+        direct: runs[0],
+        relay: turnConfigured ? runs[1] : const [],
+        stunServers: stunUrls,
+        turnConfigured: turnConfigured,
+      );
+      debugPrint(
+        'voice: network check: ${report.verdict.name}; direct candidates '
+        '${runs[0].map((c) => c.type).join(', ')}'
+        '${turnConfigured ? '; relay-only ${runs[1].map((c) => c.type).join(', ')}' : ''}',
+      );
+      return report;
+    } on Object catch (e) {
+      debugPrint('voice: network check failed: $e');
+      return const NetworkReport.unknown();
+    }
+  }
+
+  /// Gathers ICE candidates on a throwaway connection (a data channel is
+  /// enough to start it) until the browser is done, nothing new has come
+  /// for [quiet] (browsers often keep "gathering" for many seconds after
+  /// the last usable candidate), or [timeout] passes.
+  Future<List<ProbeCandidate>> _gather(
+    web.RTCConfiguration config, {
+    Duration quiet = const Duration(milliseconds: 1500),
+    Duration timeout = const Duration(seconds: 6),
+  }) async {
+    final pc = web.RTCPeerConnection(config);
+    final found = <ProbeCandidate>[];
+    final done = Completer<void>();
+    Timer? idle;
+    pc.onicecandidate = ((web.RTCPeerConnectionIceEvent e) {
+      final c = e.candidate;
+      if (c == null) {
+        if (!done.isCompleted) done.complete();
+        return;
+      }
+      idle?.cancel();
+      idle = Timer(quiet, () {
+        if (!done.isCompleted) done.complete();
+      });
+      found.add(
+        ProbeCandidate(
+          type: c.type ?? _candidateType(c.candidate),
+          address: c.address,
+          port: c.port,
+          relatedAddress: c.relatedAddress,
+          relatedPort: c.relatedPort,
+          protocol: c.protocol,
+        ),
+      );
+    }).toJS;
+    pc.onicegatheringstatechange = ((web.Event _) {
+      if (pc.iceGatheringState == 'complete' && !done.isCompleted) {
+        done.complete();
+      }
+    }).toJS;
+    try {
+      pc.createDataChannel('probe');
+      final offer = (await pc.createOffer().toDart)!;
+      await pc
+          .setLocalDescription(
+            web.RTCLocalSessionDescriptionInit(
+              type: offer.type,
+              sdp: offer.sdp,
+            ),
+          )
+          .toDart;
+      await done.future.timeout(timeout, onTimeout: () {});
+    } finally {
+      idle?.cancel();
+      pc.close();
+    }
+    return found;
   }
 
   /// The "typ" of an ICE candidate line: host, srflx, prflx or relay.
