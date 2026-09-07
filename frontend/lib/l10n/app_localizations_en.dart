@@ -352,6 +352,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get badgeFolded => 'Folded';
 
   @override
+  String get badgeNoAudio => 'No audio';
+
+  @override
   String get mainPot => 'Main pot';
 
   @override

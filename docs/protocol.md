@@ -89,6 +89,13 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   and the client shows it in the start screen's footer. `showdown -version` prints
 >   the same string, which is how a running container can be identified without a
 >   shell.
+> - **Voice presence after a reconnect (2026-09-07).** The server resets `voice` and
+>   `camera` when a player's connection drops. A client whose WebSocket reconnects
+>   therefore announces its state again: `voice {state: "off"}` first, then its real
+>   state, and only then does it offer to the peers again. The "off" tells a peer that
+>   never saw the drop (the new connection replaced the old one before the server
+>   noticed) to close its side and start over. A client that sees itself as "off" in a
+>   snapshot while its microphone is on does the same.
 > - **Message size caps (2026-09-06).** A frame may be 32 KiB; every message except
 >   `voice_signal` is capped at 8 KiB and an oversized one closes the connection with
 >   `1008`. Only `voice_signal` may be larger, and its `data` is capped at 24 KiB:

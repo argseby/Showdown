@@ -25,7 +25,12 @@ class TableView extends ConsumerWidget {
     this.onAdminTap,
     this.onSayTap,
     this.videoViews = const {},
+    this.voiceFailed = const {},
   });
+
+  /// Player ids in the voice chat whose audio connection to the viewer
+  /// failed and is being retried (badge on the seat).
+  final Set<String> voiceFailed;
 
   /// Player id -> platform view type of a live camera stream (the viewer's
   /// own under [VoiceEngine.self]).
@@ -381,6 +386,8 @@ class TableView extends ConsumerWidget {
                       : sv.seat == session.mySeat && session.isPlayer
                       ? videoViews[VoiceEngine.self]
                       : videoViews[sv.player!.id],
+                  voiceLinkDown:
+                      sv.player != null && voiceFailed.contains(sv.player!.id),
                   onTakeSeat:
                       sv.player == null &&
                           onTakeSeat != null &&

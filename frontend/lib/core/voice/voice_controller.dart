@@ -8,6 +8,7 @@ import '../../features/table/table_session.dart';
 import '../../protocol/protocol.dart';
 import '../providers.dart';
 import '../session_store.dart';
+import '../ws_client.dart';
 import 'voice_engine.dart';
 
 /// Voice-chat state for one table.
@@ -18,6 +19,7 @@ class VoiceState {
     this.hostMuted = false,
     this.unavailable = false,
     this.connected = const {},
+    this.failed = const {},
     this.speaking = const {},
     this.camera = false,
     this.cameraUnavailable = false,
@@ -54,6 +56,10 @@ class VoiceState {
   /// Player ids with an established audio connection.
   final Set<String> connected;
 
+  /// Player ids in the voice chat whose connection to us failed (no route
+  /// between the browsers, or it went away); a new attempt is pending.
+  final Set<String> failed;
+
   /// Player ids currently speaking; contains [VoiceEngine.self] for the
   /// local microphone.
   final Set<String> speaking;
@@ -64,6 +70,7 @@ class VoiceState {
     bool? hostMuted,
     bool? unavailable,
     Set<String>? connected,
+    Set<String>? failed,
     Set<String>? speaking,
     bool? camera,
     bool? cameraUnavailable,
@@ -76,6 +83,7 @@ class VoiceState {
     hostMuted: hostMuted ?? this.hostMuted,
     unavailable: unavailable ?? this.unavailable,
     connected: connected ?? this.connected,
+    failed: failed ?? this.failed,
     speaking: speaking ?? this.speaking,
     camera: camera ?? this.camera,
     cameraUnavailable: cameraUnavailable ?? this.cameraUnavailable,
@@ -105,6 +113,31 @@ class VoiceController extends Notifier<VoiceState> {
   /// right behind an answer must not overtake it).
   final _chains = <String, Future<void>>{};
 
+  /// A peer whose connection failed is tried again after a pause that
+  /// doubles from [retryBase] up to [retryMax] with every failure in a row
+  /// (reset once it connects), so an unreachable peer costs little.
+  static Duration retryBase = const Duration(seconds: 2);
+  static const retryMax = Duration(seconds: 30);
+  final _retryTimers = <String, Timer>{};
+  final _retryDelay = <String, Duration>{};
+
+  /// Minimum pause between two rejoins, so that a server which keeps
+  /// refusing the announcement cannot trigger a storm of them.
+  static Duration rejoinMinInterval = const Duration(seconds: 3);
+  DateTime? _lastRejoin;
+  Timer? _rejoinTimer;
+  bool _rejoinPending = false;
+
+  /// The game connection was up at the last look. When it drops and comes
+  /// back, the server has forgotten our voice presence (it resets on
+  /// disconnect) and the peers have closed their side: everything must be
+  /// announced and built again.
+  bool _wasReady = false;
+
+  /// A `voice` announcement is on its way: snapshots that still show us
+  /// "off" are stale, and no offer goes out until it is through.
+  bool _announcing = false;
+
   /// One line per signalling step in the browser console, so a failing
   /// connection can be traced from the two ends.
   static void log(String message) => debugPrint('voice: $message');
@@ -126,6 +159,7 @@ class VoiceController extends Notifier<VoiceState> {
     ref.onDispose(() {
       _eventSub?.cancel();
       _signalSub?.cancel();
+      _cancelRetries();
       _engine?.stop();
       _engine = null;
     });
@@ -138,6 +172,10 @@ class VoiceController extends Notifier<VoiceState> {
 
   String? get _myId =>
       ref.read(tableSessionProvider(tableId)).identity?.playerId;
+
+  bool get _connectionReady =>
+      ref.read(tableSessionProvider(tableId)).connection.status ==
+      WsStatus.ready;
 
   /// True once a snapshot showed this player's microphone as "on" after
   /// the last state we sent; a "muted" snapshot after that is the host's
@@ -162,9 +200,15 @@ class VoiceController extends Notifier<VoiceState> {
     _signalSub = _session.voiceSignals.listen(_onSignal);
     engine.setMuted(muted);
     engine.setReceiveVideo(ref.read(showCamerasProvider));
+    _wasReady = _connectionReady;
+    _announcing = true;
     state = state.copyWith(enabled: true, muted: muted, unavailable: false);
     _confirmedOn = false;
-    await _session.setVoice(muted ? 'muted' : 'on');
+    try {
+      await _session.setVoice(muted ? 'muted' : 'on');
+    } finally {
+      _announced();
+    }
     _persist(voice: true, voiceMuted: muted);
     _sync(ref.read(tableSessionProvider(tableId)));
     if (camera) await toggleCamera();
@@ -215,6 +259,7 @@ class VoiceController extends Notifier<VoiceState> {
     _engine?.stop();
     _engine = null;
     _peers.clear();
+    _cancelRetries();
     state = const VoiceState();
     _confirmedOn = false;
     await _session.setVoice('off');
@@ -254,11 +299,26 @@ class VoiceController extends Notifier<VoiceState> {
     final engine = _engine;
     final me = _myId;
     if (engine == null || me == null || !state.enabled) return;
+    final ready = s.connection.status == WsStatus.ready;
+    final cameBack = ready && !_wasReady;
+    _wasReady = ready;
+    if (!ready) return;
     final snap = s.snapshot;
     if (snap == null) return;
+    if (cameBack) {
+      _rejoin(engine, 'connection restored');
+      return;
+    }
     for (final sv in snap.seats) {
       final p = sv.player;
       if (p == null || p.id != me) continue;
+      if (p.voice == 'off' && !_announcing) {
+        // The server lists us as off although the microphone is on: it
+        // forgot the presence (a drop it noticed before we did, or a
+        // restart). Announce again.
+        _rejoin(engine, 'presence lost');
+        return;
+      }
       if (p.voice == 'on' && !state.muted) _confirmedOn = true;
       if (p.voice == 'muted' && !state.muted && _confirmedOn) {
         engine.setMuted(true);
@@ -286,12 +346,18 @@ class VoiceController extends Notifier<VoiceState> {
       if (!wanted.contains(id)) {
         engine.closePeer(id);
         _peers.remove(id);
+        _retryTimers.remove(id)?.cancel();
+        _retryDelay.remove(id);
         state = state.copyWith(
           connected: {...state.connected}..remove(id),
           speaking: {...state.speaking}..remove(id),
+          failed: {...state.failed}..remove(id),
         );
       }
     }
+    // No offer while our own announcement is on its way: the peers reset
+    // their side when they see it and would drop an offer sent before.
+    if (_announcing) return;
     for (final id in wanted) {
       if (_peers.contains(id)) continue;
       if (me.compareTo(id) < 0) {
@@ -306,6 +372,102 @@ class VoiceController extends Notifier<VoiceState> {
             });
       }
     }
+  }
+
+  /// Announces the voice state afresh and rebuilds every peer connection.
+  /// After a reconnect the server shows us "off" and the peers have closed
+  /// their side; when the server never noticed the drop (the new
+  /// connection replaced the old one) they still hold a dead connection.
+  /// "off" goes out first so that every peer starts over, then the real
+  /// state; offers wait until both are through.
+  Future<void> _rejoin(VoiceEngine engine, String reason) async {
+    if (_announcing) {
+      _rejoinPending = true;
+      return;
+    }
+    final now = DateTime.now();
+    final last = _lastRejoin;
+    if (last != null && now.difference(last) < rejoinMinInterval) {
+      // Too soon: look again when the pause is over (the snapshot by then
+      // decides whether a rejoin is still needed).
+      _rejoinTimer ??= Timer(rejoinMinInterval - now.difference(last), () {
+        _rejoinTimer = null;
+        if (state.enabled) _sync(ref.read(tableSessionProvider(tableId)));
+      });
+      return;
+    }
+    _lastRejoin = now;
+    _announcing = true;
+    log('$reason: rejoining the voice chat');
+    _cancelRetries();
+    for (final id in _peers) {
+      engine.closePeer(id);
+    }
+    _peers.clear();
+    state = state.copyWith(
+      connected: const {},
+      failed: const {},
+      speaking: {
+        if (state.speaking.contains(VoiceEngine.self)) VoiceEngine.self,
+      },
+    );
+    _confirmedOn = false;
+    _confirmedCamera = false;
+    try {
+      await _session.setVoice('off');
+      if (state.enabled) {
+        await _session.setVoice(
+          state.muted ? 'muted' : 'on',
+          camera: state.camera,
+        );
+      }
+    } finally {
+      _announced();
+    }
+    if (state.enabled) _sync(ref.read(tableSessionProvider(tableId)));
+  }
+
+  /// An announcement is through; a rejoin asked for meanwhile runs now.
+  void _announced() {
+    _announcing = false;
+    if (!_rejoinPending) return;
+    _rejoinPending = false;
+    final engine = _engine;
+    if (engine != null && state.enabled) {
+      _rejoin(engine, 'connection restored');
+    }
+  }
+
+  /// The engine dropped [peerId] (ICE failed). Forget the peer so that the
+  /// next sync offers again (when we are the offering side; the other side
+  /// does the same on its end), after a pause that grows with every
+  /// failure in a row.
+  void _peerGone(String peerId) {
+    if (!_peers.remove(peerId)) return;
+    final delay = _retryDelay[peerId] ?? retryBase;
+    _retryDelay[peerId] = delay * 2 > retryMax ? retryMax : delay * 2;
+    log('connection to $peerId failed, trying again in ${delay.inSeconds} s');
+    state = state.copyWith(
+      connected: {...state.connected}..remove(peerId),
+      speaking: {...state.speaking}..remove(peerId),
+      failed: {...state.failed, peerId},
+    );
+    _retryTimers[peerId]?.cancel();
+    _retryTimers[peerId] = Timer(delay, () {
+      _retryTimers.remove(peerId);
+      if (state.enabled) _sync(ref.read(tableSessionProvider(tableId)));
+    });
+  }
+
+  void _cancelRetries() {
+    for (final t in _retryTimers.values) {
+      t.cancel();
+    }
+    _retryTimers.clear();
+    _retryDelay.clear();
+    _rejoinTimer?.cancel();
+    _rejoinTimer = null;
+    _rejoinPending = false;
   }
 
   void _onSignal(VoiceSignal sig) {
@@ -362,10 +524,16 @@ class VoiceController extends Notifier<VoiceState> {
         final set = {...state.connected};
         if (connected) {
           set.add(peerId);
+          _retryDelay.remove(peerId);
         } else {
           set.remove(peerId);
         }
-        state = state.copyWith(connected: set);
+        state = state.copyWith(
+          connected: set,
+          failed: connected ? ({...state.failed}..remove(peerId)) : null,
+        );
+      case VoicePeerGoneEvent(:final peerId):
+        _peerGone(peerId);
       case VoiceVideoEvent(:final peerId, :final viewType):
         final views = {...state.videoViews};
         if (viewType == null) {

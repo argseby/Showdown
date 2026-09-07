@@ -23,6 +23,27 @@ void main() {
     expect(bottom.dy, closeTo(200, 0.01));
   });
 
+  testWidgets('a failed voice link shows a badge on that seat', (tester) async {
+    final snap = fixtureSnapshot();
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(
+          width: 1000,
+          height: 600,
+          child: TableView(session: session, voiceFailed: const {'p4'}),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('no-audio-4')), findsOneWidget);
+    expect(find.text('No audio'), findsOneWidget);
+  });
+
   testWidgets('renders own cards face up and omitted hole cards face down', (
     tester,
   ) async {

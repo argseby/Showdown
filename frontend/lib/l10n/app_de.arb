@@ -119,6 +119,7 @@
   "badgeBusted": "Pleite",
   "badgeWaiting": "Nächste Hand",
   "badgeFolded": "Gepasst",
+  "badgeNoAudio": "Kein Audio",
   "mainPot": "Hauptpot",
   "sidePot": "Nebenpot {n}",
   "potTotal": "Pot {amount}",

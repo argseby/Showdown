@@ -545,6 +545,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
                 ? () => showSayDialog(context, ref, widget.tableId)
                 : null,
             videoViews: voice.videoViews,
+            voiceFailed: voice.failed,
             onAdminTap: (snap?.you.isAdmin ?? false) && adminToken != null
                 ? (p) =>
                       AdminPlayerActions(

@@ -716,6 +716,12 @@ abstract class AppLocalizations {
   /// **'Folded'**
   String get badgeFolded;
 
+  /// No description provided for @badgeNoAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'No audio'**
+  String get badgeNoAudio;
+
   /// No description provided for @mainPot.
   ///
   /// In en, this message translates to:

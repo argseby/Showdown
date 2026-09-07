@@ -243,7 +243,8 @@ class _WebVoiceEngine implements VoiceEngine {
     pc.onnegotiationneeded = ((web.Event _) {
       // A track was added to a live connection: send a fresh offer. The
       // initial offer goes through createOffer, so skip until connected.
-      if ((_makingOffer[peerId] ?? false) ||
+      if (_peers[peerId] != pc ||
+          (_makingOffer[peerId] ?? false) ||
           pc.connectionState != 'connected') {
         return;
       }
@@ -273,8 +274,19 @@ class _WebVoiceEngine implements VoiceEngine {
       }();
     }).toJS;
     pc.onicecandidate = ((web.RTCPeerConnectionIceEvent e) {
+      if (_peers[peerId] != pc) return;
       final c = e.candidate;
-      if (c == null) return;
+      if (c == null) {
+        debugPrint('voice: all local candidates for $peerId gathered');
+        return;
+      }
+      // "host" is a local address, "srflx" the public one a STUN server
+      // reported, "relay" a TURN relay: the mix says what the network
+      // allows, and a failed connection with host candidates only means
+      // the two browsers had no common route (no STUN/TURN configured).
+      debugPrint(
+        'voice: local ${_candidateType(c.candidate)} candidate for $peerId',
+      );
       _events.add(
         VoiceIceEvent(
           peerId,
@@ -287,6 +299,7 @@ class _WebVoiceEngine implements VoiceEngine {
       );
     }).toJS;
     pc.ontrack = ((web.RTCTrackEvent e) {
+      if (_peers[peerId] != pc) return;
       final streams = e.streams.toDart;
       debugPrint(
         'voice: ${e.track.kind} track from $peerId '
@@ -303,12 +316,29 @@ class _WebVoiceEngine implements VoiceEngine {
       _play(peerId, streams.first);
     }).toJS;
     pc.onconnectionstatechange = ((web.Event _) {
+      // A late event of a connection that was already replaced must not
+      // touch its successor.
+      if (_peers[peerId] != pc) return;
       final state = pc.connectionState;
+      debugPrint('voice: connection to $peerId is $state');
       _events.add(VoiceConnectedEvent(peerId, state == 'connected'));
-      if (state == 'failed' || state == 'closed') closePeer(peerId);
+      if (state == 'failed' || state == 'closed') {
+        // ICE gave up (Chrome reports "failed" about 15-30 s after the
+        // last successful check). Drop everything about this peer so a
+        // new offer starts from a clean connection.
+        closePeer(peerId);
+        _events.add(VoicePeerGoneEvent(peerId));
+      }
     }).toJS;
     _peers[peerId] = pc;
     return pc;
+  }
+
+  /// The "typ" of an ICE candidate line: host, srflx, prflx or relay.
+  static String _candidateType(String candidate) {
+    final parts = candidate.split(' ');
+    final i = parts.indexOf('typ');
+    return i >= 0 && i + 1 < parts.length ? parts[i + 1] : 'unknown';
   }
 
   void _play(String peerId, web.MediaStream stream) {

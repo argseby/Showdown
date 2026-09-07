@@ -51,6 +51,13 @@ class VoiceOfferEvent extends VoiceEvent {
   final String offer;
 }
 
+/// The engine gave up the connection to [peerId] on its own (ICE failed:
+/// no route between the two browsers, or the route went away). The peer
+/// is forgotten; the controller decides whether to try again.
+class VoicePeerGoneEvent extends VoiceEvent {
+  const VoicePeerGoneEvent(super.peerId);
+}
+
 /// Browser-to-browser audio (WebRTC mesh). The server never carries audio;
 /// it only relays the setup messages that this engine produces and consumes.
 /// Non-web platforms get a stub that reports the feature as unavailable.

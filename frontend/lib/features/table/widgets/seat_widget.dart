@@ -39,7 +39,12 @@ class SeatWidget extends ConsumerWidget {
     this.videoViewType,
     this.wonAmount,
     this.timeBankSeconds = 0,
+    this.voiceLinkDown = false,
   });
+
+  /// Voice chat: the player is in it, but the audio connection between the
+  /// two browsers failed (no common route) and is being tried again.
+  final bool voiceLinkDown;
 
   /// The table's time bank maximum; above zero the player's remaining bank
   /// is shown left of the stack.
@@ -194,6 +199,15 @@ class SeatWidget extends ConsumerWidget {
     if (p.status == 'busted') badges.add(_Badge(l10n.badgeBusted));
     if (!p.connected) {
       badges.add(_Badge(l10n.badgeDisconnected, destructive: true));
+    }
+    if (voiceLinkDown) {
+      badges.add(
+        _Badge(
+          l10n.badgeNoAudio,
+          key: Key('no-audio-$seat'),
+          destructive: true,
+        ),
+      );
     }
     if (inHand && p.allIn) badges.add(_Badge(l10n.badgeAllIn, primary: true));
     if (inHand && p.folded) badges.add(_Badge(l10n.badgeFolded));
