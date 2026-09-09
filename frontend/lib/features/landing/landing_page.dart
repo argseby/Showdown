@@ -25,7 +25,17 @@ class LandingPage extends ConsumerStatefulWidget {
 
 class _LandingPageState extends ConsumerState<LandingPage> {
   final _controller = TextEditingController();
+  final _codeFocus = FocusNode();
   bool _invalid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // EXPERIMENT: focus after the first frame instead of autofocus.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _codeFocus.requestFocus();
+    });
+  }
 
   /// Creates a table; the creator's admin key is stored on this device and
   /// the join page opens so the host can take a seat.
@@ -40,6 +50,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _codeFocus.dispose();
     super.dispose();
   }
 
@@ -86,8 +97,8 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                       TextField(
                         key: const Key('landing-code'),
                         controller: _controller,
+                        focusNode: _codeFocus,
                         placeholder: Text(l10n.landingCodePlaceholder),
-                        autofocus: true,
                         onSubmitted: (_) => _open(),
                         onChanged: (_) {
                           if (_invalid) setState(() => _invalid = false);

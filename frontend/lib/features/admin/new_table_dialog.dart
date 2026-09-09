@@ -9,14 +9,30 @@ import 'admin_widgets.dart';
 import 'settings_form.dart';
 import 'settings_form_model.dart';
 
-/// Dialog with the full settings form. Creating a table makes the caller its
-/// admin; the result carries the admin token, which is shown only once.
+/// Full-screen dialog with the full settings form. Creating a table makes the
+/// caller its admin; the result carries the admin token, which is shown only
+/// once.
 Future<CreatedTable?> showNewTableDialog(BuildContext context) {
-  return showOverlay<CreatedTable?>(
-    context,
-    const DialogConfiguration(),
-    builder: (context) => const _NewTableDialog(),
-  ).future;
+  // Pushed directly: [DialogConfiguration] does not forward its fullScreen
+  // flag to the route, which would keep an inset around the dialog.
+  return Navigator.of(context).push(
+    DialogRoute<CreatedTable>(
+      context: context,
+      builder: (context) => const _NewTableDialog(),
+      fullScreen: true,
+      alignment: Alignment.center,
+      transitionBuilder: (context, animation, secondaryAnimation, child) =>
+          buildShadcnDialogTransitions(
+            context,
+            BorderRadius.zero,
+            Alignment.center,
+            animation,
+            secondaryAnimation,
+            true,
+            child,
+          ),
+    ),
+  );
 }
 
 class _NewTableDialog extends ConsumerStatefulWidget {
@@ -49,9 +65,7 @@ class _NewTableDialogState extends ConsumerState<_NewTableDialog> {
             name: _state.name.trim(),
             settings: _state.toPatch(all: true),
           );
-      if (mounted) {
-        await closeOverlay<CreatedTable?>(context, created);
-      }
+      if (mounted) Navigator.of(context).pop(created);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -76,34 +90,62 @@ class _NewTableDialogState extends ConsumerState<_NewTableDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.adminNewTable),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 720,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-        ),
-        child: SingleChildScrollView(
-          child: SettingsForm(
-            state: _state,
-            errors: _errors,
-            serverErrors: _serverErrors,
-            showName: true,
-            onChanged: (s) => setState(() => _state = s),
-          ),
+    final theme = Theme.of(context);
+    final gap = theme.density.baseGap * theme.scaling;
+    final inset = theme.density.baseContainerPadding * theme.scaling;
+    // Same surface as [AlertDialog], laid out by hand: the form takes the
+    // whole width and the space between title and buttons, and scrolls
+    // (without a scrollbar) only when the screen is too short for it.
+    return ModalBackdrop(
+      barrierColor: Colors.black.withValues(alpha: 0.8),
+      surfaceClip: ModalBackdrop.shouldClipSurface(theme.surfaceOpacity),
+      child: ModalContainer(
+        filled: true,
+        fillColor: theme.colorScheme.popover,
+        borderRadius: BorderRadius.zero,
+        borderWidth: 0,
+        padding: EdgeInsets.all(inset),
+        surfaceBlur: theme.surfaceBlur,
+        surfaceOpacity: theme.surfaceOpacity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.adminNewTable).large().semiBold(),
+            Gap(gap * 2),
+            Expanded(
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context)
+                    .copyWith(scrollbars: false),
+                child: SingleChildScrollView(
+                  child: SettingsForm(
+                    state: _state,
+                    errors: _errors,
+                    serverErrors: _serverErrors,
+                    showName: true,
+                    onChanged: (s) => setState(() => _state = s),
+                  ).small().muted(),
+                ),
+              ),
+            ),
+            Gap(gap * 2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlineButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                Gap(gap),
+                PrimaryButton(
+                  key: const Key('admin-create'),
+                  onPressed: _busy ? null : _create,
+                  child: Text(l10n.adminCreate),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        OutlineButton(
-          onPressed: () => closeOverlay<CreatedTable?>(context),
-          child: Text(l10n.cancel),
-        ),
-        PrimaryButton(
-          key: const Key('admin-create'),
-          onPressed: _busy ? null : _create,
-          child: Text(l10n.adminCreate),
-        ),
-      ],
     );
   }
 }
