@@ -51,8 +51,8 @@ class SeatWidget extends ConsumerWidget {
   /// is shown left of the stack.
   final int timeBankSeconds;
 
-  /// Chips won in the current hand so far (shown as "+amount" next to the
-  /// stack while the pots are presented).
+  /// The seat's net gain in the current hand once its pot is presented
+  /// (shown as "+amount" next to the stack).
   final int? wonAmount;
 
   /// Pot share in percent during a run-out.

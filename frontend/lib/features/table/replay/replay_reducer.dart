@@ -38,6 +38,16 @@ class ReplayReducer {
   final Map<int, int> avatars;
   final int? viewerSeat;
 
+  /// The hand's net result per seat from its hand_ended event, so the
+  /// "+amount" next to a winner shows the gain rather than the pot (which
+  /// holds the winner's own bets), exactly as the live table does.
+  late final Map<int, int> _net = {
+    for (final e in events)
+      if (e.kind == 'hand_ended')
+        for (final entry in (e.results?.seats ?? const {}).entries)
+          int.parse(entry.key): entry.value.net,
+  };
+
   /// State after applying events[0..step) — step 0 is before the deal.
   ReplayFrame frame(int step) {
     final seats = <int, ReplaySeat>{};
@@ -54,6 +64,7 @@ class ReplayReducer {
     // exactly as the live table shows them one pot at a time.
     int? potIndex;
     final amounts = <int, int>{};
+    final collected = <int, int>{};
     Spotlight? spotlight;
     List<String>? rabbit;
     GameEvent? last;
@@ -151,7 +162,8 @@ class ReplayReducer {
           potIndex = pi;
           if (seat != null) {
             winners.add(seat);
-            amounts[seat] = (amounts[seat] ?? 0) + (e.amount ?? 0);
+            collected[seat] = (collected[seat] ?? 0) + (e.amount ?? 0);
+            amounts[seat] = _net[seat] ?? collected[seat]!;
             if ((e.description ?? '').isNotEmpty && spotlight == null) {
               spotlight = Spotlight(
                 seat: seat,
@@ -263,7 +275,8 @@ class ReplayFrame {
   /// The pot whose award this step shows (null before any award).
   final int? potIndex;
 
-  /// Chips won per seat up to this step.
+  /// Net gain per seat whose pot has been presented up to this step (the
+  /// "+amount" next to the stack).
   final Map<int, int> amounts;
 
   /// The winner under the spotlight at this step.
