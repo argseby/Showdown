@@ -27,7 +27,7 @@ class ChipAmount extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ChipIcon(size: size, color: _chipColor(amount)),
+        ChipIcon(size: size, color: chipAmountColor(amount)),
         const Gap(4),
         Text(
           formatAmount(amount, mode: mode, bigBlind: bigBlind, locale: locale),
@@ -38,7 +38,8 @@ class ChipAmount extends ConsumerWidget {
   }
 }
 
-Color _chipColor(int amount) {
+/// The colour of the single chip icon next to an amount.
+Color chipAmountColor(int amount) {
   if (amount >= 5000) return const Color(0xFF8E24AA);
   if (amount >= 1000) return const Color(0xFF1E1E1E);
   if (amount >= 500) return const Color(0xFF3949AB);

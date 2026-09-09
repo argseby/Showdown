@@ -54,6 +54,32 @@ final fourColorDeckProvider = NotifierProvider<FourColorDeckNotifier, bool>(
   FourColorDeckNotifier.new,
 );
 
+/// Whether bets, pots and stacks are drawn as chip stacks (on by default);
+/// off shows the amounts as numbers only.
+class ChipStacksNotifier extends Notifier<bool> {
+  static const _key = 'pref:chip_stacks';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final chipStacksProvider = NotifierProvider<ChipStacksNotifier, bool>(
+  ChipStacksNotifier.new,
+);
+
 /// How chip amounts are shown: as coins or as big blinds ("3 BB").
 enum ChipDisplay { coins, bigBlinds }
 

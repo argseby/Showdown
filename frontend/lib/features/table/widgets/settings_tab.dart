@@ -40,6 +40,7 @@ class TableSettingsTab extends ConsumerWidget {
     final theme = Theme.of(context);
     final sound = ref.watch(soundEnabledProvider);
     final fourColor = ref.watch(fourColorDeckProvider);
+    final chipStacks = ref.watch(chipStacksProvider);
     final chipDisplay = ref.watch(chipDisplayProvider);
     final voice = ref.watch(voiceControllerProvider(tableId));
     final notify = ref.watch(notifyTurnProvider);
@@ -224,6 +225,13 @@ class TableSettingsTab extends ConsumerWidget {
               fourColor,
               () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
               key: const Key('drawer-deck'),
+            ),
+            toggle(
+              LucideIcons.layers,
+              l10n.chipStacks,
+              chipStacks,
+              () => ref.read(chipStacksProvider.notifier).set(!chipStacks),
+              key: const Key('drawer-chip-stacks'),
             ),
             toggle(
               LucideIcons.coins,

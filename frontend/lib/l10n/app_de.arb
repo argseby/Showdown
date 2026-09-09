@@ -314,6 +314,7 @@
   "valDisconnected": "Muss zwischen 3 und der Zugzeit liegen",
   "valPassword": "Muss leer oder 4-64 Zeichen lang sein",
   "fourColorDeck": "Vierfarbiges Deck",
+  "chipStacks": "Chipstapel auf dem Tisch",
   "landingCreateTitle": "Eine Runde hosten",
   "landingCreateHint": "Wer einen Tisch erstellt, leitet ihn: über den Admin-Tab am Tisch änderst du Einstellungen, verwaltest Spieler und beendest das Spiel. Kein Konto nötig.",
   "landingCreate": "Tisch erstellen",

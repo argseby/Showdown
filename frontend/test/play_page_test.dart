@@ -230,6 +230,7 @@ void main() {
     // The gear tab: voice, preferences, table actions.
     expect(find.byKey(const Key('drawer-voice')), findsOneWidget);
     expect(find.byKey(const Key('drawer-sound')), findsOneWidget);
+    expect(find.byKey(const Key('drawer-chip-stacks')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chips')), findsOneWidget);
     expect(find.byKey(const Key('menu-leave')), findsOneWidget);
     expect(find.byKey(const Key('menu-other-table')), findsOneWidget);

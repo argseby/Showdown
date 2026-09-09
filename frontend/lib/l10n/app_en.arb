@@ -783,6 +783,7 @@
   "valDisconnected": "Must be between 3 and the turn time",
   "valPassword": "Must be empty or 4-64 characters",
   "fourColorDeck": "Four-color deck",
+  "chipStacks": "Chip stacks on the table",
   "landingCreateTitle": "Host a game",
   "landingCreateHint": "Whoever creates a table hosts it: an Admin tab at the table lets you change settings, manage players and end the game. No account needed.",
   "landingCreate": "Create a table",

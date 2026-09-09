@@ -8,6 +8,7 @@ import '../../../core/formatting.dart';
 import '../../../core/time_sync.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
+import '../../../shared/chips.dart';
 import '../../../shared/playing_card.dart';
 
 /// One seat on the table: avatar with countdown ring, name, stack, badges,
@@ -375,6 +376,18 @@ class SeatWidget extends ConsumerWidget {
                 ),
               ),
               const Gap(6),
+            ],
+            // The stack as a few small chips, so its size can be read at a
+            // glance; the number stays next to it.
+            if (ref.watch(chipStacksProvider) && p.stack > 0) ...[
+              ChipStackView(
+                key: Key('seat-stack-$seat'),
+                amount: p.stack,
+                bigBlind: bigBlind,
+                chipWidth: compact ? 7 : 8,
+                maxChips: 8,
+              ),
+              const Gap(4),
             ],
             Text(
               formatAmount(

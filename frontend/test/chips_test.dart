@@ -1,10 +1,20 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showdown/app/preferences.dart';
 import 'package:showdown/shared/chips.dart';
 
 import 'test_helpers.dart';
 
 void main() {
+  test('chip stacks are on by default', () {
+    SharedPreferences.setMockInitialValues({});
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    expect(container.read(chipStacksProvider), isTrue);
+  });
+
   test('the ladder starts at half a big blind and climbs by fives', () {
     final l = ChipLadder.forBigBlind(100);
     expect(l.unit, 50);

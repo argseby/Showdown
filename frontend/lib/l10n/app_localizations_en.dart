@@ -1017,6 +1017,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fourColorDeck => 'Four-color deck';
 
   @override
+  String get chipStacks => 'Chip stacks on the table';
+
+  @override
   String get landingCreateTitle => 'Host a game';
 
   @override

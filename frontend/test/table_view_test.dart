@@ -20,6 +20,12 @@ class _BoardHandLine extends HandLineNotifier {
 
 final _onBoard = [handLineProvider.overrideWith(_BoardHandLine.new)];
 
+/// Numbers only, no chip stacks.
+class _NoStacks extends ChipStacksNotifier {
+  @override
+  bool build() => false;
+}
+
 void main() {
   test('seat positions rotate the viewer to the bottom', () {
     expect(TableView.positionOf(4, 4, 9), 0);
@@ -509,6 +515,7 @@ void _markerTests() {
       await tester.pump();
       expect(find.byKey(const ValueKey('bet-stack-4')), findsOneWidget);
       expect(find.byKey(const ValueKey('pot-stack-0')), findsOneWidget);
+      expect(find.byKey(const Key('seat-stack-4')), findsOneWidget);
 
       // The street ended: Bob's bet is gone and the pot grew, but while the
       // chips fly the pot still reads its old amount.
@@ -559,6 +566,29 @@ void _markerTests() {
       await tester.pump(const Duration(seconds: 2));
     },
   );
+
+  testWidgets('chip stacks can be switched off for numbers only', (
+    tester,
+  ) async {
+    final snap = fixtureSnapshot();
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+        overrides: [chipStacksProvider.overrideWith(_NoStacks.new)],
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('bet-stack-4')), findsNothing);
+    expect(find.byKey(const ValueKey('pot-stack-0')), findsNothing);
+    expect(find.byKey(const Key('seat-stack-4')), findsNothing);
+    // The amounts are still there.
+    expect(find.text('300'), findsWidgets);
+  });
 
   testWidgets('the hand line follows the placement preference', (tester) async {
     final snap = fixtureSnapshot();

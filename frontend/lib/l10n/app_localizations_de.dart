@@ -1022,6 +1022,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get fourColorDeck => 'Vierfarbiges Deck';
 
   @override
+  String get chipStacks => 'Chipstapel auf dem Tisch';
+
+  @override
   String get landingCreateTitle => 'Eine Runde hosten';
 
   @override

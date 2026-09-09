@@ -1844,6 +1844,12 @@ abstract class AppLocalizations {
   /// **'Four-color deck'**
   String get fourColorDeck;
 
+  /// No description provided for @chipStacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Chip stacks on the table'**
+  String get chipStacks;
+
   /// No description provided for @landingCreateTitle.
   ///
   /// In en, this message translates to:
