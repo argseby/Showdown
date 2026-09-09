@@ -371,14 +371,11 @@ class ActionBarState extends State<ActionBar> {
       // the pointer. The pre-actions, straddle, rebuy and sit out share the
       // top row in a different look; the result controls, while the hand is
       // over for the viewer, take a row in between.
-      final actions = _turnRows(context, m);
       final rows = <Widget>[
         ?_topRow(context, you!, togglesEnabled: !myTurn),
         ?_resultRow(context, you),
-        if (!myTurn && _hasFolded(snap!, you))
-          _foldedOverlay(context, actions)
-        else
-          actions,
+        if (!myTurn && _hasFolded(snap!, you)) _foldedNotice(context),
+        _turnRows(context, m),
       ];
       content = Column(
         mainAxisSize: MainAxisSize.min,
@@ -440,29 +437,30 @@ class ActionBarState extends State<ActionBar> {
     return false;
   }
 
-  /// Lays a "You folded" notice over the action buttons: they stay where
-  /// they are, dimmed, so the layout never jumps, and the notice says why
-  /// nothing can be pressed.
-  Widget _foldedOverlay(BuildContext context, Widget actions) {
+  /// A muted strip right above the action buttons while the viewer is out
+  /// of the hand: the buttons keep their place, disabled as off turn, and
+  /// the strip says why nothing can be pressed.
+  Widget _foldedNotice(BuildContext context) {
     final theme = Theme.of(context);
-    return Stack(
-      children: [
-        actions,
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.card.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                context.l10n.youFolded,
-                key: const Key('folded-notice'),
-              ).semiBold(),
-            ),
-          ),
-        ),
-      ],
+    final color = theme.colorScheme.mutedForeground;
+    return Container(
+      key: const Key('folded-notice'),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.muted,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(LucideIcons.x, size: 14, color: color),
+          const Gap(6),
+          Text(
+            context.l10n.youFolded,
+            style: TextStyle(color: color),
+          ).semiBold().small(),
+        ],
+      ),
     );
   }
 
@@ -555,16 +553,13 @@ class ActionBarState extends State<ActionBar> {
     ),
   );
 
-  /// Small "sit out" control that rides along at the end of the top row.
-  Widget _sitOutButton(BuildContext context) => Tooltip(
-    tooltip: TooltipContainer(child: Text(context.l10n.sitOut)).call,
-    child: GhostButton(
-      key: const Key('sit-out'),
-      size: ButtonSize.small,
-      density: ButtonDensity.icon,
-      onPressed: widget.callbacks.sitOut,
-      child: const Icon(LucideIcons.armchair, size: 16),
-    ),
+  /// "Sit out" at the end of the top row.
+  Widget _sitOutButton(BuildContext context) => GhostButton(
+    key: const Key('sit-out'),
+    size: ButtonSize.small,
+    onPressed: widget.callbacks.sitOut,
+    leading: const Icon(LucideIcons.armchair, size: 14),
+    child: Text(context.l10n.sitOut),
   );
 
   /// The viewer's turn: presets and amount (when raising) above the three
