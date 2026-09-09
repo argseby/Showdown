@@ -34,7 +34,7 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 > - **REST responses.** `join` → `{player_token, player_id, seat, name}` (201);
 >   `spectate` → `{spectator_token, name}` (201); `info` → `{name, state,
 >   requires_password, join_policy, allow_spectators, seated, max_players, blinds:
->   {small_blind, big_blind}}`; `POST /api/tables {name, settings}` (public, 5/min per
+>   {small_blind, big_blind}, variant}`; `POST /api/tables {name, settings}` (public, 5/min per
 >   IP) → the table object plus `admin_token` (201; the token is returned exactly once).
 >   Table admin (bearer = that table's admin token): `PATCH settings` →
 >   `{changed, applies_next_hand, settings}`; lifecycle → `{state}`; `chips` →
@@ -60,6 +60,10 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   showdown stays for 9.5 s, an uncontested hand for 3.5 s).
 > - **`spectator_names`** (snapshot, omitted when empty): the display names of the
 >   connected spectators, sorted, for the invite dialog.
+> - **Royal Hold'em (2026-09-09).** Table setting `variant`: `holdem` (default, 52
+>   cards) or `royal` (only Ten to Ace, 20 cards). Royal tables seat at most 6 players
+>   (`max_players`) and the change applies from the next hand. Reported as
+>   `settings.variant` in snapshots and as `variant` in the `info` response.
 > - **Staged showdown (2026-09-05).** With `showdown_reveal: "in_order"` (default) or
 >   `"all"`/`"winners_only"` the river betting ends with `hand.phase = "showdown"` and
 >   the server emits one `hands_revealed` (single reveal) or `mucked {seat, name}`
@@ -222,7 +226,7 @@ plus table events `player_joined`, `player_left`, `player_kicked`, `player_sat_o
              "settings": { "small_blind": 50, "big_blind": 100, "ante": 0, "turn_time": 30,
                            "max_players": 9, "start_money": 10000, "join_policy": "always",
                            "allow_rebuy": true, "showdown_reveal": "all", "chat_enabled": true,
-                           "spectator_chat": true, "requires_password": true } },
+                           "spectator_chat": true, "requires_password": true, "variant": "holdem" } },
   "seats": [ { "seat": 0, "player": { "id": "p1", "name": "Alice", "stack": 8450, "status": "active",
                "connected": true, "in_hand": true, "folded": false, "all_in": false,
                "bet_this_street": 0, "total_bet": 100, "hole_cards": ["As", "Kd"],

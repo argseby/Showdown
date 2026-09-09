@@ -28,12 +28,14 @@ const Map<String, AppliesWhen> settingsApplies = {
   'time_bank_refill_seconds': AppliesWhen.immediately,
   'allow_straddle': AppliesWhen.nextHand,
   'run_it_twice': AppliesWhen.nextHand,
+  'variant': AppliesWhen.nextHand,
 };
 
 /// Client-side validation problems, keyed by field.
 enum SettingsError {
   integer,
   maxPlayers,
+  maxPlayersRoyal,
   startMoney,
   smallBlind,
   bigBlind,
@@ -61,6 +63,7 @@ class SettingsFormState {
     required this.numbers,
     required this.joinPolicy,
     required this.showdownReveal,
+    required this.variant,
     required this.flags,
     required this.original,
   });
@@ -76,6 +79,7 @@ class SettingsFormState {
         },
         joinPolicy: s.joinPolicy,
         showdownReveal: s.showdownReveal,
+        variant: s.variant,
         flags: {
           for (final e in s.toFields().entries)
             if (e.value is bool) e.key: e.value as bool,
@@ -89,8 +93,15 @@ class SettingsFormState {
   final Map<String, String> numbers;
   final String joinPolicy;
   final String showdownReveal;
+
+  /// The deck: 'holdem' or 'royal' (Ten to Ace, at most [royalMaxPlayers]).
+  final String variant;
   final Map<String, bool> flags;
   final AdminSettings original;
+
+  static const royalMaxPlayers = 6;
+
+  bool get isRoyal => variant == 'royal';
 
   static const numericFields = [
     'max_players',
@@ -115,6 +126,7 @@ class SettingsFormState {
     Map<String, String>? numbers,
     String? joinPolicy,
     String? showdownReveal,
+    String? variant,
     Map<String, bool>? flags,
     AdminSettings? original,
   }) => SettingsFormState(
@@ -124,6 +136,7 @@ class SettingsFormState {
     numbers: numbers ?? this.numbers,
     joinPolicy: joinPolicy ?? this.joinPolicy,
     showdownReveal: showdownReveal ?? this.showdownReveal,
+    variant: variant ?? this.variant,
     flags: flags ?? this.flags,
     original: original ?? this.original,
   );
@@ -169,6 +182,12 @@ class SettingsFormState {
       'max_players',
       mp >= 2 && mp <= 10 && mp >= seated,
       SettingsError.maxPlayers,
+    );
+    // A 20-card deck cannot serve more than six seats.
+    check(
+      'max_players',
+      !isRoyal || mp <= royalMaxPlayers,
+      SettingsError.maxPlayersRoyal,
     );
     final sm = number('start_money') ?? 0;
     check(
@@ -235,6 +254,9 @@ class SettingsFormState {
     }
     if (all || showdownReveal != original.showdownReveal) {
       patch['showdown_reveal'] = showdownReveal;
+    }
+    if (all || variant != original.variant) {
+      patch['variant'] = variant;
     }
     for (final e in flags.entries) {
       if (all || e.value != base[e.key]) {

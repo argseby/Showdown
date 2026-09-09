@@ -310,6 +310,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                         ),
                       ),
                     ),
+                    if (info.variant == 'royal')
+                      OutlineBadge(
+                        key: const Key('join-variant-badge'),
+                        child: Text(l10n.variantRoyal),
+                      ),
                   ],
                 ),
                 const Gap(24),

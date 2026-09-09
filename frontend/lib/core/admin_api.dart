@@ -26,6 +26,7 @@ class AdminSettings {
     this.timeBankRefillSeconds = 1,
     this.allowStraddle = false,
     this.runItTwice = false,
+    this.variant = 'holdem',
   });
 
   factory AdminSettings.fromJson(Map<String, dynamic> json) => AdminSettings(
@@ -53,6 +54,7 @@ class AdminSettings {
     timeBankRefillSeconds: json['time_bank_refill_seconds'] as int? ?? 1,
     allowStraddle: json['allow_straddle'] as bool? ?? false,
     runItTwice: json['run_it_twice'] as bool? ?? false,
+    variant: json['variant'] as String? ?? 'holdem',
   );
 
   /// The §5.2 defaults, used by the new-table form.
@@ -101,6 +103,9 @@ class AdminSettings {
   final bool allowStraddle;
   final bool runItTwice;
 
+  /// The deck: 'holdem' (52 cards) or 'royal' (Ten to Ace only).
+  final String variant;
+
   /// Field values keyed by wire name (password excluded).
   Map<String, Object> toFields() => {
     'max_players': maxPlayers,
@@ -126,6 +131,7 @@ class AdminSettings {
     'time_bank_refill_seconds': timeBankRefillSeconds,
     'allow_straddle': allowStraddle,
     'run_it_twice': runItTwice,
+    'variant': variant,
   };
 }
 

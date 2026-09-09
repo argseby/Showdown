@@ -11,7 +11,7 @@ func sampleSettings(id string) SettingsRow {
 		TableID: id, MaxPlayers: 9, StartMoney: 10000, SmallBlind: 50, BigBlind: 100, Ante: 0,
 		TurnTime: 30, DisconnectedTurnTime: 10, SitOutAfterMissedTurns: 2, JoinPolicy: "always",
 		AllowSpectators: true, SpectatorChat: true, ChatEnabled: true, AllowRebuy: true,
-		ShowdownReveal: "all", AutoStart: true, HandDelayMs: 5000,
+		ShowdownReveal: "all", AutoStart: true, HandDelayMs: 5000, Variant: "holdem",
 	}
 }
 

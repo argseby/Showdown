@@ -103,4 +103,55 @@ void main() {
     expect(body, contains('"name":"Friday"'));
     expect(body, contains('"big_blind":100'));
   });
+
+  testWidgets('the game variant is selectable when creating a table', (
+    tester,
+  ) async {
+    final log = <String>[];
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      wrapRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const LandingPage()),
+          GoRoute(
+            path: '/t/:id',
+            builder: (context, state) =>
+                Scaffold(child: Text('JOIN ${state.pathParameters['id']}')),
+          ),
+        ],
+        overrides: [restClientProvider.overrideWithValue(client(log))],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('landing-create')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('field-name')), 'Royal');
+    await tester.pumpAndSettle();
+
+    // The Select's popup needs the app's drawer overlay, which the test
+    // harness does not provide; pick the option through the widget's callback
+    // (after a frame, so the callback carries the current form state).
+    final variant = find.byKey(const Key('field-variant'));
+    expect(tester.widget<Select<String>>(variant).value, 'holdem');
+    tester.widget<Select<String>>(variant).onChanged!('royal');
+    await tester.pumpAndSettle();
+    expect(tester.widget<Select<String>>(variant).value, 'royal');
+
+    // Nine seats do not fit the 20-card deck: rejected before any request.
+    await tester.tap(find.byKey(const Key('admin-create')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('error-max_players')), findsOneWidget);
+    expect(log.where((l) => l.startsWith('POST /api/tables')), isEmpty);
+
+    await tester.enterText(find.byKey(const Key('field-max_players')), '6');
+    await tester.tap(find.byKey(const Key('admin-create')));
+    await tester.pumpAndSettle();
+    expect(find.text('JOIN newid'), findsOneWidget);
+    final body = log.lastWhere((l) => l.startsWith('POST /api/tables'));
+    expect(body, contains('"variant":"royal"'));
+    expect(body, contains('"max_players":6'));
+  });
 }

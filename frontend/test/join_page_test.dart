@@ -67,6 +67,20 @@ void main() {
     ],
   );
 
+  testWidgets('a royal table shows its variant badge', (tester) async {
+    const royalJson =
+        '{"name":"Friday","state":"waiting","requires_password":false,"join_policy":"always",'
+        '"allow_spectators":true,"seated":0,"max_players":6,"blinds":{"small_blind":50,"big_blind":100},'
+        '"variant":"royal"}';
+    final rest = client({
+      'GET /api/tables/k7m2p9xq4w/info': (_) => http.Response(royalJson, 200),
+    });
+    await tester.pumpWidget(page(rest));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('join-variant-badge')), findsOneWidget);
+    expect(find.text("Royal Hold'em (10 to Ace)"), findsOneWidget);
+  });
+
   testWidgets('validates name and password before submitting', (tester) async {
     var joins = 0;
     final rest = client({
@@ -83,6 +97,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Friday'), findsOneWidget);
     expect(find.text('2 of 9 seats taken'), findsOneWidget);
+    expect(find.byKey(const Key('join-variant-badge')), findsNothing);
     expect(find.byKey(const Key('join-password')), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(const Key('join-submit')));

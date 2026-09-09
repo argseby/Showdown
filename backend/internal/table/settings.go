@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"showdown/internal/poker"
 	"showdown/internal/protocol"
 	"showdown/internal/store"
 )
@@ -25,6 +26,15 @@ const (
 	// RevealInOrder: hands are shown one at a time in showdown order and
 	// beaten hands are mucked (owner decision 2026-09-05; default).
 	RevealInOrder = "in_order"
+)
+
+// Variants (the deck a hand is dealt from).
+const (
+	VariantHoldem = "holdem"
+	// VariantRoyal deals only Ten to Ace (20 cards, "Royal Hold'em").
+	VariantRoyal = "royal"
+	// RoyalMaxPlayers is the most seats a Royal Hold'em table may have.
+	RoyalMaxPlayers = 6
 )
 
 // Settings are the live table settings (docs §5.2). PasswordHash is the
@@ -63,6 +73,8 @@ type Settings struct {
 	AllowStraddle bool
 	// RunItTwice offers to run the board twice when everyone is all-in.
 	RunItTwice bool
+	// Variant is the deck: VariantHoldem or VariantRoyal.
+	Variant string
 }
 
 // DefaultSettings returns the §5.2 defaults.
@@ -74,7 +86,16 @@ func DefaultSettings() Settings {
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
 		AllowRabbitHunt: true, BlindsUpMinutes: 0, BlindsUpPercent: 100,
 		TimeBankSeconds: 30, TimeBankRefillSeconds: 1, AllowStraddle: false, RunItTwice: false,
+		Variant: VariantHoldem,
 	}
+}
+
+// PokerVariant maps the variant setting to the engine's deck.
+func (s Settings) PokerVariant() poker.Variant {
+	if s.Variant == VariantRoyal {
+		return poker.Royal
+	}
+	return poker.Holdem
 }
 
 // Public converts to the client-visible subset.
@@ -86,6 +107,7 @@ func (s Settings) Public() protocol.PublicSettings {
 		SpectatorChat: s.SpectatorChat, RequiresPassword: s.PasswordHash != "",
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		Variant: s.Variant,
 	}
 }
 
@@ -100,11 +122,17 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		Variant: s.Variant,
 	}
 }
 
-// SettingsFromRow converts a persistence row.
+// SettingsFromRow converts a persistence row (rows written before the
+// variant existed read as hold'em).
 func SettingsFromRow(r store.SettingsRow) Settings {
+	variant := r.Variant
+	if variant == "" {
+		variant = VariantHoldem
+	}
 	return Settings{
 		PasswordHash: r.PasswordHash, MaxPlayers: r.MaxPlayers, StartMoney: r.StartMoney,
 		SmallBlind: r.SmallBlind, BigBlind: r.BigBlind, Ante: r.Ante, TurnTime: r.TurnTime,
@@ -114,6 +142,7 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 		AutoStart: r.AutoStart, HandDelayMs: r.HandDelayMs,
 		AllowRabbitHunt: r.AllowRabbitHunt, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
 		TimeBankSeconds: r.TimeBankSeconds, TimeBankRefillSeconds: r.TimeBankRefillSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
+		Variant: variant,
 	}
 }
 
@@ -144,6 +173,7 @@ type AdminView struct {
 	TimeBankRefillSeconds  int    `json:"time_bank_refill_seconds"`
 	AllowStraddle          bool   `json:"allow_straddle"`
 	RunItTwice             bool   `json:"run_it_twice"`
+	Variant                string `json:"variant"`
 }
 
 // Admin converts to the admin view.
@@ -157,6 +187,7 @@ func (s Settings) Admin() AdminView {
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
 		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
+		Variant: s.Variant,
 	}
 }
 
@@ -188,6 +219,7 @@ type SettingsPatch struct {
 	TimeBankRefillSeconds  *int    `json:"time_bank_refill_seconds"`
 	AllowStraddle          *bool   `json:"allow_straddle"`
 	RunItTwice             *bool   `json:"run_it_twice"`
+	Variant                *string `json:"variant"`
 }
 
 // FieldError is a per-field validation problem.
@@ -217,7 +249,7 @@ func (e *ValidationError) add(field, msg string) {
 var appliesNextHand = map[string]bool{
 	"small_blind": true, "big_blind": true, "ante": true, "turn_time": true,
 	"disconnected_turn_time": true, "showdown_reveal": true, "hand_delay_ms": true,
-	"allow_straddle": true, "run_it_twice": true,
+	"allow_straddle": true, "run_it_twice": true, "variant": true,
 }
 
 // Apply merges the patch into s (password already hashed into passwordHash
@@ -325,6 +357,10 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 		out.RunItTwice = *p.RunItTwice
 		set("run_it_twice")
 	}
+	if p.Variant != nil {
+		out.Variant = *p.Variant
+		set("variant")
+	}
 
 	if err := out.Validate(seated); err != nil {
 		return s, nil, nil, err
@@ -353,6 +389,13 @@ func (s Settings) Validate(seated int) error {
 		ve.add("max_players", "must be between 2 and 10")
 	} else if s.MaxPlayers < seated {
 		ve.add("max_players", fmt.Sprintf("cannot be below the %d seated players", seated))
+	} else if s.Variant == VariantRoyal && s.MaxPlayers > RoyalMaxPlayers {
+		ve.add("max_players", fmt.Sprintf("Royal Hold'em seats at most %d players", RoyalMaxPlayers))
+	}
+	switch s.Variant {
+	case VariantHoldem, VariantRoyal:
+	default:
+		ve.add("variant", "must be holdem or royal")
 	}
 	if s.StartMoney < 1 || s.StartMoney > 1_000_000_000_000 {
 		ve.add("start_money", "must be between 1 and 10^12")

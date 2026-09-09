@@ -106,6 +106,7 @@ func (t *Table) startHand(eligible []*Player) {
 	cfg := poker.HandConfig{
 		SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, Ante: t.settings.Ante,
 		ButtonSeat: button, Reveal: reveal, DeadBlinds: deadBlinds, StraddleSeat: -1,
+		Variant: t.settings.PokerVariant(),
 	}
 	seats := make([]poker.Seat, len(eligible))
 	stacks := make(map[int]int64, len(eligible))
@@ -356,7 +357,7 @@ func (t *Table) computeEquity() {
 		t.equity = nil
 		return
 	}
-	eq := poker.Equity(t.hand.Board(), hands, 20000, uint64(t.handNumber))
+	eq := poker.Equity(t.hand.Variant(), t.hand.Board(), hands, 20000, uint64(t.handNumber))
 	t.equity = make(map[int]float64, len(seats))
 	for i, seat := range seats {
 		t.equity[seat] = math.Round(eq[i]*1000) / 10

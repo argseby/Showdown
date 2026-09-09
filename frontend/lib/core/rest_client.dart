@@ -44,6 +44,7 @@ class TableInfoDto {
     required this.smallBlind,
     required this.bigBlind,
     this.takenSeats = const [],
+    this.variant = 'holdem',
   });
 
   factory TableInfoDto.fromJson(Map<String, dynamic> json) {
@@ -60,6 +61,7 @@ class TableInfoDto {
       smallBlind: blinds['small_blind'] as int,
       bigBlind: blinds['big_blind'] as int,
       takenSeats: [for (final s in taken) s as int],
+      variant: json['variant'] as String? ?? 'holdem',
     );
   }
 
@@ -75,6 +77,9 @@ class TableInfoDto {
 
   /// Occupied seats, for the seat picker.
   final List<int> takenSeats;
+
+  /// The deck: 'holdem' or 'royal' (Ten to Ace only).
+  final String variant;
 }
 
 class JoinResultDto {

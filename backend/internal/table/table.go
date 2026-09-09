@@ -454,6 +454,7 @@ type Info struct {
 	MaxPlayers       int
 	SmallBlind       int64
 	BigBlind         int64
+	Variant          string
 	HandNumber       int
 	CreatedAt        int64
 	EndedAt          int64
@@ -467,7 +468,7 @@ func (t *Table) Info() Info {
 			ID: t.ID, Name: t.name, State: t.state, RequiresPassword: t.settings.PasswordHash != "",
 			PasswordHash: t.settings.PasswordHash, JoinPolicy: t.settings.JoinPolicy,
 			AllowSpectators: t.settings.AllowSpectators, Seated: t.seatedCount(), MaxPlayers: t.settings.MaxPlayers,
-			SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, HandNumber: t.handNumber,
+			SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, Variant: t.settings.Variant, HandNumber: t.handNumber,
 			CreatedAt: t.createdAt, EndedAt: t.endedAt, TakenSeats: []int{},
 		}
 		for i := 0; i < t.settings.MaxPlayers; i++ {

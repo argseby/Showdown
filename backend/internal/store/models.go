@@ -41,6 +41,7 @@ type SettingsRow struct {
 	TimeBankRefillSeconds  int
 	AllowStraddle          bool
 	RunItTwice             bool
+	Variant                string
 }
 
 // PlayerRow mirrors players. Zero LeftAt means NULL.

@@ -3,11 +3,12 @@ package poker
 import "math/rand/v2"
 
 // Equity returns each hand's share of the pot if the remaining board were
-// dealt from the cards not in hands or on the board: wins count 1, an n-way
-// tie counts 1/n. With two or fewer cards to come every completion is
-// enumerated; otherwise up to maxSamples random completions are drawn (seed
-// makes that deterministic). The result sums to 1 for a non-empty hands slice.
-func Equity(board []Card, hands [][2]Card, maxSamples int, seed uint64) []float64 {
+// dealt from the cards of the variant's deck not in hands or on the board:
+// wins count 1, an n-way tie counts 1/n. With two or fewer cards to come
+// every completion is enumerated; otherwise up to maxSamples random
+// completions are drawn (seed makes that deterministic). The result sums to
+// 1 for a non-empty hands slice.
+func Equity(v Variant, board []Card, hands [][2]Card, maxSamples int, seed uint64) []float64 {
 	n := len(hands)
 	out := make([]float64, n)
 	if n == 0 {
@@ -25,7 +26,7 @@ func Equity(board []Card, hands [][2]Card, maxSamples int, seed uint64) []float6
 		used[h[0]], used[h[1]] = true, true
 	}
 	var deck []Card
-	for c := Card(0); c < DeckSize; c++ {
+	for _, c := range v.Deck() {
 		if !used[c] {
 			deck = append(deck, c)
 		}

@@ -248,8 +248,10 @@ type PublicSettings struct {
 	// RunItTwice offers to deal the run-out twice when everyone is all-in.
 	RunItTwice      bool `json:"run_it_twice"`
 	AllowRabbitHunt bool `json:"allow_rabbit_hunt"`
-	BlindsUpMinutes int  `json:"blinds_up_minutes"`
-	BlindsUpPercent int  `json:"blinds_up_percent"`
+	// Variant is the deck: "holdem" (52 cards) or "royal" (Ten to Ace only).
+	Variant         string `json:"variant"`
+	BlindsUpMinutes int    `json:"blinds_up_minutes"`
+	BlindsUpPercent int    `json:"blinds_up_percent"`
 }
 
 // SeatView is one seat; Player is null for an empty seat.

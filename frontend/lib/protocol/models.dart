@@ -231,6 +231,7 @@ abstract class PublicSettings with _$PublicSettings {
     @Default(1) int timeBankRefillSeconds,
     @Default(false) bool allowStraddle,
     @Default(false) bool runItTwice,
+    @Default('holdem') String variant,
   }) = _PublicSettings;
   factory PublicSettings.fromJson(Map<String, dynamic> json) =>
       _$PublicSettingsFromJson(json);

@@ -36,6 +36,8 @@ class SettingsForm extends StatelessWidget {
         return l10n.valInteger;
       case SettingsError.maxPlayers:
         return l10n.valRange('2', '10');
+      case SettingsError.maxPlayersRoyal:
+        return l10n.valRoyalMaxPlayers;
       case SettingsError.startMoney:
         return l10n.valRange('1', '1,000,000,000,000');
       case SettingsError.smallBlind:
@@ -242,6 +244,10 @@ class SettingsForm extends StatelessWidget {
           builder: (context, c) {
             final two = c.maxWidth > 560;
             final items = <Widget>[
+              choice('variant', l10n.setVariant, state.variant, [
+                ('holdem', l10n.variantHoldem),
+                ('royal', l10n.variantRoyal),
+              ], (v) => onChanged(state.copyWith(variant: v))),
               number('max_players', l10n.setMaxPlayers),
               number('start_money', l10n.setStartMoney),
               number('small_blind', l10n.setSmallBlind),

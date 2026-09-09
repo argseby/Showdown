@@ -161,6 +161,49 @@ func NewDeck() []Card {
 	return deck
 }
 
+// Variant selects the deck a hand is dealt from: Holdem uses all 52 cards,
+// Royal only Ten to Ace of every suit (20 cards, "Royal Hold'em").
+type Variant uint8
+
+// Variants.
+const (
+	Holdem Variant = iota
+	Royal
+)
+
+// RoyalDeckSize is the number of cards in a Royal Hold'em deck.
+const RoyalDeckSize = 20
+
+// LowestRank is the lowest rank the variant deals.
+func (v Variant) LowestRank() Rank {
+	if v == Royal {
+		return Ten
+	}
+	return Two
+}
+
+// DeckSize is the number of cards in the variant's deck.
+func (v Variant) DeckSize() int { return int(Ace-v.LowestRank()+1) * 4 }
+
+// Deck returns the variant's cards in canonical order (unshuffled).
+func (v Variant) Deck() []Card {
+	deck := make([]Card, 0, v.DeckSize())
+	for c := Card(0); c < DeckSize; c++ {
+		if c.Rank() >= v.LowestRank() {
+			deck = append(deck, c)
+		}
+	}
+	return deck
+}
+
+// String is the variant's wire name.
+func (v Variant) String() string {
+	if v == Royal {
+		return "royal"
+	}
+	return "holdem"
+}
+
 // SecureShuffle performs a Fisher–Yates shuffle driven by crypto/rand.
 func SecureShuffle(deck []Card) {
 	for i := len(deck) - 1; i > 0; i-- {

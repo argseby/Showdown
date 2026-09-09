@@ -48,6 +48,16 @@ last with the option, and the minimum raise is twice the straddle.
 2. Two hole cards each, dealt one at a time clockwise starting left of the button.
 3. Streets: preflop → flop (3 cards) → turn (1) → river (1) → showdown.
 
+#### 7.3a Royal Hold'em (table setting `variant`, `holdem` by default)
+
+1. `variant: royal` deals from a 20-card deck: only Ten, Jack, Queen, King and Ace of
+   every suit. Everything else is unchanged: two hole cards, five community cards and
+   the usual hand rankings (the only straight is Broadway).
+2. Royal tables seat at most 6 players (`max_players`). Run it twice is only offered
+   while the deck still holds both remaining boards, so never preflop at a full royal
+   table.
+3. The setting applies from the next hand; a running hand keeps its deck.
+
 ### 7.4 Order of action
 
 1. Preflop: first to act is the seat left of the big blind (heads-up: the button).

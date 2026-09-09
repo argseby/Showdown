@@ -16,24 +16,24 @@ func TestEquityExhaustiveAndSampled(t *testing.T) {
 	}
 	hands := [][2]Card{{card("As"), card("Ad")}, {card("Ks"), card("Kd")}}
 	// River decided: the better hand has all the equity.
-	e := Equity([]Card{card("2c"), card("7h"), card("9s"), card("Jd"), card("3c")}, hands, 0, 1)
+	e := Equity(Holdem, []Card{card("2c"), card("7h"), card("9s"), card("Jd"), card("3c")}, hands, 0, 1)
 	if e[0] != 1 || e[1] != 0 {
 		t.Fatalf("river equity = %v", e)
 	}
 	// Turn: exhaustive over the 44 river cards; kings need one of two outs.
-	e = Equity([]Card{card("2c"), card("7h"), card("9s"), card("Jd")}, hands, 0, 1)
+	e = Equity(Holdem, []Card{card("2c"), card("7h"), card("9s"), card("Jd")}, hands, 0, 1)
 	if math.Abs(e[1]-2.0/44) > 1e-9 || math.Abs(e[0]+e[1]-1) > 1e-9 {
 		t.Fatalf("turn equity = %v", e)
 	}
 	// Preflop: sampled; aces are a roughly 80/20 favourite and the result is
 	// deterministic for a seed.
-	a := Equity(nil, hands, 20000, 42)
-	b := Equity(nil, hands, 20000, 42)
+	a := Equity(Holdem, nil, hands, 20000, 42)
+	b := Equity(Holdem, nil, hands, 20000, 42)
 	if a[0] < 0.78 || a[0] > 0.86 || a[0] != b[0] {
 		t.Fatalf("preflop equity = %v / %v", a, b)
 	}
 	// A tie splits.
-	e = Equity([]Card{card("2c"), card("7h"), card("9s"), card("Jd"), card("3c")},
+	e = Equity(Holdem, []Card{card("2c"), card("7h"), card("9s"), card("Jd"), card("3c")},
 		[][2]Card{{card("As"), card("Kd")}, {card("Ah"), card("Kc")}}, 0, 1)
 	if e[0] != 0.5 || e[1] != 0.5 {
 		t.Fatalf("tie equity = %v", e)

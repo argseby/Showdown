@@ -1754,6 +1754,30 @@ abstract class AppLocalizations {
   /// **'Showdown reveal'**
   String get setShowdownReveal;
 
+  /// No description provided for @setVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Game'**
+  String get setVariant;
+
+  /// No description provided for @variantHoldem.
+  ///
+  /// In en, this message translates to:
+  /// **'Texas Hold\'em'**
+  String get variantHoldem;
+
+  /// No description provided for @variantRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Hold\'em (10 to Ace)'**
+  String get variantRoyal;
+
+  /// No description provided for @valRoyalMaxPlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Hold\'em seats at most 6 players'**
+  String get valRoyalMaxPlayers;
+
   /// No description provided for @revealAll.
   ///
   /// In en, this message translates to:

@@ -217,6 +217,7 @@ _PublicSettings _$PublicSettingsFromJson(Map<String, dynamic> json) =>
           (json['time_bank_refill_seconds'] as num?)?.toInt() ?? 1,
       allowStraddle: json['allow_straddle'] as bool? ?? false,
       runItTwice: json['run_it_twice'] as bool? ?? false,
+      variant: json['variant'] as String? ?? 'holdem',
     );
 
 Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
@@ -240,6 +241,7 @@ Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
       'time_bank_refill_seconds': instance.timeBankRefillSeconds,
       'allow_straddle': instance.allowStraddle,
       'run_it_twice': instance.runItTwice,
+      'variant': instance.variant,
     };
 
 _SeatView _$SeatViewFromJson(Map<String, dynamic> json) => _SeatView(

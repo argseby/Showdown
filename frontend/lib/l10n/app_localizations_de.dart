@@ -973,6 +973,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setShowdownReveal => 'Aufdecken beim Showdown';
 
   @override
+  String get setVariant => 'Spielvariante';
+
+  @override
+  String get variantHoldem => 'Texas Hold\'em';
+
+  @override
+  String get variantRoyal => 'Royal Hold\'em (10 bis Ass)';
+
+  @override
+  String get valRoyalMaxPlayers => 'Royal Hold\'em: höchstens 6 Spieler';
+
+  @override
   String get revealAll => 'Alle Hände';
 
   @override

@@ -968,6 +968,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setShowdownReveal => 'Showdown reveal';
 
   @override
+  String get setVariant => 'Game';
+
+  @override
+  String get variantHoldem => 'Texas Hold\'em';
+
+  @override
+  String get variantRoyal => 'Royal Hold\'em (10 to Ace)';
+
+  @override
+  String get valRoyalMaxPlayers => 'Royal Hold\'em seats at most 6 players';
+
+  @override
   String get revealAll => 'All hands';
 
   @override

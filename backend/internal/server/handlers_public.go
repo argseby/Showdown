@@ -17,6 +17,7 @@ type tableInfoResponse struct {
 	MaxPlayers       int    `json:"max_players"`
 	Blinds           blinds `json:"blinds"`
 	TakenSeats       []int  `json:"taken_seats"`
+	Variant          string `json:"variant"`
 }
 
 type blinds struct {
@@ -34,6 +35,7 @@ func (s *Server) handleTableInfo(w http.ResponseWriter, r *http.Request) {
 		Name: info.Name, State: info.State, RequiresPassword: info.RequiresPassword, JoinPolicy: info.JoinPolicy,
 		AllowSpectators: info.AllowSpectators, Seated: info.Seated, MaxPlayers: info.MaxPlayers,
 		Blinds: blinds{Small: info.SmallBlind, Big: info.BigBlind}, TakenSeats: info.TakenSeats,
+		Variant: info.Variant,
 	})
 }
 

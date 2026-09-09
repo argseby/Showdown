@@ -9,7 +9,8 @@ plays in the browser.
 **Features**
 
 - Real No-Limit rules: side pots, odd chips, min-raise rules, staged showdown, optional
-  straddle and run-it-twice, blind schedule, time bank, all-in equity.
+  straddle and run-it-twice, blind schedule, time bank, all-in equity. Royal Hold'em
+  (only Ten to Ace in the deck) as a per-table game variant.
 - Up to 10 seats per table, reconnect into your seat after a refresh, spectators.
 - Host controls at the table: settings, start/pause/end, kick, chips, mute, chat
   moderation, hand history.
@@ -113,9 +114,9 @@ Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_I
 (50), `TRUST_PROXY` (`true`, rate limiting uses `X-Forwarded-For`), `LOG_LEVEL`
 (`info`), `LOG_FORMAT` (`json` or `text`).
 
-Table settings (blinds, antes, turn time, time bank, rebuys, straddle, run it twice,
-showdown reveal, blind schedule and more) are set per table by its host in the Admin
-tab.
+Table settings (game variant, blinds, antes, turn time, time bank, rebuys, straddle,
+run it twice, showdown reveal, blind schedule and more) are set per table by its host in
+the Admin tab.
 
 ## Hosting a table
 

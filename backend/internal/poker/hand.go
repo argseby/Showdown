@@ -85,6 +85,8 @@ type HandConfig struct {
 	// acts last preflop and the minimum raise is twice the straddle.
 	StraddleSeat   int
 	StraddleAmount int64
+	// Variant selects the deck (Holdem unless set).
+	Variant Variant
 }
 
 // Seat is a participating player at hand start.
@@ -254,9 +256,12 @@ func NewHand(cfg HandConfig, seats []Seat, shuffle func([]Card)) (*Hand, []Event
 		return nil, nil, fmt.Errorf("poker: button seat %d is not playing", cfg.ButtonSeat)
 	}
 
-	h.deck = NewDeck()
+	h.deck = cfg.Variant.Deck()
+	if need := len(seats)*2 + 5; need > len(h.deck) {
+		return nil, nil, fmt.Errorf("poker: %d players need %d cards, the %s deck has %d", len(seats), need, cfg.Variant, len(h.deck))
+	}
 	shuffle(h.deck)
-	if len(h.deck) != DeckSize {
+	if len(h.deck) != cfg.Variant.DeckSize() {
 		return nil, nil, fmt.Errorf("poker: shuffle changed the deck size")
 	}
 
@@ -440,9 +445,12 @@ func (h *Hand) Board2() []Card { return append([]Card(nil), h.board2...) }
 func (h *Hand) RunTwice() bool { return h.runTwice }
 
 // CanRunItTwice reports whether the hand is at the start of a run-out with
-// cards still to come, so the players may agree to run it twice.
+// cards still to come and enough of them in the deck for a second board, so
+// the players may agree to run it twice.
 func (h *Hand) CanRunItTwice() bool {
-	return h.phase == PhaseDealPending && h.runout && !h.runTwice && len(h.board) < 5
+	missing := 5 - len(h.board)
+	return h.phase == PhaseDealPending && h.runout && !h.runTwice && missing > 0 &&
+		h.deckPos+2*missing <= len(h.deck)
 }
 
 // RunItTwice switches the pending run-out to two boards; every pot is split
@@ -458,6 +466,9 @@ func (h *Hand) RunItTwice() error {
 
 // Board returns the community cards dealt so far.
 func (h *Hand) Board() []Card { return append([]Card(nil), h.board...) }
+
+// Variant is the deck the hand was dealt from.
+func (h *Hand) Variant() Variant { return h.cfg.Variant }
 
 // ButtonSeat, SBSeat and BBSeat identify the positions.
 func (h *Hand) ButtonSeat() int { return h.cfg.ButtonSeat }

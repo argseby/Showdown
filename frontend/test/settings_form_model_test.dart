@@ -9,7 +9,8 @@ void main() {
     expect(f.toPatch(), isEmpty);
     expect(f.hasChanges, isFalse);
     final all = f.toPatch(all: true);
-    expect(all.length, 23);
+    expect(all.length, 24);
+    expect(all['variant'], 'holdem');
     expect(all['big_blind'], 100);
     expect(all.containsKey('password'), isFalse);
   });
@@ -93,6 +94,23 @@ void main() {
         .setNumber('turn_time', '60')
         .setNumber('disconnected_turn_time', '45');
     expect(f.validate(), isEmpty);
+  });
+
+  test('royal hold\'em caps the seats and goes into the patch', () {
+    final f = SettingsFormState.fromSettings(AdminSettings.defaults);
+    final royal = f.copyWith(variant: 'royal');
+    expect(royal.isRoyal, isTrue);
+    // Nine seats do not fit a 20-card deck.
+    expect(royal.validate()['max_players'], SettingsError.maxPlayersRoyal);
+    final six = royal.setNumber('max_players', '6');
+    expect(six.validate(), isEmpty);
+    expect(six.toPatch(), {'max_players': 6, 'variant': 'royal'});
+    // A seat count that is wrong for every variant reports the general rule.
+    expect(
+      royal.setNumber('max_players', '11').validate()['max_players'],
+      SettingsError.maxPlayers,
+    );
+    expect(settingsApplies['variant'], AppliesWhen.nextHand);
   });
 
   test('applies-when table covers every field', () {
