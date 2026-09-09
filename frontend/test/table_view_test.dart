@@ -12,6 +12,14 @@ import 'package:showdown/shared/pot_colors.dart';
 
 import 'test_helpers.dart';
 
+/// Puts the hand line on the felt; below the table is the default.
+class _BoardHandLine extends HandLineNotifier {
+  @override
+  HandLinePlacement build() => HandLinePlacement.board;
+}
+
+final _onBoard = [handLineProvider.overrideWith(_BoardHandLine.new)];
+
 void main() {
   test('seat positions rotate the viewer to the bottom', () {
     expect(TableView.positionOf(4, 4, 9), 0);
@@ -309,6 +317,7 @@ void _potTests() {
     await tester.pumpWidget(
       wrap(
         SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+        overrides: _onBoard,
       ),
     );
     await tester.pump();
@@ -418,6 +427,7 @@ void _showdownTests() {
     await tester.pumpWidget(
       wrap(
         SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+        overrides: _onBoard,
       ),
     );
     await tester.pump(const Duration(seconds: 1));
@@ -496,6 +506,10 @@ void _markerTests() {
         ),
       ),
     );
+    await tester.pump();
+    // Below the table by default: nothing on the felt.
+    expect(find.byKey(const Key('your-hand')), findsNothing);
+    container.read(handLineProvider.notifier).set(HandLinePlacement.board);
     await tester.pump();
     expect(find.byKey(const Key('your-hand')), findsOneWidget);
     container.read(handLineProvider.notifier).set(HandLinePlacement.off);

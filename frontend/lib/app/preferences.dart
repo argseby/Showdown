@@ -211,7 +211,8 @@ class HandLineNotifier extends Notifier<HandLinePlacement> {
         if (o.name == v) state = o;
       }
     }).ignore();
-    return HandLinePlacement.board;
+    // Below the table by default, where it never covers the board.
+    return HandLinePlacement.bottom;
   }
 
   void set(HandLinePlacement value) {
