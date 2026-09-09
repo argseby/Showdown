@@ -47,6 +47,9 @@ class TableSessionState {
     this.spotlight,
     this.winnerPotIndex,
     this.winnerAmounts = const {},
+    this.collecting = const {},
+    this.collectingPots,
+    this.collectId = 0,
     this.lastError,
   });
 
@@ -91,6 +94,17 @@ class TableSessionState {
   /// (shown as "+amount" next to the stack until the next deal).
   final Map<int, int> winnerAmounts;
 
+  /// Bets by seat that just left for the pot (street end, or the end of
+  /// the hand): the chips fly there for [chipCollectDuration].
+  final Map<int, int> collecting;
+
+  /// The pots as they were before those bets arrived, shown until the
+  /// chips land; null when nothing is in flight.
+  final List<PotView>? collectingPots;
+
+  /// Counts the collections, so every flight gets its own animation.
+  final int collectId;
+
   /// The hand under the spotlight at the showdown: the last revealed hand
   /// while players show one after another, the winner once the pots are
   /// awarded. Null outside the showdown.
@@ -122,6 +136,10 @@ class TableSessionState {
     int? winnerPotIndex,
     bool clearWinnerPot = false,
     Map<int, int>? winnerAmounts,
+    Map<int, int>? collecting,
+    List<PotView>? collectingPots,
+    bool clearCollectingPots = false,
+    int? collectId,
     ServerError? lastError,
     bool clearError = false,
   }) => TableSessionState(
@@ -146,6 +164,11 @@ class TableSessionState {
         ? null
         : (winnerPotIndex ?? this.winnerPotIndex),
     winnerAmounts: winnerAmounts ?? this.winnerAmounts,
+    collecting: collecting ?? this.collecting,
+    collectingPots: clearCollectingPots
+        ? null
+        : (collectingPots ?? this.collectingPots),
+    collectId: collectId ?? this.collectId,
     lastError: clearError ? null : (lastError ?? this.lastError),
   );
 }
@@ -198,6 +221,10 @@ const Duration potAwardStageDuration = Duration(milliseconds: 2500);
 
 /// How long a chat line stays next to the author's avatar.
 const Duration chatBubbleDuration = Duration(seconds: 5);
+
+/// How long collected bets stay in flight (and the pots keep their old
+/// amounts) after a snapshot moved them into the pot.
+const Duration chipCollectDuration = Duration(milliseconds: 1100);
 
 /// Recorded hands loaded into the log after a reload.
 const int historyHands = 30;
@@ -283,8 +310,54 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     client.connect();
   }
 
+  Timer? _collectTimer;
+
+  /// Applies a snapshot; bets that were on the felt and are gone now, in
+  /// the same hand, went into the pot: they fly there and the pots keep
+  /// their previous amounts until the chips land.
+  void _onSnapshot(Snapshot next) {
+    final prev = state.snapshot;
+    var collecting = state.collecting;
+    var collectingPots = state.collectingPots;
+    var collectId = state.collectId;
+    if (prev?.hand != null &&
+        next.hand != null &&
+        prev!.table.handNumber == next.table.handNumber) {
+      final now = {
+        for (final sv in next.seats)
+          if (sv.player != null) sv.seat: sv.player!.betThisStreet,
+      };
+      final moved = <int, int>{
+        for (final sv in prev.seats)
+          if (sv.player != null &&
+              sv.player!.betThisStreet > 0 &&
+              (now[sv.seat] ?? 0) == 0)
+            sv.seat: sv.player!.betThisStreet,
+      };
+      if (moved.isNotEmpty) {
+        collecting = moved;
+        collectingPots = prev.hand!.pots;
+        collectId++;
+        _collectTimer?.cancel();
+        _collectTimer = Timer(chipCollectDuration, () {
+          state = state.copyWith(
+            collecting: const {},
+            clearCollectingPots: true,
+          );
+        });
+      }
+    }
+    state = state.copyWith(
+      snapshot: next,
+      collecting: collecting,
+      collectingPots: collectingPots,
+      collectId: collectId,
+    );
+  }
+
   void _teardown() {
     _stageTimer?.cancel();
+    _collectTimer?.cancel();
     _msgSub?.cancel();
     _stateSub?.cancel();
     _client?.dispose();
@@ -315,7 +388,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         if (state.log.isEmpty) _loadHistory();
       case SnapshotMessage(:final payload):
         ref.read(timeSyncProvider.notifier).update(payload.serverTs);
-        state = state.copyWith(snapshot: payload);
+        _onSnapshot(payload);
       case EventsMessage(:final payload):
         _applyEvents(payload);
       case ChatServerMessage(:final payload):

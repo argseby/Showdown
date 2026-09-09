@@ -371,11 +371,14 @@ class ActionBarState extends State<ActionBar> {
       // the pointer. The pre-actions, straddle, rebuy and sit out share the
       // top row in a different look; the result controls, while the hand is
       // over for the viewer, take a row in between.
+      // Once the viewer has folded, the pre-actions are moot until the next
+      // hand, so the toggles are disabled along with the action buttons.
+      final folded = !myTurn && _hasFolded(snap!, you!);
+      final actions = _turnRows(context, m);
       final rows = <Widget>[
-        ?_topRow(context, you!, togglesEnabled: !myTurn),
+        ?_topRow(context, you!, togglesEnabled: !myTurn && !folded),
         ?_resultRow(context, you),
-        if (!myTurn && _hasFolded(snap!, you)) _foldedNotice(context),
-        _turnRows(context, m),
+        if (folded) _foldedNotice(context, actions) else actions,
       ];
       content = Column(
         mainAxisSize: MainAxisSize.min,
@@ -437,37 +440,50 @@ class ActionBarState extends State<ActionBar> {
     return false;
   }
 
-  /// A muted strip right above the action buttons while the viewer is out
-  /// of the hand: the buttons keep their place, disabled as off turn, and
-  /// the strip says why nothing can be pressed.
-  Widget _foldedNotice(BuildContext context) {
+  /// Takes the place of the action buttons while the viewer is out of the
+  /// hand. The buttons stay in the tree, invisible and inert, so the bar
+  /// keeps exactly their height and nothing jumps; a muted "You folded"
+  /// strip fills their footprint and says why nothing can be pressed.
+  Widget _foldedNotice(BuildContext context, Widget actions) {
     final theme = Theme.of(context);
     final color = theme.colorScheme.mutedForeground;
-    return Container(
-      key: const Key('folded-notice'),
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.muted,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(LucideIcons.x, size: 14, color: color),
-          const Gap(6),
-          Text(
-            context.l10n.youFolded,
-            style: TextStyle(color: color),
-          ).semiBold().small(),
-        ],
-      ),
+    return Stack(
+      children: [
+        Visibility(
+          visible: false,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: actions,
+        ),
+        Positioned.fill(
+          child: Container(
+            key: const Key('folded-notice'),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.muted,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(LucideIcons.x, size: 14, color: color),
+                const Gap(6),
+                Text(
+                  context.l10n.youFolded,
+                  style: TextStyle(color: color),
+                ).semiBold().small(),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   /// The top row, left aligned and clearly apart from the action buttons:
   /// check/fold and call any as small check-box style toggles (disabled on
-  /// turn), the straddle, rebuy and sit out. Null when there is nothing to
-  /// show.
+  /// turn and once the viewer has folded), the straddle, rebuy and sit out.
+  /// Null when there is nothing to show.
   Widget? _topRow(
     BuildContext context,
     You you, {
@@ -553,8 +569,8 @@ class ActionBarState extends State<ActionBar> {
     ),
   );
 
-  /// "Sit out" at the end of the top row.
-  Widget _sitOutButton(BuildContext context) => GhostButton(
+  /// "Sit out" at the end of the top row, in the same look as rebuy.
+  Widget _sitOutButton(BuildContext context) => SecondaryButton(
     key: const Key('sit-out'),
     size: ButtonSize.small,
     onPressed: widget.callbacks.sitOut,

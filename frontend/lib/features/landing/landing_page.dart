@@ -90,8 +90,6 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                 ),
                 const Gap(16),
                 Text(l10n.appTitle).h1(),
-                const Gap(8),
-                Text(l10n.landingTagline).lead(),
                 const Gap(32),
                 Card(
                   child: Column(

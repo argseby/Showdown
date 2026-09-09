@@ -137,9 +137,8 @@ void main() {
     expect(acted, ['show:second', 'rabbit']);
   });
 
-  testWidgets('a folded player sees the notice over the dimmed buttons', (
-    tester,
-  ) async {
+  testWidgets('a folded player sees the notice in place of the buttons, at '
+      'the same height', (tester) async {
     final s = fixtureSnapshot();
     final offTurn = s.copyWith(you: s.you.copyWith(options: null));
     final folded = offTurn.copyWith(
@@ -152,22 +151,48 @@ void main() {
     );
     await pump(tester, folded);
     expect(find.byKey(const Key('folded-notice')), findsOneWidget);
-    // The buttons are still there underneath, disabled.
-    expect(find.byKey(const Key('action-fold')), findsOneWidget);
+    final foldedHeight = tester.getSize(find.byType(ActionBar)).height;
+    // The buttons are still in the tree (they set the height) but hidden
+    // and inert; the notice covers exactly their footprint.
+    final fold = find.byKey(const Key('action-fold'));
+    expect(fold, findsOneWidget);
+    final hidden = tester.widget<Visibility>(
+      find.ancestor(of: fold, matching: find.byType(Visibility)).first,
+    );
+    expect(hidden.visible, isFalse);
+    expect(hidden.maintainSize, isTrue);
     expect(
       tester
           .widget<Button>(
-            find.descendant(
-              of: find.byKey(const Key('action-fold')),
-              matching: find.byType(Button),
-            ),
+            find.descendant(of: fold, matching: find.byType(Button)),
           )
           .onPressed,
       isNull,
     );
-    // Still in the hand: no notice.
+    final notice = tester.getRect(find.byKey(const Key('folded-notice')));
+    final buttons = tester
+        .getRect(fold)
+        .expandToInclude(tester.getRect(find.byKey(const Key('action-raise'))));
+    expect(notice, buttons);
+    // Out of the hand, the pre-actions are moot: both toggles are disabled.
+    for (final k in const ['pre-check-fold', 'pre-call-any']) {
+      expect(
+        tester.widget<OutlineButton>(find.byKey(Key(k))).onPressed,
+        isNull,
+        reason: '$k should be disabled after folding',
+      );
+    }
+    // Still in the hand: no notice, the toggles work, and the bar is
+    // exactly as tall.
     await pump(tester, offTurn);
     expect(find.byKey(const Key('folded-notice')), findsNothing);
+    expect(
+      tester
+          .widget<OutlineButton>(find.byKey(const Key('pre-check-fold')))
+          .onPressed,
+      isNotNull,
+    );
+    expect(tester.getSize(find.byType(ActionBar)).height, foldedHeight);
   });
 
   testWidgets('rebuy and sit out share the top row, the action buttons stay '

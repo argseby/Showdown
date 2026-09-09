@@ -9,6 +9,7 @@ import '../../../core/formatting.dart';
 import '../../../core/voice/voice_engine.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/chip_stack.dart';
+import '../../../shared/chips.dart';
 import '../../../shared/phrases.dart';
 import '../../../shared/playing_card.dart';
 import '../../../shared/pot_colors.dart';
@@ -96,6 +97,7 @@ class TableView extends ConsumerWidget {
     final viewerSeat = session.mySeat ?? 0;
     final hand = snap.hand;
     final chipDisplay = ref.watch(chipDisplayProvider);
+    final stacks = ref.watch(chipStacksProvider);
     final scale = ref.watch(uiScaleProvider);
     final bigBlind = snap.table.settings.bigBlind;
     // Once a pot is awarded, every one of its winners has their best five
@@ -299,12 +301,15 @@ class TableView extends ConsumerWidget {
                     ],
                     const Gap(8),
                     _Pots(
-                      pots: hand.pots,
+                      pots: session.collecting.isNotEmpty
+                          ? session.collectingPots ?? hand.pots
+                          : hand.pots,
                       phase: hand.phase,
                       compact: compact,
                       bigBlind: bigBlind,
                       chipDisplay: chipDisplay,
                       activeIndex: session.winnerPotIndex,
+                      stacks: stacks,
                     ),
                   ] else
                     Text(
@@ -459,14 +464,32 @@ class TableView extends ConsumerWidget {
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: ChipAmount(
-                          amount: bet,
-                          bigBlind: bigBlind,
-                          size: 12,
-                          style: TextStyle(
-                            fontSize: compact ? 11 : 12,
-                            fontFamily: 'GeistMono',
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (stacks)
+                              ChipStackView(
+                                key: ValueKey('bet-stack-${sv.seat}'),
+                                amount: bet,
+                                bigBlind: bigBlind,
+                                chipWidth: compact ? 11 : 14,
+                              )
+                            else
+                              ChipIcon(size: 12, color: chipAmountColor(bet)),
+                            const Gap(5),
+                            Text(
+                              formatAmount(
+                                bet,
+                                mode: chipDisplay,
+                                bigBlind: bigBlind,
+                                locale: locale,
+                              ),
+                              style: TextStyle(
+                                fontSize: compact ? 11 : 12,
+                                fontFamily: 'GeistMono',
+                              ),
+                            ),
+                          ],
                         ),
                       ),
               ),
@@ -497,12 +520,38 @@ class TableView extends ConsumerWidget {
             ),
           );
         }
+        // The pots sit under the board; that is where collected bets land
+        // and where the winners' chips set off from.
+        final potPoint = Offset(
+          felt.center.dx,
+          felt.center.dy + (compact ? 34 : 48),
+        );
+        // The bets that just went into the pot fly there from their seats.
+        if (hand != null) {
+          for (final e in session.collecting.entries) {
+            final box = boxes[e.key];
+            if (box == null) continue;
+            children.add(
+              _FlyingChips(
+                key: ValueKey('collect-${session.collectId}-${e.key}'),
+                from: actionPoint(felt, box.center),
+                to: potPoint,
+                colors: stacks
+                    ? chipColors(
+                        decomposeChips(
+                          e.value,
+                          bigBlind: bigBlind,
+                          maxChips: _FlyingChips.maxChips,
+                        ),
+                      )
+                    : List.filled(3, chipAmountColor(e.value)),
+                duration: chipCollectFlight,
+              ),
+            );
+          }
+        }
         // Chips fly from the pot on display to each of its winners.
         if (hand != null && session.winnerPotIndex != null) {
-          final from = Offset(
-            felt.center.dx,
-            felt.center.dy + (compact ? 34 : 48),
-          );
           for (final seat in session.winners) {
             final box = boxes[seat];
             if (box == null) continue;
@@ -511,9 +560,18 @@ class TableView extends ConsumerWidget {
                 key: ValueKey(
                   'fly-${snap.table.handNumber}-${session.winnerPotIndex}-$seat',
                 ),
-                from: from,
+                from: potPoint,
                 to: box.center,
-                color: winnerColor,
+                colors: stacks
+                    ? chipColors(
+                        decomposeChips(
+                          session.winnerAmounts[seat] ?? 0,
+                          bigBlind: bigBlind,
+                          maxChips: _FlyingChips.maxChips,
+                        ),
+                      )
+                    : List.filled(3, winnerColor),
+                duration: chipAwardFlight,
               ),
             );
           }
@@ -834,59 +892,98 @@ class _RoleMarker extends StatelessWidget {
 
 /// A stack of chips sliding from the pot to a winner's seat, fading out
 /// as it arrives.
+/// How long collected bets take to reach the pot, first chip to last.
+const Duration chipCollectFlight = Duration(milliseconds: 1000);
+
+/// How long a won pot takes to reach its winner, first chip to last.
+const Duration chipAwardFlight = Duration(milliseconds: 2000);
+
+/// Chips (one colour each) flying from [from] to [to]: they leave one
+/// after another along a slight arc and fade out as they land, so the move
+/// reads as a stream rather than a blink. Every chip is under way for
+/// [_FlightPainter.travel] of [duration].
 class _FlyingChips extends StatelessWidget {
   const _FlyingChips({
     super.key,
     required this.from,
     required this.to,
-    required this.color,
+    required this.colors,
+    required this.duration,
   });
   final Offset from;
   final Offset to;
-  final Color color;
+  final List<Color> colors;
+  final Duration duration;
+
+  /// The most chips that fly for one amount.
+  static const maxChips = 12;
 
   @override
   Widget build(BuildContext context) {
+    if (colors.isEmpty) return const SizedBox.shrink();
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 900),
-      curve: Curves.easeInOutCubic,
-      builder: (context, t, child) {
-        final p = Offset.lerp(from, to, t)!;
-        final opacity = t < 0.8 ? 1.0 : (1 - (t - 0.8) / 0.2).clamp(0.0, 1.0);
-        return Positioned(
-          left: p.dx - 14,
-          top: p.dy - 14,
-          child: IgnorePointer(
-            child: Opacity(opacity: opacity, child: child),
+      duration: duration,
+      builder: (context, t, _) => Positioned.fill(
+        child: IgnorePointer(
+          child: CustomPaint(
+            painter: _FlightPainter(from: from, to: to, colors: colors, t: t),
           ),
-        );
-      },
-      child: SizedBox(
-        width: 28,
-        height: 28,
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              top: 8,
-              child: ChipIcon(size: 18, color: color),
-            ),
-            Positioned(
-              left: 6,
-              top: 4,
-              child: ChipIcon(size: 18, color: color),
-            ),
-            Positioned(
-              left: 12,
-              top: 0,
-              child: ChipIcon(size: 18, color: color),
-            ),
-          ],
         ),
       ),
     );
   }
+}
+
+class _FlightPainter extends CustomPainter {
+  _FlightPainter({
+    required this.from,
+    required this.to,
+    required this.colors,
+    required this.t,
+  });
+
+  final Offset from;
+  final Offset to;
+  final List<Color> colors;
+  final double t;
+
+  /// The share of the whole flight every single chip is under way; the
+  /// rest is spread over the chips' departures.
+  static const travel = 0.7;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final n = colors.length;
+    final stagger = n > 1 ? (1 - travel) / (n - 1) : 0.0;
+    final dist = (to - from).distance;
+    // The arc bulges sideways by a share of the distance; chips alternate
+    // sides so a stream spreads a little instead of overlapping exactly.
+    final normal = dist == 0
+        ? Offset.zero
+        : Offset(-(to - from).dy, (to - from).dx) / dist;
+    for (var i = n - 1; i >= 0; i--) {
+      final local = ((t - i * stagger) / travel).clamp(0.0, 1.0);
+      if (local <= 0) continue;
+      final e = Curves.easeInOutCubic.transform(local);
+      final side = (i.isEven ? 1 : -1) * (0.08 + 0.02 * (i % 3));
+      final control = Offset.lerp(from, to, 0.5)! + normal * dist * side;
+      final p = _bezier(from, control, to, e);
+      final fade = local < 0.85 ? 1.0 : (1 - (local - 0.85) / 0.15);
+      canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, fade));
+      paintChipTop(canvas, p, 10, colors[i]);
+      canvas.restore();
+    }
+  }
+
+  static Offset _bezier(Offset a, Offset c, Offset b, double t) {
+    final u = 1 - t;
+    return a * (u * u) + c * (2 * u * t) + b * (t * t);
+  }
+
+  @override
+  bool shouldRepaint(_FlightPainter old) =>
+      old.t != t || old.from != from || old.to != to || old.colors != colors;
 }
 
 class _Pots extends StatelessWidget {
@@ -897,8 +994,12 @@ class _Pots extends StatelessWidget {
     required this.bigBlind,
     required this.chipDisplay,
     this.activeIndex,
+    this.stacks = true,
   });
   final List<PotView> pots;
+
+  /// Chip stacks in the pills, or the plain chip icon.
+  final bool stacks;
   final String phase;
   final bool compact;
   final int bigBlind;
@@ -952,10 +1053,19 @@ class _Pots extends StatelessWidget {
                             : theme.colorScheme.mutedForeground,
                       ),
                     ),
-                    ChipIcon(
-                      size: 12,
-                      color: activeIndex == i ? potInk : potColor(i),
-                    ),
+                    if (stacks)
+                      ChipStackView(
+                        key: ValueKey('pot-stack-$i'),
+                        amount: pots[i].amount,
+                        bigBlind: bigBlind,
+                        chipWidth: 9,
+                        maxChips: 10,
+                      )
+                    else
+                      ChipIcon(
+                        size: 12,
+                        color: activeIndex == i ? potInk : potColor(i),
+                      ),
                     const Gap(4),
                     Text(
                       formatAmount(
