@@ -5,6 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../core/providers.dart';
 import '../../core/session_store.dart';
+import '../../shared/logo.dart';
 import '../../shared/top_bar.dart';
 import '../admin/new_table_dialog.dart';
 import 'table_code.dart';
@@ -71,7 +72,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
 
     return Scaffold(
       headers: [
-        TopBar(title: Text(l10n.appTitle)),
+        TopBar(leading: const [Logo()], title: Text(l10n.appTitle)),
         const Divider(),
       ],
       child: Center(
@@ -83,6 +84,11 @@ class _LandingPageState extends ConsumerState<LandingPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Logo(height: 80),
+                ),
+                const Gap(16),
                 Text(l10n.appTitle).h1(),
                 const Gap(8),
                 Text(l10n.landingTagline).lead(),

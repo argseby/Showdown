@@ -137,6 +137,78 @@ void main() {
     expect(acted, ['show:second', 'rabbit']);
   });
 
+  testWidgets('a folded player sees the notice over the dimmed buttons', (
+    tester,
+  ) async {
+    final s = fixtureSnapshot();
+    final offTurn = s.copyWith(you: s.you.copyWith(options: null));
+    final folded = offTurn.copyWith(
+      seats: [
+        for (final sv in offTurn.seats)
+          sv.seat == offTurn.you.seat
+              ? sv.copyWith(player: sv.player!.copyWith(folded: true))
+              : sv,
+      ],
+    );
+    await pump(tester, folded);
+    expect(find.byKey(const Key('folded-notice')), findsOneWidget);
+    // The buttons are still there underneath, disabled.
+    expect(find.byKey(const Key('action-fold')), findsOneWidget);
+    expect(
+      tester
+          .widget<Button>(
+            find.descendant(
+              of: find.byKey(const Key('action-fold')),
+              matching: find.byType(Button),
+            ),
+          )
+          .onPressed,
+      isNull,
+    );
+    // Still in the hand: no notice.
+    await pump(tester, offTurn);
+    expect(find.byKey(const Key('folded-notice')), findsNothing);
+  });
+
+  testWidgets('rebuy and sit out share the top row, the action buttons stay '
+      'at the bottom', (tester) async {
+    final s = fixtureSnapshot();
+    final broke = s.copyWith(
+      you: s.you.copyWith(options: null, canRebuy: true, canShowCards: true),
+    );
+    final (_, acted) = await pump(tester, broke);
+    // The three action buttons are still the bottom row, disabled.
+    for (final k in ['action-fold', 'action-check-call', 'action-raise']) {
+      expect(find.byKey(Key(k)), findsOneWidget, reason: k);
+      expect(
+        tester
+            .widget<Button>(
+              find.descendant(
+                of: find.byKey(Key(k)),
+                matching: find.byType(Button),
+              ),
+            )
+            .onPressed,
+        isNull,
+        reason: k,
+      );
+    }
+    final toggles = tester.getCenter(find.byKey(const Key('pre-check-fold')));
+    final rebuy = tester.getCenter(find.byKey(const Key('rebuy')));
+    final sitOut = tester.getCenter(find.byKey(const Key('sit-out')));
+    final show = tester.getCenter(find.byKey(const Key('show-both')));
+    final fold = tester.getCenter(find.byKey(const Key('action-fold')));
+    // Rebuy and sit out sit on the pre-action row; the result controls
+    // take the row between it and the action buttons.
+    expect(rebuy.dy, closeTo(toggles.dy, 1));
+    expect(sitOut.dy, closeTo(toggles.dy, 1));
+    expect(show.dy, greaterThan(toggles.dy));
+    expect(fold.dy, greaterThan(show.dy));
+    await tester.tap(find.byKey(const Key('rebuy')));
+    await tester.tap(find.byKey(const Key('sit-out')));
+    expect(acted, ['rebuy', 'sit_out']);
+  });
+
   testWidgets('big-blind mode formats the call and parses the raise input', (
     tester,
   ) async {

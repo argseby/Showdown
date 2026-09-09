@@ -12,6 +12,7 @@ import 'package:showdown/core/link_opener.dart';
 import 'package:showdown/core/providers.dart';
 import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/features/landing/landing_page.dart';
+import 'package:showdown/shared/logo.dart';
 
 Widget app({
   String initialLocation = '/',
@@ -46,6 +47,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Texas Hold\'em for your private group.'), findsOneWidget);
+    // The logo sits in the header and above the title.
+    expect(find.byType(Logo), findsNWidgets(2));
     expect(find.byKey(const Key('landing-error')), findsNothing);
 
     await tester.enterText(find.byKey(const Key('landing-code')), 'nope');

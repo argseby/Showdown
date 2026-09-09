@@ -42,10 +42,13 @@ class ActionCallbacks {
   final VoidCallback? rabbitHunt;
 }
 
-/// The player's controls. On the viewer's turn: Fold (red), Check (green) or
-/// Call (blue) and Bet/Raise (yellow) as equal-width buttons; Raise unfolds
-/// the presets and the amount right above the buttons. Off turn only the
-/// pre-actions show, after the hand only show-cards / rabbit hunt / rebuy.
+/// The player's controls. The bottom row is always the three colour-coded
+/// action buttons, Fold (red), Check (green) or Call (blue) and Bet/Raise
+/// (yellow), as equal-width buttons that are disabled off turn; Raise
+/// unfolds the presets and the amount right above them. The pre-actions,
+/// straddle, rebuy and sit out share the top row; the result controls
+/// (run it twice, show cards, rabbit hunt) take a row in between while the
+/// hand is over for the viewer.
 /// Keyboard shortcuts are dispatched by the page through [ActionBarState].
 class ActionBar extends StatefulWidget {
   const ActionBar({
@@ -363,28 +366,29 @@ class ActionBarState extends State<ActionBar> {
         ],
       );
     } else {
-      // While a betting round is on and the viewer holds cards, the three
-      // action buttons are always there (disabled off turn) so that nothing
-      // ever changes meaning under the pointer; the pre-actions live in
-      // their own row above them, in a different look. Between hands and
-      // after a fold the result controls take the second row.
-      final betting = _inBetting(snap!, you!);
-      final rows = <Widget>[];
-      // Pre-actions may be armed at any time (also while waiting for the
-      // next hand), so the row is always there for a seated player.
-      if (widget.callbacks.preAction != null) {
-        rows.add(_preActionRow(context, you, enabled: !myTurn));
-        rows.add(const Gap(6));
-      }
-      if (betting) {
-        rows.add(_turnRows(context, m));
-      } else {
-        rows.add(_offTurnRow(context, you));
-      }
+      // The three action buttons are always the bottom row (disabled off
+      // turn and between hands) so that nothing ever changes meaning under
+      // the pointer. The pre-actions, straddle, rebuy and sit out share the
+      // top row in a different look; the result controls, while the hand is
+      // over for the viewer, take a row in between.
+      final actions = _turnRows(context, m);
+      final rows = <Widget>[
+        ?_topRow(context, you!, togglesEnabled: !myTurn),
+        ?_resultRow(context, you),
+        if (!myTurn && _hasFolded(snap!, you))
+          _foldedOverlay(context, actions)
+        else
+          actions,
+      ];
       content = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: rows,
+        children: [
+          for (final (i, row) in rows.indexed) ...[
+            if (i > 0) const Gap(6),
+            row,
+          ],
+        ],
       );
     }
 
@@ -427,26 +431,52 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
-  /// The viewer holds cards in a running betting round (folded players and
-  /// everyone between hands get the result controls instead).
-  bool _inBetting(Snapshot snap, You you) {
-    final hand = snap.hand;
-    if (hand == null || hand.phase != 'betting') return false;
-    // Result controls on offer mean the hand is over for the viewer.
-    if (you.canShowCards || you.canRabbitHunt || you.canRebuy) return false;
+  /// The viewer folded the running hand.
+  bool _hasFolded(Snapshot snap, You you) {
+    if (snap.hand == null) return false;
     for (final sv in snap.seats) {
-      if (sv.seat == you.seat) {
-        final p = sv.player;
-        return p != null && p.inHand && !p.folded;
-      }
+      if (sv.seat == you.seat) return sv.player?.folded ?? false;
     }
     return false;
   }
 
-  /// Check/fold and call any as small check-box style toggles, left
-  /// aligned, clearly apart from the action buttons; disabled on turn.
-  Widget _preActionRow(BuildContext context, You you, {required bool enabled}) {
+  /// Lays a "You folded" notice over the action buttons: they stay where
+  /// they are, dimmed, so the layout never jumps, and the notice says why
+  /// nothing can be pressed.
+  Widget _foldedOverlay(BuildContext context, Widget actions) {
+    final theme = Theme.of(context);
+    return Stack(
+      children: [
+        actions,
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.card.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                context.l10n.youFolded,
+                key: const Key('folded-notice'),
+              ).semiBold(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The top row, left aligned and clearly apart from the action buttons:
+  /// check/fold and call any as small check-box style toggles (disabled on
+  /// turn), the straddle, rebuy and sit out. Null when there is nothing to
+  /// show.
+  Widget? _topRow(
+    BuildContext context,
+    You you, {
+    required bool togglesEnabled,
+  }) {
     final l10n = context.l10n;
+    final enabled = togglesEnabled;
     Widget toggle(String kind, String label, Key key) {
       final on = you.preAction == kind;
       void cb() => widget.callbacks.preAction!(on ? 'none' : kind);
@@ -472,19 +502,27 @@ class ActionBarState extends State<ActionBar> {
     }
 
     final snap = widget.snapshot!;
+    final items = <Widget>[
+      // Pre-actions may be armed at any time (also while waiting for the
+      // next hand), so the toggles are always there for a seated player.
+      if (widget.callbacks.preAction != null) ...[
+        toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
+        toggle('call_any', l10n.preCallAny, const Key('pre-call-any')),
+      ],
+      // The straddle is armed for the next hand: same row, same look.
+      if (snap.table.settings.allowStraddle &&
+          widget.callbacks.straddle != null &&
+          widget.myStatus == 'active')
+        _straddleToggle(context, you),
+      if (you.canRebuy) _rebuyButton(context),
+      if (widget.myStatus == 'active') _sitOutButton(context),
+    ];
+    if (items.isEmpty) return null;
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
-        toggle('call_any', l10n.preCallAny, const Key('pre-call-any')),
-        // The straddle is armed for the next hand: same row, same look.
-        if (snap.table.settings.allowStraddle &&
-            widget.callbacks.straddle != null &&
-            widget.myStatus == 'active')
-          _straddleToggle(context, you),
-      ],
+      children: items,
     );
   }
 
@@ -506,7 +544,18 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
-  /// Small "sit out" control that rides along at the end of a row.
+  /// Rebuy for the table's starting stack; offered when the viewer is broke.
+  Widget _rebuyButton(BuildContext context) => SecondaryButton(
+    key: const Key('rebuy'),
+    size: ButtonSize.small,
+    onPressed: widget.callbacks.rebuy,
+    leading: const Icon(LucideIcons.coins, size: 14),
+    child: Text(
+      context.l10n.rebuy(_fmt(widget.snapshot!.table.settings.startMoney)),
+    ),
+  );
+
+  /// Small "sit out" control that rides along at the end of the top row.
   Widget _sitOutButton(BuildContext context) => Tooltip(
     tooltip: TooltipContainer(child: Text(context.l10n.sitOut)).call,
     child: GhostButton(
@@ -560,10 +609,6 @@ class ActionBarState extends State<ActionBar> {
               onPressed: () {},
             ),
           ),
-          if (widget.myStatus == 'active') ...[
-            const Gap(4),
-            _sitOutButton(context),
-          ],
         ],
       );
     }
@@ -653,10 +698,6 @@ class ActionBarState extends State<ActionBar> {
               child: const Icon(LucideIcons.x, size: 16),
             ),
           ],
-          if (widget.myStatus == 'active') ...[
-            const Gap(4),
-            _sitOutButton(context),
-          ],
         ],
       ),
     );
@@ -667,10 +708,9 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
-  /// No betting for the viewer right now: the result-phase and
-  /// between-hands controls (straddle, run it twice, rebuy, show cards,
-  /// rabbit hunt, sit out).
-  Widget _offTurnRow(BuildContext context, You you) {
+  /// The result-phase controls (run it twice, show cards, rabbit hunt);
+  /// null when none is on offer.
+  Widget? _resultRow(BuildContext context, You you) {
     final l10n = context.l10n;
     final snap = widget.snapshot!;
     final items = <Widget>[];
@@ -699,16 +739,6 @@ class ActionBarState extends State<ActionBar> {
           you.runTwiceVote! ? l10n.runTwiceWaiting : l10n.runTwiceDeclined,
           key: const Key('run-twice-status'),
         ).muted().small(),
-      );
-    }
-    if (you.canRebuy) {
-      items.add(
-        SecondaryButton(
-          size: ButtonSize.small,
-          onPressed: widget.callbacks.rebuy,
-          leading: const Icon(LucideIcons.coins, size: 14),
-          child: Text(l10n.rebuy(_fmt(snap.table.settings.startMoney))),
-        ),
       );
     }
     if (you.canShowCards) {
@@ -751,7 +781,7 @@ class ActionBarState extends State<ActionBar> {
         ),
       );
     }
-    if (widget.myStatus == 'active') items.add(_sitOutButton(context));
+    if (items.isEmpty) return null;
     return Wrap(
       spacing: 6,
       runSpacing: 6,

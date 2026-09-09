@@ -1111,6 +1111,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sittingOutNotice => 'Du bist abwesend und bekommst keine Karten.';
 
   @override
+  String get youFolded => 'Du hast gepasst';
+
+  @override
   String get showCoins => 'Beträge in Chips anzeigen';
 
   @override

@@ -836,6 +836,7 @@
     }
   },
   "sittingOutNotice": "You are away and are not dealt in.",
+  "youFolded": "You folded",
   "showCoins": "Show amounts in chips",
   "showBigBlinds": "Show amounts in big blinds",
   "yourTurnBanner": "Your turn",

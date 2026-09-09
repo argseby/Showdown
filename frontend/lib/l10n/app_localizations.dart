@@ -2000,6 +2000,12 @@ abstract class AppLocalizations {
   /// **'You are away and are not dealt in.'**
   String get sittingOutNotice;
 
+  /// No description provided for @youFolded.
+  ///
+  /// In en, this message translates to:
+  /// **'You folded'**
+  String get youFolded;
+
   /// No description provided for @showCoins.
   ///
   /// In en, this message translates to:

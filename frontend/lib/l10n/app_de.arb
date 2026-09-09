@@ -340,6 +340,7 @@
   "preCallAny": "Alles mitgehen",
   "yourHand": "Deine Hand: {description}",
   "sittingOutNotice": "Du bist abwesend und bekommst keine Karten.",
+  "youFolded": "Du hast gepasst",
   "showCoins": "Beträge in Chips anzeigen",
   "showBigBlinds": "Beträge in Big Blinds anzeigen",
   "yourTurnBanner": "Du bist dran",

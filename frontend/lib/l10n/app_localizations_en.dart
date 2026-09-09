@@ -1104,6 +1104,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sittingOutNotice => 'You are away and are not dealt in.';
 
   @override
+  String get youFolded => 'You folded';
+
+  @override
   String get showCoins => 'Show amounts in chips';
 
   @override
