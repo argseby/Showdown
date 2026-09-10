@@ -46,7 +46,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    expect(find.text('Texas Hold\'em for your private group.'), findsOneWidget);
+    expect(find.text('Host a game'), findsOneWidget);
     // The logo sits in the header and above the title.
     expect(find.byType(Logo), findsNWidgets(2));
     expect(find.byKey(const Key('landing-error')), findsNothing);
@@ -153,10 +153,7 @@ void main() {
   testWidgets('German locale is complete for the landing page', (tester) async {
     await tester.pumpWidget(app(locale: const Locale('de')));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Texas Hold\'em für deine private Runde.'),
-      findsOneWidget,
-    );
+    expect(find.text('Eine Runde hosten'), findsOneWidget);
   });
 }
 

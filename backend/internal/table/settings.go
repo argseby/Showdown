@@ -385,11 +385,12 @@ func ValidatePassword(pw string) error {
 // Validate checks every constraint of §5.2.
 func (s Settings) Validate(seated int) error {
 	var ve ValidationError
-	if s.MaxPlayers < 2 || s.MaxPlayers > 10 {
+	switch {
+	case s.MaxPlayers < 2 || s.MaxPlayers > 10:
 		ve.add("max_players", "must be between 2 and 10")
-	} else if s.MaxPlayers < seated {
+	case s.MaxPlayers < seated:
 		ve.add("max_players", fmt.Sprintf("cannot be below the %d seated players", seated))
-	} else if s.Variant == VariantRoyal && s.MaxPlayers > RoyalMaxPlayers {
+	case s.Variant == VariantRoyal && s.MaxPlayers > RoyalMaxPlayers:
 		ve.add("max_players", fmt.Sprintf("Royal Hold'em seats at most %d players", RoyalMaxPlayers))
 	}
 	switch s.Variant {

@@ -64,7 +64,7 @@ func TestRoyalHandDealsOnlyTenToAce(t *testing.T) {
 	if _, _, err := NewHand(cfg, seven, func([]Card) {}); err != nil {
 		t.Fatalf("7 players: %v", err)
 	}
-	eight := append(seven, Seat{7, 1000})
+	eight := append(append([]Seat(nil), seven...), Seat{7, 1000})
 	if _, _, err := NewHand(cfg, eight, func([]Card) {}); err == nil {
 		t.Fatal("8 players must not fit a 20-card deck")
 	}
