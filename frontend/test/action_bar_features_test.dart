@@ -195,43 +195,55 @@ void main() {
     expect(tester.getSize(find.byType(ActionBar)).height, foldedHeight);
   });
 
-  testWidgets('rebuy and sit out share the top row, the action buttons stay '
-      'at the bottom', (tester) async {
+  testWidgets('rebuy and sit out share the top row, the show-cards buttons '
+      'take the bottom row', (tester) async {
     final s = fixtureSnapshot();
     final broke = s.copyWith(
       you: s.you.copyWith(options: null, canRebuy: true, canShowCards: true),
     );
     final (_, acted) = await pump(tester, broke);
-    // The three action buttons are still the bottom row, disabled.
+    // Once the hand is over for the viewer the show-cards buttons replace
+    // the action buttons at full size.
     for (final k in ['action-fold', 'action-check-call', 'action-raise']) {
-      expect(find.byKey(Key(k)), findsOneWidget, reason: k);
-      expect(
-        tester
-            .widget<Button>(
-              find.descendant(
-                of: find.byKey(Key(k)),
-                matching: find.byType(Button),
-              ),
-            )
-            .onPressed,
-        isNull,
-        reason: k,
-      );
+      expect(find.byKey(Key(k)), findsNothing, reason: k);
     }
     final toggles = tester.getCenter(find.byKey(const Key('pre-check-fold')));
     final rebuy = tester.getCenter(find.byKey(const Key('rebuy')));
     final sitOut = tester.getCenter(find.byKey(const Key('sit-out')));
+    final first = tester.getCenter(find.byKey(const Key('show-first')));
     final show = tester.getCenter(find.byKey(const Key('show-both')));
-    final fold = tester.getCenter(find.byKey(const Key('action-fold')));
-    // Rebuy and sit out sit on the pre-action row; the result controls
-    // take the row between it and the action buttons.
+    // Rebuy and sit out sit on the pre-action row; the show buttons share
+    // one row below it, as wide as the action buttons would be.
     expect(rebuy.dy, closeTo(toggles.dy, 1));
     expect(sitOut.dy, closeTo(toggles.dy, 1));
     expect(show.dy, greaterThan(toggles.dy));
-    expect(fold.dy, greaterThan(show.dy));
+    expect(first.dy, closeTo(show.dy, 1));
+    expect(
+      tester.getSize(find.byKey(const Key('show-both'))).width,
+      greaterThan(200),
+    );
     await tester.tap(find.byKey(const Key('rebuy')));
     await tester.tap(find.byKey(const Key('sit-out')));
     expect(acted, ['rebuy', 'sit_out']);
+  });
+
+  testWidgets('the top row scrolls sideways instead of wrapping', (
+    tester,
+  ) async {
+    final s = fixtureSnapshot();
+    final offTurn = s.copyWith(
+      you: s.you.copyWith(options: null, canRebuy: true),
+      table: s.table.copyWith(
+        settings: s.table.settings.copyWith(allowStraddle: true),
+      ),
+    );
+    tester.view.physicalSize = const Size(320, 700);
+    await pump(tester, offTurn);
+    final toggles = tester.getCenter(find.byKey(const Key('pre-check-fold')));
+    final sitOut = tester.getCenter(find.byKey(const Key('sit-out')));
+    // Everything stays on one line; the far end is simply off screen.
+    expect(sitOut.dy, closeTo(toggles.dy, 1));
+    expect(sitOut.dx, greaterThan(320));
   });
 
   testWidgets('big-blind mode formats the call and parses the raise input', (

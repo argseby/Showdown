@@ -57,7 +57,7 @@ class TableView extends ConsumerWidget {
 
   /// Point on the ellipse for a position. Seats are spread by equal arc
   /// length (not equal angle), so they look evenly spaced on a wide oval.
-  static Offset seatPoint(int position, int maxPlayers, Rect oval) {
+  static Offset seatPoint(num position, int maxPlayers, Rect oval) {
     final a = oval.width / 2;
     final b = oval.height / 2;
     // Sample the perimeter and pick the point at the wanted fraction of
@@ -167,14 +167,44 @@ class TableView extends ConsumerWidget {
         // bottom, and the felt may use that slack.
         final contentH = (compact ? 130.0 : 156.0) * scale;
         final slack = (seatH - contentH).clamp(0.0, seatH * 0.2);
-        // Every seat box (occupied or not) at its clamped place, and the
-        // part of it the content really occupies.
+        // Only the seats in use are laid out, spread evenly around the
+        // felt in table order clockwise from the viewer (two players face
+        // each other, four sit at the quarters). One free seat, the place
+        // to take or change a seat while the table has room, sits halfway
+        // between the last player and the viewer, off the even spacing.
+        final players =
+            [
+              for (final sv in snap.seats)
+                if (sv.player != null) sv,
+            ]..sort(
+              (a, b) => positionOf(
+                a.seat,
+                viewerSeat,
+                maxPlayers,
+              ).compareTo(positionOf(b.seat, viewerSeat, maxPlayers)),
+            );
+        SeatView? free;
+        for (final sv in snap.seats) {
+          if (sv.player == null) {
+            free = sv;
+            break;
+          }
+        }
+        final slots = [...players, ?free];
+        num slotPosition(int index) =>
+            free != null && index == players.length ? index - 0.5 : index;
+        // Every slot's box at its clamped place, and the part of it the
+        // content really occupies.
         final boxes = <int, Rect>{};
         final lowerHalf = <int, bool>{};
         final occupied = <Rect>[];
-        for (var seat = 0; seat < maxPlayers; seat++) {
-          final pos = positionOf(seat, viewerSeat, maxPlayers);
-          final point = seatPoint(pos, maxPlayers, oval);
+        for (final (i, sv) in slots.indexed) {
+          final seat = sv.seat;
+          final point = seatPoint(
+            slotPosition(i),
+            math.max(1, players.length),
+            oval,
+          );
           final box = Rect.fromLTWH(
             (point.dx - seatW / 2).clamp(0.0, size.width - seatW),
             (point.dy - seatH / 2).clamp(0.0, size.height - seatH),
@@ -182,7 +212,11 @@ class TableView extends ConsumerWidget {
             seatH,
           );
           boxes[seat] = box;
-          final lower = point.dy > oval.center.dy;
+          // Upper or lower half by the seat's place on the ring, so the
+          // two seats level with the middle (a four-handed table) align
+          // the same way instead of depending on sampling noise.
+          final frac = slotPosition(i) / math.max(1, players.length);
+          final lower = frac < 0.25 || frac > 0.75;
           lowerHalf[seat] = lower;
           occupied.add(
             lower
@@ -325,12 +359,8 @@ class TableView extends ConsumerWidget {
             ),
           ),
         ];
-        for (final sv in snap.seats) {
-          final pos = positionOf(sv.seat, viewerSeat, maxPlayers);
-          final point = seatPoint(pos, maxPlayers, oval);
-          final box =
-              boxes[sv.seat] ??
-              Rect.fromCenter(center: point, width: seatW, height: seatH);
+        for (final sv in slots) {
+          final box = boxes[sv.seat]!;
           children.add(
             Positioned(
               left: box.left,

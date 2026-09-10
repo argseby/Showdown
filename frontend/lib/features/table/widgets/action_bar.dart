@@ -374,11 +374,18 @@ class ActionBarState extends State<ActionBar> {
       // Once the viewer has folded, the pre-actions are moot until the next
       // hand, so the toggles are disabled along with the action buttons.
       final folded = !myTurn && _hasFolded(snap!, you!);
-      final actions = _turnRows(context, m);
+      // Once the hand is over for the viewer the show-cards and rabbit
+      // hunt buttons take the bottom row at full size; otherwise the three
+      // action buttons are always there.
+      final result = _resultButtons(context, you!);
+      final actions = result ?? _turnRows(context, m);
       final rows = <Widget>[
-        ?_topRow(context, you!, togglesEnabled: !myTurn && !folded),
+        ?_topRow(context, you, togglesEnabled: !myTurn && !folded),
         ?_resultRow(context, you),
-        if (folded) _foldedNotice(context, actions) else actions,
+        if (folded && result == null)
+          _foldedNotice(context, actions)
+        else
+          actions,
       ];
       content = Column(
         mainAxisSize: MainAxisSize.min,
@@ -466,12 +473,12 @@ class ActionBarState extends State<ActionBar> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(LucideIcons.x, size: 14, color: color),
+                Icon(LucideIcons.x, size: 18, color: color),
                 const Gap(6),
                 Text(
                   context.l10n.youFolded,
                   style: TextStyle(color: color),
-                ).semiBold().small(),
+                ).semiBold(),
               ],
             ),
           ),
@@ -532,11 +539,19 @@ class ActionBarState extends State<ActionBar> {
       if (widget.myStatus == 'active') _sitOutButton(context),
     ];
     if (items.isEmpty) return null;
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: items,
+    // One line that scrolls sideways on narrow screens, so the toggles
+    // never wrap onto a second row.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final (i, item) in items.indexed) ...[
+            if (i > 0) const Gap(6),
+            item,
+          ],
+        ],
+      ),
     );
   }
 
@@ -703,10 +718,10 @@ class ActionBarState extends State<ActionBar> {
             const Gap(6),
             GhostButton(
               key: const Key('raise-cancel'),
-              size: ButtonSize.small,
+              size: actionButtonSize,
               density: ButtonDensity.icon,
               onPressed: cancel,
-              child: const Icon(LucideIcons.x, size: 16),
+              child: const Icon(LucideIcons.x, size: 20),
             ),
           ],
         ],
@@ -719,8 +734,8 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
-  /// The result-phase controls (run it twice, show cards, rabbit hunt);
-  /// null when none is on offer.
+  /// The run-it-twice vote (or its outcome) while it is pending; null
+  /// otherwise.
   Widget? _resultRow(BuildContext context, You you) {
     final l10n = context.l10n;
     final snap = widget.snapshot!;
@@ -752,46 +767,6 @@ class ActionBarState extends State<ActionBar> {
         ).muted().small(),
       );
     }
-    if (you.canShowCards) {
-      final first = widget.shown.isNotEmpty && widget.shown[0];
-      final second = widget.shown.length > 1 && widget.shown[1];
-      items.add(
-        OutlineButton(
-          key: const Key('show-first'),
-          size: ButtonSize.small,
-          onPressed: first ? null : () => widget.callbacks.showCards('first'),
-          child: Text(l10n.showFirstCard),
-        ),
-      );
-      items.add(
-        OutlineButton(
-          key: const Key('show-second'),
-          size: ButtonSize.small,
-          onPressed: second ? null : () => widget.callbacks.showCards('second'),
-          child: Text(l10n.showSecondCard),
-        ),
-      );
-      items.add(
-        SecondaryButton(
-          key: const Key('show-both'),
-          size: ButtonSize.small,
-          onPressed: () => widget.callbacks.showCards('both'),
-          leading: const Icon(LucideIcons.eye, size: 14),
-          child: Text(l10n.showCards),
-        ),
-      );
-    }
-    if (you.canRabbitHunt && widget.callbacks.rabbitHunt != null) {
-      items.add(
-        SecondaryButton(
-          key: const Key('rabbit-hunt'),
-          size: ButtonSize.small,
-          onPressed: widget.callbacks.rabbitHunt,
-          leading: const Icon(LucideIcons.rabbit, size: 14),
-          child: Text(l10n.rabbitHunt),
-        ),
-      );
-    }
     if (items.isEmpty) return null;
     return Wrap(
       spacing: 6,
@@ -801,7 +776,90 @@ class ActionBarState extends State<ActionBar> {
       children: items,
     );
   }
+
+  /// Show first / second / both cards and rabbit hunt as equal-width,
+  /// full-size buttons in place of the action buttons once the hand is
+  /// over for the viewer; null while none is on offer.
+  Widget? _resultButtons(BuildContext context, You you) {
+    final l10n = context.l10n;
+    final items = <Widget>[];
+    final compact = isCompactActionBar(context);
+    Widget label(String text) => Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: compact ? const TextStyle(fontSize: compactActionLabelSize) : null,
+    );
+    if (you.canShowCards) {
+      final first = widget.shown.isNotEmpty && widget.shown[0];
+      final second = widget.shown.length > 1 && widget.shown[1];
+      items.add(
+        OutlineButton(
+          key: const Key('show-first'),
+          size: actionButtonSize,
+          alignment: Alignment.center,
+          onPressed: first ? null : () => widget.callbacks.showCards('first'),
+          child: label(l10n.showFirstCard),
+        ),
+      );
+      items.add(
+        OutlineButton(
+          key: const Key('show-second'),
+          size: actionButtonSize,
+          alignment: Alignment.center,
+          onPressed: second ? null : () => widget.callbacks.showCards('second'),
+          child: label(l10n.showSecondCard),
+        ),
+      );
+      items.add(
+        SecondaryButton(
+          key: const Key('show-both'),
+          size: actionButtonSize,
+          alignment: Alignment.center,
+          onPressed: () => widget.callbacks.showCards('both'),
+          leading: const Icon(LucideIcons.eye, size: 18),
+          child: label(l10n.showCards),
+        ),
+      );
+    }
+    if (you.canRabbitHunt && widget.callbacks.rabbitHunt != null) {
+      items.add(
+        SecondaryButton(
+          key: const Key('rabbit-hunt'),
+          size: actionButtonSize,
+          alignment: Alignment.center,
+          onPressed: widget.callbacks.rabbitHunt,
+          leading: const Icon(LucideIcons.rabbit, size: 18),
+          child: label(l10n.rabbitHunt),
+        ),
+      );
+    }
+    if (items.isEmpty) return null;
+    return Row(
+      children: [
+        for (final (i, item) in items.indexed) ...[
+          if (i > 0) const Gap(6),
+          Expanded(child: item),
+        ],
+      ],
+    );
+  }
 }
+
+/// The size of the bottom row (action buttons, show-cards buttons, the
+/// folded notice): one and a half times the small buttons above it.
+const ButtonSize actionButtonSize = ButtonSize(1.125);
+
+/// Below this width the bottom row is a phone: smaller labels, and no
+/// keyboard hints since there is no keyboard.
+const double compactActionBarWidth = 600;
+
+/// Whether the bar is on a phone-sized screen.
+bool isCompactActionBar(BuildContext context) =>
+    MediaQuery.sizeOf(context).width < compactActionBarWidth;
+
+/// The label size of the bottom row on a phone.
+const double compactActionLabelSize = 12;
 
 /// The colour code of the action buttons.
 class ActionColors {
@@ -834,8 +892,9 @@ class _ActionButton extends StatelessWidget {
     final fg = color == ActionColors.raise
         ? const Color(0xFF2B2200)
         : const Color(0xFFFFFFFF);
+    final compact = isCompactActionBar(context);
     return Button(
-      style: const ButtonStyle.primary(size: ButtonSize.small).copyWith(
+      style: const ButtonStyle.primary(size: actionButtonSize).copyWith(
         decoration: (context, states, value) {
           final base = value as BoxDecoration;
           var c = color;
@@ -853,6 +912,7 @@ class _ActionButton extends StatelessWidget {
               ? fg.withValues(alpha: 0.7)
               : fg,
           fontWeight: FontWeight.w600,
+          fontSize: compact ? compactActionLabelSize : null,
         ),
       ),
       onPressed: enabled ? onPressed : null,
@@ -861,8 +921,7 @@ class _ActionButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-          const Gap(6),
-          KbdHint(hint),
+          if (!compact) ...[const Gap(6), KbdHint(hint)],
         ],
       ),
     );

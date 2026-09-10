@@ -512,6 +512,72 @@ void _markerTests() {
     expect(find.byKey(const Key('seat-stack-4')), findsOneWidget);
   });
 
+  testWidgets('only the seats in use are laid out, evenly spaced', (
+    tester,
+  ) async {
+    final snap = fixtureSnapshot();
+    tester.view.physicalSize = const Size(1000, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    Future<void> show(Snapshot s) async {
+      await tester.pumpWidget(
+        wrap(
+          SizedBox(
+            width: 1000,
+            height: 600,
+            child: TableView(
+              session: TableSessionState(
+                connection: const WsState(status: WsStatus.ready),
+                snapshot: s,
+                identity: const YouIdentity(
+                  role: 'player',
+                  playerId: 'p1',
+                  seat: 0,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    // Two players: the viewer at the bottom, the other straight across,
+    // and a single free seat to move to.
+    await show(snap);
+    final alice = tester.getCenter(find.text('Alice'));
+    final bob = tester.getCenter(find.text('Bob'));
+    expect(alice.dx, closeTo(bob.dx, 40));
+    expect(bob.dy, lessThan(alice.dy - 300));
+    expect(find.text('Empty'), findsOneWidget);
+
+    // Four players (seats 0, 2, 4, 6 of nine): the quarters of the felt,
+    // in table order clockwise from the viewer.
+    PlayerView player(String id, String name) => snap.seats
+        .firstWhere((sv) => sv.seat == 4)
+        .player!
+        .copyWith(id: id, name: name);
+    final four = snap.copyWith(
+      seats: [
+        snap.seats.first,
+        SeatView(seat: 2, player: player('p2', 'Carol')),
+        snap.seats.firstWhere((sv) => sv.seat == 4),
+        SeatView(seat: 6, player: player('p6', 'Dave')),
+        const SeatView(seat: 1, player: null),
+      ],
+    );
+    await show(four);
+    final carol = tester.getCenter(find.text('Carol'));
+    final dave = tester.getCenter(find.text('Dave'));
+    final top = tester.getCenter(find.text('Bob'));
+    // Carol is next clockwise from the viewer (the left side), Dave last
+    // (the right side), both at mid height.
+    expect(carol.dx, lessThan(top.dx - 200));
+    expect(dave.dx, greaterThan(top.dx + 200));
+    expect(carol.dy, closeTo(dave.dy, 20));
+    expect(find.text('Empty'), findsOneWidget);
+  });
+
   testWidgets('chip stacks can be switched off for numbers only', (
     tester,
   ) async {
