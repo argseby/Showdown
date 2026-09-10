@@ -57,7 +57,18 @@ void main() {
         'amount': 100,
         'description': 'Flush',
       },
-      {'seq': 5, 'ts': 1, 'kind': 'hand_ended'},
+      {
+        'seq': 5,
+        'ts': 1,
+        'kind': 'hand_ended',
+        'results': {
+          'pots': <Object>[],
+          'seats': {
+            '0': {'net': 200, 'won': 300, 'folded': false, 'revealed': true},
+            '4': {'net': 40, 'won': 100, 'folded': false, 'revealed': true},
+          },
+        },
+      },
     ].map(GameEvent.fromJson).toList();
     final reducer = ReplayReducer(
       events: events,
@@ -75,7 +86,8 @@ void main() {
     final mainPot = reducer.frame(3);
     expect(mainPot.potIndex, 0);
     expect(mainPot.winners, {0});
-    expect(mainPot.amounts, {0: 300});
+    // The amount shown is the net gain from the results, not the pot.
+    expect(mainPot.amounts, {0: 200});
     expect(mainPot.spotlight?.seat, 0);
     expect(mainPot.spotlight?.potIndex, 0);
     expect(mainPot.spotlight?.cards, ['As', 'Ah', 'Kd', '7c', '2d']);
@@ -83,7 +95,7 @@ void main() {
     final sidePot = reducer.frame(4);
     expect(sidePot.potIndex, 1);
     expect(sidePot.winners, {4}); // only this pot's winner is on display
-    expect(sidePot.amounts, {0: 300, 4: 100});
+    expect(sidePot.amounts, {0: 200, 4: 40});
     expect(sidePot.spotlight?.seat, 4);
     expect(sidePot.spotlight?.description, 'Flush');
 

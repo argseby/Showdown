@@ -491,81 +491,26 @@ void _markerTests() {
     );
   });
 
-  testWidgets(
-    'bets are chip stacks that fly to the pot, and the pot to the winner',
-    (tester) async {
-      final snap = fixtureSnapshot();
-      Widget view(TableSessionState session) => wrap(
-        SizedBox(width: 1000, height: 600, child: TableView(session: session)),
-      );
-      // Bob's 300 on the felt is a stack next to the amount.
-      await tester.pumpWidget(
-        view(
-          TableSessionState(
-            connection: const WsState(status: WsStatus.ready),
-            snapshot: snap,
-            identity: const YouIdentity(
-              role: 'player',
-              playerId: 'p1',
-              seat: 0,
-            ),
-          ),
+  testWidgets('bets, pots and seats are drawn as chip stacks', (tester) async {
+    final snap = fixtureSnapshot();
+    Widget view(TableSessionState session) => wrap(
+      SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+    );
+    // Bob's 300 on the felt is a stack next to the amount.
+    await tester.pumpWidget(
+      view(
+        TableSessionState(
+          connection: const WsState(status: WsStatus.ready),
+          snapshot: snap,
+          identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
         ),
-      );
-      await tester.pump();
-      expect(find.byKey(const ValueKey('bet-stack-4')), findsOneWidget);
-      expect(find.byKey(const ValueKey('pot-stack-0')), findsOneWidget);
-      expect(find.byKey(const Key('seat-stack-4')), findsOneWidget);
-
-      // The street ended: Bob's bet is gone and the pot grew, but while the
-      // chips fly the pot still reads its old amount.
-      final collected = snap.copyWith(
-        seats: [
-          for (final sv in snap.seats)
-            sv.player == null
-                ? sv
-                : sv.copyWith(player: sv.player!.copyWith(betThisStreet: 0)),
-        ],
-        hand: snap.hand!.copyWith(
-          pots: const [
-            PotView(amount: 600, eligibleSeats: [0, 3, 4]),
-          ],
-        ),
-      );
-      await tester.pumpWidget(
-        view(
-          TableSessionState(
-            connection: const WsState(status: WsStatus.ready),
-            snapshot: collected,
-            identity: const YouIdentity(
-              role: 'player',
-              playerId: 'p1',
-              seat: 0,
-            ),
-            collecting: const {4: 300},
-            collectingPots: snap.hand!.pots,
-            collectId: 1,
-            winners: const {0},
-            winnerPotIndex: 0,
-            winnerAmounts: const {0: 600},
-          ),
-        ),
-      );
-      // Past the bet pill's fade-out, well inside both flights.
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('bet-stack-4')), findsNothing);
-      expect(find.byKey(const ValueKey('collect-1-4')), findsOneWidget);
-      expect(find.byKey(const ValueKey('fly-12-0-0')), findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byKey(const ValueKey('pot-0')),
-          matching: find.text('300'),
-        ),
-        findsOneWidget,
-      );
-      await tester.pump(const Duration(seconds: 2));
-    },
-  );
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('bet-stack-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey('pot-stack-0')), findsOneWidget);
+    expect(find.byKey(const Key('seat-stack-4')), findsOneWidget);
+  });
 
   testWidgets('chip stacks can be switched off for numbers only', (
     tester,

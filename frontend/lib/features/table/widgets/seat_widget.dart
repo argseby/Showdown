@@ -247,7 +247,7 @@ class SeatWidget extends ConsumerWidget {
         // A crisp gold ring marks the winner; the viewer's own seat
         // keeps its primary ring otherwise.
         AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 600),
           padding: EdgeInsets.all(winner ? 2 : 0),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -288,7 +288,7 @@ class SeatWidget extends ConsumerWidget {
             key: ValueKey('deal-$seat-$handNumber'),
             child: AnimatedOpacity(
               key: ValueKey('hole-cards-$seat'),
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 700),
               opacity: folded ? foldedCardOpacity : 1,
               alwaysIncludeSemantics: true,
               child: Row(
@@ -498,7 +498,7 @@ class _DealIn extends StatefulWidget {
 class _DealInState extends State<_DealIn> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 400),
+    duration: const Duration(milliseconds: 800),
   )..forward();
 
   @override
@@ -540,7 +540,7 @@ class _PhraseBubble extends StatelessWidget {
     final theme = Theme.of(context);
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.6, end: 1),
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutBack,
       builder: (context, t, child) => Transform.scale(scale: t, child: child),
       child: Container(
@@ -581,7 +581,7 @@ class _WinnerMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.4, end: 1),
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 700),
       curve: Curves.easeOutBack,
       builder: (context, t, child) => Transform.scale(scale: t, child: child),
       child: Container(

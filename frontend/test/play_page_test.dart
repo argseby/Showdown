@@ -365,6 +365,10 @@ void main() {
     expect(find.byKey(const Key('winner-line')), findsNothing);
     expect(find.text('Alice wins 900 with Pair of Aces'), findsNothing);
     expect(find.byKey(const Key('won-0')), findsOneWidget);
+    // The pot was 900 of which 600 were Alice's own: the badge shows the
+    // net gain from the results, not the pot.
+    expect(find.text('+300'), findsOneWidget);
+    expect(find.text('+900'), findsNothing);
   });
 }
 
@@ -384,6 +388,23 @@ void _pushEvents(ScriptedTransport transport) {
             'name': 'Alice',
             'amount': 900,
             'description': 'Pair of Aces',
+          },
+          {
+            'seq': 41,
+            'ts': 0,
+            'kind': 'hand_ended',
+            'results': {
+              'pots': <Object>[],
+              'seats': {
+                '0': {
+                  'net': 300,
+                  'won': 900,
+                  'folded': false,
+                  'revealed': true,
+                },
+                '3': {'net': -300, 'won': 0, 'folded': true, 'revealed': false},
+              },
+            },
           },
         ],
       },

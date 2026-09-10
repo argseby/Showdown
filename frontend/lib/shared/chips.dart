@@ -288,39 +288,6 @@ void paintChipSide(
   );
 }
 
-/// Paints one chip seen from above (flying chips).
-void paintChipTop(Canvas canvas, Offset center, double r, Color color) {
-  canvas.drawCircle(center, r, Paint()..color = color);
-  canvas.drawCircle(
-    center,
-    r,
-    Paint()
-      ..color = Color.lerp(color, const Color(0xFF000000), 0.35)!
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(0.8, r * 0.1),
-  );
-  canvas.drawCircle(
-    center,
-    r * 0.6,
-    Paint()
-      ..color = _edgeColor(color)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * 0.2,
-  );
-  final edge = Paint()
-    ..color = _edgeColor(color)
-    ..strokeWidth = r * 0.3
-    ..strokeCap = StrokeCap.butt;
-  for (var i = 0; i < 6; i++) {
-    final a = i * math.pi / 3;
-    canvas.drawLine(
-      center + Offset.fromDirection(a, r * 0.78),
-      center + Offset.fromDirection(a, r),
-      edge,
-    );
-  }
-}
-
 /// White edge marks on dark chips, dark ones on the white chip.
 Color _edgeColor(Color chip) => chip.computeLuminance() > 0.6
     ? const Color(0xFF3A3A3A)

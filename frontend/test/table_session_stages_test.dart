@@ -87,14 +87,14 @@ void main() {
             'pots': <Object>[],
             'seats': {
               '0': {
-                'net': 100,
+                'net': 60,
                 'won': 100,
                 'folded': false,
                 'revealed': true,
                 'best': ['As', 'Ah', 'Kd', '7c', '2d'],
               },
               '4': {
-                'net': 200,
+                'net': 150,
                 'won': 200,
                 'folded': false,
                 'revealed': true,
@@ -114,12 +114,15 @@ void main() {
     expect(s.spotlight?.seat, 4);
     expect(s.spotlight?.potIndex, 1);
     expect(s.spotlight?.cards, ['Qh', 'Jh', 'Ah', '7h', '2h']);
+    // The amount next to Bob is his net gain, not the pot.
+    expect(s.winnerAmounts, {4: 150});
     // Then the main pot (gold), which stays.
     await tester.pump(potAwardStageDuration);
     s = container.read(tableSessionProvider('t1'));
     expect(s.winnerPotIndex, 0);
     expect(s.winners, {0});
     expect(s.winnerLines, ['Alice|100|Pair of Aces']);
+    expect(s.winnerAmounts, {4: 150, 0: 60});
     expect(s.spotlight?.seat, 0);
     expect(s.spotlight?.potIndex, 0);
     await tester.pump(potAwardStageDuration * 2);
@@ -140,6 +143,53 @@ void main() {
     await finish(tester);
   });
 
+  testWidgets('an all-in winner is shown its net gain, not the whole pot', (
+    tester,
+  ) async {
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await tester.pump();
+    // Alice was all in for 5000 against one caller: the pot is 10000, the
+    // gain 5000.
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        {
+          'seq': 40,
+          'ts': 1,
+          'kind': 'pot_awarded',
+          'pot_index': 0,
+          'seat': 0,
+          'name': 'Alice',
+          'amount': 10000,
+          'description': 'Pair of Aces',
+        },
+        {
+          'seq': 41,
+          'ts': 1,
+          'kind': 'hand_ended',
+          'results': {
+            'pots': <Object>[],
+            'seats': {
+              '0': {
+                'net': 5000,
+                'won': 10000,
+                'folded': false,
+                'revealed': true,
+              },
+              '4': {'net': -5000, 'won': 0, 'folded': false, 'revealed': true},
+            },
+          },
+        },
+      ],
+    });
+    await tester.pump();
+    final s = container.read(tableSessionProvider('t1'));
+    expect(s.winners, {0});
+    expect(s.winnerLines, ['Alice|10000|Pair of Aces']);
+    expect(s.winnerAmounts, {0: 5000});
+    await finish(tester);
+  });
+
   testWidgets('a single pot is one stage', (tester) async {
     container.read(tableSessionProvider('t1').notifier).start('tok');
     await tester.pump();
@@ -148,6 +198,8 @@ void main() {
       'events': [award(0, 0, 'Alice', 'Pair of Aces')],
     });
     await tester.pump();
+    // Without the results in the batch the pot collected stands in.
+    expect(container.read(tableSessionProvider('t1')).winnerAmounts, {0: 100});
     final s = container.read(tableSessionProvider('t1'));
     expect(s.winnerPotIndex, 0);
     expect(s.winners, {0});

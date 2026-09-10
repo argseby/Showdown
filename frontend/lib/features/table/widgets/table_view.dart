@@ -301,9 +301,7 @@ class TableView extends ConsumerWidget {
                     ],
                     const Gap(8),
                     _Pots(
-                      pots: session.collecting.isNotEmpty
-                          ? session.collectingPots ?? hand.pots
-                          : hand.pots,
+                      pots: hand.pots,
                       phase: hand.phase,
                       compact: compact,
                       bigBlind: bigBlind,
@@ -520,62 +518,6 @@ class TableView extends ConsumerWidget {
             ),
           );
         }
-        // The pots sit under the board; that is where collected bets land
-        // and where the winners' chips set off from.
-        final potPoint = Offset(
-          felt.center.dx,
-          felt.center.dy + (compact ? 34 : 48),
-        );
-        // The bets that just went into the pot fly there from their seats.
-        if (hand != null) {
-          for (final e in session.collecting.entries) {
-            final box = boxes[e.key];
-            if (box == null) continue;
-            children.add(
-              _FlyingChips(
-                key: ValueKey('collect-${session.collectId}-${e.key}'),
-                from: actionPoint(felt, box.center),
-                to: potPoint,
-                colors: stacks
-                    ? chipColors(
-                        decomposeChips(
-                          e.value,
-                          bigBlind: bigBlind,
-                          maxChips: _FlyingChips.maxChips,
-                        ),
-                      )
-                    : List.filled(3, chipAmountColor(e.value)),
-                duration: chipCollectFlight,
-              ),
-            );
-          }
-        }
-        // Chips fly from the pot on display to each of its winners.
-        if (hand != null && session.winnerPotIndex != null) {
-          for (final seat in session.winners) {
-            final box = boxes[seat];
-            if (box == null) continue;
-            children.add(
-              _FlyingChips(
-                key: ValueKey(
-                  'fly-${snap.table.handNumber}-${session.winnerPotIndex}-$seat',
-                ),
-                from: potPoint,
-                to: box.center,
-                colors: stacks
-                    ? chipColors(
-                        decomposeChips(
-                          session.winnerAmounts[seat] ?? 0,
-                          bigBlind: bigBlind,
-                          maxChips: _FlyingChips.maxChips,
-                        ),
-                      )
-                    : List.filled(3, winnerColor),
-                duration: chipAwardFlight,
-              ),
-            );
-          }
-        }
         if (hand == null && snap.spectators > 0) {
           children.add(
             Positioned(
@@ -759,7 +701,7 @@ class _Board extends StatelessWidget {
                 ? _DealCard(
                     key: ValueKey('board-$i-${board[i]}'),
                     child: AnimatedSlide(
-                      duration: const Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 500),
                       curve: Curves.easeOut,
                       offset: lift.contains(board[i])
                           ? const Offset(0, -0.18)
@@ -812,7 +754,7 @@ class _DealCardState extends State<_DealCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 350),
+    duration: const Duration(milliseconds: 700),
   )..forward();
 
   @override
@@ -888,102 +830,6 @@ class _RoleMarker extends StatelessWidget {
       ),
     );
   }
-}
-
-/// A stack of chips sliding from the pot to a winner's seat, fading out
-/// as it arrives.
-/// How long collected bets take to reach the pot, first chip to last.
-const Duration chipCollectFlight = Duration(milliseconds: 1000);
-
-/// How long a won pot takes to reach its winner, first chip to last.
-const Duration chipAwardFlight = Duration(milliseconds: 2000);
-
-/// Chips (one colour each) flying from [from] to [to]: they leave one
-/// after another along a slight arc and fade out as they land, so the move
-/// reads as a stream rather than a blink. Every chip is under way for
-/// [_FlightPainter.travel] of [duration].
-class _FlyingChips extends StatelessWidget {
-  const _FlyingChips({
-    super.key,
-    required this.from,
-    required this.to,
-    required this.colors,
-    required this.duration,
-  });
-  final Offset from;
-  final Offset to;
-  final List<Color> colors;
-  final Duration duration;
-
-  /// The most chips that fly for one amount.
-  static const maxChips = 12;
-
-  @override
-  Widget build(BuildContext context) {
-    if (colors.isEmpty) return const SizedBox.shrink();
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: duration,
-      builder: (context, t, _) => Positioned.fill(
-        child: IgnorePointer(
-          child: CustomPaint(
-            painter: _FlightPainter(from: from, to: to, colors: colors, t: t),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FlightPainter extends CustomPainter {
-  _FlightPainter({
-    required this.from,
-    required this.to,
-    required this.colors,
-    required this.t,
-  });
-
-  final Offset from;
-  final Offset to;
-  final List<Color> colors;
-  final double t;
-
-  /// The share of the whole flight every single chip is under way; the
-  /// rest is spread over the chips' departures.
-  static const travel = 0.7;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final n = colors.length;
-    final stagger = n > 1 ? (1 - travel) / (n - 1) : 0.0;
-    final dist = (to - from).distance;
-    // The arc bulges sideways by a share of the distance; chips alternate
-    // sides so a stream spreads a little instead of overlapping exactly.
-    final normal = dist == 0
-        ? Offset.zero
-        : Offset(-(to - from).dy, (to - from).dx) / dist;
-    for (var i = n - 1; i >= 0; i--) {
-      final local = ((t - i * stagger) / travel).clamp(0.0, 1.0);
-      if (local <= 0) continue;
-      final e = Curves.easeInOutCubic.transform(local);
-      final side = (i.isEven ? 1 : -1) * (0.08 + 0.02 * (i % 3));
-      final control = Offset.lerp(from, to, 0.5)! + normal * dist * side;
-      final p = _bezier(from, control, to, e);
-      final fade = local < 0.85 ? 1.0 : (1 - (local - 0.85) / 0.15);
-      canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, fade));
-      paintChipTop(canvas, p, 10, colors[i]);
-      canvas.restore();
-    }
-  }
-
-  static Offset _bezier(Offset a, Offset c, Offset b, double t) {
-    final u = 1 - t;
-    return a * (u * u) + c * (2 * u * t) + b * (t * t);
-  }
-
-  @override
-  bool shouldRepaint(_FlightPainter old) =>
-      old.t != t || old.from != from || old.to != to || old.colors != colors;
 }
 
 class _Pots extends StatelessWidget {

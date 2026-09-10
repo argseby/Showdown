@@ -47,9 +47,6 @@ class TableSessionState {
     this.spotlight,
     this.winnerPotIndex,
     this.winnerAmounts = const {},
-    this.collecting = const {},
-    this.collectingPots,
-    this.collectId = 0,
     this.lastError,
   });
 
@@ -90,20 +87,11 @@ class TableSessionState {
   /// pot, ...); null when no pot is on display. Colours the winner visuals.
   final int? winnerPotIndex;
 
-  /// Chips won this hand per seat, summed over the pots presented so far
-  /// (shown as "+amount" next to the stack until the next deal).
+  /// Net gain this hand per seat whose pot has been presented: what the
+  /// seat has now minus what it had at the deal, not the pot (which holds
+  /// the winner's own bets too). Shown as "+amount" next to the stack until
+  /// the next deal.
   final Map<int, int> winnerAmounts;
-
-  /// Bets by seat that just left for the pot (street end, or the end of
-  /// the hand): the chips fly there for [chipCollectDuration].
-  final Map<int, int> collecting;
-
-  /// The pots as they were before those bets arrived, shown until the
-  /// chips land; null when nothing is in flight.
-  final List<PotView>? collectingPots;
-
-  /// Counts the collections, so every flight gets its own animation.
-  final int collectId;
 
   /// The hand under the spotlight at the showdown: the last revealed hand
   /// while players show one after another, the winner once the pots are
@@ -136,10 +124,6 @@ class TableSessionState {
     int? winnerPotIndex,
     bool clearWinnerPot = false,
     Map<int, int>? winnerAmounts,
-    Map<int, int>? collecting,
-    List<PotView>? collectingPots,
-    bool clearCollectingPots = false,
-    int? collectId,
     ServerError? lastError,
     bool clearError = false,
   }) => TableSessionState(
@@ -164,11 +148,6 @@ class TableSessionState {
         ? null
         : (winnerPotIndex ?? this.winnerPotIndex),
     winnerAmounts: winnerAmounts ?? this.winnerAmounts,
-    collecting: collecting ?? this.collecting,
-    collectingPots: clearCollectingPots
-        ? null
-        : (collectingPots ?? this.collectingPots),
-    collectId: collectId ?? this.collectId,
     lastError: clearError ? null : (lastError ?? this.lastError),
   );
 }
@@ -210,7 +189,8 @@ class PotStage {
   final Set<int> seats;
   final List<String> lines;
 
-  /// Chips of this pot per winning seat.
+  /// The amount to show next to each winner of this pot once it is
+  /// presented: the seat's net gain over the whole hand.
   final Map<int, int> amounts;
   final Spotlight? spotlight;
 }
@@ -221,10 +201,6 @@ const Duration potAwardStageDuration = Duration(milliseconds: 2500);
 
 /// How long a chat line stays next to the author's avatar.
 const Duration chatBubbleDuration = Duration(seconds: 5);
-
-/// How long collected bets stay in flight (and the pots keep their old
-/// amounts) after a snapshot moved them into the pot.
-const Duration chipCollectDuration = Duration(milliseconds: 1100);
 
 /// Recorded hands loaded into the log after a reload.
 const int historyHands = 30;
@@ -310,54 +286,8 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     client.connect();
   }
 
-  Timer? _collectTimer;
-
-  /// Applies a snapshot; bets that were on the felt and are gone now, in
-  /// the same hand, went into the pot: they fly there and the pots keep
-  /// their previous amounts until the chips land.
-  void _onSnapshot(Snapshot next) {
-    final prev = state.snapshot;
-    var collecting = state.collecting;
-    var collectingPots = state.collectingPots;
-    var collectId = state.collectId;
-    if (prev?.hand != null &&
-        next.hand != null &&
-        prev!.table.handNumber == next.table.handNumber) {
-      final now = {
-        for (final sv in next.seats)
-          if (sv.player != null) sv.seat: sv.player!.betThisStreet,
-      };
-      final moved = <int, int>{
-        for (final sv in prev.seats)
-          if (sv.player != null &&
-              sv.player!.betThisStreet > 0 &&
-              (now[sv.seat] ?? 0) == 0)
-            sv.seat: sv.player!.betThisStreet,
-      };
-      if (moved.isNotEmpty) {
-        collecting = moved;
-        collectingPots = prev.hand!.pots;
-        collectId++;
-        _collectTimer?.cancel();
-        _collectTimer = Timer(chipCollectDuration, () {
-          state = state.copyWith(
-            collecting: const {},
-            clearCollectingPots: true,
-          );
-        });
-      }
-    }
-    state = state.copyWith(
-      snapshot: next,
-      collecting: collecting,
-      collectingPots: collectingPots,
-      collectId: collectId,
-    );
-  }
-
   void _teardown() {
     _stageTimer?.cancel();
-    _collectTimer?.cancel();
     _msgSub?.cancel();
     _stateSub?.cancel();
     _client?.dispose();
@@ -388,7 +318,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         if (state.log.isEmpty) _loadHistory();
       case SnapshotMessage(:final payload):
         ref.read(timeSyncProvider.notifier).update(payload.serverTs);
-        _onSnapshot(payload);
+        state = state.copyWith(snapshot: payload);
       case EventsMessage(:final payload):
         _applyEvents(payload);
       case ChatServerMessage(:final payload):
@@ -466,10 +396,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
   void _applyStage() {
     if (_stageIndex >= _stages.length) return;
     final stage = _stages[_stageIndex];
-    final amounts = {...state.winnerAmounts};
-    for (final e in stage.amounts.entries) {
-      amounts[e.key] = (amounts[e.key] ?? 0) + e.value;
-    }
+    final amounts = {...state.winnerAmounts, ...stage.amounts};
     state = state.copyWith(
       winners: stage.seats,
       winnerLines: stage.lines,
@@ -564,6 +491,9 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     var winnerAmounts = state.winnerAmounts;
     // Pot awards of this batch, grouped by pot in the order they arrive.
     final awards = <int, List<GameEvent>>{};
+    // The hand's net result per seat (stack after minus stack before) from
+    // hand_ended, which follows the awards in the same batch.
+    final net = <int, int>{};
     for (final e in payload.events) {
       switch (e.kind) {
         case 'hand_started':
@@ -582,6 +512,9 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
           // The final results carry every revealed hand's best five, which
           // covers run-outs revealed before the board was complete.
           final seats = e.results?.seats ?? const {};
+          for (final entry in seats.entries) {
+            net[int.parse(entry.key)] = entry.value.net;
+          }
           best = {
             ...best,
             for (final entry in seats.entries)
@@ -632,6 +565,10 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
     final contested = awards.values.any(
       (l) => l.any((e) => (e.description ?? '').isNotEmpty),
     );
+    // The "+amount" next to a winner is the seat's net gain over the hand,
+    // so an all-in player is not shown as winning back its own chips. When
+    // the batch carries no results the pots collected so far stand in.
+    final collected = <int, int>{};
     for (final pi in potIndexes) {
       final events = awards[pi]!;
       final seats = <int>{};
@@ -640,7 +577,8 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       Spotlight? stageSpot;
       for (final e in events) {
         seats.add(e.seat!);
-        amounts[e.seat!] = (amounts[e.seat!] ?? 0) + (e.amount ?? 0);
+        collected[e.seat!] = (collected[e.seat!] ?? 0) + (e.amount ?? 0);
+        amounts[e.seat!] = net[e.seat!] ?? collected[e.seat!]!;
         final name = e.name?.isNotEmpty == true
             ? e.name!
             : names[e.seat!] ?? '?';
@@ -667,13 +605,9 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       );
     }
     if (stages.isNotEmpty && (!contested || stages.length == 1)) {
-      // Everything at once, coloured as the main pot.
-      final merged = <int, int>{};
-      for (final st in stages) {
-        for (final e in st.amounts.entries) {
-          merged[e.key] = (merged[e.key] ?? 0) + e.value;
-        }
-      }
+      // Everything at once, coloured as the main pot. The amounts are
+      // already per hand, so a later pot's entry replaces an earlier one.
+      final merged = <int, int>{for (final st in stages) ...st.amounts};
       final all = PotStage(
         potIndex: 0,
         seats: {for (final st in stages) ...st.seats},
