@@ -423,11 +423,12 @@ void _showdownTests() {
       winnerAmounts: const {0: 450, 4: 450},
       spotlight: const Spotlight(
         seat: 0,
-        name: 'Alice',
+        name: 'Alice & Bob',
         cards: ['As', 'Ah', 'Kd', 'Qh', '7c'],
         description: 'Pair of Aces',
         winner: true,
         potIndex: 0,
+        split: true,
       ),
     );
     await tester.pumpWidget(
@@ -450,6 +451,11 @@ void _showdownTests() {
     // The hand line stays visible next to the spotlight.
     expect(find.byKey(const Key('your-hand')), findsOneWidget);
     expect(find.byKey(const Key('spotlight-label')), findsOneWidget);
+    // The label says the pot is split and names both winners.
+    expect(
+      find.text('Split pot \u2013 Alice & Bob: Pair of Aces'),
+      findsOneWidget,
+    );
     // The main pot is the one on display.
     final pot = tester.widget<Container>(find.byKey(const ValueKey('pot-0')));
     expect((pot.decoration as BoxDecoration).color, potGold);

@@ -1201,5 +1201,16 @@
   "showCameras": "Show other players' cameras",
   "showCamerasHint": "Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.",
   "scFocusAmount": "Type the raise amount (Esc leaves the field)",
-  "showdownSpotlight": "Showdown spotlight"
+  "showdownSpotlight": "Showdown spotlight",
+  "spotlightSplit": "Split pot \u2013 {names}: {description}",
+  "@spotlightSplit": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  }
 }

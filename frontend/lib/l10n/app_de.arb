@@ -565,5 +565,6 @@
   "showCameras": "Kameras der anderen anzeigen",
   "showCamerasHint": "Aus spart Bandbreite: die anderen senden dir kein Video mehr. Deine eigene Kamera bleibt unberührt.",
   "scFocusAmount": "Erhöhungsbetrag eintippen (Esc verlässt das Feld)",
-  "showdownSpotlight": "Showdown-Spotlight"
+  "showdownSpotlight": "Showdown-Spotlight",
+  "spotlightSplit": "Geteilter Pot \u2013 {names}: {description}"
 }

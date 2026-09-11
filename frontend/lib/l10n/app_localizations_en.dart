@@ -1642,4 +1642,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showdownSpotlight => 'Showdown spotlight';
+
+  @override
+  String spotlightSplit(String names, String description) {
+    return 'Split pot – $names: $description';
+  }
 }

@@ -69,6 +69,47 @@ void main() {
     'description': desc,
   };
 
+  testWidgets('a split pot spotlights every tied winner', (tester) async {
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await tester.pump();
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        award(0, 0, 'Alice', 'Straight, Ten high'),
+        {...award(0, 4, 'Bob', 'Straight, Ten high'), 'seq': 41},
+      ],
+    });
+    await tester.pump();
+    final s = container.read(tableSessionProvider('t1'));
+    expect(s.winners, {0, 4});
+    expect(s.spotlight?.split, isTrue);
+    expect(s.spotlight?.name, 'Alice & Bob');
+    expect(s.spotlight?.seat, 0);
+    expect(s.spotlight?.description, 'Straight, Ten high');
+    expect(s.spotlight?.potIndex, 0);
+    await finish(tester);
+  });
+
+  testWidgets('a pot run twice with a winner per board is not a split', (
+    tester,
+  ) async {
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await tester.pump();
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        {...award(0, 0, 'Alice', 'Pair of Aces'), 'board': 1},
+        {...award(0, 4, 'Bob', 'Flush'), 'seq': 41, 'board': 2},
+      ],
+    });
+    await tester.pump();
+    final s = container.read(tableSessionProvider('t1'));
+    expect(s.winners, {0, 4});
+    expect(s.spotlight?.split, isFalse);
+    expect(s.spotlight?.name, 'Alice');
+    await finish(tester);
+  });
+
   testWidgets('pots are presented one at a time, side pot first', (
     tester,
   ) async {

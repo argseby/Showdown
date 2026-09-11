@@ -8,6 +8,7 @@ import '../../../app/preferences.dart';
 import '../../../core/formatting.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/kbd_hint.dart';
+import '../../../shared/shown_cards_icon.dart';
 import '../action_model.dart';
 import '../shortcuts.dart';
 
@@ -93,8 +94,20 @@ class ActionBarState extends State<ActionBar> {
   bool _raiseOpen = false;
   int _amount = 0;
   String? _notice;
-  final _amountController = TextEditingController();
+  var _amountController = TextEditingController();
   final _amountFocus = FocusNode();
+
+  /// Every raise panel gets a controller of its own. The text field keeps
+  /// listening to the controller it was given after it is disposed, so a
+  /// field of an earlier panel would keep reporting our programmatic
+  /// changes as input, through a closure holding that turn's raise range,
+  /// and clamp the new amount to it. The old controller (and with it the
+  /// stale listener) goes once the frame that drops the old field is done.
+  void _freshController() {
+    final old = _amountController;
+    _amountController = TextEditingController(text: old.text);
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+  }
 
   ActionBarModel? get _model =>
       widget.snapshot == null ? null : ActionBarModel.from(widget.snapshot!);
@@ -130,6 +143,16 @@ class ActionBarState extends State<ActionBar> {
       _armTimer?.cancel();
       _armed = true;
     }
+    // The chosen amount belongs to the turn it was picked in: once the turn
+    // is over, or the street or the hand has moved on, the raise control
+    // starts from the minimum again instead of, say, last street's all-in.
+    final oldSnap = oldWidget.snapshot;
+    final newSnap = widget.snapshot;
+    if (m == null ||
+        oldSnap?.hand?.street != newSnap?.hand?.street ||
+        oldSnap?.table.handNumber != newSnap?.table.handNumber) {
+      _amount = 0;
+    }
     if (m == null || !m.canRaise) {
       if (_raiseOpen) setState(() => _raiseOpen = false);
       return;
@@ -148,6 +171,12 @@ class ActionBarState extends State<ActionBar> {
     super.dispose();
   }
 
+  /// Sends an action; the amount picked for it does not outlive the turn.
+  void _act(String kind, {int? amount}) {
+    _amount = 0;
+    widget.callbacks.act(kind, amount: amount);
+  }
+
   // ---- keyboard entry points -------------------------------------------------------------
 
   /// Folds; when a check is free the player is asked first (a fold would
@@ -159,7 +188,7 @@ class ActionBarState extends State<ActionBar> {
       _confirmFold();
       return;
     }
-    widget.callbacks.act('fold');
+    _act('fold');
   }
 
   Future<void> _confirmFold() async {
@@ -188,9 +217,9 @@ class ActionBarState extends State<ActionBar> {
     final m = _model;
     if (m == null) return;
     if (choice == 'check' && m.canCheck) {
-      widget.callbacks.act('check');
+      _act('check');
     } else if (choice == 'fold' && m.canFold) {
-      widget.callbacks.act('fold');
+      _act('fold');
     }
   }
 
@@ -198,9 +227,9 @@ class ActionBarState extends State<ActionBar> {
     final m = _model;
     if (m == null) return;
     if (m.canCheck) {
-      widget.callbacks.act('check');
+      _act('check');
     } else if (m.canCall) {
-      widget.callbacks.act('call');
+      _act('call');
     }
   }
 
@@ -222,6 +251,7 @@ class ActionBarState extends State<ActionBar> {
   void openRaise({bool focusInput = false}) {
     final m = _model;
     if (m == null || !m.canRaise) return;
+    if (!_raiseOpen) _freshController();
     setState(() {
       _raiseOpen = true;
       _notice = null;
@@ -241,7 +271,7 @@ class ActionBarState extends State<ActionBar> {
     if (m == null || !m.canAllIn) return;
     if (!m.canRaise) {
       // A short call: all-in is immediate since Enter would have nothing to confirm.
-      widget.callbacks.act('all_in');
+      _act('all_in');
       return;
     }
     openRaise(focusInput: false);
@@ -268,7 +298,7 @@ class ActionBarState extends State<ActionBar> {
     final m = _model;
     if (!_raiseOpen || m == null || !m.canRaise) return false;
     final amount = m.clamp(_parseInput() ?? _amount);
-    widget.callbacks.act(m.isOpeningBet ? 'bet' : 'raise', amount: amount);
+    _act(m.isOpeningBet ? 'bet' : 'raise', amount: amount);
     setState(() => _raiseOpen = false);
     return true;
   }
@@ -601,6 +631,9 @@ class ActionBarState extends State<ActionBar> {
     final l10n = context.l10n;
     final armed = m != null && _armed;
     if (m == null) {
+      // Off turn the button still says what the action would be: a bet
+      // while nobody has put chips in on this street, a raise after that.
+      final opening = widget.snapshot?.hand?.currentBet == 0;
       return Row(
         children: [
           Expanded(
@@ -628,7 +661,7 @@ class ActionBarState extends State<ActionBar> {
           Expanded(
             child: _ActionButton(
               key: const Key('action-raise'),
-              label: l10n.raise,
+              label: opening ? l10n.bet : l10n.raise,
               hint: shortcutLabel(ShortcutAction.openRaise),
               enabled: false,
               color: ActionColors.raise,
@@ -652,6 +685,13 @@ class ActionBarState extends State<ActionBar> {
           bbMode: _bbMode,
           onAmount: (v) => _setAmount(v, notice: true),
           onInput: (text) {
+            // The field reports our own changes (presets, clamping) too;
+            // only typed text is news, and it is judged by the range of
+            // the turn it arrives in.
+            final m = _model;
+            if (m == null || !m.canRaise || text == _inputText(_amount)) {
+              return;
+            }
             final v = _bbMode
                 ? parseBigBlinds(text, m.bigBlind)
                 : int.tryParse(text.replaceAll(RegExp(r'[^0-9]'), ''));
@@ -793,13 +833,22 @@ class ActionBarState extends State<ActionBar> {
     if (you.canShowCards) {
       final first = widget.shown.isNotEmpty && widget.shown[0];
       final second = widget.shown.length > 1 && widget.shown[1];
+      // On narrow screens the three buttons say it with the cards alone:
+      // the white card (with its little ace) is the one that gets shown.
+      Widget cards(String text, {required bool a, required bool b}) => compact
+          ? Semantics(
+              label: text,
+              button: true,
+              child: ShownCardsIcon(first: a, second: b),
+            )
+          : label(text);
       items.add(
         OutlineButton(
           key: const Key('show-first'),
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: first ? null : () => widget.callbacks.showCards('first'),
-          child: label(l10n.showFirstCard),
+          child: cards(l10n.showFirstCard, a: true, b: false),
         ),
       );
       items.add(
@@ -808,7 +857,7 @@ class ActionBarState extends State<ActionBar> {
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: second ? null : () => widget.callbacks.showCards('second'),
-          child: label(l10n.showSecondCard),
+          child: cards(l10n.showSecondCard, a: false, b: true),
         ),
       );
       items.add(
@@ -817,8 +866,8 @@ class ActionBarState extends State<ActionBar> {
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: () => widget.callbacks.showCards('both'),
-          leading: const Icon(LucideIcons.eye, size: 18),
-          child: label(l10n.showCards),
+          leading: compact ? null : const Icon(LucideIcons.eye, size: 18),
+          child: cards(l10n.showCards, a: true, b: true),
         ),
       );
     }

@@ -2941,6 +2941,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Showdown spotlight'**
   String get showdownSpotlight;
+
+  /// No description provided for @spotlightSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split pot – {names}: {description}'**
+  String spotlightSplit(String names, String description);
 }
 
 class _AppLocalizationsDelegate

@@ -102,6 +102,82 @@ void main() {
       expect(find.byKey(const Key('sit-out')), findsOneWidget);
     });
 
+    testWidgets('off turn the raise button says Bet while nobody has bet', (
+      tester,
+    ) async {
+      final s = fixtureSnapshot();
+      await pump(
+        tester,
+        s.copyWith(
+          you: s.you.copyWith(options: null),
+          hand: s.hand!.copyWith(currentBet: 0),
+        ),
+      );
+      expect(find.text('Bet'), findsOneWidget);
+      expect(find.text('Raise'), findsNothing);
+      expect(enabled(tester, const Key('action-raise')), isFalse);
+    });
+
+    testWidgets('the amount does not carry over to the next turn', (
+      tester,
+    ) async {
+      final key = GlobalKey<ActionBarState>();
+      final acted = <String>[];
+      Future<void> show(Snapshot snap) async {
+        await tester.pumpWidget(
+          wrap(
+            ActionBar(
+              key: key,
+              snapshot: snap,
+              isPlayer: true,
+              myStatus: 'active',
+              textFieldFocusChanged: (_) {},
+              callbacks: ActionCallbacks(
+                act: (kind, {amount}) =>
+                    acted.add(amount == null ? kind : '$kind:$amount'),
+                rebuy: () {},
+                sitOut: () {},
+                sitIn: () {},
+                showCards: (_) {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final s = fixtureSnapshot();
+      await show(s);
+      key.currentState!.selectAllIn();
+      await tester.pumpAndSettle();
+      expect(find.text('Raise to 8,450'), findsOneWidget);
+      expect(key.currentState!.confirm(), isTrue);
+      expect(acted, ['raise:8450']);
+      // The turn passes and comes back on the next street, where nobody
+      // has bet yet and the minimum is one big blind.
+      final next = s.hand!.copyWith(street: 'turn', currentBet: 0);
+      await show(s.copyWith(you: s.you.copyWith(options: null), hand: next));
+      final opts = s.you.options!.copyWith(
+        check: true,
+        call: 0,
+        raise: const RaiseView(min: 100, max: 8450),
+      );
+      await show(
+        s.copyWith(
+          you: s.you.copyWith(options: opts),
+          hand: next,
+        ),
+      );
+      expect(find.text('Bet'), findsOneWidget);
+      key.currentState!.openRaise(focusInput: false);
+      await tester.pumpAndSettle();
+      // The control starts from the minimum bet, not last street's all-in,
+      // and the range shown is this street's.
+      expect(find.text('Bet 100'), findsOneWidget);
+      expect(find.text('Allowed: 100 - 8,450'), findsOneWidget);
+      expect(find.text('Bet 8,450'), findsNothing);
+    });
+
     testWidgets('check option shows Check and raising closed disables raise', (
       tester,
     ) async {

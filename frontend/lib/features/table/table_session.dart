@@ -164,8 +164,13 @@ class Spotlight {
     required this.description,
     this.winner = false,
     this.potIndex,
+    this.split = false,
   });
+
+  /// The seat whose best five are shown (the first winner of a split pot).
   final int seat;
+
+  /// The player's name; for a split pot the names of every tied winner.
   final String name;
   final List<String> cards;
   final String description;
@@ -173,6 +178,9 @@ class Spotlight {
 
   /// The pot a winner spotlight belongs to (colours it).
   final int? potIndex;
+
+  /// The pot is split between hands of equal rank.
+  final bool split;
 }
 
 /// One pot of a finished hand as it is presented: its winners, the strip
@@ -411,6 +419,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
               description: stage.spotlight!.description,
               winner: true,
               potIndex: stage.potIndex,
+              split: stage.spotlight!.split,
             )
           : null,
       clearSpotlight:
@@ -574,7 +583,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       final seats = <int>{};
       final lines = <String>[];
       final amounts = <int, int>{};
-      Spotlight? stageSpot;
+      final winnerNames = <int, String>{};
       for (final e in events) {
         seats.add(e.seat!);
         collected[e.seat!] = (collected[e.seat!] ?? 0) + (e.amount ?? 0);
@@ -582,17 +591,32 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         final name = e.name?.isNotEmpty == true
             ? e.name!
             : names[e.seat!] ?? '?';
+        winnerNames[e.seat!] = name;
         lines.add('$name|${e.amount ?? 0}|${e.description ?? ''}');
-        if ((e.description ?? '').isNotEmpty && stageSpot == null) {
-          stageSpot = Spotlight(
-            seat: e.seat!,
-            name: name,
-            cards: best[e.seat!] ?? const [],
-            description: e.description!,
-            winner: true,
-            potIndex: pi,
-          );
-        }
+      }
+      // The spotlight: the first hand that won the pot. When several hands
+      // of equal rank share it (a tie on the same board; run twice, each
+      // board has its own winner), the spotlight names them all.
+      Spotlight? stageSpot;
+      final described = [
+        for (final e in events)
+          if ((e.description ?? '').isNotEmpty) e,
+      ];
+      if (described.isNotEmpty) {
+        final first = described.first;
+        final tied = [
+          for (final e in described)
+            if (e.board == first.board) e,
+        ];
+        stageSpot = Spotlight(
+          seat: first.seat!,
+          name: tied.map((e) => winnerNames[e.seat!]!).join(' & '),
+          cards: best[first.seat!] ?? const [],
+          description: first.description!,
+          winner: true,
+          potIndex: pi,
+          split: tied.length > 1,
+        );
       }
       stages.add(
         PotStage(
@@ -636,6 +660,7 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
               cards: best[spotlight.seat]!,
               description: spotlight.description,
               winner: spotlight.winner,
+              split: spotlight.split,
             )
           : spotlight,
       clearSpotlight: clearSpotlight && spotlight == null,

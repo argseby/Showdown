@@ -283,7 +283,9 @@ class TableView extends ConsumerWidget {
                     if (spot != null) ...[
                       const Gap(4),
                       Text(
-                        '${spot.name}: ${spot.description}',
+                        spot.split
+                            ? l10n.spotlightSplit(spot.name, spot.description)
+                            : '${spot.name}: ${spot.description}',
                         key: const Key('spotlight-label'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -685,6 +687,7 @@ Spotlight? _currentSpotlight(Spotlight? spot, Snapshot snap) {
       description: description.isEmpty ? spot.description : description,
       winner: spot.winner,
       potIndex: spot.potIndex,
+      split: spot.split,
     );
   }
   return spot;

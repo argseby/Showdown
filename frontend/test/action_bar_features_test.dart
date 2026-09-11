@@ -3,6 +3,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:showdown/app/preferences.dart';
 import 'package:showdown/features/table/widgets/action_bar.dart';
 import 'package:showdown/protocol/protocol.dart';
+import 'package:showdown/shared/shown_cards_icon.dart';
 
 import 'test_helpers.dart';
 
@@ -13,10 +14,11 @@ void main() {
     String myStatus = 'active',
     ChipDisplay chipDisplay = ChipDisplay.coins,
     List<bool> shown = const [],
+    Size size = const Size(1000, 700),
   }) async {
     final key = GlobalKey<ActionBarState>();
     final acted = <String>[];
-    tester.view.physicalSize = const Size(1000, 700);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(
@@ -137,6 +139,39 @@ void main() {
     expect(acted, ['show:second', 'rabbit']);
   });
 
+  testWidgets('on a narrow screen the show-cards buttons are card icons', (
+    tester,
+  ) async {
+    final s = fixtureSnapshot();
+    final result = s.copyWith(
+      you: s.you.copyWith(options: null, canShowCards: true),
+    );
+    final (_, acted) = await pump(tester, result, size: const Size(400, 800));
+    expect(find.text('Show 1st'), findsNothing);
+    expect(find.text('Show cards'), findsNothing);
+    ShownCardsIcon iconIn(String key) => tester.widget<ShownCardsIcon>(
+      find.descendant(
+        of: find.byKey(Key(key)),
+        matching: find.byType(ShownCardsIcon),
+      ),
+    );
+    // White card = shown: first only, second only, both.
+    expect(
+      (iconIn('show-first').first, iconIn('show-first').second),
+      (true, false),
+    );
+    expect(
+      (iconIn('show-second').first, iconIn('show-second').second),
+      (false, true),
+    );
+    expect(
+      (iconIn('show-both').first, iconIn('show-both').second),
+      (true, true),
+    );
+    await tester.tap(find.byKey(const Key('show-both')));
+    expect(acted, ['show:both']);
+  });
+
   testWidgets('a folded player sees the notice in place of the buttons, at '
       'the same height', (tester) async {
     final s = fixtureSnapshot();
@@ -237,8 +272,7 @@ void main() {
         settings: s.table.settings.copyWith(allowStraddle: true),
       ),
     );
-    tester.view.physicalSize = const Size(320, 700);
-    await pump(tester, offTurn);
+    await pump(tester, offTurn, size: const Size(320, 700));
     final toggles = tester.getCenter(find.byKey(const Key('pre-check-fold')));
     final sitOut = tester.getCenter(find.byKey(const Key('sit-out')));
     // Everything stays on one line; the far end is simply off screen.
