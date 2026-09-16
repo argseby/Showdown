@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/foundation.dart';
@@ -49,7 +50,7 @@ class _WebVoiceEngine implements VoiceEngine {
     try {
       final devices = web.window.navigator.mediaDevices;
       final stream = await devices
-          .getUserMedia(web.MediaStreamConstraints(audio: true.toJS))
+          .getUserMedia(web.MediaStreamConstraints(audio: _micConstraints()))
           .toDart;
       _local = stream;
       _ctx ??= web.AudioContext();
@@ -62,6 +63,21 @@ class _WebVoiceEngine implements VoiceEngine {
       // Insecure context, permission denied, or no microphone.
       return false;
     }
+  }
+
+  /// Microphone constraints: the browser's own echo cancellation, noise
+  /// suppression and gain control made explicit (they are usually the
+  /// default, but not on every browser), plus Chrome's `voiceIsolation`,
+  /// which keeps only speech where the OS or hardware offers a voice model.
+  /// Unknown constraints are ignored, so other browsers are unaffected.
+  static web.MediaTrackConstraints _micConstraints() {
+    final c = web.MediaTrackConstraints(
+      echoCancellation: true.toJS,
+      noiseSuppression: true.toJS,
+      autoGainControl: true.toJS,
+    );
+    (c as JSObject)['voiceIsolation'] = true.toJS;
+    return c;
   }
 
   @override
