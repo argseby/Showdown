@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:showdown/app/preferences.dart';
 import 'package:showdown/core/providers.dart';
 import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/core/session_store.dart';
@@ -72,12 +71,6 @@ class ScriptedTransport implements WsTransport {
   int? get closeCode => null;
   @override
   String? get closeReason => null;
-}
-
-/// The hand line switched off.
-class _NoHandLine extends HandLineNotifier {
-  @override
-  HandLinePlacement build() => HandLinePlacement.off;
 }
 
 class _MemorySessionStore extends SessionStore {
@@ -148,24 +141,16 @@ void main() {
             ),
           ),
           ...extra,
-          // The REST API: only the hand-strength readout answers.
+          // The REST API answers nothing: the table needs only the socket.
           restClientProvider.overrideWithValue(
             RestClient(
               baseUrl: 'http://test',
-              client: MockClient((req) async {
-                if (req.url.path == '/api/tables/k7m2p9xq4w/strength') {
-                  expect(req.headers['Authorization'], 'Bearer tok');
-                  return http.Response(
-                    '{"equity":0.62,"opponents":2,"tier":"strong","description":"Pair of Aces",'
-                    '"street":"flop","cards":["As","Kd"],"board":["Ah","7c","2d"],"best":["As","Ah"]}',
-                    200,
-                  );
-                }
-                return http.Response(
+              client: MockClient(
+                (req) async => http.Response(
                   '{"error":{"code":"not_found","message":"no"}}',
                   404,
-                );
-              }),
+                ),
+              ),
             ),
           ),
         ],
@@ -263,13 +248,31 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('tab-settings')));
     await tester.pump(const Duration(milliseconds: 600));
-    // The gear tab: voice, preferences, table actions.
+    // The settings tab is a menu of pages; a page replaces the tab strip
+    // with a back button.
+    expect(find.byKey(const Key('settings-voice')), findsOneWidget);
+    expect(find.byKey(const Key('settings-preferences')), findsOneWidget);
+    expect(find.byKey(const Key('settings-table')), findsOneWidget);
+    // Not the host: no host pages.
+    expect(find.byKey(const Key('settings-host-rules')), findsNothing);
+    await tester.tap(find.byKey(const Key('settings-voice')));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('drawer-voice')), findsOneWidget);
+    expect(find.byKey(const Key('tab-settings')), findsNothing);
+    await tester.tap(find.byKey(const Key('settings-back')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('tab-settings')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('settings-preferences')));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('drawer-sound')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chip-stacks')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chips')), findsOneWidget);
     expect(find.byKey(const Key('drawer-hats')), findsOneWidget);
     expect(find.byKey(const Key('drawer-heat')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('settings-back')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('settings-table')));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('menu-leave')), findsOneWidget);
     expect(find.byKey(const Key('menu-other-table')), findsOneWidget);
     // A seated player is not offered "take a seat".
@@ -286,6 +289,8 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('tab-settings')));
     await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('settings-table')));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.ensureVisible(find.byKey(const Key('drawer-hat')));
     await tester.pump();
     expect(find.text('No hat'), findsOneWidget);
@@ -295,47 +300,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     final hat = transport.sent.lastWhere((e) => e['type'] == 'hat');
     expect(hat['payload'], {'hat': 'pirate'});
-  });
-
-  testWidgets('the beginner button shows how strong the hand is', (
-    tester,
-  ) async {
-    await pumpPlay(tester);
-    // Alice is dealt in: the button is offered.
-    await tester.ensureVisible(find.byKey(const Key('strength-button')));
-    await tester.tap(find.byKey(const Key('strength-button')));
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Hand strength'), findsOneWidget);
-    expect(find.byKey(const Key('strength-tier')), findsOneWidget);
-    expect(find.text('Strong'), findsOneWidget);
-    expect(
-      find.text('Wins about 62% of the time against 2 random hands.'),
-      findsOneWidget,
-    );
-    expect(find.text('Pair of Aces'), findsWidgets);
-    expect(find.byKey(const Key('strength-marker')), findsOneWidget);
-    // Recalculate fetches again and keeps the readout.
-    await tester.tap(find.byKey(const Key('strength-refresh')));
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Strong'), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('strength-close')));
-    await tester.tap(find.byKey(const Key('strength-close')));
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Hand strength'), findsNothing);
-  });
-
-  testWidgets('without the hand line there is no beginner button', (
-    tester,
-  ) async {
-    await pumpPlay(
-      tester,
-      extra: [handLineProvider.overrideWith(_NoHandLine.new)],
-    );
-    expect(find.byKey(const Key('your-hand-bottom')), findsNothing);
-    expect(find.byKey(const Key('strength-button')), findsNothing);
   });
 
   testWidgets('the player menu mutes and hides another player locally', (
@@ -402,6 +366,8 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    await tester.tap(find.byKey(const Key('settings-preferences')));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.ensureVisible(find.byKey(const Key('display-size')));
     await tester.pump();
     // Normal -> Large -> Extra large.
@@ -424,8 +390,10 @@ void main() {
     await pumpPlay(tester);
     await tester.tap(find.byKey(const Key('mic-button')));
     await tester.pump(const Duration(milliseconds: 300));
-    // The toast and the settings row both name the problem.
+    // The toast names the problem, and so does the voice page.
     expect(find.textContaining('symmetric NAT'), findsWidgets);
+    await tester.tap(find.byKey(const Key('settings-voice')));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('drawer-network')), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
   });

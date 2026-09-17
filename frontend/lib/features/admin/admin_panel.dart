@@ -22,11 +22,22 @@ import 'admin_widgets.dart';
 /// admin key, players, chat moderation and recent hands. The table rules
 /// live in the Settings tab (TableRulesSection). All calls use the table's
 /// admin token; nothing here is global.
+/// The parts of the host's panel; each is a page of the settings menu.
+enum AdminPart { controls, players, chat, hands }
+
 class AdminPanel extends ConsumerStatefulWidget {
-  const AdminPanel({super.key, required this.tableId, required this.token});
+  const AdminPanel({
+    super.key,
+    required this.tableId,
+    required this.token,
+    this.part,
+  });
 
   final String tableId;
   final String token;
+
+  /// One part only (a settings page); null shows everything with tabs.
+  final AdminPart? part;
 
   @override
   ConsumerState<AdminPanel> createState() => _AdminPanelState();
@@ -39,6 +50,10 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
   bool _notFound = false;
 
   String? get _token => widget.token;
+
+  /// The hands list is on screen: reload it after every hand.
+  bool get _showsHands =>
+      widget.part == AdminPart.hands || (widget.part == null && _tab == 2);
 
   @override
   void initState() {
@@ -255,7 +270,9 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
       tableSessionProvider(widget.tableId)
           .select((s) => s.snapshot?.table.handNumber),
       (prev, next) {
-        if (prev != null && next != null && next != prev && _tab == 2) _load();
+        if (prev != null && next != null && next != prev && _showsHands) {
+          _load();
+        }
       },
     );
     final detail = _detail;
@@ -363,8 +380,15 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
       ),
     );
 
+    final idx = switch (widget.part) {
+      null => _tab,
+      AdminPart.players => 0,
+      AdminPart.chat => 1,
+      AdminPart.hands => 2,
+      AdminPart.controls => -1,
+    };
     Widget content;
-    switch (_tab) {
+    switch (idx) {
       case 0:
         content = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -540,24 +564,25 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${l10n.adminPlayersCount(detail.players.length, detail.settings.maxPlayers)} · ${l10n.adminSpectatorsWatching(detail.spectators, detail.connections)}',
-                ).muted().small(),
-              ),
-              StateBadge(state: detail.state),
-            ],
-          ),
-          const Gap(8),
-          controls,
-          const Gap(10),
-          keyCard,
-          const Gap(10),
-          tabs,
-          const Gap(10),
-          content,
+          if (widget.part == null || widget.part == AdminPart.controls) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${l10n.adminPlayersCount(detail.players.length, detail.settings.maxPlayers)} · ${l10n.adminSpectatorsWatching(detail.spectators, detail.connections)}',
+                  ).muted().small(),
+                ),
+                StateBadge(state: detail.state),
+              ],
+            ),
+            const Gap(8),
+            controls,
+            const Gap(10),
+            keyCard,
+            const Gap(10),
+          ],
+          if (widget.part == null) ...[tabs, const Gap(10)],
+          if (widget.part != AdminPart.controls) content,
         ],
       ),
     );

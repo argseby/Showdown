@@ -91,26 +91,6 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleStrength is the beginner's hand-strength readout for the player
-// whose session token is presented (bearer), during a hand they are in.
-func (s *Server) handleStrength(w http.ResponseWriter, r *http.Request) {
-	t, ok := s.tableOr404(w, r.PathValue("id"))
-	if !ok {
-		return
-	}
-	sess, err := s.lookupSession(r.Context(), bearerToken(r))
-	if err != nil || sess.TableID != t.ID || sess.Kind != table.RolePlayer {
-		writeError(w, http.StatusUnauthorized, protocol.ErrUnauthorized, "player session token of this table required")
-		return
-	}
-	st, err := t.HandStrength(sess.PlayerID)
-	if err != nil {
-		writeErr(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, st)
-}
-
 func (s *Server) handleSpectate(w http.ResponseWriter, r *http.Request) {
 	t, ok := s.tableOr404(w, r.PathValue("id"))
 	if !ok {

@@ -139,7 +139,7 @@ void main() {
     expect(find.text('Kick'), findsOneWidget);
   });
 
-  testWidgets('the side panel shows the Admin tab only with an admin token', (
+  testWidgets('the settings menu shows the host pages only with a token', (
     tester,
   ) async {
     final log = <String>[];
@@ -149,11 +149,11 @@ void main() {
         height: 800,
         child: SidePanel(
           tableId: 'k7m2p9xq4w',
-          tab: PanelTab.chat,
+          tab: PanelTab.settings,
           onTabChanged: (_) {},
           chatFocusNode: FocusNode(),
           onSendChat: (_) {},
-          settings: const SizedBox.shrink(),
+          settings: (_) => const SizedBox.shrink(),
           adminToken: token,
         ),
       ),
@@ -161,9 +161,15 @@ void main() {
     );
     await tester.pumpWidget(panel(null));
     await tester.pump();
-    expect(find.byKey(const Key('tab-admin')), findsNothing);
+    expect(find.byKey(const Key('settings-host-rules')), findsNothing);
     await tester.pumpWidget(panel('adm'));
     await tester.pump();
-    expect(find.byKey(const Key('tab-admin')), findsOneWidget);
+    expect(find.byKey(const Key('settings-host-rules')), findsOneWidget);
+    // A host page opens below the tabs, with a way back.
+    await tester.tap(find.byKey(const Key('settings-host-players')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-back')), findsOneWidget);
+    expect(find.text('Alice'), findsWidgets);
+    expect(find.byKey(const Key('admin-start')), findsNothing);
   });
 }

@@ -10,7 +10,6 @@ import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
 import '../../core/peer_prefs.dart';
-import '../../core/providers.dart';
 import '../../core/session_store.dart';
 import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
@@ -30,7 +29,6 @@ import 'replay/replay_dialog.dart';
 import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
-import 'widgets/hand_strength_dialog.dart';
 import 'widgets/invite_dialog.dart';
 import 'widgets/player_menu.dart';
 import 'widgets/say_dialog.dart';
@@ -291,18 +289,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
         _tab = tab;
       }
     });
-  }
-
-  /// Fetches and shows how strong the own hand is right now.
-  Future<void> _showStrength() async {
-    final token = ref.read(sessionProvider(widget.tableId)).value?.token;
-    if (token == null) return;
-    await showHandStrengthDialog(
-      context,
-      load: () => ref
-          .read(restClientProvider)
-          .handStrength(widget.tableId, token: token),
-    );
   }
 
   Future<void> _leave() async {
@@ -578,7 +564,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
       onTabChanged: (t) => setState(() => _tab = t),
       chatFocusNode: _chatFocus,
       onSendChat: _session.chat,
-      settings: TableSettingsTab(
+      onSay: session.isPlayer
+          ? () => showSayDialog(context, ref, widget.tableId)
+          : null,
+      settings: (part) => TableSettingsTab(
+        part: part,
         tableId: widget.tableId,
         isPlayer: session.isPlayer,
         onTakeSeat: _clearAndGoToJoin,
@@ -649,16 +639,6 @@ class _PlayPageState extends ConsumerState<PlayPage>
             shown: session.mySeat != null
                 ? session.shown[session.mySeat!] ?? const []
                 : const [],
-            // The beginner's readout: a companion of the hand line, so it
-            // goes when that is off; only while dealt in and not folded.
-            onStrength:
-                session.isPlayer &&
-                    ref.watch(handLineProvider) != HandLinePlacement.off &&
-                    snap?.hand != null &&
-                    (myPlayer?.inHand ?? false) &&
-                    !(myPlayer?.folded ?? false)
-                ? _showStrength
-                : null,
             textFieldFocusChanged: (f) => _amountFocused = f,
           ),
         ),

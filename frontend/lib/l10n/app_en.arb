@@ -970,7 +970,18 @@
   "voiceSpeaking": "speaking",
   "menuPreferences": "Preferences",
   "menuTable": "Table",
-  "settingsTableRules": "Table rules (host)",
+  "settingsTableRules": "Table rules",
+  "settingsTableRulesHint": "Blinds, times, rebuys, game variant",
+  "settingsVoiceVideo": "Voice & video",
+  "settingsVoiceVideoHint": "Microphone, camera, network check",
+  "settingsPreferencesHint": "Sound, deck, chips, display size, language, theme",
+  "settingsTableHint": "Your hat, another table, leave",
+  "hostControls": "Game controls",
+  "hostControlsHint": "Start, pause, end, blinds up, admin key",
+  "hostPlayersHint": "Chips, mute, kick",
+  "hostChat": "Chat moderation",
+  "hostChatHint": "Remove messages",
+  "hostHandsHint": "Recent hands and replay",
   "turnOf": "{name} to act · {seconds} s",
   "@turnOf": {
     "placeholders": {
@@ -1020,38 +1031,6 @@
   "sayPhrases": "Phrases",
   "sayStickers": "Stickers",
   "landingStickers": "Stickers: Noto Emoji (CC BY 4.0)",
-  "strengthButton": "How strong is my hand?",
-  "strengthTitle": "Hand strength",
-  "strengthUnavailable": "You are not in a hand right now.",
-  "strengthRefresh": "Recalculate",
-  "strengthEquity": "Wins about {percent}% of the time against {count, plural, =1{one random hand} other{{count} random hands}}.",
-  "@strengthEquity": {
-    "placeholders": {
-      "percent": {
-        "type": "int"
-      },
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "strengthTier": "{tier, select, monster{Monster} strong{Strong} good{Good} marginal{Marginal} weak{Weak} other{Unknown}}",
-  "@strengthTier": {
-    "placeholders": {
-      "tier": {
-        "type": "String"
-      }
-    }
-  },
-  "strengthTip": "{tier, select, monster{Bet and raise: hands like this hardly ever lose.} strong{Bet or raise, and call most bets.} good{Worth a bet when nobody has shown strength; be careful against big raises.} marginal{Check when you can, call small bets, fold to big ones.} weak{Fold to a bet unless seeing the next card is cheap.} other{Play carefully.}}",
-  "@strengthTip": {
-    "placeholders": {
-      "tier": {
-        "type": "String"
-      }
-    }
-  },
-  "strengthHint": "A rough guide for beginners: how often this hand would win against random cards over the cards still to come. It knows nothing about how your opponents play.",
   "peerReset": "Reset",
   "peerMutedMark": "Muted for you",
   "peerQuietMark": "Turned down for you",
@@ -1274,7 +1253,7 @@
   "showCamerasHint": "Off saves bandwidth: the others stop sending you video. Your own camera is unaffected.",
   "scFocusAmount": "Type the raise amount (Esc leaves the field)",
   "showdownSpotlight": "Showdown spotlight",
-  "spotlightSplit": "Split pot \u2013 {names}: {description}",
+  "spotlightSplit": "Split pot – {names}: {description}",
   "@spotlightSplit": {
     "placeholders": {
       "names": {

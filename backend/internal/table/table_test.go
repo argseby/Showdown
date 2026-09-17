@@ -995,60 +995,6 @@ func TestWinStreakHeat(t *testing.T) {
 	}
 }
 
-func TestHandStrength(t *testing.T) {
-	t.Parallel()
-	s := testSettings()
-	s.TurnTime = 5
-	tbl := newTestTable(t, s)
-	a, _ := join(t, tbl, "Alice")
-	b, _ := join(t, tbl, "Bob")
-	join(t, tbl, "Carol")
-	waitFor(t, "hand", func() bool { return handRunning(tbl) })
-	st, err := tbl.HandStrength(a.PlayerID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if st.Opponents != 2 || st.Equity <= 0 || st.Equity >= 1 || len(st.Cards) != 2 || st.Tier == "" || st.Street != "preflop" {
-		t.Fatalf("strength = %+v", st)
-	}
-	if _, err := tbl.HandStrength("nobody"); !errors.Is(err, ErrNotSeated) {
-		t.Fatalf("unseated: %v", err)
-	}
-	// Bob folds when it is his turn (the others call or check along, so
-	// the hand keeps running): no readout for a folded hand, and Alice
-	// faces one opponent fewer.
-	waitFor(t, "Bob folded", func() bool {
-		if id, _ := toAct(tbl); id == b.PlayerID {
-			_ = tbl.Action(id, poker.Action{Kind: poker.Fold})
-		} else if id != "" {
-			if err := tbl.Action(id, poker.Action{Kind: poker.Call}); err != nil {
-				_ = tbl.Action(id, poker.Action{Kind: poker.Check})
-			}
-		}
-		st, ok := tbl.hand.State(tbl.SeatOf(b.PlayerID))
-		return ok && st.Folded
-	})
-	if _, err := tbl.HandStrength(b.PlayerID); !errors.Is(err, ErrInvalidState) {
-		t.Fatalf("folded: %v", err)
-	}
-	if st, err := tbl.HandStrength(a.PlayerID); err != nil || st.Opponents != 1 {
-		t.Fatalf("after a fold: %+v %v", st, err)
-	}
-}
-
-func TestStrengthTier(t *testing.T) {
-	t.Parallel()
-	for _, c := range []struct {
-		eq   float64
-		opp  int
-		want string
-	}{{0.9, 1, "monster"}, {0.72, 1, "strong"}, {0.56, 1, "good"}, {0.45, 1, "marginal"}, {0.3, 1, "weak"}, {0.3, 5, "monster"}, {0.17, 5, "marginal"}} {
-		if got := strengthTier(c.eq, c.opp); got != c.want {
-			t.Errorf("tier(%.2f, %d) = %s, want %s", c.eq, c.opp, got, c.want)
-		}
-	}
-}
-
 func TestHeatOf(t *testing.T) {
 	t.Parallel()
 	for streak, want := range map[int]int{0: 0, 1: 0, 2: 1, 3: 2, 4: 3, 9: 3} {

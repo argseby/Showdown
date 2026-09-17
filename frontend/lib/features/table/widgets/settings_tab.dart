@@ -4,25 +4,27 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
-import '../../../core/session_store.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/hats.dart';
 import '../../../shared/kbd_hint.dart';
-import '../../admin/table_rules_section.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
 
 /// True while the browser's notification prompt is open.
 bool _notifyPrompt = false;
 
-/// The settings tab of the side panel: one row per setting, icon and label
-/// on the left, the control on the right (a switch, a small button or a
-/// segmented choice). Sections: voice and video, preferences, table.
+/// The pages of the settings menu that every player has.
+enum SettingsPart { voice, preferences, table }
+
+/// One page of the settings menu: one row per setting, icon and label on
+/// the left, the control on the right (a switch, a small button or a
+/// segmented choice). [part] picks voice and video, preferences or table.
 class TableSettingsTab extends ConsumerWidget {
   const TableSettingsTab({
     super.key,
+    required this.part,
     required this.tableId,
     required this.isPlayer,
     required this.onTakeSeat,
@@ -31,6 +33,7 @@ class TableSettingsTab extends ConsumerWidget {
     required this.onShortcuts,
   });
 
+  final SettingsPart part;
   final String tableId;
   final bool isPlayer;
   final VoidCallback onTakeSeat;
@@ -60,8 +63,6 @@ class TableSettingsTab extends ConsumerWidget {
       tableSessionProvider(tableId)
           .select((s) => s.snapshot?.you.isAdmin ?? false),
     );
-    // The host's key: the table rules become a section of this tab.
-    final adminToken = ref.watch(adminTokenProvider(tableId)).value;
     // The viewer's own seat (for the hat and its preview).
     final me = ref.watch(
       tableSessionProvider(tableId).select((s) {
@@ -78,10 +79,6 @@ class TableSettingsTab extends ConsumerWidget {
     final locale = Localizations.localeOf(context);
     final wide = MediaQuery.sizeOf(context).width >= KbdHint.minWidth;
 
-    Widget section(String title) => Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 4),
-      child: Text(title.toUpperCase()).muted().xSmall().semiBold(),
-    );
     Widget row(IconData icon, String label, Widget trailing) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -204,8 +201,7 @@ class TableSettingsTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (isPlayer) ...[
-              section(l10n.voiceTitle),
+            if (part == SettingsPart.voice && isPlayer) ...[
               toggle(
                 LucideIcons.headphones,
                 l10n.voiceTitle,
@@ -259,167 +255,161 @@ class TableSettingsTab extends ConsumerWidget {
                   error(networkExplanation(l10n, voice.network!, host: isHost)),
               ],
             ],
-            section(l10n.menuPreferences),
-            toggle(
-              LucideIcons.volume2,
-              l10n.soundOn,
-              sound,
-              () => ref.read(soundEnabledProvider.notifier).toggle(),
-              key: const Key('drawer-sound'),
-            ),
-            toggle(
-              LucideIcons.palette,
-              l10n.fourColorDeck,
-              fourColor,
-              () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
-              key: const Key('drawer-deck'),
-            ),
-            toggle(
-              LucideIcons.layers,
-              l10n.chipStacks,
-              chipStacks,
-              () => ref.read(chipStacksProvider.notifier).set(!chipStacks),
-              key: const Key('drawer-chip-stacks'),
-            ),
-            toggle(
-              LucideIcons.coins,
-              l10n.showBigBlinds,
-              chipDisplay == ChipDisplay.bigBlinds,
-              () => ref.read(chipDisplayProvider.notifier).toggle(),
-              key: const Key('drawer-chips'),
-            ),
-            toggle(
-              LucideIcons.crown,
-              l10n.showHats,
-              showHats,
-              () => ref.read(showHatsProvider.notifier).set(!showHats),
-              key: const Key('drawer-hats'),
-            ),
-            toggle(
-              LucideIcons.flame,
-              l10n.showHeat,
-              showHeat,
-              () => ref.read(showHeatProvider.notifier).set(!showHeat),
-              key: const Key('drawer-heat'),
-            ),
-            toggle(
-              LucideIcons.sparkles,
-              l10n.showdownSpotlight,
-              spotlight,
-              () =>
-                  ref.read(showdownSpotlightProvider.notifier).set(!spotlight),
-              key: const Key('drawer-spotlight'),
-            ),
-            if (notifier.supported)
+            if (part == SettingsPart.preferences) ...[
               toggle(
-                LucideIcons.bellRing,
-                l10n.notifyTurn,
-                notify,
-                toggleNotify,
-                key: const Key('drawer-notify'),
+                LucideIcons.volume2,
+                l10n.soundOn,
+                sound,
+                () => ref.read(soundEnabledProvider.notifier).toggle(),
+                key: const Key('drawer-sound'),
               ),
-            // One button like language and theme: shows the current size and
-            // cycles through the options.
-            button(
-              LucideIcons.zoomIn,
-              l10n.displaySize,
-              switch (scale) {
-                1.25 => l10n.displayLarge,
-                1.5 => l10n.displayExtraLarge,
-                _ => l10n.displayNormal,
-              },
-              () {
-                const options = UiScaleNotifier.options;
-                final i = options.indexOf(scale);
-                ref
-                    .read(uiScaleProvider.notifier)
-                    .set(options[(i + 1) % options.length]);
-              },
-              key: const Key('display-size'),
-            ),
-            button(
-              LucideIcons.sparkles,
-              l10n.handLine,
-              switch (handLine) {
-                HandLinePlacement.off => l10n.handLineOff,
-                HandLinePlacement.board => l10n.handLineBoard,
-                HandLinePlacement.bottom => l10n.handLineBottom,
-              },
-              () => ref.read(handLineProvider.notifier).next(),
-              key: const Key('hand-line-placement'),
-            ),
-            button(
-              LucideIcons.languages,
-              l10n.languageToggle,
-              locale.languageCode.toUpperCase(),
-              () => ref.read(localePreferenceProvider.notifier).next(locale),
-            ),
-            row(
-              brightness == Brightness.dark
-                  ? LucideIcons.sun
-                  : LucideIcons.moon,
-              l10n.themeToggle,
-              OutlineButton(
-                size: ButtonSize.small,
-                onPressed: () =>
-                    ref.read(themeModeProvider.notifier).toggle(brightness),
-                child: Icon(
-                  brightness == Brightness.dark
-                      ? LucideIcons.sun
-                      : LucideIcons.moon,
-                  size: 14,
+              toggle(
+                LucideIcons.palette,
+                l10n.fourColorDeck,
+                fourColor,
+                () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
+                key: const Key('drawer-deck'),
+              ),
+              toggle(
+                LucideIcons.layers,
+                l10n.chipStacks,
+                chipStacks,
+                () => ref.read(chipStacksProvider.notifier).set(!chipStacks),
+                key: const Key('drawer-chip-stacks'),
+              ),
+              toggle(
+                LucideIcons.coins,
+                l10n.showBigBlinds,
+                chipDisplay == ChipDisplay.bigBlinds,
+                () => ref.read(chipDisplayProvider.notifier).toggle(),
+                key: const Key('drawer-chips'),
+              ),
+              toggle(
+                LucideIcons.crown,
+                l10n.showHats,
+                showHats,
+                () => ref.read(showHatsProvider.notifier).set(!showHats),
+                key: const Key('drawer-hats'),
+              ),
+              toggle(
+                LucideIcons.flame,
+                l10n.showHeat,
+                showHeat,
+                () => ref.read(showHeatProvider.notifier).set(!showHeat),
+                key: const Key('drawer-heat'),
+              ),
+              toggle(
+                LucideIcons.sparkles,
+                l10n.showdownSpotlight,
+                spotlight,
+                () => ref
+                    .read(showdownSpotlightProvider.notifier)
+                    .set(!spotlight),
+                key: const Key('drawer-spotlight'),
+              ),
+              if (notifier.supported)
+                toggle(
+                  LucideIcons.bellRing,
+                  l10n.notifyTurn,
+                  notify,
+                  toggleNotify,
+                  key: const Key('drawer-notify'),
                 ),
+              // One button like language and theme: shows the current size and
+              // cycles through the options.
+              button(
+                LucideIcons.zoomIn,
+                l10n.displaySize,
+                switch (scale) {
+                  1.25 => l10n.displayLarge,
+                  1.5 => l10n.displayExtraLarge,
+                  _ => l10n.displayNormal,
+                },
+                () {
+                  const options = UiScaleNotifier.options;
+                  final i = options.indexOf(scale);
+                  ref
+                      .read(uiScaleProvider.notifier)
+                      .set(options[(i + 1) % options.length]);
+                },
+                key: const Key('display-size'),
               ),
-            ),
-            if (wide)
+              button(
+                LucideIcons.sparkles,
+                l10n.handLine,
+                switch (handLine) {
+                  HandLinePlacement.off => l10n.handLineOff,
+                  HandLinePlacement.board => l10n.handLineBoard,
+                  HandLinePlacement.bottom => l10n.handLineBottom,
+                },
+                () => ref.read(handLineProvider.notifier).next(),
+                key: const Key('hand-line-placement'),
+              ),
+              button(
+                LucideIcons.languages,
+                l10n.languageToggle,
+                locale.languageCode.toUpperCase(),
+                () => ref.read(localePreferenceProvider.notifier).next(locale),
+              ),
               row(
-                LucideIcons.keyboard,
-                l10n.shortcutsTitle,
+                brightness == Brightness.dark
+                    ? LucideIcons.sun
+                    : LucideIcons.moon,
+                l10n.themeToggle,
                 OutlineButton(
                   size: ButtonSize.small,
-                  onPressed: onShortcuts,
-                  child: const Text('?'),
+                  onPressed: () =>
+                      ref.read(themeModeProvider.notifier).toggle(brightness),
+                  child: Icon(
+                    brightness == Brightness.dark
+                        ? LucideIcons.sun
+                        : LucideIcons.moon,
+                    size: 14,
+                  ),
                 ),
               ),
-            section(l10n.menuTable),
-            if (isPlayer && me != null)
+              if (wide)
+                row(
+                  LucideIcons.keyboard,
+                  l10n.shortcutsTitle,
+                  OutlineButton(
+                    size: ButtonSize.small,
+                    onPressed: onShortcuts,
+                    child: const Text('?'),
+                  ),
+                ),
+            ],
+            if (part == SettingsPart.table) ...[
+              if (isPlayer && me != null)
+                button(
+                  LucideIcons.crown,
+                  l10n.hatTitle,
+                  hatLabel(l10n, me.hat),
+                  () => pickHat(me),
+                  key: const Key('drawer-hat'),
+                ),
+              if (!isPlayer)
+                button(
+                  LucideIcons.armchair,
+                  l10n.takeSeat,
+                  l10n.takeSeat,
+                  onTakeSeat,
+                  key: const Key('menu-take-seat'),
+                ),
               button(
-                LucideIcons.crown,
-                l10n.hatTitle,
-                hatLabel(l10n, me.hat),
-                () => pickHat(me),
-                key: const Key('drawer-hat'),
+                LucideIcons.house,
+                l10n.otherTable,
+                l10n.otherTable,
+                onOtherTable,
+                key: const Key('menu-other-table'),
               ),
-            if (!isPlayer)
               button(
-                LucideIcons.armchair,
-                l10n.takeSeat,
-                l10n.takeSeat,
-                onTakeSeat,
-                key: const Key('menu-take-seat'),
-              ),
-            button(
-              LucideIcons.house,
-              l10n.otherTable,
-              l10n.otherTable,
-              onOtherTable,
-              key: const Key('menu-other-table'),
-            ),
-            button(
-              LucideIcons.logOut,
-              l10n.leave,
-              l10n.leave,
-              onLeave,
-              key: const Key('menu-leave'),
-              destructive: true,
-            ),
-            if (adminToken != null) ...[
-              section(l10n.settingsTableRules),
-              const Gap(4),
-              TableRulesSection(
-                key: const Key('table-rules'),
-                tableId: tableId,
-                token: adminToken,
+                LucideIcons.logOut,
+                l10n.leave,
+                l10n.leave,
+                onLeave,
+                key: const Key('menu-leave'),
+                destructive: true,
               ),
             ],
             const Gap(12),

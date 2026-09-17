@@ -2333,8 +2333,74 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTableRules.
   ///
   /// In en, this message translates to:
-  /// **'Table rules (host)'**
+  /// **'Table rules'**
   String get settingsTableRules;
+
+  /// No description provided for @settingsTableRulesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Blinds, times, rebuys, game variant'**
+  String get settingsTableRulesHint;
+
+  /// No description provided for @settingsVoiceVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice & video'**
+  String get settingsVoiceVideo;
+
+  /// No description provided for @settingsVoiceVideoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone, camera, network check'**
+  String get settingsVoiceVideoHint;
+
+  /// No description provided for @settingsPreferencesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound, deck, chips, display size, language, theme'**
+  String get settingsPreferencesHint;
+
+  /// No description provided for @settingsTableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your hat, another table, leave'**
+  String get settingsTableHint;
+
+  /// No description provided for @hostControls.
+  ///
+  /// In en, this message translates to:
+  /// **'Game controls'**
+  String get hostControls;
+
+  /// No description provided for @hostControlsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start, pause, end, blinds up, admin key'**
+  String get hostControlsHint;
+
+  /// No description provided for @hostPlayersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Chips, mute, kick'**
+  String get hostPlayersHint;
+
+  /// No description provided for @hostChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat moderation'**
+  String get hostChat;
+
+  /// No description provided for @hostChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove messages'**
+  String get hostChatHint;
+
+  /// No description provided for @hostHandsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent hands and replay'**
+  String get hostHandsHint;
 
   /// No description provided for @turnOf.
   ///
@@ -2485,54 +2551,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stickers: Noto Emoji (CC BY 4.0)'**
   String get landingStickers;
-
-  /// No description provided for @strengthButton.
-  ///
-  /// In en, this message translates to:
-  /// **'How strong is my hand?'**
-  String get strengthButton;
-
-  /// No description provided for @strengthTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Hand strength'**
-  String get strengthTitle;
-
-  /// No description provided for @strengthUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'You are not in a hand right now.'**
-  String get strengthUnavailable;
-
-  /// No description provided for @strengthRefresh.
-  ///
-  /// In en, this message translates to:
-  /// **'Recalculate'**
-  String get strengthRefresh;
-
-  /// No description provided for @strengthEquity.
-  ///
-  /// In en, this message translates to:
-  /// **'Wins about {percent}% of the time against {count, plural, =1{one random hand} other{{count} random hands}}.'**
-  String strengthEquity(int percent, int count);
-
-  /// No description provided for @strengthTier.
-  ///
-  /// In en, this message translates to:
-  /// **'{tier, select, monster{Monster} strong{Strong} good{Good} marginal{Marginal} weak{Weak} other{Unknown}}'**
-  String strengthTier(String tier);
-
-  /// No description provided for @strengthTip.
-  ///
-  /// In en, this message translates to:
-  /// **'{tier, select, monster{Bet and raise: hands like this hardly ever lose.} strong{Bet or raise, and call most bets.} good{Worth a bet when nobody has shown strength; be careful against big raises.} marginal{Check when you can, call small bets, fold to big ones.} weak{Fold to a bet unless seeing the next card is cheap.} other{Play carefully.}}'**
-  String strengthTip(String tier);
-
-  /// No description provided for @strengthHint.
-  ///
-  /// In en, this message translates to:
-  /// **'A rough guide for beginners: how often this hand would win against random cards over the cards still to come. It knows nothing about how your opponents play.'**
-  String get strengthHint;
 
   /// No description provided for @peerReset.
   ///

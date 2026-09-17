@@ -1305,7 +1305,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get menuTable => 'Tisch';
 
   @override
-  String get settingsTableRules => 'Tischregeln (Host)';
+  String get settingsTableRules => 'Tischregeln';
+
+  @override
+  String get settingsTableRulesHint => 'Blinds, Zeiten, Rebuys, Spielvariante';
+
+  @override
+  String get settingsVoiceVideo => 'Sprache & Video';
+
+  @override
+  String get settingsVoiceVideoHint => 'Mikrofon, Kamera, Netzwerkcheck';
+
+  @override
+  String get settingsPreferencesHint =>
+      'Ton, Deck, Chips, Darstellungsgröße, Sprache, Design';
+
+  @override
+  String get settingsTableHint => 'Dein Hut, anderer Tisch, verlassen';
+
+  @override
+  String get hostControls => 'Spielsteuerung';
+
+  @override
+  String get hostControlsHint =>
+      'Starten, pausieren, beenden, Blinds erhöhen, Admin-Key';
+
+  @override
+  String get hostPlayersHint => 'Chips, stummschalten, rauswerfen';
+
+  @override
+  String get hostChat => 'Chat-Moderation';
+
+  @override
+  String get hostChatHint => 'Nachrichten entfernen';
+
+  @override
+  String get hostHandsHint => 'Letzte Hände und Replay';
 
   @override
   String turnOf(String name, int seconds) {
@@ -1388,60 +1423,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get landingStickers => 'Sticker: Noto Emoji (CC BY 4.0)';
-
-  @override
-  String get strengthButton => 'Wie stark ist meine Hand?';
-
-  @override
-  String get strengthTitle => 'Handstärke';
-
-  @override
-  String get strengthUnavailable => 'Du bist gerade in keiner Hand.';
-
-  @override
-  String get strengthRefresh => 'Neu berechnen';
-
-  @override
-  String strengthEquity(int percent, int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count zufällige Hände',
-      one: 'eine zufällige Hand',
-    );
-    return 'Gewinnt in etwa $percent % der Fälle gegen $_temp0.';
-  }
-
-  @override
-  String strengthTier(String tier) {
-    String _temp0 = intl.Intl.selectLogic(tier, {
-      'monster': 'Monster',
-      'strong': 'Stark',
-      'good': 'Gut',
-      'marginal': 'Grenzwertig',
-      'weak': 'Schwach',
-      'other': 'Unbekannt',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String strengthTip(String tier) {
-    String _temp0 = intl.Intl.selectLogic(tier, {
-      'monster': 'Setzen und erhöhen: solche Hände verlieren fast nie.',
-      'strong': 'Setzen oder erhöhen, die meisten Einsätze mitgehen.',
-      'good': 'Ein Einsatz lohnt sich, solange niemand Stärke gezeigt hat; Vorsicht bei großen Erhöhungen.',
-      'marginal': 'Checken, wenn es geht; kleine Einsätze mitgehen, bei großen aussteigen.',
-      'weak':
-          'Bei einem Einsatz aussteigen, außer die nächste Karte ist billig.',
-      'other': 'Vorsichtig spielen.',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String get strengthHint =>
-      'Eine grobe Orientierung für Einsteiger: wie oft diese Hand gegen zufällige Karten gewinnen würde, gerechnet über die noch kommenden Karten. Wie deine Gegner spielen, weiß sie nicht.';
 
   @override
   String get peerReset => 'Zurücksetzen';

@@ -13,12 +13,14 @@ import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
 import '../../../shared/suit_painter.dart';
 import '../../admin/admin_panel.dart';
+import '../../admin/table_rules_section.dart';
 import '../log_text.dart';
 import '../replay/replay_dialog.dart';
 import '../table_session.dart';
+import 'settings_tab.dart';
 
 /// Tabs of the side panel. [admin] exists only for the table's host.
-enum PanelTab { chat, log, leaderboard, admin, settings }
+enum PanelTab { chat, log, leaderboard, settings }
 
 /// Chat · Log · Leaderboard (· Admin for the host) with unread badges.
 class SidePanel extends ConsumerStatefulWidget {
@@ -31,10 +33,14 @@ class SidePanel extends ConsumerStatefulWidget {
     required this.onSendChat,
     required this.settings,
     this.adminToken,
+    this.onSay,
   });
 
-  /// Content of the gear tab (voice, preferences, table actions).
-  final Widget settings;
+  /// Players: the quick phrases and stickers, offered in the chat too.
+  final VoidCallback? onSay;
+
+  /// Builds one page of the settings menu (voice, preferences, table).
+  final Widget Function(SettingsPart part) settings;
 
   final String tableId;
 
@@ -49,7 +55,22 @@ class SidePanel extends ConsumerStatefulWidget {
   ConsumerState<SidePanel> createState() => _SidePanelState();
 }
 
+/// The pages inside the Settings tab. The host's pages need the admin token.
+enum SettingsPage {
+  voice,
+  preferences,
+  table,
+  hostControls,
+  hostRules,
+  hostPlayers,
+  hostChat,
+  hostHands,
+}
+
 class _SidePanelState extends ConsumerState<SidePanel> {
+  /// The open settings page; null shows the settings menu.
+  SettingsPage? _page;
+
   /// The panel owns its tab so that it also works inside the bottom sheet,
   /// whose overlay does not rebuild with the page. [SidePanel.tab] is the
   /// initial tab and follows keyboard toggles from the page.
@@ -69,7 +90,10 @@ class _SidePanelState extends ConsumerState<SidePanel> {
   }
 
   void _select(PanelTab tab) {
-    setState(() => _tab = tab);
+    setState(() {
+      _tab = tab;
+      _page = null;
+    });
     widget.onTabChanged(tab);
     _markRead();
   }
@@ -98,7 +122,6 @@ class _SidePanelState extends ConsumerState<SidePanel> {
         n.markChatRead();
       case PanelTab.log:
       case PanelTab.leaderboard:
-      case PanelTab.admin:
       case PanelTab.settings:
         break;
     }
@@ -117,17 +140,13 @@ class _SidePanelState extends ConsumerState<SidePanel> {
       ],
     );
     final adminToken = widget.adminToken;
-    final tab = _tab == PanelTab.admin && adminToken == null
-        ? PanelTab.chat
-        : _tab;
-    // Settings before the host tab: everyone needs them, and a labelled
-    // tab in the middle is easier to spot than a gear at the end.
+    final tab = _tab;
+    // Four tabs for everyone; the host's pages live inside Settings.
     final visible = [
       PanelTab.chat,
       PanelTab.log,
       PanelTab.leaderboard,
       PanelTab.settings,
-      if (adminToken != null) PanelTab.admin,
     ];
     // Phones: the text tabs do not fit in one row and the settings gear
     // ended up off-screen; icons with tooltips keep every tab in view.
@@ -179,19 +198,29 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                   ],
                 ),
         ),
-        if (adminToken != null)
-          TabItem(
-            key: const Key('tab-admin'),
-            child: narrow
-                ? iconTab(LucideIcons.shieldCheck, l10n.tabAdmin)
-                : Text(l10n.tabAdmin),
-          ),
       ],
     );
+    // Inside a settings page the tab strip gives way to a back button and
+    // the page title: the page is a level below the tabs.
+    final page = tab == PanelTab.settings ? _page : null;
+    final header = page == null
+        ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: tabs)
+        : Row(
+            children: [
+              GhostButton(
+                key: const Key('settings-back'),
+                density: ButtonDensity.icon,
+                onPressed: () => setState(() => _page = null),
+                child: const Icon(LucideIcons.arrowLeft),
+              ),
+              const Gap(4),
+              Expanded(child: Text(_pageTitle(l10n, page)).semiBold()),
+            ],
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SingleChildScrollView(scrollDirection: Axis.horizontal, child: tabs),
+        header,
         const Gap(8),
         Expanded(
           child: switch (tab) {
@@ -199,6 +228,7 @@ class _SidePanelState extends ConsumerState<SidePanel> {
               session: session,
               focusNode: widget.chatFocusNode,
               onSend: widget.onSendChat,
+              onSay: widget.onSay,
             ),
             PanelTab.log => HandLog(
               session: session,
@@ -207,11 +237,45 @@ class _SidePanelState extends ConsumerState<SidePanel> {
             PanelTab.leaderboard => TableLeaderboard(
               snapshot: session.snapshot,
             ),
-            PanelTab.admin => AdminPanel(
-              tableId: widget.tableId,
-              token: adminToken!,
-            ),
-            PanelTab.settings => widget.settings,
+            PanelTab.settings => switch (page) {
+              null => _SettingsMenu(
+                isPlayer: session.isPlayer,
+                host: adminToken != null,
+                onOpen: (p) => setState(() => _page = p),
+              ),
+              SettingsPage.voice => widget.settings(SettingsPart.voice),
+              SettingsPage.preferences => widget.settings(
+                SettingsPart.preferences,
+              ),
+              SettingsPage.table => widget.settings(SettingsPart.table),
+              SettingsPage.hostRules => SingleChildScrollView(
+                child: TableRulesSection(
+                  key: const Key('table-rules'),
+                  tableId: widget.tableId,
+                  token: adminToken!,
+                ),
+              ),
+              SettingsPage.hostControls => AdminPanel(
+                tableId: widget.tableId,
+                token: adminToken!,
+                part: AdminPart.controls,
+              ),
+              SettingsPage.hostPlayers => AdminPanel(
+                tableId: widget.tableId,
+                token: adminToken!,
+                part: AdminPart.players,
+              ),
+              SettingsPage.hostChat => AdminPanel(
+                tableId: widget.tableId,
+                token: adminToken!,
+                part: AdminPart.chat,
+              ),
+              SettingsPage.hostHands => AdminPanel(
+                tableId: widget.tableId,
+                token: adminToken!,
+                part: AdminPart.hands,
+              ),
+            },
           },
         ),
       ],
@@ -239,11 +303,15 @@ class ChatPanel extends StatefulWidget {
     required this.session,
     required this.focusNode,
     required this.onSend,
+    this.onSay,
   });
 
   final TableSessionState session;
   final FocusNode focusNode;
   final ValueChanged<String> onSend;
+
+  /// Players: opens the quick phrases and stickers next to the input.
+  final VoidCallback? onSay;
 
   @override
   State<ChatPanel> createState() => _ChatPanelState();
@@ -417,7 +485,19 @@ class _ChatPanelState extends State<ChatPanel> {
                   },
                 ),
               ),
-              const Gap(6),
+              if (widget.onSay != null) ...[
+                const Gap(2),
+                Tooltip(
+                  tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
+                  child: GhostButton(
+                    key: const Key('chat-say'),
+                    density: ButtonDensity.icon,
+                    onPressed: widget.onSay,
+                    child: const Icon(LucideIcons.smile),
+                  ),
+                ),
+              ],
+              const Gap(2),
               GhostButton(
                 density: ButtonDensity.icon,
                 onPressed: _send,
@@ -738,6 +818,142 @@ class TableLeaderboard extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+String _pageTitle(AppLocalizations l10n, SettingsPage page) => switch (page) {
+  SettingsPage.voice => l10n.settingsVoiceVideo,
+  SettingsPage.preferences => l10n.menuPreferences,
+  SettingsPage.table => l10n.menuTable,
+  SettingsPage.hostControls => l10n.hostControls,
+  SettingsPage.hostRules => l10n.settingsTableRules,
+  SettingsPage.hostPlayers => l10n.adminPlayers,
+  SettingsPage.hostChat => l10n.hostChat,
+  SettingsPage.hostHands => l10n.adminTabHands,
+};
+
+/// The root of the Settings tab: one row per page, the host's pages in
+/// their own section.
+class _SettingsMenu extends StatelessWidget {
+  const _SettingsMenu({
+    required this.isPlayer,
+    required this.host,
+    required this.onOpen,
+  });
+
+  final bool isPlayer;
+  final bool host;
+  final ValueChanged<SettingsPage> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    Widget row(
+      SettingsPage page,
+      IconData icon,
+      String title,
+      String subtitle, {
+      required String keyName,
+    }) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: OutlineButton(
+        key: Key('settings-$keyName'),
+        onPressed: () => onOpen(page),
+        alignment: Alignment.centerLeft,
+        leading: Icon(icon, size: 18, color: theme.colorScheme.mutedForeground),
+        trailing: Icon(
+          LucideIcons.chevronRight,
+          size: 16,
+          color: theme.colorScheme.mutedForeground,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    Widget section(String title) => Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 6),
+      child: Text(title.toUpperCase()).muted().xSmall().semiBold(),
+    );
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isPlayer)
+            row(
+              SettingsPage.voice,
+              LucideIcons.headphones,
+              l10n.settingsVoiceVideo,
+              l10n.settingsVoiceVideoHint,
+              keyName: 'voice',
+            ),
+          row(
+            SettingsPage.preferences,
+            LucideIcons.slidersHorizontal,
+            l10n.menuPreferences,
+            l10n.settingsPreferencesHint,
+            keyName: 'preferences',
+          ),
+          row(
+            SettingsPage.table,
+            LucideIcons.armchair,
+            l10n.menuTable,
+            l10n.settingsTableHint,
+            keyName: 'table',
+          ),
+          if (host) ...[
+            section(l10n.tabAdmin),
+            row(
+              SettingsPage.hostControls,
+              LucideIcons.play,
+              l10n.hostControls,
+              l10n.hostControlsHint,
+              keyName: 'host-controls',
+            ),
+            row(
+              SettingsPage.hostRules,
+              LucideIcons.listChecks,
+              l10n.settingsTableRules,
+              l10n.settingsTableRulesHint,
+              keyName: 'host-rules',
+            ),
+            row(
+              SettingsPage.hostPlayers,
+              LucideIcons.users,
+              l10n.adminPlayers,
+              l10n.hostPlayersHint,
+              keyName: 'host-players',
+            ),
+            row(
+              SettingsPage.hostChat,
+              LucideIcons.messageSquareOff,
+              l10n.hostChat,
+              l10n.hostChatHint,
+              keyName: 'host-chat',
+            ),
+            row(
+              SettingsPage.hostHands,
+              LucideIcons.history,
+              l10n.adminTabHands,
+              l10n.hostHandsHint,
+              keyName: 'host-hands',
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

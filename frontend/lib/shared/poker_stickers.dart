@@ -33,12 +33,23 @@ const pokerStickerIds = <String>[
   'time',
 ];
 
-/// One looping poker scene, [size] square.
+/// One looping poker scene, [size] square. With [animate] false a single
+/// telling frame is drawn and no ticker runs: the picker shows dozens of
+/// stickers at once, and animating them all can stall the page.
 class PokerSticker extends StatefulWidget {
-  const PokerSticker({super.key, required this.id, required this.size});
+  const PokerSticker({
+    super.key,
+    required this.id,
+    required this.size,
+    this.animate = true,
+  });
 
   final String id;
   final double size;
+  final bool animate;
+
+  /// The phase of the still frame: reveals done, labels up.
+  static const stillPhase = 0.6;
 
   @override
   State<PokerSticker> createState() => _PokerStickerState();
@@ -46,24 +57,40 @@ class PokerSticker extends StatefulWidget {
 
 class _PokerStickerState extends State<PokerSticker>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  )..repeat();
+  AnimationController? _c;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animate) {
+      _c = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 2600),
+      )..repeat();
+    }
+  }
 
   @override
   void dispose() {
-    _c.dispose();
+    _c?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = _c;
+    if (c == null) {
+      return _Scene(
+        id: widget.id,
+        t: PokerSticker.stillPhase,
+        size: widget.size,
+      );
+    }
     return RepaintBoundary(
       child: AnimatedBuilder(
-        animation: _c,
+        animation: c,
         builder: (context, _) =>
-            _Scene(id: widget.id, t: _c.value, size: widget.size),
+            _Scene(id: widget.id, t: c.value, size: widget.size),
       ),
     );
   }
