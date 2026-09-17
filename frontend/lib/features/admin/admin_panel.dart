@@ -17,12 +17,11 @@ import '../table/table_session.dart';
 import 'admin_player_actions.dart';
 import 'admin_session.dart';
 import 'admin_widgets.dart';
-import 'settings_form.dart';
-import 'settings_form_model.dart';
 
-/// The host's Admin tab inside the table's side panel: lifecycle controls,
-/// the admin key, settings, players, chat moderation and recent hands. All
-/// calls use the table's admin token; nothing here is global.
+/// The host's tab inside the table's side panel: lifecycle controls, the
+/// admin key, players, chat moderation and recent hands. The table rules
+/// live in the Settings tab (TableRulesSection). All calls use the table's
+/// admin token; nothing here is global.
 class AdminPanel extends ConsumerStatefulWidget {
   const AdminPanel({super.key, required this.tableId, required this.token});
 
@@ -36,10 +35,6 @@ class AdminPanel extends ConsumerStatefulWidget {
 class _AdminPanelState extends ConsumerState<AdminPanel> {
   AdminTableDetail? _detail;
   List<HandRecord>? _hands;
-  SettingsFormState? _form;
-  Map<String, SettingsError> _errors = const {};
-  Map<String, String> _serverErrors = const {};
-  bool _saving = false;
   int _tab = 0;
   bool _notFound = false;
 
@@ -66,10 +61,7 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
     try {
       final detail = await api.getTable(token, widget.tableId);
       if (!mounted) return;
-      setState(() {
-        _detail = detail;
-        _form ??= SettingsFormState.fromSettings(detail.settings);
-      });
+      setState(() => _detail = detail);
     } on ApiException catch (e) {
       if (!mounted) return;
       if (e.status == 404) {
@@ -87,57 +79,6 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
       () => api.hands(token, widget.tableId, limit: 20),
     );
     if (mounted && hands != null) setState(() => _hands = hands);
-  }
-
-  Future<void> _save() async {
-    final form = _form;
-    final token = _token;
-    final detail = _detail;
-    if (form == null || token == null || detail == null) return;
-    final l10n = context.l10n;
-    final errors = form.validate(seated: detail.players.length);
-    setState(() {
-      _errors = errors;
-      _serverErrors = const {};
-    });
-    if (errors.isNotEmpty) return;
-    final patch = form.toPatch();
-    if (patch.isEmpty) {
-      showAdminToast(context, l10n.adminNoChanges);
-      return;
-    }
-    setState(() => _saving = true);
-    try {
-      final result = await ref
-          .read(adminApiProvider)
-          .patchSettings(token, widget.tableId, patch);
-      if (!mounted) return;
-      setState(() => _form = SettingsFormState.fromSettings(result.settings));
-      showAdminToast(
-        context,
-        result.appliesNextHand.isEmpty
-            ? l10n.adminSaved
-            : l10n.adminSavedNextHand(result.appliesNextHand.join(', ')),
-      );
-      await _load();
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      if (e.status == 401) {
-        await _rejected();
-        return;
-      }
-      setState(() {
-        _serverErrors = {
-          for (final f in e.fields) f.field: f.message,
-          if (e.fields.isEmpty && e.field != null) e.field!: e.message,
-        };
-      });
-      if (_serverErrors.isEmpty) {
-        showAdminToast(context, l10n.errGeneric(e.message));
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
   }
 
   Future<void> _lifecycle(String op, {bool immediate = false}) async {
@@ -179,8 +120,6 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
         context,
         l10n.adminBlindsRaised('${settings.smallBlind}/${settings.bigBlind}'),
       );
-      // The form keeps its edits otherwise; the blinds changed underneath.
-      setState(() => _form = SettingsFormState.fromSettings(settings));
       await _load();
     }
   }
@@ -316,7 +255,7 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
       tableSessionProvider(widget.tableId)
           .select((s) => s.snapshot?.table.handNumber),
       (prev, next) {
-        if (prev != null && next != null && next != prev && _tab == 3) _load();
+        if (prev != null && next != null && next != prev && _tab == 2) _load();
       },
     );
     final detail = _detail;
@@ -417,7 +356,6 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
         index: _tab,
         onChanged: (i) => setState(() => _tab = i),
         children: [
-          TabItem(child: Text(l10n.adminSettings)),
           TabItem(child: Text(l10n.adminPlayers)),
           TabItem(child: Text(l10n.tabChat)),
           TabItem(child: Text(l10n.adminTabHands)),
@@ -428,70 +366,6 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
     Widget content;
     switch (_tab) {
       case 0:
-        final form = _form!;
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Unsaved changes are announced at the top, with Save right there.
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              child: form.hasChanges
-                  ? Container(
-                      key: const Key('admin-unsaved'),
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: 0.12,
-                        ),
-                        border: Border.all(color: theme.colorScheme.primary),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(l10n.adminUnsavedChanges).semiBold().small(),
-                          const Gap(8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: PrimaryButton(
-                                  key: const Key('admin-save'),
-                                  onPressed: _saving ? null : _save,
-                                  leading: const Icon(LucideIcons.save),
-                                  child: Text(l10n.adminSave),
-                                ),
-                              ),
-                              const Gap(8),
-                              OutlineButton(
-                                key: const Key('admin-discard'),
-                                onPressed: () => setState(() {
-                                  _form = SettingsFormState.fromSettings(
-                                    detail.settings,
-                                  );
-                                  _errors = const {};
-                                  _serverErrors = const {};
-                                }),
-                                child: Text(l10n.adminDiscard),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-            SettingsForm(
-              state: form,
-              errors: _errors,
-              serverErrors: _serverErrors,
-              showPasswordKeepHint: true,
-              seated: detail.players.length,
-              onChanged: (s) => setState(() => _form = s),
-            ),
-          ],
-        );
-      case 1:
         content = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -577,7 +451,7 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
               ),
           ],
         );
-      case 2:
+      case 1:
         final chat = live.chat;
         content = chat.isEmpty
             ? Text(l10n.adminNoChat).muted()

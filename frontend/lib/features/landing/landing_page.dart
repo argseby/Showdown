@@ -17,6 +17,9 @@ const projectUrl = 'https://github.com/argseby/Showdown';
 const authorName = 'kiunke.dev';
 const authorUrl = 'https://kiunke.dev';
 
+/// Where the bundled stickers come from (attribution, CC BY 4.0).
+const stickersUrl = 'https://googlefonts.github.io/noto-emoji-animation/';
+
 class LandingPage extends ConsumerStatefulWidget {
   const LandingPage({super.key});
 
@@ -85,11 +88,11 @@ class _LandingPageState extends ConsumerState<LandingPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: Logo(height: 80),
                 ),
                 const Gap(16),
-                Text(l10n.appTitle).h1(),
+                Text(l10n.appTitle, textAlign: TextAlign.center).h1(),
                 const Gap(32),
                 Card(
                   child: Column(
@@ -192,6 +195,12 @@ class _LandingFooter extends ConsumerWidget {
           onPressed: () => opener.open(authorUrl),
           size: ButtonSize.small,
           child: Text(l10n.landingCreatedBy(authorName)),
+        ),
+        LinkButton(
+          key: const Key('landing-stickers'),
+          onPressed: () => opener.open(stickersUrl),
+          size: ButtonSize.small,
+          child: Text(l10n.landingStickers),
         ),
       ],
     );

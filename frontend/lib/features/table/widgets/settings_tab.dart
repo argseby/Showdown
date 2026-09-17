@@ -4,11 +4,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
+import '../../../core/session_store.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/hats.dart';
 import '../../../shared/kbd_hint.dart';
+import '../../admin/table_rules_section.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
 
@@ -58,6 +60,8 @@ class TableSettingsTab extends ConsumerWidget {
       tableSessionProvider(tableId)
           .select((s) => s.snapshot?.you.isAdmin ?? false),
     );
+    // The host's key: the table rules become a section of this tab.
+    final adminToken = ref.watch(adminTokenProvider(tableId)).value;
     // The viewer's own seat (for the hat and its preview).
     final me = ref.watch(
       tableSessionProvider(tableId).select((s) {
@@ -409,6 +413,15 @@ class TableSettingsTab extends ConsumerWidget {
               key: const Key('menu-leave'),
               destructive: true,
             ),
+            if (adminToken != null) ...[
+              section(l10n.settingsTableRules),
+              const Gap(4),
+              TableRulesSection(
+                key: const Key('table-rules'),
+                tableId: tableId,
+                token: adminToken,
+              ),
+            ],
             const Gap(12),
           ],
         ),

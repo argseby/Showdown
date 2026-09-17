@@ -144,7 +144,7 @@ func TestQuickPhrasesBroadcastAndRateLimit(t *testing.T) {
 	a, connA := join(t, tbl, "Alice")
 	b, connB := join(t, tbl, "Bob")
 	alice := &Client{Conn: connA, Role: RolePlayer, PlayerID: a.PlayerID}
-	if err := tbl.Say(alice, "nice_call"); err != nil {
+	if err := tbl.Say(alice, "nice_call", ""); err != nil {
 		t.Fatal(err)
 	}
 	phrases := func(conn *fakeConn) []protocol.PhrasePayload {
@@ -164,19 +164,37 @@ func TestQuickPhrasesBroadcastAndRateLimit(t *testing.T) {
 	if p := phrases(connB)[0]; p.Seat != a.Seat || p.Name != "Alice" || p.Phrase != "nice_call" || p.TS == 0 {
 		t.Fatalf("phrase = %+v", p)
 	}
-	if err := tbl.Say(alice, "gg"); !errors.Is(err, ErrRateLimited) {
+	if err := tbl.Say(alice, "gg", ""); !errors.Is(err, ErrRateLimited) {
 		t.Fatalf("second phrase within 3 s: %v", err)
 	}
-	if err := tbl.Say(&Client{Conn: connB, Role: RolePlayer, PlayerID: b.PlayerID}, "shout"); !errors.Is(err, ErrIllegalAction) {
+	if err := tbl.Say(&Client{Conn: connB, Role: RolePlayer, PlayerID: b.PlayerID}, "shout", ""); !errors.Is(err, ErrIllegalAction) {
 		t.Fatalf("unknown phrase: %v", err)
 	}
-	if err := tbl.Say(&Client{Conn: connB, Role: RoleSpectator, Name: "Eve"}, "gg"); !errors.Is(err, ErrNotSeated) {
+	if err := tbl.Say(&Client{Conn: connB, Role: RoleSpectator, Name: "Eve"}, "gg", ""); !errors.Is(err, ErrNotSeated) {
 		t.Fatalf("spectator phrase: %v", err)
+	}
+	bob := &Client{Conn: connB, Role: RolePlayer, PlayerID: b.PlayerID}
+	// Stickers travel the same way: one of the known ids, never both.
+	if err := tbl.Say(bob, "", "fire"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "sticker", func() bool { return len(phrases(connA)) == 2 })
+	if p := phrases(connA)[1]; p.Seat != b.Seat || p.Sticker != "fire" || p.Phrase != "" {
+		t.Fatalf("sticker = %+v", p)
+	}
+	if err := tbl.Say(alice, "", "kitten"); !errors.Is(err, ErrIllegalAction) {
+		t.Fatalf("unknown sticker: %v", err)
+	}
+	if err := tbl.Say(alice, "gg", "fire"); !errors.Is(err, ErrIllegalAction) {
+		t.Fatalf("phrase and sticker at once: %v", err)
+	}
+	if err := tbl.Say(alice, "", ""); !errors.Is(err, ErrIllegalAction) {
+		t.Fatalf("neither: %v", err)
 	}
 	if err := tbl.Mute(b.PlayerID, true); err != nil {
 		t.Fatal(err)
 	}
-	if err := tbl.Say(&Client{Conn: connB, Role: RolePlayer, PlayerID: b.PlayerID}, "gg"); !errors.Is(err, ErrMuted) {
+	if err := tbl.Say(bob, "gg", ""); !errors.Is(err, ErrMuted) {
 		t.Fatalf("muted phrase: %v", err)
 	}
 }

@@ -1932,7 +1932,7 @@ as String,
 /// @nodoc
 mixin _$SayPayload {
 
- String get phrase;
+@JsonKey(includeIfNull: false) String? get phrase;@JsonKey(includeIfNull: false) String? get sticker;
 /// Create a copy of SayPayload
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1946,20 +1946,20 @@ $SayPayloadCopyWith<SayPayload> get copyWith => _$SayPayloadCopyWithImpl<SayPayl
 @override
 bool operator ==(Object other) {
   final _this = this as SayPayload;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SayPayload&&(identical(other.phrase, _this.phrase) || other.phrase == _this.phrase));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SayPayload&&(identical(other.phrase, _this.phrase) || other.phrase == _this.phrase)&&(identical(other.sticker, _this.sticker) || other.sticker == _this.sticker));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SayPayload;
-  return Object.hash(runtimeType,_this.phrase);
+  return Object.hash(runtimeType,_this.phrase,_this.sticker);
 }
 
 @override
 String toString() {
   final _this = this as SayPayload;
-  return 'SayPayload(phrase: ${_this.phrase})';
+  return 'SayPayload(phrase: ${_this.phrase}, sticker: ${_this.sticker})';
 }
 
 
@@ -1970,7 +1970,7 @@ abstract mixin class $SayPayloadCopyWith<$Res>  {
   factory $SayPayloadCopyWith(SayPayload value, $Res Function(SayPayload) _then) = _$SayPayloadCopyWithImpl;
 @useResult
 $Res call({
- String phrase
+@JsonKey(includeIfNull: false) String? phrase,@JsonKey(includeIfNull: false) String? sticker
 });
 
 
@@ -1987,10 +1987,11 @@ class _$SayPayloadCopyWithImpl<$Res>
 
 /// Create a copy of SayPayload
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? phrase = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? phrase = freezed,Object? sticker = freezed,}) {
   return _then(SayPayload(
-phrase: null == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
-as String,
+phrase: freezed == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
+as String?,sticker: freezed == sticker ? _self.sticker : sticker // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -2075,10 +2076,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String phrase)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SayPayload() when $default != null:
-return $default(_that.phrase);case _:
+return $default(_that.phrase,_that.sticker);case _:
   return orElse();
 
 }
@@ -2096,10 +2097,10 @@ return $default(_that.phrase);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String phrase)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker)  $default,) {final _that = this;
 switch (_that) {
 case _SayPayload():
-return $default(_that.phrase);case _:
+return $default(_that.phrase,_that.sticker);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2116,10 +2117,10 @@ return $default(_that.phrase);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String phrase)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker)?  $default,) {final _that = this;
 switch (_that) {
 case _SayPayload() when $default != null:
-return $default(_that.phrase);case _:
+return $default(_that.phrase,_that.sticker);case _:
   return null;
 
 }
@@ -2131,10 +2132,11 @@ return $default(_that.phrase);case _:
 @JsonSerializable()
 
 class _SayPayload implements SayPayload {
-  const _SayPayload({required this.phrase});
+  const _SayPayload({@JsonKey(includeIfNull: false) this.phrase, @JsonKey(includeIfNull: false) this.sticker});
   factory _SayPayload.fromJson(Map<String, dynamic> json) => _$SayPayloadFromJson(json);
 
-@override final  String phrase;
+@override@JsonKey(includeIfNull: false) final  String? phrase;
+@override@JsonKey(includeIfNull: false) final  String? sticker;
 
 /// Create a copy of SayPayload
 /// with the given fields replaced by the non-null parameter values.
@@ -2149,18 +2151,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SayPayload&&(identical(other.phrase, phrase) || other.phrase == phrase));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SayPayload&&(identical(other.phrase, phrase) || other.phrase == phrase)&&(identical(other.sticker, sticker) || other.sticker == sticker));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,phrase);
+    return Object.hash(runtimeType,phrase,sticker);
 }
 
 @override
 String toString() {
-    return 'SayPayload(phrase: $phrase)';
+    return 'SayPayload(phrase: $phrase, sticker: $sticker)';
 }
 
 
@@ -2171,7 +2173,7 @@ abstract mixin class _$SayPayloadCopyWith<$Res> implements $SayPayloadCopyWith<$
   factory _$SayPayloadCopyWith(_SayPayload value, $Res Function(_SayPayload) _then) = __$SayPayloadCopyWithImpl;
 @override @useResult
 $Res call({
- String phrase
+@JsonKey(includeIfNull: false) String? phrase,@JsonKey(includeIfNull: false) String? sticker
 });
 
 
@@ -2188,10 +2190,11 @@ class __$SayPayloadCopyWithImpl<$Res>
 
 /// Create a copy of SayPayload
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? phrase = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? phrase = freezed,Object? sticker = freezed,}) {
   return _then(_SayPayload(
-phrase: null == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
-as String,
+phrase: freezed == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
+as String?,sticker: freezed == sticker ? _self.sticker : sticker // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -2202,7 +2205,7 @@ as String,
 /// @nodoc
 mixin _$PhrasePayload {
 
- int get seat; String get name; String get phrase; int get ts;
+ int get seat; String get name;@JsonKey(includeIfNull: false) String? get phrase;@JsonKey(includeIfNull: false) String? get sticker; int get ts;
 /// Create a copy of PhrasePayload
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2216,20 +2219,20 @@ $PhrasePayloadCopyWith<PhrasePayload> get copyWith => _$PhrasePayloadCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as PhrasePayload;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PhrasePayload&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.phrase, _this.phrase) || other.phrase == _this.phrase)&&(identical(other.ts, _this.ts) || other.ts == _this.ts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PhrasePayload&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.phrase, _this.phrase) || other.phrase == _this.phrase)&&(identical(other.sticker, _this.sticker) || other.sticker == _this.sticker)&&(identical(other.ts, _this.ts) || other.ts == _this.ts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PhrasePayload;
-  return Object.hash(runtimeType,_this.seat,_this.name,_this.phrase,_this.ts);
+  return Object.hash(runtimeType,_this.seat,_this.name,_this.phrase,_this.sticker,_this.ts);
 }
 
 @override
 String toString() {
   final _this = this as PhrasePayload;
-  return 'PhrasePayload(seat: ${_this.seat}, name: ${_this.name}, phrase: ${_this.phrase}, ts: ${_this.ts})';
+  return 'PhrasePayload(seat: ${_this.seat}, name: ${_this.name}, phrase: ${_this.phrase}, sticker: ${_this.sticker}, ts: ${_this.ts})';
 }
 
 
@@ -2240,7 +2243,7 @@ abstract mixin class $PhrasePayloadCopyWith<$Res>  {
   factory $PhrasePayloadCopyWith(PhrasePayload value, $Res Function(PhrasePayload) _then) = _$PhrasePayloadCopyWithImpl;
 @useResult
 $Res call({
- int seat, String name, String phrase, int ts
+ int seat, String name,@JsonKey(includeIfNull: false) String? phrase,@JsonKey(includeIfNull: false) String? sticker, int ts
 });
 
 
@@ -2257,12 +2260,13 @@ class _$PhrasePayloadCopyWithImpl<$Res>
 
 /// Create a copy of PhrasePayload
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? seat = null,Object? name = null,Object? phrase = null,Object? ts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? seat = null,Object? name = null,Object? phrase = freezed,Object? sticker = freezed,Object? ts = null,}) {
   return _then(PhrasePayload(
 seat: null == seat ? _self.seat : seat // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,phrase: null == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
-as String,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
+as String,phrase: freezed == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
+as String?,sticker: freezed == sticker ? _self.sticker : sticker // ignore: cast_nullable_to_non_nullable
+as String?,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -2348,10 +2352,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int seat,  String name,  String phrase,  int ts)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int seat,  String name, @JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker,  int ts)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PhrasePayload() when $default != null:
-return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
+return $default(_that.seat,_that.name,_that.phrase,_that.sticker,_that.ts);case _:
   return orElse();
 
 }
@@ -2369,10 +2373,10 @@ return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int seat,  String name,  String phrase,  int ts)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int seat,  String name, @JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker,  int ts)  $default,) {final _that = this;
 switch (_that) {
 case _PhrasePayload():
-return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
+return $default(_that.seat,_that.name,_that.phrase,_that.sticker,_that.ts);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2389,10 +2393,10 @@ return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int seat,  String name,  String phrase,  int ts)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int seat,  String name, @JsonKey(includeIfNull: false)  String? phrase, @JsonKey(includeIfNull: false)  String? sticker,  int ts)?  $default,) {final _that = this;
 switch (_that) {
 case _PhrasePayload() when $default != null:
-return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
+return $default(_that.seat,_that.name,_that.phrase,_that.sticker,_that.ts);case _:
   return null;
 
 }
@@ -2404,12 +2408,13 @@ return $default(_that.seat,_that.name,_that.phrase,_that.ts);case _:
 @JsonSerializable()
 
 class _PhrasePayload implements PhrasePayload {
-  const _PhrasePayload({required this.seat, required this.name, required this.phrase, required this.ts});
+  const _PhrasePayload({required this.seat, required this.name, @JsonKey(includeIfNull: false) this.phrase, @JsonKey(includeIfNull: false) this.sticker, required this.ts});
   factory _PhrasePayload.fromJson(Map<String, dynamic> json) => _$PhrasePayloadFromJson(json);
 
 @override final  int seat;
 @override final  String name;
-@override final  String phrase;
+@override@JsonKey(includeIfNull: false) final  String? phrase;
+@override@JsonKey(includeIfNull: false) final  String? sticker;
 @override final  int ts;
 
 /// Create a copy of PhrasePayload
@@ -2425,18 +2430,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PhrasePayload&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.name, name) || other.name == name)&&(identical(other.phrase, phrase) || other.phrase == phrase)&&(identical(other.ts, ts) || other.ts == ts));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PhrasePayload&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.name, name) || other.name == name)&&(identical(other.phrase, phrase) || other.phrase == phrase)&&(identical(other.sticker, sticker) || other.sticker == sticker)&&(identical(other.ts, ts) || other.ts == ts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,seat,name,phrase,ts);
+    return Object.hash(runtimeType,seat,name,phrase,sticker,ts);
 }
 
 @override
 String toString() {
-    return 'PhrasePayload(seat: $seat, name: $name, phrase: $phrase, ts: $ts)';
+    return 'PhrasePayload(seat: $seat, name: $name, phrase: $phrase, sticker: $sticker, ts: $ts)';
 }
 
 
@@ -2447,7 +2452,7 @@ abstract mixin class _$PhrasePayloadCopyWith<$Res> implements $PhrasePayloadCopy
   factory _$PhrasePayloadCopyWith(_PhrasePayload value, $Res Function(_PhrasePayload) _then) = __$PhrasePayloadCopyWithImpl;
 @override @useResult
 $Res call({
- int seat, String name, String phrase, int ts
+ int seat, String name,@JsonKey(includeIfNull: false) String? phrase,@JsonKey(includeIfNull: false) String? sticker, int ts
 });
 
 
@@ -2464,12 +2469,13 @@ class __$PhrasePayloadCopyWithImpl<$Res>
 
 /// Create a copy of PhrasePayload
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? seat = null,Object? name = null,Object? phrase = null,Object? ts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? seat = null,Object? name = null,Object? phrase = freezed,Object? sticker = freezed,Object? ts = null,}) {
   return _then(_PhrasePayload(
 seat: null == seat ? _self.seat : seat // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,phrase: null == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
-as String,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
+as String,phrase: freezed == phrase ? _self.phrase : phrase // ignore: cast_nullable_to_non_nullable
+as String?,sticker: freezed == sticker ? _self.sticker : sticker // ignore: cast_nullable_to_non_nullable
+as String?,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

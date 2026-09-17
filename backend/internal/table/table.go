@@ -879,7 +879,7 @@ const sayInterval = 3000
 
 // Say broadcasts one of the predefined quick phrases next to the player's
 // avatar. Phrases are not persisted and not part of the hand log.
-func (t *Table) Say(c *Client, phrase string) error {
+func (t *Table) Say(c *Client, phrase, sticker string) error {
 	return t.callErr(func() error {
 		if c.Role != RolePlayer {
 			return ErrNotSeated
@@ -891,13 +891,17 @@ func (t *Table) Say(c *Client, phrase string) error {
 		if p.Muted {
 			return ErrMuted
 		}
-		ok := false
-		for _, ph := range protocol.Phrases {
-			if ph == phrase {
-				ok = true
+		// Exactly one of phrase and sticker, and a known one.
+		switch {
+		case phrase != "" && sticker == "":
+			if !slices.Contains(protocol.Phrases, phrase) {
+				return ErrIllegalAction
 			}
-		}
-		if !ok {
+		case sticker != "" && phrase == "":
+			if !slices.Contains(protocol.Stickers, sticker) {
+				return ErrIllegalAction
+			}
+		default:
 			return ErrIllegalAction
 		}
 		now := t.nowMs()
@@ -905,13 +909,84 @@ func (t *Table) Say(c *Client, phrase string) error {
 			return ErrRateLimited
 		}
 		p.lastSay = now
-		env, err := protocol.Encode(protocol.TypePhrase, "", protocol.PhrasePayload{Seat: p.Seat, Name: p.Name, Phrase: phrase, TS: now})
+		env, err := protocol.Encode(protocol.TypePhrase, "", protocol.PhrasePayload{Seat: p.Seat, Name: p.Name, Phrase: phrase, Sticker: sticker, TS: now})
 		if err != nil {
 			return err
 		}
 		t.broadcastMsg(env)
 		return nil
 	})
+}
+
+// Strength is the beginner's readout of the viewer's own hand: its share of
+// the pot against the live opponents holding random cards.
+type Strength struct {
+	Equity      float64  `json:"equity"` // 0..1 against Opponents random hands
+	Opponents   int      `json:"opponents"`
+	Tier        string   `json:"tier"` // monster | strong | good | marginal | weak
+	Description string   `json:"description"`
+	Street      string   `json:"street"`
+	Cards       []string `json:"cards"`
+	Board       []string `json:"board"`
+	Best        []string `json:"best,omitempty"`
+}
+
+// strengthSamples bounds the work of one readout (a few milliseconds).
+const strengthSamples = 2000
+
+// strengthTier names an equity relative to an even share among the players
+// still in: 1.75× that share or more is a monster, below 0.85× weak.
+func strengthTier(equity float64, opponents int) string {
+	ratio := equity * float64(opponents+1)
+	switch {
+	case ratio >= 1.75:
+		return "monster"
+	case ratio >= 1.4:
+		return "strong"
+	case ratio >= 1.1:
+		return "good"
+	case ratio >= 0.85:
+		return "marginal"
+	}
+	return "weak"
+}
+
+// HandStrength computes the readout for a player dealt into the running
+// hand who has not folded (ErrInvalidState otherwise).
+func (t *Table) HandStrength(playerID string) (Strength, error) {
+	var out Strength
+	err := t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		if t.hand == nil || !p.inHand {
+			return ErrInvalidState
+		}
+		st, ok := t.hand.State(p.Seat)
+		if !ok || st.Folded || len(st.HoleCards) != 2 {
+			return ErrInvalidState
+		}
+		opponents := 0
+		for _, o := range t.seats[:t.settings.MaxPlayers] {
+			if o == nil || o == p || !o.inHand {
+				continue
+			}
+			if os, ok := t.hand.State(o.Seat); ok && !os.Folded {
+				opponents++
+			}
+		}
+		board := t.hand.Board()
+		hero := [2]poker.Card{st.HoleCards[0], st.HoleCards[1]}
+		eq := poker.Strength(t.hand.Variant(), board, hero, opponents, strengthSamples, uint64(t.nowMs()))
+		out = Strength{
+			Equity: eq, Opponents: max(opponents, 1), Tier: strengthTier(eq, max(opponents, 1)),
+			Description: t.hand.Description(p.Seat), Street: t.hand.Street().String(),
+			Cards: cardStrings(st.HoleCards), Board: cardStrings(board), Best: cardStrings(t.hand.BestCards(p.Seat)),
+		}
+		return nil
+	})
+	return out, err
 }
 
 // RelayVoice forwards a WebRTC signalling message from one seated player to

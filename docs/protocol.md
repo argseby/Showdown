@@ -107,6 +107,14 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   first releases allowed, so camera offers and answers were refused and video never
 >   connected. A signal beyond the cap is answered with `illegal_action` and the
 >   connection stays open.
+> - **Signalling rate limit (2026-09-17).** Commands are limited to 20 per second per
+>   connection (close `1008` "rate limit"), but `voice_signal` has its own budget of 100
+>   per second with a burst of 400. A browser trickles every ICE candidate as one
+>   `voice_signal`; with STUN, a TURN server with two URLs and a few network interfaces
+>   that is 20 to 40 messages within a second per peer, times the peers it (re)connects
+>   to at once. Before this the burst closed the connection, the client reconnected,
+>   rejoined the voice chat, sent the burst again and looped, so voice only worked for
+>   players with few candidates and got worse when a TURN server was added.
 > - **Staged pot awards (2026-09-06).** The `pot_awarded` events of a hand still arrive
 >   in one batch (main pot first), but clients present the pots one after another,
 >   side pots first and the main pot last, 2.5 s each (main pot gold, first side pot
@@ -148,6 +156,15 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   dealt in without winning a pot resets the streak (hands sat out do not count either
 >   way); the streak is stored with the player. The client draws a fire ring around the
 >   avatar in three intensities. The admin detail lists `players[].win_streak`.
+> - **Stickers (2026-09-17).** `say` takes `{sticker}` as an alternative to `{phrase}`;
+>   the broadcast `phrase` carries `sticker` instead of `phrase` then. The ids are listed
+>   in `protocol.Stickers`; the client bundles Noto Animated Emoji (CC BY 4.0) for them.
+> - **Hand strength for beginners (2026-09-17).** `GET /api/tables/{id}/strength` (bearer =
+>   player session token, during a hand the player is in and has not folded; `invalid_state`
+>   otherwise) answers `{equity, opponents, tier, description, street, cards, board, best?}`:
+>   `equity` is the share of the pot the hand would win against `opponents` random hands over
+>   the cards to come (2000 samples), `tier` one of `monster, strong, good, marginal, weak`
+>   relative to an even share. Rate limited like `info`.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / ended / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,
@@ -187,7 +204,7 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `straddle` | `{on}` | arms/disarms the player's straddle (setting `allow_straddle`): whenever they sit left of the big blind with more than 2 BB they post 2×BB before the deal (`blind_posted {blind: "straddle"}`, `hand.straddle_seat`), act last preflop, and the minimum raise is twice the straddle; `you.straddle` mirrors it |
 | `run_twice` | `{agree}` | answer to the run-it-twice vote (setting `run_it_twice`): when everyone is all-in with cards to come the run-out waits up to 8 s (`hand.run_twice_ends_ts`, `you.can_run_twice`, `you.run_twice_vote`); if every live player agrees the remaining streets are dealt twice (`street_dealt {board: 2}`, `hand.board2`, `hand.run_twice`) and each pot is paid in halves per board (`pot_awarded {board: 1|2}`, odd chip to board 1); a single "no" or the timeout runs it once |
 | `hat` | `{hat}` | puts a hat on the player's avatar: one of `top_hat, cowboy, crown, party, beanie, wizard, chef, pirate, cap, halo, viking, sombrero`, or `none` to take it off (`illegal_action` for anything else); everyone sees it as `seats[].player.hat` (absent without a hat); it is stored with the player, so it survives reconnects and restarts; `join` accepts `hat` too. The client draws the hats, the server only knows the ids |
-| `say` | `{phrase}` | one of the quick phrases `nice_hand, nice_call, nice_fold, nice_bluff, well_played, gg, thanks, sorry, wow, oops, furious, lol, hurry_up, brb`; players only, at most one every 3 s (`rate_limited`), rejected while chat-muted; broadcast as `phrase` and never persisted |
+| `say` | `{phrase}` or `{sticker}` | a quick phrase, one of `nice_hand, nice_call, nice_fold, nice_bluff, well_played, gg, thanks, sorry, wow, oops, furious, lol, hurry_up, brb`, or an animated sticker, one of the ids in `protocol.Stickers` (22 poker scenes such as `all_in`, `royal_flush`, `bad_beat`, `tilt`, `shark`, then emoji such as `poker_face`, `fire`, `skull`; 64 in all; the client ships or draws the animations); exactly one of the two, players only, at most one every 3 s (`rate_limited`), rejected while chat-muted; broadcast as `phrase {seat, name, phrase?, sticker?, ts}` and never persisted |
 | `chat` | `{text}` | |
 | `ping` | `{}` | client keepalive; server answers `pong` |
 
@@ -211,7 +228,7 @@ Close codes from the server: `4001` bad token, `4002` unsupported protocol versi
 | `table_ended` | `{final_leaderboard}` |
 | `server_restarting` | `{}` |
 | `pong` | `{server_ts}` |
-| `phrase` | `{seat, name, phrase, ts}` — a quick phrase to show next to the seat for a few seconds |
+| `phrase` | `{seat, name, phrase?, sticker?, ts}` — a quick phrase or a sticker to show next to the seat for a few seconds |
 
 ### 8.4 Hand events
 

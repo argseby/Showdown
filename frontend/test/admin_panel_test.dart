@@ -11,6 +11,7 @@ import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/core/ws_transport.dart';
 import 'package:showdown/features/admin/admin_panel.dart';
 import 'package:showdown/features/admin/admin_widgets.dart';
+import 'package:showdown/features/admin/table_rules_section.dart';
 import 'package:showdown/features/table/table_session.dart';
 import 'package:showdown/features/table/widgets/side_panel.dart';
 
@@ -96,15 +97,16 @@ void main() {
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
+    // The table rules are a section of the Settings tab.
     await tester.pumpWidget(
       wrap(
-        const AdminPanel(tableId: 'k7m2p9xq4w', token: 'adm'),
+        const SingleChildScrollView(
+          child: TableRulesSection(tableId: 'k7m2p9xq4w', token: 'adm'),
+        ),
         overrides: [restClientProvider.overrideWithValue(restFor(log))],
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('admin-start')), findsOneWidget);
-    expect(find.byKey(const Key('admin-copy-key')), findsOneWidget);
     expect(find.text('applies from the next hand'), findsWidgets);
     // Nothing changed: no unsaved-changes bar, no Save button.
     expect(find.byKey(const Key('admin-unsaved')), findsNothing);
@@ -120,6 +122,17 @@ void main() {
     expect(patch, contains('"small_blind":100'));
     expect(patch, isNot(contains('max_players')));
 
+    // The Host tab keeps the controls, the key and the players.
+    await tester.pumpWidget(
+      wrap(
+        const AdminPanel(tableId: 'k7m2p9xq4w', token: 'adm'),
+        overrides: [restClientProvider.overrideWithValue(restFor(log))],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('admin-start')), findsOneWidget);
+    expect(find.byKey(const Key('admin-copy-key')), findsOneWidget);
+    expect(find.byKey(const Key('field-big_blind')), findsNothing);
     await tester.tap(find.text('Players'));
     await tester.pumpAndSettle();
     expect(find.text('Alice'), findsWidgets);

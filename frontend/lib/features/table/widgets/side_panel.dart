@@ -120,35 +120,72 @@ class _SidePanelState extends ConsumerState<SidePanel> {
     final tab = _tab == PanelTab.admin && adminToken == null
         ? PanelTab.chat
         : _tab;
+    // Settings before the host tab: everyone needs them, and a labelled
+    // tab in the middle is easier to spot than a gear at the end.
     final visible = [
       PanelTab.chat,
       PanelTab.log,
       PanelTab.leaderboard,
-      if (adminToken != null) PanelTab.admin,
       PanelTab.settings,
+      if (adminToken != null) PanelTab.admin,
     ];
+    // Phones: the text tabs do not fit in one row and the settings gear
+    // ended up off-screen; icons with tooltips keep every tab in view.
+    final narrow = MediaQuery.sizeOf(context).width < 700;
+    Widget iconTab(IconData icon, String name) => Tooltip(
+      tooltip: TooltipContainer(child: Text(name)).call,
+      child: Icon(icon, size: 18),
+    );
+    final unreadChat = tab == PanelTab.chat ? 0 : session.unreadChat;
     final tabs = Tabs(
       index: visible.indexOf(tab),
       onChanged: (i) => _select(visible[i]),
       children: [
         TabItem(
-          child: label(
-            l10n.tabChat,
-            tab == PanelTab.chat ? 0 : session.unreadChat,
-          ),
+          child: narrow
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    iconTab(LucideIcons.messageCircle, l10n.tabChat),
+                    if (unreadChat > 0) ...[
+                      const Gap(4),
+                      PrimaryBadge(child: Text('$unreadChat')),
+                    ],
+                  ],
+                )
+              : label(l10n.tabChat, unreadChat),
         ),
         // The log carries no counter: only chat messages are announced.
-        TabItem(child: Text(l10n.tabLog)),
-        TabItem(child: Text(l10n.tabLeaderboard)),
-        if (adminToken != null)
-          TabItem(key: const Key('tab-admin'), child: Text(l10n.tabAdmin)),
+        TabItem(
+          child: narrow
+              ? iconTab(LucideIcons.scrollText, l10n.tabLog)
+              : Text(l10n.tabLog),
+        ),
+        TabItem(
+          child: narrow
+              ? iconTab(LucideIcons.trophy, l10n.tabLeaderboard)
+              : Text(l10n.tabLeaderboard),
+        ),
         TabItem(
           key: const Key('tab-settings'),
-          child: Tooltip(
-            tooltip: TooltipContainer(child: Text(l10n.tabSettings)).call,
-            child: const Icon(LucideIcons.settings, size: 16),
-          ),
+          child: narrow
+              ? iconTab(LucideIcons.settings, l10n.tabSettings)
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.settings, size: 14),
+                    const Gap(6),
+                    Text(l10n.tabSettings),
+                  ],
+                ),
         ),
+        if (adminToken != null)
+          TabItem(
+            key: const Key('tab-admin'),
+            child: narrow
+                ? iconTab(LucideIcons.shieldCheck, l10n.tabAdmin)
+                : Text(l10n.tabAdmin),
+          ),
       ],
     );
     return Column(
@@ -272,74 +309,88 @@ class _ChatPanelState extends State<ChatPanel> {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
-            controller: _scroll,
-            reverse: true,
-            itemCount: lines.length,
-            itemBuilder: (context, i) {
-              final line = lines[lines.length - 1 - i];
-              final isAdmin = line.kind == 'admin';
-              final isSystem = line.author == null || line.kind == 'system';
-              final color = isSystem
-                  ? theme.colorScheme.mutedForeground
-                  : HSLColor.fromAHSL(
-                      1,
-                      nameHue(line.author!),
-                      0.6,
-                      theme.colorScheme.brightness == Brightness.dark
-                          ? 0.7
-                          : 0.4,
-                    ).toColor();
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Container(
-                  padding: isAdmin
-                      ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
-                      : EdgeInsets.zero,
-                  decoration: isAdmin
-                      ? BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.12,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        )
-                      : null,
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${formatClock(line.ts)} ',
-                          style: TextStyle(
-                            color: theme.colorScheme.mutedForeground,
-                            fontSize: 11,
-                            fontFamily: 'GeistMono',
-                          ),
-                        ),
-                        if (!isSystem)
-                          TextSpan(
-                            text: '${_authorLabel(l10n, line)}: ',
-                            style: TextStyle(
-                              color: color,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ...cardSpans(
-                          line.text,
-                          style: isSystem
-                              ? TextStyle(
-                                  color: theme.colorScheme.mutedForeground,
-                                  fontStyle: FontStyle.italic,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                    style: const TextStyle(fontSize: 13),
+          child: lines.isEmpty
+              ? Center(
+                  child: Text(
+                    l10n.chatEmpty,
+                    key: const Key('chat-empty'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: theme.colorScheme.mutedForeground),
                   ),
+                )
+              : ListView.builder(
+                  controller: _scroll,
+                  reverse: true,
+                  itemCount: lines.length,
+                  itemBuilder: (context, i) {
+                    final line = lines[lines.length - 1 - i];
+                    final isAdmin = line.kind == 'admin';
+                    final isSystem =
+                        line.author == null || line.kind == 'system';
+                    final color = isSystem
+                        ? theme.colorScheme.mutedForeground
+                        : HSLColor.fromAHSL(
+                            1,
+                            nameHue(line.author!),
+                            0.6,
+                            theme.colorScheme.brightness == Brightness.dark
+                                ? 0.7
+                                : 0.4,
+                          ).toColor();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Container(
+                        padding: isAdmin
+                            ? const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              )
+                            : EdgeInsets.zero,
+                        decoration: isAdmin
+                            ? BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              )
+                            : null,
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${formatClock(line.ts)} ',
+                                style: TextStyle(
+                                  color: theme.colorScheme.mutedForeground,
+                                  fontSize: 11,
+                                  fontFamily: 'GeistMono',
+                                ),
+                              ),
+                              if (!isSystem)
+                                TextSpan(
+                                  text: '${_authorLabel(l10n, line)}: ',
+                                  style: TextStyle(
+                                    color: color,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ...cardSpans(
+                                line.text,
+                                style: isSystem
+                                    ? TextStyle(
+                                        color:
+                                            theme.colorScheme.mutedForeground,
+                                        fontStyle: FontStyle.italic,
+                                      )
+                                    : null,
+                              ),
+                            ],
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
         const Gap(8),
         if (disabledNote != null)

@@ -32,6 +32,15 @@ const (
 	wsCommandRate     = 20 // commands per second per connection
 	wsChatRate        = 1  // chat lines per second
 	wsChatBurst       = 5
+	// WebRTC signalling has its own budget: a browser trickles every ICE
+	// candidate as one voice_signal, and with STUN, a TURN server with two
+	// URLs and a few network interfaces that is 20 to 40 messages within a
+	// second per peer, times the peers it (re)connects to at once. Counting
+	// those against wsCommandRate closed the connection with "rate limit",
+	// the client reconnected, rejoined the voice chat, sent the burst again
+	// and looped; voice then only worked for players with few candidates.
+	wsSignalRate  = 100
+	wsSignalBurst = 400
 )
 
 // outbound is one item of the writer queue: a message or a close request.
@@ -287,6 +296,7 @@ func readEnvelope(ctx context.Context, c *websocket.Conn) (protocol.Envelope, in
 func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn, t *table.Table, client *table.Client) {
 	cmdBucket := newRateBucket(wsCommandRate, wsCommandRate, s.now())
 	chatBucket := newRateBucket(wsChatRate, wsChatBurst, s.now())
+	signalBucket := newRateBucket(wsSignalRate, wsSignalBurst, s.now())
 	send := func(typ, id string, payload any) { conn.Send(protocol.MustEncode(typ, id, payload)) }
 	fail := func(id string, err error) {
 		code, _ := wsErrorCode(err)
@@ -311,7 +321,11 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			conn.Close(protocol.ClosePolicy, "message too large")
 			return
 		}
-		if !cmdBucket.allow(s.now()) {
+		bucket := cmdBucket
+		if env.Type == protocol.TypeVoiceSignal {
+			bucket = signalBucket
+		}
+		if !bucket.allow(s.now()) {
 			conn.Close(protocol.ClosePolicy, "rate limit")
 			return
 		}
@@ -412,7 +426,7 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 				err2 = table.ErrIllegalAction
 				break
 			}
-			err2 = t.Say(client, sp.Phrase)
+			err2 = t.Say(client, sp.Phrase, sp.Sticker)
 		case protocol.TypeChat:
 			var c protocol.ChatPayload
 			if json.Unmarshal(env.Payload, &c) != nil {

@@ -265,7 +265,8 @@
   "tabChat": "Chat",
   "tabLog": "Log",
   "tabLeaderboard": "Leaderboard",
-  "panelToggle": "Toggle panel",
+  "panelToggle": "Menu: chat, log, leaderboard, settings",
+  "panelMenu": "Menu",
   "chatPlaceholder": "Message...",
   "chatDisabled": "Chat is disabled",
   "chatMuted": "You are muted",
@@ -275,6 +276,7 @@
   "logCopy": "Copy log",
   "logCopied": "Log copied",
   "logEmpty": "No events yet",
+  "chatEmpty": "No messages yet. Say hi!",
   "lbName": "Name",
   "lbStack": "Stack",
   "lbNet": "Net",
@@ -787,7 +789,7 @@
   "landingCreateTitle": "Host a game",
   "landingCreateHint": "Whoever creates a table hosts it: an Admin tab at the table lets you change settings, manage players and end the game. No account needed.",
   "landingCreate": "Create a table",
-  "tabAdmin": "Admin",
+  "tabAdmin": "Host",
   "adminKey": "Admin key",
   "adminKeyHint": "Keep this key. It lets you manage the table from another device or browser; anyone who has it can do the same.",
   "adminKeyCopy": "Copy key",
@@ -968,6 +970,7 @@
   "voiceSpeaking": "speaking",
   "menuPreferences": "Preferences",
   "menuTable": "Table",
+  "settingsTableRules": "Table rules (host)",
   "turnOf": "{name} to act · {seconds} s",
   "@turnOf": {
     "placeholders": {
@@ -1013,6 +1016,42 @@
   "peerHideVideo": "Hide video",
   "peerHideHat": "Hide hat",
   "peerHideHeat": "Hide win streak",
+  "peerHideStickers": "Hide stickers",
+  "sayPhrases": "Phrases",
+  "sayStickers": "Stickers",
+  "landingStickers": "Stickers: Noto Emoji (CC BY 4.0)",
+  "strengthButton": "How strong is my hand?",
+  "strengthTitle": "Hand strength",
+  "strengthUnavailable": "You are not in a hand right now.",
+  "strengthRefresh": "Recalculate",
+  "strengthEquity": "Wins about {percent}% of the time against {count, plural, =1{one random hand} other{{count} random hands}}.",
+  "@strengthEquity": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "strengthTier": "{tier, select, monster{Monster} strong{Strong} good{Good} marginal{Marginal} weak{Weak} other{Unknown}}",
+  "@strengthTier": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "strengthTip": "{tier, select, monster{Bet and raise: hands like this hardly ever lose.} strong{Bet or raise, and call most bets.} good{Worth a bet when nobody has shown strength; be careful against big raises.} marginal{Check when you can, call small bets, fold to big ones.} weak{Fold to a bet unless seeing the next card is cheap.} other{Play carefully.}}",
+  "@strengthTip": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "strengthHint": "A rough guide for beginners: how often this hand would win against random cards over the cards still to come. It knows nothing about how your opponents play.",
   "peerReset": "Reset",
   "peerMutedMark": "Muted for you",
   "peerQuietMark": "Turned down for you",

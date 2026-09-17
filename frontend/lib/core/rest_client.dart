@@ -32,6 +32,45 @@ class FieldError {
 }
 
 /// Public table info for the join page.
+/// The beginner's hand-strength readout (GET /api/tables/{id}/strength).
+class HandStrengthDto {
+  const HandStrengthDto({
+    required this.equity,
+    required this.opponents,
+    required this.tier,
+    required this.description,
+    required this.street,
+    required this.cards,
+    required this.board,
+    required this.best,
+  });
+
+  factory HandStrengthDto.fromJson(
+    Map<String, dynamic> json,
+  ) => HandStrengthDto(
+    equity: (json['equity'] as num).toDouble(),
+    opponents: json['opponents'] as int,
+    tier: json['tier'] as String,
+    description: json['description'] as String? ?? '',
+    street: json['street'] as String? ?? '',
+    cards: [for (final c in json['cards'] as List<dynamic>? ?? []) c as String],
+    board: [for (final c in json['board'] as List<dynamic>? ?? []) c as String],
+    best: [for (final c in json['best'] as List<dynamic>? ?? []) c as String],
+  );
+
+  /// Share of the pot against [opponents] random hands, 0..1.
+  final double equity;
+  final int opponents;
+
+  /// monster | strong | good | marginal | weak.
+  final String tier;
+  final String description;
+  final String street;
+  final List<String> cards;
+  final List<String> board;
+  final List<String> best;
+}
+
 class TableInfoDto {
   const TableInfoDto({
     required this.name,
@@ -222,6 +261,14 @@ class RestClient {
       return const [];
     }
   }
+
+  /// How strong the player's current hand is (players in a hand only).
+  Future<HandStrengthDto> handStrength(
+    String tableId, {
+    required String token,
+  }) async => HandStrengthDto.fromJson(
+    await getJson('/api/tables/$tableId/strength', token: token),
+  );
 
   Future<JoinResultDto> join(
     String tableId, {

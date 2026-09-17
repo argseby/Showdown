@@ -12,6 +12,7 @@ import '../../../shared/avatars.dart';
 import '../../../shared/chips.dart';
 import '../../../shared/fire_ring.dart';
 import '../../../shared/playing_card.dart';
+import '../../../shared/stickers.dart';
 
 /// One seat on the table: avatar with countdown ring, name, stack, badges,
 /// hole cards and the last action.
@@ -35,6 +36,7 @@ class SeatWidget extends ConsumerWidget {
     this.speaking = false,
     this.scale = 1.0,
     this.phrase,
+    this.sticker,
     this.onPlayerTap,
     this.onSayTap,
     this.equity,
@@ -71,6 +73,9 @@ class SeatWidget extends ConsumerWidget {
 
   /// A quick phrase the player just said (already translated).
   final String? phrase;
+
+  /// A sticker the player just showed (an id from stickers.dart).
+  final String? sticker;
 
   /// Another player's seat: tapping (or right-clicking) the avatar opens
   /// the player menu.
@@ -192,6 +197,7 @@ class SeatWidget extends ConsumerWidget {
         ? (p.heat ?? 0).clamp(0, 3)
         : 0;
     final video = prefs.hideVideo ? null : videoViewType;
+    final shownSticker = prefs.hideStickers ? null : sticker;
     // Small marks for what the viewer muted or hid: they explain a silent
     // or faceless seat later on.
     final marks = <(Key, IconData, String)>[
@@ -430,64 +436,70 @@ class SeatWidget extends ConsumerWidget {
             ],
           ],
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (timeBankSeconds > 0) ...[
-              Tooltip(
-                tooltip: TooltipContainer(
-                  child: Text(l10n.timeBankLeft(p.timeBank ?? 0)),
-                ).call,
-                child: _TimeBankLeft(
-                  key: Key('timebank-stack-$seat'),
-                  seconds: p.timeBank ?? 0,
-                  // While the bank is running, the seconds count down from
-                  // the server deadline instead of showing the balance.
-                  deadlineTs: timeBankActive ? hand?.deadlineTs : null,
-                  compact: compact,
+        // The stack line (time bank, chips, amount, winnings) can be wider
+        // than a compact seat: scale it down rather than spill past the
+        // screen edge.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (timeBankSeconds > 0) ...[
+                Tooltip(
+                  tooltip: TooltipContainer(
+                    child: Text(l10n.timeBankLeft(p.timeBank ?? 0)),
+                  ).call,
+                  child: _TimeBankLeft(
+                    key: Key('timebank-stack-$seat'),
+                    seconds: p.timeBank ?? 0,
+                    // While the bank is running, the seconds count down from
+                    // the server deadline instead of showing the balance.
+                    deadlineTs: timeBankActive ? hand?.deadlineTs : null,
+                    compact: compact,
+                  ),
                 ),
-              ),
-              const Gap(6),
-            ],
-            // The stack as a few small chips, so its size can be read at a
-            // glance; the number stays next to it.
-            if (ref.watch(chipStacksProvider) && p.stack > 0) ...[
-              ChipStackView(
-                key: Key('seat-stack-$seat'),
-                amount: p.stack,
-                bigBlind: bigBlind,
-                chipWidth: compact ? 7 : 8,
-                maxChips: 8,
-              ),
-              const Gap(4),
-            ],
-            Text(
-              formatAmount(
-                p.stack,
-                mode: chipDisplay,
-                bigBlind: bigBlind,
-                locale: locale,
-              ),
-              style: TextStyle(
-                fontSize: compact ? 11 : 12,
-                color: theme.colorScheme.mutedForeground,
-                fontFamily: 'GeistMono',
-              ),
-            ),
-            if ((wonAmount ?? 0) > 0) ...[
-              const Gap(4),
+                const Gap(6),
+              ],
+              // The stack as a few small chips, so its size can be read at a
+              // glance; the number stays next to it.
+              if (ref.watch(chipStacksProvider) && p.stack > 0) ...[
+                ChipStackView(
+                  key: Key('seat-stack-$seat'),
+                  amount: p.stack,
+                  bigBlind: bigBlind,
+                  chipWidth: compact ? 7 : 8,
+                  maxChips: 8,
+                ),
+                const Gap(4),
+              ],
               Text(
-                '+${formatAmount(wonAmount!, mode: chipDisplay, bigBlind: bigBlind, locale: locale)}',
-                key: Key('won-$seat'),
+                formatAmount(
+                  p.stack,
+                  mode: chipDisplay,
+                  bigBlind: bigBlind,
+                  locale: locale,
+                ),
                 style: TextStyle(
                   fontSize: compact ? 11 : 12,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF43A047),
+                  color: theme.colorScheme.mutedForeground,
                   fontFamily: 'GeistMono',
                 ),
               ),
+              if ((wonAmount ?? 0) > 0) ...[
+                const Gap(4),
+                Text(
+                  '+${formatAmount(wonAmount!, mode: chipDisplay, bigBlind: bigBlind, locale: locale)}',
+                  key: Key('won-$seat'),
+                  style: TextStyle(
+                    fontSize: compact ? 11 : 12,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF43A047),
+                    fontFamily: 'GeistMono',
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
         if (badges.isNotEmpty) ...[
           const Gap(2),
@@ -509,7 +521,17 @@ class SeatWidget extends ConsumerWidget {
         alignment: Alignment.topCenter,
         children: [
           column,
-          if (phrase != null)
+          if (shownSticker != null)
+            Positioned(
+              top: cardWidth * 0.2,
+              child: _StickerBubble(
+                key: ValueKey('sticker-$seat-$shownSticker'),
+                id: shownSticker,
+                size: (compact ? 52.0 : 68.0) * scale,
+                seat: seat,
+              ),
+            )
+          else if (phrase != null)
             Positioned(
               top: cardWidth * 0.5,
               child: _PhraseBubble(
@@ -638,6 +660,31 @@ class _PhraseBubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A sticker popping up over the seat, like the phrase bubble but without
+/// the box: the animation is the message.
+class _StickerBubble extends StatelessWidget {
+  const _StickerBubble({
+    super.key,
+    required this.id,
+    required this.size,
+    required this.seat,
+  });
+  final String id;
+  final double size;
+  final int seat;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.4, end: 1),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutBack,
+      builder: (context, t, child) => Transform.scale(scale: t, child: child),
+      child: StickerView(key: Key('sticker-bubble-$seat'), id: id, size: size),
     );
   }
 }

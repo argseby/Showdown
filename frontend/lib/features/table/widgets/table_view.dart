@@ -156,10 +156,13 @@ class TableView extends ConsumerWidget {
         // under the action bar).
         // A little air between the viewer's seat and the action bar.
         const bottomAir = 12.0;
+        // Phones: seats at the sides sit right on the screen edge; a
+        // little more margin keeps their stack line and bet chips visible.
+        final sideAir = compact ? 10.0 : 4.0;
         final oval = Rect.fromLTWH(
-          seatW / 2 + 4,
+          seatW / 2 + sideAir,
           seatH / 2 + 4,
-          math.max(40, size.width - seatW - 8),
+          math.max(40, size.width - seatW - 2 * sideAir),
           math.max(40, size.height - seatH - 8 - bottomAir),
         );
         // A seat's content (cards, avatar, name, stack, badges) is shorter
@@ -254,8 +257,27 @@ class TableView extends ConsumerWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(1000),
-                color: theme.colorScheme.card,
+                // A soft radial gradient and an inner rim give the felt
+                // some depth; a flat card colour read as an outline only.
+                gradient: RadialGradient(
+                  radius: 0.9,
+                  colors: [
+                    Color.lerp(
+                      theme.colorScheme.card,
+                      theme.colorScheme.foreground,
+                      0.05,
+                    )!,
+                    theme.colorScheme.card,
+                  ],
+                ),
                 border: Border.all(color: theme.colorScheme.border, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.foreground.withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    spreadRadius: -4,
+                  ),
+                ],
               ),
             ),
           ),
@@ -395,9 +417,10 @@ class TableView extends ConsumerWidget {
                   compact: compact,
                   scale: scale,
                   // A quick phrase or a fresh chat line next to the avatar.
-                  phrase: session.phrases[sv.seat] != null
-                      ? phraseLabel(l10n, session.phrases[sv.seat]!.phrase)
+                  phrase: session.phrases[sv.seat]?.phrase != null
+                      ? phraseLabel(l10n, session.phrases[sv.seat]!.phrase!)
                       : session.chatBubbles[sv.seat],
+                  sticker: session.phrases[sv.seat]?.sticker,
                   onPlayerTap:
                       onPlayerTap != null &&
                           sv.player != null &&

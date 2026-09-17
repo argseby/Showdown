@@ -108,3 +108,66 @@ func Equity(v Variant, board []Card, hands [][2]Card, maxSamples int, seed uint6
 	}
 	return out
 }
+
+// Strength is the share of the pot hero would take against opponents random
+// hands, over samples random deals of those hands and the rest of the board
+// from the variant's deck (hero's cards and the board excluded): a win
+// counts 1, an n-way tie 1/n. A quick, rough measure of how good a hand is
+// right now, meant for beginners; it ignores how anyone plays.
+func Strength(v Variant, board []Card, hero [2]Card, opponents, samples int, seed uint64) float64 {
+	if opponents < 1 {
+		opponents = 1
+	}
+	if samples < 1 {
+		samples = 1
+	}
+	used := make([]bool, DeckSize)
+	for _, c := range board {
+		used[c] = true
+	}
+	used[hero[0]], used[hero[1]] = true, true
+	var deck []Card
+	for _, c := range v.Deck() {
+		if !used[c] {
+			deck = append(deck, c)
+		}
+	}
+	missing := 5 - len(board)
+	if missing < 0 {
+		missing = 0
+	}
+	need := missing + 2*opponents
+	if need > len(deck) {
+		return 0
+	}
+	rng := rand.New(rand.NewPCG(seed, seed^0x9e3779b97f4a7c15))
+	full := make([]Card, 0, 5)
+	cards := make([]Card, 0, 7)
+	total := 0.0
+	for s := 0; s < samples; s++ {
+		for i := 0; i < need; i++ {
+			j := i + rng.IntN(len(deck)-i)
+			deck[i], deck[j] = deck[j], deck[i]
+		}
+		full = append(full[:0], board...)
+		full = append(full, deck[:missing]...)
+		cards = append(cards[:0], hero[0], hero[1])
+		cards = append(cards, full...)
+		mine := Evaluate(cards)
+		ties, beaten := 1, false
+		for o := 0; o < opponents && !beaten; o++ {
+			cards = append(cards[:0], deck[missing+2*o], deck[missing+2*o+1])
+			cards = append(cards, full...)
+			switch Evaluate(cards).Compare(mine) {
+			case 1:
+				beaten = true
+			case 0:
+				ties++
+			}
+		}
+		if !beaten {
+			total += 1 / float64(ties)
+		}
+	}
+	return total / float64(samples)
+}

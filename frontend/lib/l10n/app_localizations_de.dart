@@ -447,7 +447,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabLeaderboard => 'Rangliste';
 
   @override
-  String get panelToggle => 'Seitenleiste ein-/ausblenden';
+  String get panelToggle => 'Menü: Chat, Log, Rangliste, Einstellungen';
+
+  @override
+  String get panelMenu => 'Menü';
 
   @override
   String get chatPlaceholder => 'Nachricht...';
@@ -475,6 +478,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get logEmpty => 'Noch keine Ereignisse';
+
+  @override
+  String get chatEmpty => 'Noch keine Nachrichten. Sag hallo!';
 
   @override
   String get lbName => 'Name';
@@ -1035,7 +1041,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get landingCreate => 'Tisch erstellen';
 
   @override
-  String get tabAdmin => 'Admin';
+  String get tabAdmin => 'Host';
 
   @override
   String get adminKey => 'Admin-Schlüssel';
@@ -1299,6 +1305,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get menuTable => 'Tisch';
 
   @override
+  String get settingsTableRules => 'Tischregeln (Host)';
+
+  @override
   String turnOf(String name, int seconds) {
     return '$name ist dran · $seconds s';
   }
@@ -1367,6 +1376,72 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get peerHideHeat => 'Siegesserie ausblenden';
+
+  @override
+  String get peerHideStickers => 'Sticker ausblenden';
+
+  @override
+  String get sayPhrases => 'Sprüche';
+
+  @override
+  String get sayStickers => 'Sticker';
+
+  @override
+  String get landingStickers => 'Sticker: Noto Emoji (CC BY 4.0)';
+
+  @override
+  String get strengthButton => 'Wie stark ist meine Hand?';
+
+  @override
+  String get strengthTitle => 'Handstärke';
+
+  @override
+  String get strengthUnavailable => 'Du bist gerade in keiner Hand.';
+
+  @override
+  String get strengthRefresh => 'Neu berechnen';
+
+  @override
+  String strengthEquity(int percent, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zufällige Hände',
+      one: 'eine zufällige Hand',
+    );
+    return 'Gewinnt in etwa $percent % der Fälle gegen $_temp0.';
+  }
+
+  @override
+  String strengthTier(String tier) {
+    String _temp0 = intl.Intl.selectLogic(tier, {
+      'monster': 'Monster',
+      'strong': 'Stark',
+      'good': 'Gut',
+      'marginal': 'Grenzwertig',
+      'weak': 'Schwach',
+      'other': 'Unbekannt',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String strengthTip(String tier) {
+    String _temp0 = intl.Intl.selectLogic(tier, {
+      'monster': 'Setzen und erhöhen: solche Hände verlieren fast nie.',
+      'strong': 'Setzen oder erhöhen, die meisten Einsätze mitgehen.',
+      'good': 'Ein Einsatz lohnt sich, solange niemand Stärke gezeigt hat; Vorsicht bei großen Erhöhungen.',
+      'marginal': 'Checken, wenn es geht; kleine Einsätze mitgehen, bei großen aussteigen.',
+      'weak':
+          'Bei einem Einsatz aussteigen, außer die nächste Karte ist billig.',
+      'other': 'Vorsichtig spielen.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get strengthHint =>
+      'Eine grobe Orientierung für Einsteiger: wie oft diese Hand gegen zufällige Karten gewinnen würde, gerechnet über die noch kommenden Karten. Wie deine Gegner spielen, weiß sie nicht.';
 
   @override
   String get peerReset => 'Zurücksetzen';

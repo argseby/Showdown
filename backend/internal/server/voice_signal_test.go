@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -218,4 +219,34 @@ func TestFrameBeyondReadLimitClosesConnection(t *testing.T) {
 		return // the server may close before the write completes
 	}
 	alice.expectClosed(int(websocket.StatusMessageTooBig))
+}
+
+// A browser trickles every ICE candidate as its own signal: with STUN, a
+// TURN server and a few network interfaces that is dozens within a second,
+// and a mesh that reconnects multiplies it. The burst must not count as
+// command spam that closes the table connection (it did: voice then looped
+// between reconnecting and rejoining for anyone with many candidates).
+func TestVoiceSignalBurstIsNotRateLimited(t *testing.T) {
+	h := newHarness(t, t.TempDir(), "")
+	defer h.stop()
+	tableID, _ := h.createTable(fastSettings())
+
+	_, a := h.request(http.MethodPost, "/api/tables/"+tableID+"/join", "", map[string]any{"name": "alice"})
+	_, b := h.request(http.MethodPost, "/api/tables/"+tableID+"/join", "", map[string]any{"name": "bob"})
+	alice := dialRaw(t, h, tableID, a["player_token"].(string), a["player_id"].(string))
+	bob := dialRaw(t, h, tableID, b["player_token"].(string), b["player_id"].(string))
+
+	// Well above the 20 commands per second that close a connection.
+	const burst = 50
+	for i := 0; i < burst; i++ {
+		alice.write(protocol.MustEncode(protocol.TypeVoiceSignal, fmt.Sprintf("c-%d", i), protocol.VoiceSignal{
+			To: bob.id, Kind: "ice", Data: fmt.Sprintf("candidate:%d 1 udp 2122260223 10.0.0.%d 5000%d typ host", i, i, i%10),
+		}))
+	}
+	for i := 0; i < burst; i++ {
+		bob.await(5*time.Second, protocol.TypeVoiceSignal)
+	}
+	// Alice's connection is still open: a ping is answered.
+	alice.write(protocol.MustEncode(protocol.TypePing, "p-1", nil))
+	alice.await(5*time.Second, protocol.TypePong)
 }

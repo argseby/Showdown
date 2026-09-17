@@ -128,9 +128,28 @@ type ShowCardsPayload struct {
 	Cards string `json:"cards,omitempty"`
 }
 
-// SayPayload picks one of the predefined quick phrases (see Phrases).
+// SayPayload shows a quick phrase (one of Phrases) or a sticker (one of
+// Stickers) next to the player's seat; exactly one of the two is set.
 type SayPayload struct {
-	Phrase string `json:"phrase"`
+	Phrase  string `json:"phrase,omitempty"`
+	Sticker string `json:"sticker,omitempty"`
+}
+
+// Stickers are the animated stickers a player may show; the client ships
+// the animations, the server only knows the ids. The first 22 are poker
+// scenes the client draws itself, the rest emoji.
+var Stickers = []string{
+	"all_in", "pocket_aces", "seven_deuce", "fold", "royal_flush",
+	"chip_rain", "shuffle", "dealer_button", "chip_flip", "bad_beat",
+	"quads", "straight", "hearts", "tilt", "cooler", "river",
+	"pot_splash", "fish", "shark", "knock", "raise", "time",
+	"poker_face", "cool", "smirk", "thinking", "eyebrow", "monocle",
+	"eyes", "speechless", "zipper", "grimace", "sweat", "downcast",
+	"sob", "angry", "mind_blown", "scream", "giggle", "joy",
+	"rofl", "sleeping", "drooling", "money_face", "star_struck", "party_face",
+	"pleading", "eye_roll", "clown", "skull", "cold", "hot",
+	"fire", "hundred", "party_popper", "money_wings", "clover", "fingers_crossed",
+	"thumbs_up", "thumbs_down", "clap", "pray", "flex", "trophy",
 }
 
 // Phrases are the quick phrases a player may say; the client translates them.
@@ -152,12 +171,14 @@ type HatPayload struct {
 	Hat string `json:"hat"`
 }
 
-// PhrasePayload is a quick phrase shown next to the player's avatar.
+// PhrasePayload is a quick phrase or a sticker shown next to the player's
+// avatar (one of the two is set).
 type PhrasePayload struct {
-	Seat   int    `json:"seat"`
-	Name   string `json:"name"`
-	Phrase string `json:"phrase"`
-	TS     int64  `json:"ts"`
+	Seat    int    `json:"seat"`
+	Name    string `json:"name"`
+	Phrase  string `json:"phrase,omitempty"`
+	Sticker string `json:"sticker,omitempty"`
+	TS      int64  `json:"ts"`
 }
 
 // VoicePayload announces the sender's voice-chat state: "off", "on", "muted",

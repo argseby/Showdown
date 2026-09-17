@@ -762,8 +762,11 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
 
   Future<void> chat(String text) =>
       _send(ClientMessage.chat(ChatPayload(text: text)));
-  Future<void> say(String phrase) =>
-      _send(ClientMessage.say(SayPayload(phrase: phrase)));
+
+  /// Shows a quick phrase ([phrase], a key from phrases.dart) or a sticker
+  /// ([sticker], an id from stickers.dart) next to the own seat.
+  Future<void> say({String? phrase, String? sticker}) =>
+      _send(ClientMessage.say(SayPayload(phrase: phrase, sticker: sticker)));
 
   /// Leaves the table. The server frees the seat and closes the socket;
   /// the client must not reconnect afterwards (its token is revoked).

@@ -70,6 +70,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/tables/{id}/spectate", s.rateLimited(s.limJoin, s.handleSpectate))
 	s.mux.HandleFunc("POST /api/tables", s.rateLimited(s.limCreate, s.handleCreateTable))
 	s.mux.HandleFunc("GET /api/tables/{id}/hands", s.rateLimited(s.limInfo, s.handleSessionHands))
+	s.mux.HandleFunc("GET /api/tables/{id}/strength", s.rateLimited(s.limInfo, s.handleStrength))
 	s.mux.HandleFunc("GET /ws/table/{id}", s.handleWS)
 
 	// Table admin: every route is guarded by the table's own admin token.

@@ -875,8 +875,14 @@ abstract class AppLocalizations {
   /// No description provided for @panelToggle.
   ///
   /// In en, this message translates to:
-  /// **'Toggle panel'**
+  /// **'Menu: chat, log, leaderboard, settings'**
   String get panelToggle;
+
+  /// No description provided for @panelMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get panelMenu;
 
   /// No description provided for @chatPlaceholder.
   ///
@@ -931,6 +937,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No events yet'**
   String get logEmpty;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Say hi!'**
+  String get chatEmpty;
 
   /// No description provided for @lbName.
   ///
@@ -1871,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabAdmin.
   ///
   /// In en, this message translates to:
-  /// **'Admin'**
+  /// **'Host'**
   String get tabAdmin;
 
   /// No description provided for @adminKey.
@@ -2318,6 +2330,12 @@ abstract class AppLocalizations {
   /// **'Table'**
   String get menuTable;
 
+  /// No description provided for @settingsTableRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Table rules (host)'**
+  String get settingsTableRules;
+
   /// No description provided for @turnOf.
   ///
   /// In en, this message translates to:
@@ -2443,6 +2461,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide win streak'**
   String get peerHideHeat;
+
+  /// No description provided for @peerHideStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide stickers'**
+  String get peerHideStickers;
+
+  /// No description provided for @sayPhrases.
+  ///
+  /// In en, this message translates to:
+  /// **'Phrases'**
+  String get sayPhrases;
+
+  /// No description provided for @sayStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers'**
+  String get sayStickers;
+
+  /// No description provided for @landingStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers: Noto Emoji (CC BY 4.0)'**
+  String get landingStickers;
+
+  /// No description provided for @strengthButton.
+  ///
+  /// In en, this message translates to:
+  /// **'How strong is my hand?'**
+  String get strengthButton;
+
+  /// No description provided for @strengthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand strength'**
+  String get strengthTitle;
+
+  /// No description provided for @strengthUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not in a hand right now.'**
+  String get strengthUnavailable;
+
+  /// No description provided for @strengthRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate'**
+  String get strengthRefresh;
+
+  /// No description provided for @strengthEquity.
+  ///
+  /// In en, this message translates to:
+  /// **'Wins about {percent}% of the time against {count, plural, =1{one random hand} other{{count} random hands}}.'**
+  String strengthEquity(int percent, int count);
+
+  /// No description provided for @strengthTier.
+  ///
+  /// In en, this message translates to:
+  /// **'{tier, select, monster{Monster} strong{Strong} good{Good} marginal{Marginal} weak{Weak} other{Unknown}}'**
+  String strengthTier(String tier);
+
+  /// No description provided for @strengthTip.
+  ///
+  /// In en, this message translates to:
+  /// **'{tier, select, monster{Bet and raise: hands like this hardly ever lose.} strong{Bet or raise, and call most bets.} good{Worth a bet when nobody has shown strength; be careful against big raises.} marginal{Check when you can, call small bets, fold to big ones.} weak{Fold to a bet unless seeing the next card is cheap.} other{Play carefully.}}'**
+  String strengthTip(String tier);
+
+  /// No description provided for @strengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A rough guide for beginners: how often this hand would win against random cards over the cards still to come. It knows nothing about how your opponents play.'**
+  String get strengthHint;
 
   /// No description provided for @peerReset.
   ///

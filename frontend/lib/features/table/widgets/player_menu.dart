@@ -137,6 +137,13 @@ class _PlayerMenu extends ConsumerWidget {
               (v) => set(prefs.copyWith(hideHeat: v)),
               key: const Key('peer-hide-heat'),
             ),
+            toggle(
+              LucideIcons.smile,
+              l10n.peerHideStickers,
+              prefs.hideStickers,
+              (v) => set(prefs.copyWith(hideStickers: v)),
+              key: const Key('peer-hide-stickers'),
+            ),
             const Gap(4),
             Text(l10n.playerMenuLocalHint).muted().xSmall(),
             if (admin != null) ...[

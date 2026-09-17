@@ -66,17 +66,20 @@ _HatPayload _$HatPayloadFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$HatPayloadToJson(_HatPayload instance) =>
     <String, dynamic>{'hat': instance.hat};
 
-_SayPayload _$SayPayloadFromJson(Map<String, dynamic> json) =>
-    _SayPayload(phrase: json['phrase'] as String);
+_SayPayload _$SayPayloadFromJson(Map<String, dynamic> json) => _SayPayload(
+  phrase: json['phrase'] as String?,
+  sticker: json['sticker'] as String?,
+);
 
 Map<String, dynamic> _$SayPayloadToJson(_SayPayload instance) =>
-    <String, dynamic>{'phrase': instance.phrase};
+    <String, dynamic>{'phrase': ?instance.phrase, 'sticker': ?instance.sticker};
 
 _PhrasePayload _$PhrasePayloadFromJson(Map<String, dynamic> json) =>
     _PhrasePayload(
       seat: (json['seat'] as num).toInt(),
       name: json['name'] as String,
-      phrase: json['phrase'] as String,
+      phrase: json['phrase'] as String?,
+      sticker: json['sticker'] as String?,
       ts: (json['ts'] as num).toInt(),
     );
 
@@ -84,7 +87,8 @@ Map<String, dynamic> _$PhrasePayloadToJson(_PhrasePayload instance) =>
     <String, dynamic>{
       'seat': instance.seat,
       'name': instance.name,
-      'phrase': instance.phrase,
+      'phrase': ?instance.phrase,
+      'sticker': ?instance.sticker,
       'ts': instance.ts,
     };
 

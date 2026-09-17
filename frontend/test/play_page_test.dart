@@ -3,10 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showdown/app/preferences.dart';
+import 'package:showdown/core/providers.dart';
+import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/core/session_store.dart';
 import 'package:showdown/core/voice/network_check.dart';
 import 'package:showdown/core/voice/voice_controller.dart';
@@ -68,6 +74,12 @@ class ScriptedTransport implements WsTransport {
   String? get closeReason => null;
 }
 
+/// The hand line switched off.
+class _NoHandLine extends HandLineNotifier {
+  @override
+  HandLinePlacement build() => HandLinePlacement.off;
+}
+
 class _MemorySessionStore extends SessionStore {
   _MemorySessionStore(this.session);
   final StoredSession? session;
@@ -100,7 +112,10 @@ void main() {
     TableSessionNotifier.urlOverride = null;
   });
 
-  Future<void> pumpPlay(WidgetTester tester) async {
+  Future<void> pumpPlay(
+    WidgetTester tester, {
+    List<Override> extra = const [],
+  }) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -130,6 +145,27 @@ void main() {
                 name: 'Alice',
                 playerId: 'p1',
               ),
+            ),
+          ),
+          ...extra,
+          // The REST API: only the hand-strength readout answers.
+          restClientProvider.overrideWithValue(
+            RestClient(
+              baseUrl: 'http://test',
+              client: MockClient((req) async {
+                if (req.url.path == '/api/tables/k7m2p9xq4w/strength') {
+                  expect(req.headers['Authorization'], 'Bearer tok');
+                  return http.Response(
+                    '{"equity":0.62,"opponents":2,"tier":"strong","description":"Pair of Aces",'
+                    '"street":"flop","cards":["As","Kd"],"board":["Ah","7c","2d"],"best":["As","Ah"]}',
+                    200,
+                  );
+                }
+                return http.Response(
+                  '{"error":{"code":"not_found","message":"no"}}',
+                  404,
+                );
+              }),
             ),
           ),
         ],
@@ -223,9 +259,9 @@ void main() {
     // The bar keeps invite, microphone and the panel toggle; no menu.
     expect(find.byKey(const Key('panel-toggle')), findsOneWidget);
     expect(find.byKey(const Key('table-menu')), findsNothing);
-    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.ensureVisible(find.byKey(const Key('tab-settings')));
     await tester.pump();
-    await tester.tap(find.byIcon(LucideIcons.settings));
+    await tester.tap(find.byKey(const Key('tab-settings')));
     await tester.pump(const Duration(milliseconds: 600));
     // The gear tab: voice, preferences, table actions.
     expect(find.byKey(const Key('drawer-voice')), findsOneWidget);
@@ -246,9 +282,9 @@ void main() {
     await pumpPlay(tester);
     // Bob wears a cowboy hat in the fixture.
     expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
-    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.ensureVisible(find.byKey(const Key('tab-settings')));
     await tester.pump();
-    await tester.tap(find.byIcon(LucideIcons.settings));
+    await tester.tap(find.byKey(const Key('tab-settings')));
     await tester.pump(const Duration(milliseconds: 600));
     await tester.ensureVisible(find.byKey(const Key('drawer-hat')));
     await tester.pump();
@@ -259,6 +295,47 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     final hat = transport.sent.lastWhere((e) => e['type'] == 'hat');
     expect(hat['payload'], {'hat': 'pirate'});
+  });
+
+  testWidgets('the beginner button shows how strong the hand is', (
+    tester,
+  ) async {
+    await pumpPlay(tester);
+    // Alice is dealt in: the button is offered.
+    await tester.ensureVisible(find.byKey(const Key('strength-button')));
+    await tester.tap(find.byKey(const Key('strength-button')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Hand strength'), findsOneWidget);
+    expect(find.byKey(const Key('strength-tier')), findsOneWidget);
+    expect(find.text('Strong'), findsOneWidget);
+    expect(
+      find.text('Wins about 62% of the time against 2 random hands.'),
+      findsOneWidget,
+    );
+    expect(find.text('Pair of Aces'), findsWidgets);
+    expect(find.byKey(const Key('strength-marker')), findsOneWidget);
+    // Recalculate fetches again and keeps the readout.
+    await tester.tap(find.byKey(const Key('strength-refresh')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Strong'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('strength-close')));
+    await tester.tap(find.byKey(const Key('strength-close')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Hand strength'), findsNothing);
+  });
+
+  testWidgets('without the hand line there is no beginner button', (
+    tester,
+  ) async {
+    await pumpPlay(
+      tester,
+      extra: [handLineProvider.overrideWith(_NoHandLine.new)],
+    );
+    expect(find.byKey(const Key('your-hand-bottom')), findsNothing);
+    expect(find.byKey(const Key('strength-button')), findsNothing);
   });
 
   testWidgets('the player menu mutes and hides another player locally', (
@@ -319,9 +396,9 @@ void main() {
         .widgetList<PlayingCardWidget>(find.byType(PlayingCardWidget))
         .first
         .width;
-    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.ensureVisible(find.byKey(const Key('tab-settings')));
     await tester.pump();
-    await tester.tap(find.byIcon(LucideIcons.settings));
+    await tester.tap(find.byKey(const Key('tab-settings')));
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -376,6 +453,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     final say = transport.sent.lastWhere((e) => e['type'] == 'say');
     expect(say['payload'], {'phrase': 'gg'});
+    // A sticker goes the same way and pops up over the seat.
+    await tester.tap(find.byKey(const Key('say-button')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(find.byKey(const Key('sticker-fire')));
+    await tester.tap(find.byKey(const Key('sticker-fire')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final sticker = transport.sent.lastWhere((e) => e['type'] == 'say');
+    expect(sticker['payload'], {'sticker': 'fire'});
+    transport.controller.add(
+      jsonEncode({
+        'type': 'phrase',
+        'payload': {'seat': 4, 'name': 'Bob', 'sticker': 'skull', 'ts': 2},
+      }),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('sticker-bubble-4')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    expect(find.byKey(const Key('sticker-bubble-4')), findsNothing);
     transport.controller.add(
       jsonEncode({
         'type': 'phrase',

@@ -10,6 +10,7 @@ import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
 import '../../core/peer_prefs.dart';
+import '../../core/providers.dart';
 import '../../core/session_store.dart';
 import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
@@ -29,6 +30,7 @@ import 'replay/replay_dialog.dart';
 import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
+import 'widgets/hand_strength_dialog.dart';
 import 'widgets/invite_dialog.dart';
 import 'widgets/player_menu.dart';
 import 'widgets/say_dialog.dart';
@@ -289,6 +291,18 @@ class _PlayPageState extends ConsumerState<PlayPage>
         _tab = tab;
       }
     });
+  }
+
+  /// Fetches and shows how strong the own hand is right now.
+  Future<void> _showStrength() async {
+    final token = ref.read(sessionProvider(widget.tableId)).value?.token;
+    if (token == null) return;
+    await showHandStrengthDialog(
+      context,
+      load: () => ref
+          .read(restClientProvider)
+          .handStrength(widget.tableId, token: token),
+    );
   }
 
   Future<void> _leave() async {
@@ -635,6 +649,16 @@ class _PlayPageState extends ConsumerState<PlayPage>
             shown: session.mySeat != null
                 ? session.shown[session.mySeat!] ?? const []
                 : const [],
+            // The beginner's readout: a companion of the hand line, so it
+            // goes when that is off; only while dealt in and not folded.
+            onStrength:
+                session.isPlayer &&
+                    ref.watch(handLineProvider) != HandLinePlacement.off &&
+                    snap?.hand != null &&
+                    (myPlayer?.inHand ?? false) &&
+                    !(myPlayer?.folded ?? false)
+                ? _showStrength
+                : null,
             textFieldFocusChanged: (f) => _amountFocused = f,
           ),
         ),
@@ -660,33 +684,44 @@ class _PlayPageState extends ConsumerState<PlayPage>
     }
     // Only chat messages count on the toggle; the hand log has its own badge.
     final unread = session.unreadChat;
+    final panelIcon = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // On phones the panel is a sheet, so the icon says "menu".
+        Icon(wide ? LucideIcons.panelRight : LucideIcons.menu),
+        if (unread > 0 && !(wide && _panelOpen))
+          Positioned(
+            right: -6,
+            top: -6,
+            child: PrimaryBadge(child: Text(unread > 99 ? '99+' : '$unread')),
+          ),
+      ],
+    );
+    void togglePanel() {
+      if (wide) {
+        setState(() => _panelOpen = !_panelOpen);
+      } else {
+        _openSheet(panel);
+      }
+    }
+
+    // Desktops get the word "Menu" next to the icon: an icon alone did not
+    // tell players where chat, log and settings live.
     final panelButton = Tooltip(
       tooltip: TooltipContainer(child: Text(l10n.panelToggle)).call,
-      child: GhostButton(
-        key: const Key('panel-toggle'),
-        density: ButtonDensity.icon,
-        onPressed: () {
-          if (wide) {
-            setState(() => _panelOpen = !_panelOpen);
-          } else {
-            _openSheet(panel);
-          }
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Icon(LucideIcons.panelRight),
-            if (unread > 0 && !(wide && _panelOpen))
-              Positioned(
-                right: -6,
-                top: -6,
-                child: PrimaryBadge(
-                  child: Text(unread > 99 ? '99+' : '$unread'),
-                ),
-              ),
-          ],
-        ),
-      ),
+      child: compact
+          ? GhostButton(
+              key: const Key('panel-toggle'),
+              density: ButtonDensity.icon,
+              onPressed: togglePanel,
+              child: panelIcon,
+            )
+          : GhostButton(
+              key: const Key('panel-toggle'),
+              onPressed: togglePanel,
+              leading: panelIcon,
+              child: Text(l10n.panelMenu),
+            ),
     );
     final inviteButton = compact
         ? Tooltip(
@@ -828,18 +863,21 @@ class _PlayPageState extends ConsumerState<PlayPage>
         const Gap(4),
         ?micButton,
         ?cameraButton,
-        Tooltip(
-          tooltip: TooltipContainer(child: Text(l10n.replayOpen)).call,
-          child: GhostButton(
-            key: const Key('replay-button'),
-            density: ButtonDensity.icon,
-            onPressed: snap == null ? null : _replay,
-            child: Icon(
-              LucideIcons.history,
-              color: theme.colorScheme.mutedForeground,
+        // Phones: the replay lives in the Log tab; the bar keeps the room
+        // for the table name.
+        if (!compact)
+          Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.replayOpen)).call,
+            child: GhostButton(
+              key: const Key('replay-button'),
+              density: ButtonDensity.icon,
+              onPressed: snap == null ? null : _replay,
+              child: Icon(
+                LucideIcons.history,
+                color: theme.colorScheme.mutedForeground,
+              ),
             ),
           ),
-        ),
         panelButton,
       ],
     );

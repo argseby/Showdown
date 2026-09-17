@@ -103,7 +103,11 @@ abstract class HatPayload with _$HatPayload {
 /// say payload: one of the predefined quick phrases.
 @freezed
 abstract class SayPayload with _$SayPayload {
-  const factory SayPayload({required String phrase}) = _SayPayload;
+  /// Exactly one of [phrase] (a quick phrase key) and [sticker] (a sticker id).
+  const factory SayPayload({
+    @JsonKey(includeIfNull: false) String? phrase,
+    @JsonKey(includeIfNull: false) String? sticker,
+  }) = _SayPayload;
   factory SayPayload.fromJson(Map<String, dynamic> json) =>
       _$SayPayloadFromJson(json);
 }
@@ -114,7 +118,8 @@ abstract class PhrasePayload with _$PhrasePayload {
   const factory PhrasePayload({
     required int seat,
     required String name,
-    required String phrase,
+    @JsonKey(includeIfNull: false) String? phrase,
+    @JsonKey(includeIfNull: false) String? sticker,
     required int ts,
   }) = _PhrasePayload;
   factory PhrasePayload.fromJson(Map<String, dynamic> json) =>

@@ -62,7 +62,11 @@ class ActionBar extends StatefulWidget {
     this.chipDisplay = ChipDisplay.coins,
     this.shown = const [],
     this.handLine,
+    this.onStrength,
   });
+
+  /// Beginner's help: opens the hand-strength readout (null = not in a hand).
+  final VoidCallback? onStrength;
 
   final Snapshot? snapshot;
   final ActionCallbacks callbacks;
@@ -430,6 +434,7 @@ class ActionBarState extends State<ActionBar> {
     }
 
     final handLine = widget.handLine;
+    final showHandLine = handLine != null && handLine.isNotEmpty;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -441,25 +446,37 @@ class ActionBarState extends State<ActionBar> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           content,
-          if (handLine != null && handLine.isNotEmpty) ...[
+          if (showHandLine || widget.onStrength != null) ...[
             const Gap(4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  LucideIcons.sparkles,
-                  size: 12,
-                  color: theme.colorScheme.mutedForeground,
-                ),
-                const Gap(6),
-                Text(
-                  l10n.yourHand(handLine),
-                  key: const Key('your-hand-bottom'),
-                  style: TextStyle(
-                    fontSize: 11,
+                if (showHandLine) ...[
+                  Icon(
+                    LucideIcons.sparkles,
+                    size: 12,
                     color: theme.colorScheme.mutedForeground,
                   ),
-                ),
+                  const Gap(6),
+                  Text(
+                    l10n.yourHand(handLine),
+                    key: const Key('your-hand-bottom'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                  ),
+                ],
+                if (widget.onStrength != null) ...[
+                  if (showHandLine) const Gap(12),
+                  GhostButton(
+                    key: const Key('strength-button'),
+                    size: ButtonSize.xSmall,
+                    onPressed: widget.onStrength,
+                    leading: const Icon(LucideIcons.gauge, size: 12),
+                    child: Text(l10n.strengthButton),
+                  ),
+                ],
               ],
             ),
           ],
