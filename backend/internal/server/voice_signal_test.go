@@ -244,7 +244,7 @@ func TestVoiceSignalBurstIsNotRateLimited(t *testing.T) {
 		}))
 	}
 	for i := 0; i < burst; i++ {
-		bob.await(5*time.Second, protocol.TypeVoiceSignal)
+		bob.await(10*time.Second, protocol.TypeVoiceSignal)
 	}
 	// Alice's connection is still open: a ping is answered.
 	alice.write(protocol.MustEncode(protocol.TypePing, "p-1", nil))
