@@ -200,7 +200,8 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 			p := &Player{
 				ID: pr.ID, Name: pr.Name, Seat: pr.Seat, Stack: pr.Stack, Status: pr.Status, Muted: pr.Muted,
 				MissedTurns: pr.MissedTurns, BuyInTotal: pr.BuyInTotal, HandsPlayed: pr.HandsPlayed,
-				HandsWon: pr.HandsWon, BiggestPot: pr.BiggestPot, JoinedAt: pr.JoinedAt, Avatar: pr.Avatar,
+				HandsWon: pr.HandsWon, BiggestPot: pr.BiggestPot, JoinedAt: pr.JoinedAt, Avatar: pr.Avatar, Hat: pr.Hat,
+				WinStreak: pr.WinStreak,
 				VPIPHands: pr.VPIPHands, Showdowns: pr.Showdowns, ShowdownsWon: pr.ShowdownsWon,
 				TimeBank: pr.TimeBank, Place: pr.Place,
 				pendingSeat: -1,

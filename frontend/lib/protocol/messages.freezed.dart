@@ -1321,7 +1321,7 @@ extension ClientMessagePatterns on ClientMessage {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( HelloMessage value)?  hello,TResult Function( ActionMessage value)?  action,TResult Function( SitOutMessage value)?  sitOut,TResult Function( SitInMessage value)?  sitIn,TResult Function( RebuyMessage value)?  rebuy,TResult Function( LeaveMessage value)?  leave,TResult Function( ShowCardsMessage value)?  showCards,TResult Function( PreActionMessage value)?  preAction,TResult Function( RabbitHuntMessage value)?  rabbitHunt,TResult Function( ChangeSeatMessage value)?  changeSeat,TResult Function( VoiceMessage value)?  voice,TResult Function( VoiceSignalClientMessage value)?  voiceSignal,TResult Function( SayMessage value)?  say,TResult Function( StraddleMessage value)?  straddle,TResult Function( RunTwiceMessage value)?  runTwice,TResult Function( ChatClientMessage value)?  chat,TResult Function( PingMessage value)?  ping,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( HelloMessage value)?  hello,TResult Function( ActionMessage value)?  action,TResult Function( SitOutMessage value)?  sitOut,TResult Function( SitInMessage value)?  sitIn,TResult Function( RebuyMessage value)?  rebuy,TResult Function( LeaveMessage value)?  leave,TResult Function( ShowCardsMessage value)?  showCards,TResult Function( PreActionMessage value)?  preAction,TResult Function( RabbitHuntMessage value)?  rabbitHunt,TResult Function( ChangeSeatMessage value)?  changeSeat,TResult Function( VoiceMessage value)?  voice,TResult Function( VoiceSignalClientMessage value)?  voiceSignal,TResult Function( SayMessage value)?  say,TResult Function( StraddleMessage value)?  straddle,TResult Function( RunTwiceMessage value)?  runTwice,TResult Function( HatMessage value)?  hat,TResult Function( ChatClientMessage value)?  chat,TResult Function( PingMessage value)?  ping,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
@@ -1339,7 +1339,8 @@ return voice(_that);case VoiceSignalClientMessage() when voiceSignal != null:
 return voiceSignal(_that);case SayMessage() when say != null:
 return say(_that);case StraddleMessage() when straddle != null:
 return straddle(_that);case RunTwiceMessage() when runTwice != null:
-return runTwice(_that);case ChatClientMessage() when chat != null:
+return runTwice(_that);case HatMessage() when hat != null:
+return hat(_that);case ChatClientMessage() when chat != null:
 return chat(_that);case PingMessage() when ping != null:
 return ping(_that);case _:
   return orElse();
@@ -1359,7 +1360,7 @@ return ping(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( HelloMessage value)  hello,required TResult Function( ActionMessage value)  action,required TResult Function( SitOutMessage value)  sitOut,required TResult Function( SitInMessage value)  sitIn,required TResult Function( RebuyMessage value)  rebuy,required TResult Function( LeaveMessage value)  leave,required TResult Function( ShowCardsMessage value)  showCards,required TResult Function( PreActionMessage value)  preAction,required TResult Function( RabbitHuntMessage value)  rabbitHunt,required TResult Function( ChangeSeatMessage value)  changeSeat,required TResult Function( VoiceMessage value)  voice,required TResult Function( VoiceSignalClientMessage value)  voiceSignal,required TResult Function( SayMessage value)  say,required TResult Function( StraddleMessage value)  straddle,required TResult Function( RunTwiceMessage value)  runTwice,required TResult Function( ChatClientMessage value)  chat,required TResult Function( PingMessage value)  ping,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( HelloMessage value)  hello,required TResult Function( ActionMessage value)  action,required TResult Function( SitOutMessage value)  sitOut,required TResult Function( SitInMessage value)  sitIn,required TResult Function( RebuyMessage value)  rebuy,required TResult Function( LeaveMessage value)  leave,required TResult Function( ShowCardsMessage value)  showCards,required TResult Function( PreActionMessage value)  preAction,required TResult Function( RabbitHuntMessage value)  rabbitHunt,required TResult Function( ChangeSeatMessage value)  changeSeat,required TResult Function( VoiceMessage value)  voice,required TResult Function( VoiceSignalClientMessage value)  voiceSignal,required TResult Function( SayMessage value)  say,required TResult Function( StraddleMessage value)  straddle,required TResult Function( RunTwiceMessage value)  runTwice,required TResult Function( HatMessage value)  hat,required TResult Function( ChatClientMessage value)  chat,required TResult Function( PingMessage value)  ping,}){
 final _that = this;
 switch (_that) {
 case HelloMessage():
@@ -1377,7 +1378,8 @@ return voice(_that);case VoiceSignalClientMessage():
 return voiceSignal(_that);case SayMessage():
 return say(_that);case StraddleMessage():
 return straddle(_that);case RunTwiceMessage():
-return runTwice(_that);case ChatClientMessage():
+return runTwice(_that);case HatMessage():
+return hat(_that);case ChatClientMessage():
 return chat(_that);case PingMessage():
 return ping(_that);}
 }
@@ -1393,7 +1395,7 @@ return ping(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( HelloMessage value)?  hello,TResult? Function( ActionMessage value)?  action,TResult? Function( SitOutMessage value)?  sitOut,TResult? Function( SitInMessage value)?  sitIn,TResult? Function( RebuyMessage value)?  rebuy,TResult? Function( LeaveMessage value)?  leave,TResult? Function( ShowCardsMessage value)?  showCards,TResult? Function( PreActionMessage value)?  preAction,TResult? Function( RabbitHuntMessage value)?  rabbitHunt,TResult? Function( ChangeSeatMessage value)?  changeSeat,TResult? Function( VoiceMessage value)?  voice,TResult? Function( VoiceSignalClientMessage value)?  voiceSignal,TResult? Function( SayMessage value)?  say,TResult? Function( StraddleMessage value)?  straddle,TResult? Function( RunTwiceMessage value)?  runTwice,TResult? Function( ChatClientMessage value)?  chat,TResult? Function( PingMessage value)?  ping,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( HelloMessage value)?  hello,TResult? Function( ActionMessage value)?  action,TResult? Function( SitOutMessage value)?  sitOut,TResult? Function( SitInMessage value)?  sitIn,TResult? Function( RebuyMessage value)?  rebuy,TResult? Function( LeaveMessage value)?  leave,TResult? Function( ShowCardsMessage value)?  showCards,TResult? Function( PreActionMessage value)?  preAction,TResult? Function( RabbitHuntMessage value)?  rabbitHunt,TResult? Function( ChangeSeatMessage value)?  changeSeat,TResult? Function( VoiceMessage value)?  voice,TResult? Function( VoiceSignalClientMessage value)?  voiceSignal,TResult? Function( SayMessage value)?  say,TResult? Function( StraddleMessage value)?  straddle,TResult? Function( RunTwiceMessage value)?  runTwice,TResult? Function( HatMessage value)?  hat,TResult? Function( ChatClientMessage value)?  chat,TResult? Function( PingMessage value)?  ping,}){
 final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
@@ -1411,7 +1413,8 @@ return voice(_that);case VoiceSignalClientMessage() when voiceSignal != null:
 return voiceSignal(_that);case SayMessage() when say != null:
 return say(_that);case StraddleMessage() when straddle != null:
 return straddle(_that);case RunTwiceMessage() when runTwice != null:
-return runTwice(_that);case ChatClientMessage() when chat != null:
+return runTwice(_that);case HatMessage() when hat != null:
+return hat(_that);case ChatClientMessage() when chat != null:
 return chat(_that);case PingMessage() when ping != null:
 return ping(_that);case _:
   return null;
@@ -1430,7 +1433,7 @@ return ping(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Hello payload)?  hello,TResult Function( ActionPayload payload)?  action,TResult Function()?  sitOut,TResult Function()?  sitIn,TResult Function()?  rebuy,TResult Function()?  leave,TResult Function( ShowCardsPayload payload)?  showCards,TResult Function( PreActionPayload payload)?  preAction,TResult Function()?  rabbitHunt,TResult Function( ChangeSeatPayload payload)?  changeSeat,TResult Function( VoicePayload payload)?  voice,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( SayPayload payload)?  say,TResult Function( StraddlePayload payload)?  straddle,TResult Function( RunTwicePayload payload)?  runTwice,TResult Function( ChatPayload payload)?  chat,TResult Function()?  ping,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Hello payload)?  hello,TResult Function( ActionPayload payload)?  action,TResult Function()?  sitOut,TResult Function()?  sitIn,TResult Function()?  rebuy,TResult Function()?  leave,TResult Function( ShowCardsPayload payload)?  showCards,TResult Function( PreActionPayload payload)?  preAction,TResult Function()?  rabbitHunt,TResult Function( ChangeSeatPayload payload)?  changeSeat,TResult Function( VoicePayload payload)?  voice,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( SayPayload payload)?  say,TResult Function( StraddlePayload payload)?  straddle,TResult Function( RunTwicePayload payload)?  runTwice,TResult Function( HatPayload payload)?  hat,TResult Function( ChatPayload payload)?  chat,TResult Function()?  ping,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
 return hello(_that.payload);case ActionMessage() when action != null:
@@ -1447,7 +1450,8 @@ return voice(_that.payload);case VoiceSignalClientMessage() when voiceSignal != 
 return voiceSignal(_that.payload);case SayMessage() when say != null:
 return say(_that.payload);case StraddleMessage() when straddle != null:
 return straddle(_that.payload);case RunTwiceMessage() when runTwice != null:
-return runTwice(_that.payload);case ChatClientMessage() when chat != null:
+return runTwice(_that.payload);case HatMessage() when hat != null:
+return hat(_that.payload);case ChatClientMessage() when chat != null:
 return chat(_that.payload);case PingMessage() when ping != null:
 return ping();case _:
   return orElse();
@@ -1467,7 +1471,7 @@ return ping();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Hello payload)  hello,required TResult Function( ActionPayload payload)  action,required TResult Function()  sitOut,required TResult Function()  sitIn,required TResult Function()  rebuy,required TResult Function()  leave,required TResult Function( ShowCardsPayload payload)  showCards,required TResult Function( PreActionPayload payload)  preAction,required TResult Function()  rabbitHunt,required TResult Function( ChangeSeatPayload payload)  changeSeat,required TResult Function( VoicePayload payload)  voice,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( SayPayload payload)  say,required TResult Function( StraddlePayload payload)  straddle,required TResult Function( RunTwicePayload payload)  runTwice,required TResult Function( ChatPayload payload)  chat,required TResult Function()  ping,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Hello payload)  hello,required TResult Function( ActionPayload payload)  action,required TResult Function()  sitOut,required TResult Function()  sitIn,required TResult Function()  rebuy,required TResult Function()  leave,required TResult Function( ShowCardsPayload payload)  showCards,required TResult Function( PreActionPayload payload)  preAction,required TResult Function()  rabbitHunt,required TResult Function( ChangeSeatPayload payload)  changeSeat,required TResult Function( VoicePayload payload)  voice,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( SayPayload payload)  say,required TResult Function( StraddlePayload payload)  straddle,required TResult Function( RunTwicePayload payload)  runTwice,required TResult Function( HatPayload payload)  hat,required TResult Function( ChatPayload payload)  chat,required TResult Function()  ping,}) {final _that = this;
 switch (_that) {
 case HelloMessage():
 return hello(_that.payload);case ActionMessage():
@@ -1484,7 +1488,8 @@ return voice(_that.payload);case VoiceSignalClientMessage():
 return voiceSignal(_that.payload);case SayMessage():
 return say(_that.payload);case StraddleMessage():
 return straddle(_that.payload);case RunTwiceMessage():
-return runTwice(_that.payload);case ChatClientMessage():
+return runTwice(_that.payload);case HatMessage():
+return hat(_that.payload);case ChatClientMessage():
 return chat(_that.payload);case PingMessage():
 return ping();}
 }
@@ -1500,7 +1505,7 @@ return ping();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Hello payload)?  hello,TResult? Function( ActionPayload payload)?  action,TResult? Function()?  sitOut,TResult? Function()?  sitIn,TResult? Function()?  rebuy,TResult? Function()?  leave,TResult? Function( ShowCardsPayload payload)?  showCards,TResult? Function( PreActionPayload payload)?  preAction,TResult? Function()?  rabbitHunt,TResult? Function( ChangeSeatPayload payload)?  changeSeat,TResult? Function( VoicePayload payload)?  voice,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( SayPayload payload)?  say,TResult? Function( StraddlePayload payload)?  straddle,TResult? Function( RunTwicePayload payload)?  runTwice,TResult? Function( ChatPayload payload)?  chat,TResult? Function()?  ping,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Hello payload)?  hello,TResult? Function( ActionPayload payload)?  action,TResult? Function()?  sitOut,TResult? Function()?  sitIn,TResult? Function()?  rebuy,TResult? Function()?  leave,TResult? Function( ShowCardsPayload payload)?  showCards,TResult? Function( PreActionPayload payload)?  preAction,TResult? Function()?  rabbitHunt,TResult? Function( ChangeSeatPayload payload)?  changeSeat,TResult? Function( VoicePayload payload)?  voice,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( SayPayload payload)?  say,TResult? Function( StraddlePayload payload)?  straddle,TResult? Function( RunTwicePayload payload)?  runTwice,TResult? Function( HatPayload payload)?  hat,TResult? Function( ChatPayload payload)?  chat,TResult? Function()?  ping,}) {final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
 return hello(_that.payload);case ActionMessage() when action != null:
@@ -1517,7 +1522,8 @@ return voice(_that.payload);case VoiceSignalClientMessage() when voiceSignal != 
 return voiceSignal(_that.payload);case SayMessage() when say != null:
 return say(_that.payload);case StraddleMessage() when straddle != null:
 return straddle(_that.payload);case RunTwiceMessage() when runTwice != null:
-return runTwice(_that.payload);case ChatClientMessage() when chat != null:
+return runTwice(_that.payload);case HatMessage() when hat != null:
+return hat(_that.payload);case ChatClientMessage() when chat != null:
 return chat(_that.payload);case PingMessage() when ping != null:
 return ping();case _:
   return null;
@@ -2452,6 +2458,83 @@ as RunTwicePayload,
 $RunTwicePayloadCopyWith<$Res> get payload {
   
   return $RunTwicePayloadCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class HatMessage implements ClientMessage {
+  const HatMessage(this.payload);
+  
+
+ final  HatPayload payload;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$HatMessageCopyWith<HatMessage> get copyWith => _$HatMessageCopyWithImpl<HatMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is HatMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ClientMessage.hat(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $HatMessageCopyWith<$Res> implements $ClientMessageCopyWith<$Res> {
+  factory $HatMessageCopyWith(HatMessage value, $Res Function(HatMessage) _then) = _$HatMessageCopyWithImpl;
+@useResult
+$Res call({
+ HatPayload payload
+});
+
+
+$HatPayloadCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$HatMessageCopyWithImpl<$Res>
+    implements $HatMessageCopyWith<$Res> {
+  _$HatMessageCopyWithImpl(this._self, this._then);
+
+  final HatMessage _self;
+  final $Res Function(HatMessage) _then;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(HatMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as HatPayload,
+  ));
+}
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$HatPayloadCopyWith<$Res> get payload {
+  
+  return $HatPayloadCopyWith<$Res>(_self.payload, (value) {
     return _then(_self.copyWith(payload: value));
   });
 }

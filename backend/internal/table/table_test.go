@@ -139,7 +139,7 @@ func newTestTableShuffled(t *testing.T, s Settings, shuffle func([]poker.Card)) 
 
 func join(t *testing.T, tbl *Table, name string) (JoinResult, *fakeConn) {
 	t.Helper()
-	res, err := tbl.Join(name, -1, -1)
+	res, err := tbl.Join(name, -1, -1, "")
 	if err != nil {
 		t.Fatalf("Join(%s): %v", name, err)
 	}
@@ -212,13 +212,13 @@ func TestJoinAutoStartAndHoleCardPrivacy(t *testing.T) {
 	if err := tbl.Attach(&Client{Conn: admin, Role: RoleAdmin, Name: "admin"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := tbl.Join("alice", -1, -1); !errors.Is(err, ErrNameTaken) {
+	if _, err := tbl.Join("alice", -1, -1, ""); !errors.Is(err, ErrNameTaken) {
 		t.Fatalf("duplicate name: %v", err)
 	}
-	if _, err := tbl.Join("Watcher", -1, -1); !errors.Is(err, ErrNameTaken) {
+	if _, err := tbl.Join("Watcher", -1, -1, ""); !errors.Is(err, ErrNameTaken) {
 		t.Fatalf("spectator name reuse: %v", err)
 	}
-	if _, err := tbl.Join("bad!name", -1, -1); !errors.Is(err, ErrInvalidName) {
+	if _, err := tbl.Join("bad!name", -1, -1, ""); !errors.Is(err, ErrInvalidName) {
 		t.Fatalf("invalid name: %v", err)
 	}
 
@@ -530,7 +530,7 @@ func TestLifecycleAndVoid(t *testing.T) {
 	if err := tbl.End(false); !errors.Is(err, ErrInvalidState) {
 		t.Fatalf("end twice: %v", err)
 	}
-	if _, err := tbl.Join("Zed", -1, -1); !errors.Is(err, ErrTableEnded) {
+	if _, err := tbl.Join("Zed", -1, -1, ""); !errors.Is(err, ErrTableEnded) {
 		t.Fatalf("join ended: %v", err)
 	}
 	if err := tbl.Attach(&Client{Conn: &fakeConn{}, Role: RolePlayer, PlayerID: a.PlayerID}); !errors.Is(err, ErrTableEnded) {
@@ -861,17 +861,17 @@ func TestSeatPickingAndAvatar(t *testing.T) {
 	s := testSettings()
 	s.AutoStart = false
 	tbl := newTestTable(t, s)
-	a, err := tbl.Join("Alice", 3, 7)
+	a, err := tbl.Join("Alice", 3, 7, "")
 	if err != nil || a.Seat != 3 {
 		t.Fatalf("pick seat 3: %+v %v", a, err)
 	}
-	if _, err := tbl.Join("Bob", 3, 1); !errors.Is(err, ErrSeatTaken) {
+	if _, err := tbl.Join("Bob", 3, 1, ""); !errors.Is(err, ErrSeatTaken) {
 		t.Fatalf("taken seat: %v", err)
 	}
-	if _, err := tbl.Join("Bob", 42, 1); !errors.Is(err, ErrSeatTaken) {
+	if _, err := tbl.Join("Bob", 42, 1, ""); !errors.Is(err, ErrSeatTaken) {
 		t.Fatalf("seat out of range: %v", err)
 	}
-	b, err := tbl.Join("Bob", -1, 99)
+	b, err := tbl.Join("Bob", -1, 99, "")
 	if err != nil || b.Seat != 0 {
 		t.Fatalf("lowest free seat: %+v %v", b, err)
 	}
@@ -882,6 +882,125 @@ func TestSeatPickingAndAvatar(t *testing.T) {
 	d := tbl.AdminDetail()
 	if d.Players[0].Avatar < 0 || d.Players[0].Avatar >= AvatarCount || d.Players[1].Avatar != 7 {
 		t.Fatalf("avatars = %d %d", d.Players[0].Avatar, d.Players[1].Avatar)
+	}
+}
+
+func TestHats(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.AutoStart = false
+	tbl := newTestTable(t, s)
+	a, err := tbl.Join("Alice", -1, -1, "crown")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// An unknown hat at join time means no hat.
+	b, err := tbl.Join("Bob", -1, -1, "fedora")
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn := &fakeConn{}
+	if err := tbl.Attach(&Client{Conn: conn, Role: RolePlayer, PlayerID: b.PlayerID}); err != nil {
+		t.Fatal(err)
+	}
+	hatOf := func(id string) string {
+		for _, sv := range conn.lastSnapshot(t).Seats {
+			if sv.Player != nil && sv.Player.ID == id {
+				return sv.Player.Hat
+			}
+		}
+		return "?"
+	}
+	if got := hatOf(a.PlayerID); got != "crown" {
+		t.Fatalf("Alice's hat = %q", got)
+	}
+	if got := hatOf(b.PlayerID); got != "" {
+		t.Fatalf("Bob's hat = %q, want none", got)
+	}
+	if err := tbl.SetHat(a.PlayerID, "fedora"); !errors.Is(err, ErrIllegalAction) {
+		t.Fatalf("unknown hat: %v", err)
+	}
+	if err := tbl.SetHat("nobody", "crown"); !errors.Is(err, ErrNotSeated) {
+		t.Fatalf("unseated: %v", err)
+	}
+	if err := tbl.SetHat(a.PlayerID, "pirate"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "new hat in snapshot", func() bool { return hatOf(a.PlayerID) == "pirate" })
+	if err := tbl.SetHat(a.PlayerID, HatNone); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "hat taken off", func() bool { return hatOf(a.PlayerID) == "" })
+	if err := tbl.SetHat(b.PlayerID, "beanie"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "Bob's hat", func() bool { return hatOf(b.PlayerID) == "beanie" })
+	d := tbl.AdminDetail()
+	if d.Players[0].Hat != "" || d.Players[1].Hat != "beanie" {
+		t.Fatalf("admin hats = %q %q", d.Players[0].Hat, d.Players[1].Hat)
+	}
+}
+
+// TestWinStreakHeat: Alice shoves every hand and the others fold, so she
+// wins four in a row and heats up 0, 1, 2, 3; a hand without a pot cools
+// her down again.
+func TestWinStreakHeat(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.HandDelayMs = 100
+	tbl := newTestTable(t, s)
+	a, connA := join(t, tbl, "Alice")
+	join(t, tbl, "Bob")
+	join(t, tbl, "Carol")
+	heat := func() int {
+		for _, sv := range connA.lastSnapshot(t).Seats {
+			if sv.Player != nil && sv.Player.ID == a.PlayerID {
+				return sv.Player.Heat
+			}
+		}
+		return -1
+	}
+	// playHand drives one hand: Alice acts with kind, everyone else folds.
+	playHand := func(kind poker.ActionKind) {
+		t.Helper()
+		waitFor(t, "hand to start", func() bool { return handRunning(tbl) })
+		hn := handNumber(tbl)
+		waitFor(t, "hand to end", func() bool {
+			if !handRunning(tbl) || handNumber(tbl) != hn {
+				return true
+			}
+			if id, _ := toAct(tbl); id == a.PlayerID {
+				_ = tbl.Action(id, poker.Action{Kind: kind})
+			} else if id != "" {
+				_ = tbl.Action(id, poker.Action{Kind: poker.Fold})
+			}
+			return false
+		})
+	}
+	for i, want := range []int{0, 1, 2, 3, 3} {
+		playHand(poker.AllIn)
+		waitFor(t, "heat after win", func() bool { return heat() == want })
+		if got := heat(); got != want {
+			t.Fatalf("after %d wins heat = %d, want %d", i+1, got, want)
+		}
+	}
+	// Folding resets the streak (a walk in the big blind does not count as
+	// a fold, so it may take a hand or two until Alice has to act).
+	waitFor(t, "cooled down", func() bool {
+		playHand(poker.Fold)
+		return heat() == 0
+	})
+	if d := tbl.AdminDetail(); d.Players[0].WinStreak != 0 {
+		t.Fatalf("win streak = %d", d.Players[0].WinStreak)
+	}
+}
+
+func TestHeatOf(t *testing.T) {
+	t.Parallel()
+	for streak, want := range map[int]int{0: 0, 1: 0, 2: 1, 3: 2, 4: 3, 9: 3} {
+		if got := heatOf(streak); got != want {
+			t.Errorf("heatOf(%d) = %d, want %d", streak, got, want)
+		}
 	}
 }
 

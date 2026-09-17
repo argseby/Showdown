@@ -218,18 +218,19 @@ func (s *Store) CountTablesByState(ctx context.Context) (map[string]int, error) 
 func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO players (id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
-			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar,
+			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
 			vpip_hands, showdowns, showdowns_won, time_bank, place)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			name = excluded.name, seat = excluded.seat, stack = excluded.stack, status = excluded.status,
 			muted = excluded.muted, missed_turns = excluded.missed_turns, buy_in_total = excluded.buy_in_total,
 			hands_played = excluded.hands_played, hands_won = excluded.hands_won, biggest_pot = excluded.biggest_pot,
-			joined_at = excluded.joined_at, left_at = excluded.left_at, avatar = excluded.avatar,
+			joined_at = excluded.joined_at, left_at = excluded.left_at, avatar = excluded.avatar, hat = excluded.hat,
+			win_streak = excluded.win_streak,
 			vpip_hands = excluded.vpip_hands, showdowns = excluded.showdowns, showdowns_won = excluded.showdowns_won,
 			time_bank = excluded.time_bank, place = excluded.place`,
 		p.ID, p.TableID, p.Name, p.Seat, p.Stack, p.Status, b2i(p.Muted), p.MissedTurns, p.BuyInTotal,
-		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar,
+		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar, p.Hat, p.WinStreak,
 		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place)
 	if err != nil {
 		return fmt.Errorf("upsert player: %w", err)
@@ -241,7 +242,7 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
-			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar,
+			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
 			vpip_hands, showdowns, showdowns_won, time_bank, place
 		FROM players WHERE table_id = ? ORDER BY seat, joined_at`, tableID)
 	if err != nil {
@@ -254,7 +255,7 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 		var muted int
 		var left sql.NullInt64
 		if err := rows.Scan(&p.ID, &p.TableID, &p.Name, &p.Seat, &p.Stack, &p.Status, &muted, &p.MissedTurns,
-			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar,
+			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar, &p.Hat, &p.WinStreak,
 			&p.VPIPHands, &p.Showdowns, &p.ShowdownsWon, &p.TimeBank, &p.Place); err != nil {
 			return nil, err
 		}

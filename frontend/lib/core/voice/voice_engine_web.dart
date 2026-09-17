@@ -22,6 +22,11 @@ class _WebVoiceEngine implements VoiceEngine {
   final _videos = <String, web.HTMLVideoElement>{};
   final _streams = <String, web.MediaStream>{};
   bool _receiveVideo = true;
+
+  /// Per-peer choices of the viewer: playback volume (0..1) and whether
+  /// their video is wanted at all.
+  final _peerVolume = <String, double>{};
+  final _peerVideoOff = <String>{};
   final _videoSenders = <String, web.RTCRtpSender>{};
   static var _viewSeq = 0;
   final _analysers = <String, web.AnalyserNode>{};
@@ -135,18 +140,46 @@ class _WebVoiceEngine implements VoiceEngine {
     if (_receiveVideo == on) return;
     _receiveVideo = on;
     for (final entry in _peers.entries) {
-      _applyVideoDirection(entry.value);
+      _applyVideoDirection(entry.key, entry.value);
       if (!on && entry.key != VoiceEngine.self) _dropVideo(entry.key);
     }
   }
 
+  @override
+  void setPeerVolume(String peerId, double volume) {
+    final v = volume.clamp(0, 1).toDouble();
+    _peerVolume[peerId] = v;
+    final audio = _audios[peerId];
+    if (audio != null) _applyVolume(audio, v);
+  }
+
+  void _applyVolume(web.HTMLAudioElement audio, double v) {
+    audio.volume = v;
+    audio.muted = v == 0;
+  }
+
+  @override
+  void setPeerVideo(String peerId, bool on) {
+    final changed = on
+        ? _peerVideoOff.remove(peerId)
+        : _peerVideoOff.add(peerId);
+    if (!changed) return;
+    final pc = _peers[peerId];
+    if (pc != null) _applyVideoDirection(peerId, pc);
+    if (!on) _dropVideo(peerId);
+  }
+
+  bool _wantsVideoFrom(String peerId) =>
+      _receiveVideo && !_peerVideoOff.contains(peerId);
+
   /// Sets every video transceiver's direction from what we send and whether
-  /// we want to receive; a change triggers renegotiation.
-  void _applyVideoDirection(web.RTCPeerConnection pc) {
+  /// we want to receive from this peer; a change triggers renegotiation.
+  void _applyVideoDirection(String peerId, web.RTCPeerConnection pc) {
     final sending = _camera != null;
+    final receive = _wantsVideoFrom(peerId);
     final wanted = sending
-        ? (_receiveVideo ? 'sendrecv' : 'sendonly')
-        : (_receiveVideo ? 'recvonly' : 'inactive');
+        ? (receive ? 'sendrecv' : 'sendonly')
+        : (receive ? 'recvonly' : 'inactive');
     for (final t in pc.getTransceivers().toDart) {
       final kind = t.receiver.track.kind;
       if (kind != 'video') continue;
@@ -306,7 +339,7 @@ class _WebVoiceEngine implements VoiceEngine {
       );
       if (streams.isEmpty) return;
       if (e.track.kind == 'video') {
-        if (!_receiveVideo) return;
+        if (!_wantsVideoFrom(peerId)) return;
         _showVideo(peerId, streams.first);
         e.track.onended = ((web.Event _) => _dropVideo(peerId)).toJS;
         e.track.onmute = ((web.Event _) => _dropVideo(peerId)).toJS;
@@ -461,6 +494,7 @@ class _WebVoiceEngine implements VoiceEngine {
     final audio = web.HTMLAudioElement()
       ..autoplay = true
       ..srcObject = stream;
+    _applyVolume(audio, _peerVolume[peerId] ?? 1);
     web.document.body?.append(audio);
     _audios[peerId] = audio;
     _attachAnalyser(peerId, stream);
@@ -599,7 +633,7 @@ class _WebVoiceEngine implements VoiceEngine {
         )
         .toDart;
     await _remoteSet(peerId, pc);
-    if (!_receiveVideo) _applyVideoDirection(pc);
+    if (!_wantsVideoFrom(peerId)) _applyVideoDirection(peerId, pc);
     final answer = (await pc.createAnswer().toDart)!;
     await pc
         .setLocalDescription(

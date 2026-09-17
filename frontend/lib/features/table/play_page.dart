@@ -9,6 +9,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
+import '../../core/peer_prefs.dart';
 import '../../core/session_store.dart';
 import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
@@ -29,6 +30,7 @@ import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
 import 'widgets/invite_dialog.dart';
+import 'widgets/player_menu.dart';
 import 'widgets/say_dialog.dart';
 import 'widgets/settings_tab.dart';
 import 'widgets/shortcuts_overlay.dart';
@@ -69,6 +71,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
   @override
   void initState() {
     super.initState();
+    _peerPrefs = ref.read(peerPrefsProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     // Shortcuts are handled at the hardware-keyboard level so they work no
     // matter which widget currently owns focus (see docs §10.3).
@@ -79,8 +82,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
     return _onKey(_rootFocus, event) == KeyEventResult.handled;
   }
 
+  /// Held from initState: ref may not be used in dispose.
+  late final PeerPrefsNotifier _peerPrefs;
+
   @override
   void dispose() {
+    // Per-player choices (volume, hidden video, ...) last one visit.
+    _peerPrefs.clear();
     _eventSub?.cancel();
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     WidgetsBinding.instance.removeObserver(this);
@@ -593,21 +601,18 @@ class _PlayPageState extends ConsumerState<PlayPage>
                 : null,
             videoViews: voice.videoViews,
             voiceFailed: voice.failed,
-            onAdminTap: (snap?.you.isAdmin ?? false) && adminToken != null
-                ? (p) =>
-                      AdminPlayerActions(
-                        ref: ref,
-                        context: context,
-                        tableId: widget.tableId,
-                        token: adminToken,
-                      ).showMenu(
-                        playerId: p.id,
-                        name: p.name,
-                        chatMuted: p.muted ?? false,
-                        voice: p.voice,
-                        camera: p.camera ?? false,
-                      )
-                : null,
+            onPlayerTap: (p) => showPlayerMenu(
+              context,
+              player: p,
+              admin: (snap?.you.isAdmin ?? false) && adminToken != null
+                  ? AdminPlayerActions(
+                      ref: ref,
+                      context: context,
+                      tableId: widget.tableId,
+                      token: adminToken,
+                    )
+                  : null,
+            ),
           ),
         ),
         // The accessibility scale enlarges the action bar's text and

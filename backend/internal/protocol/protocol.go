@@ -35,8 +35,10 @@ const (
 	TypeSay         = "say"
 	TypeStraddle    = "straddle"
 	TypeRunTwice    = "run_twice"
-	TypeChat        = "chat"
-	TypePing        = "ping"
+	// TypeHat puts a hat on the player's avatar (see Hats).
+	TypeHat  = "hat"
+	TypeChat = "chat"
+	TypePing = "ping"
 )
 
 // Server → client message types.
@@ -135,6 +137,19 @@ type SayPayload struct {
 var Phrases = []string{
 	"nice_hand", "nice_call", "nice_fold", "nice_bluff", "well_played", "gg",
 	"thanks", "sorry", "wow", "oops", "furious", "lol", "hurry_up", "brb",
+}
+
+// Hats are the hats a player may wear on their avatar; the client draws
+// them, the server only knows the ids.
+var Hats = []string{
+	"top_hat", "cowboy", "crown", "party", "beanie", "wizard",
+	"chef", "pirate", "cap", "halo", "viking", "sombrero",
+}
+
+// HatPayload changes the hat on the player's avatar: one of Hats, or "none"
+// (also "") to take it off.
+type HatPayload struct {
+	Hat string `json:"hat"`
 }
 
 // PhrasePayload is a quick phrase shown next to the player's avatar.
@@ -266,6 +281,11 @@ type PlayerView struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	Avatar int    `json:"avatar"`
+	// Hat is the hat worn on the avatar (one of Hats); absent without one.
+	Hat string `json:"hat,omitempty"`
+	// Heat is how hot the player is running, 1..3, from their streak of
+	// hands won in a row (2, 3, 4+); absent when not on a streak.
+	Heat   int    `json:"heat,omitempty"`
 	Voice  string `json:"voice"`            // off | on | muted
 	Muted  bool   `json:"muted,omitempty"`  // chat muted by the host
 	Mucked bool   `json:"mucked,omitempty"` // declined to show at the showdown

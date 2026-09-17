@@ -52,6 +52,7 @@ sealed class ClientMessage with _$ClientMessage {
       StraddleMessage;
   const factory ClientMessage.runTwice(RunTwicePayload payload) =
       RunTwiceMessage;
+  const factory ClientMessage.hat(HatPayload payload) = HatMessage;
   const factory ClientMessage.chat(ChatPayload payload) = ChatClientMessage;
   const factory ClientMessage.ping() = PingMessage;
 }
@@ -74,6 +75,7 @@ class MessageTypes {
   static const say = 'say';
   static const straddle = 'straddle';
   static const runTwice = 'run_twice';
+  static const hat = 'hat';
   static const chat = 'chat';
   static const ping = 'ping';
   static const welcome = 'welcome';
@@ -234,6 +236,8 @@ ClientMessage decodeClientMessage(Envelope env) {
         return ClientMessage.straddle(StraddlePayload.fromJson(_payload(env)));
       case MessageTypes.runTwice:
         return ClientMessage.runTwice(RunTwicePayload.fromJson(_payload(env)));
+      case MessageTypes.hat:
+        return ClientMessage.hat(HatPayload.fromJson(_payload(env)));
       case MessageTypes.chat:
         return ClientMessage.chat(ChatPayload.fromJson(_payload(env)));
       case MessageTypes.ping:
@@ -305,6 +309,11 @@ Envelope encodeClientMessage(ClientMessage msg, {String? id}) => switch (msg) {
   ),
   RunTwiceMessage(:final payload) => Envelope(
     type: MessageTypes.runTwice,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  HatMessage(:final payload) => Envelope(
+    type: MessageTypes.hat,
     id: id,
     payload: payload.toJson(),
   ),

@@ -1000,6 +1000,39 @@
   "voiceMicOn": "Microphone on",
   "voiceMicMuted": "Microphone muted",
   "joinAvatarChange": "Change avatar",
+  "hatTitle": "Hat",
+  "hatChange": "Change hat",
+  "hatNone": "No hat",
+  "showHats": "Show other players' hats",
+  "showHeat": "Show win streaks",
+  "playerMenuLocal": "Only for you",
+  "playerMenuLocalHint": "These settings apply on this device only and are forgotten when you leave the table. The player does not notice.",
+  "playerMenuEveryone": "For everyone (host)",
+  "peerVolume": "Voice volume",
+  "peerMute": "Mute voice",
+  "peerHideVideo": "Hide video",
+  "peerHideHat": "Hide hat",
+  "peerHideHeat": "Hide win streak",
+  "peerReset": "Reset",
+  "peerMutedMark": "Muted for you",
+  "peerQuietMark": "Turned down for you",
+  "peerNoVideoMark": "Video hidden for you",
+  "heatBadge": "{heat, select, 1{Warming up: 2 hands in a row} 2{Running hot: 3 hands in a row} 3{On fire: 4 or more hands in a row} other{Running hot}}",
+  "@heatBadge": {
+    "placeholders": {
+      "heat": {
+        "type": "String"
+      }
+    }
+  },
+  "hatName": "{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef's hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} other{Hat}}",
+  "@hatName": {
+    "placeholders": {
+      "hat": {
+        "type": "String"
+      }
+    }
+  },
   "joinPickSeat": "Pick a seat (optional)",
   "joinPickSeatHide": "Hide seats",
   "displaySize": "Display size",

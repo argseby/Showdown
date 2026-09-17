@@ -23,7 +23,7 @@ class TableView extends ConsumerWidget {
     required this.session,
     this.onTakeSeat,
     this.speaking = const {},
-    this.onAdminTap,
+    this.onPlayerTap,
     this.onSayTap,
     this.videoViews = const {},
     this.voiceFailed = const {},
@@ -45,8 +45,9 @@ class TableView extends ConsumerWidget {
   /// Player ids currently speaking in the voice chat ("me" for the viewer).
   final Set<String> speaking;
 
-  /// Host only: opens the player actions for a seat that is not the host's.
-  final ValueChanged<PlayerView>? onAdminTap;
+  /// Opens the player menu for a seat that is not the viewer's own (volume,
+  /// mute, video, hat and streak on this device; the host's actions too).
+  final ValueChanged<PlayerView>? onPlayerTap;
 
   /// Players only: the quick-phrase button on the viewer's own seat.
   final VoidCallback? onSayTap;
@@ -397,11 +398,11 @@ class TableView extends ConsumerWidget {
                   phrase: session.phrases[sv.seat] != null
                       ? phraseLabel(l10n, session.phrases[sv.seat]!.phrase)
                       : session.chatBubbles[sv.seat],
-                  onAdminTap:
-                      onAdminTap != null &&
+                  onPlayerTap:
+                      onPlayerTap != null &&
                           sv.player != null &&
                           sv.player!.id != session.identity?.playerId
-                      ? () => onAdminTap!(sv.player!)
+                      ? () => onPlayerTap!(sv.player!)
                       : null,
                   pendingForViewer: snap.you.pendingSeat == sv.seat,
                   speaking:

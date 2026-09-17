@@ -27,6 +27,7 @@ const clientTypes = {
   'say',
   'straddle',
   'run_twice',
+  'hat',
   'ping',
 };
 

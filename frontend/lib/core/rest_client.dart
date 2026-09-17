@@ -229,12 +229,14 @@ class RestClient {
     String password = '',
     int? seat,
     int? avatar,
+    String? hat,
   }) async {
     final json = await postJson('/api/tables/$tableId/join', {
       'name': name,
       'password': password,
       'seat': ?seat,
       'avatar': ?avatar,
+      'hat': ?hat,
     });
     return JoinResultDto(
       token: json['player_token'] as String,

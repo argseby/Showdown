@@ -2366,6 +2366,120 @@ abstract class AppLocalizations {
   /// **'Change avatar'**
   String get joinAvatarChange;
 
+  /// No description provided for @hatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hat'**
+  String get hatTitle;
+
+  /// No description provided for @hatChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change hat'**
+  String get hatChange;
+
+  /// No description provided for @hatNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No hat'**
+  String get hatNone;
+
+  /// No description provided for @showHats.
+  ///
+  /// In en, this message translates to:
+  /// **'Show other players\' hats'**
+  String get showHats;
+
+  /// No description provided for @showHeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Show win streaks'**
+  String get showHeat;
+
+  /// No description provided for @playerMenuLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for you'**
+  String get playerMenuLocal;
+
+  /// No description provided for @playerMenuLocalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These settings apply on this device only and are forgotten when you leave the table. The player does not notice.'**
+  String get playerMenuLocalHint;
+
+  /// No description provided for @playerMenuEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'For everyone (host)'**
+  String get playerMenuEveryone;
+
+  /// No description provided for @peerVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice volume'**
+  String get peerVolume;
+
+  /// No description provided for @peerMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute voice'**
+  String get peerMute;
+
+  /// No description provided for @peerHideVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide video'**
+  String get peerHideVideo;
+
+  /// No description provided for @peerHideHat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide hat'**
+  String get peerHideHat;
+
+  /// No description provided for @peerHideHeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide win streak'**
+  String get peerHideHeat;
+
+  /// No description provided for @peerReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get peerReset;
+
+  /// No description provided for @peerMutedMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted for you'**
+  String get peerMutedMark;
+
+  /// No description provided for @peerQuietMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Turned down for you'**
+  String get peerQuietMark;
+
+  /// No description provided for @peerNoVideoMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Video hidden for you'**
+  String get peerNoVideoMark;
+
+  /// No description provided for @heatBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{heat, select, 1{Warming up: 2 hands in a row} 2{Running hot: 3 hands in a row} 3{On fire: 4 or more hands in a row} other{Running hot}}'**
+  String heatBadge(String heat);
+
+  /// No description provided for @hatName.
+  ///
+  /// In en, this message translates to:
+  /// **'{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef\'s hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} other{Hat}}'**
+  String hatName(String hat);
+
   /// No description provided for @joinPickSeat.
   ///
   /// In en, this message translates to:

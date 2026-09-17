@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:showdown/app/preferences.dart';
+import 'package:showdown/core/peer_prefs.dart';
 import 'package:showdown/core/ws_client.dart';
 import 'package:showdown/features/table/table_session.dart';
 import 'package:showdown/features/table/widgets/seat_widget.dart';
@@ -26,6 +27,18 @@ class _NoStacks extends ChipStacksNotifier {
   bool build() => false;
 }
 
+/// Other players' hats hidden.
+class _NoHats extends ShowHatsNotifier {
+  @override
+  bool build() => false;
+}
+
+/// Win streaks hidden.
+class _NoHeat extends ShowHeatNotifier {
+  @override
+  bool build() => false;
+}
+
 void main() {
   test('seat positions rotate the viewer to the bottom', () {
     expect(TableView.positionOf(4, 4, 9), 0);
@@ -35,6 +48,51 @@ void main() {
     final bottom = TableView.seatPoint(0, 9, oval);
     expect(bottom.dx, closeTo(200, 0.01));
     expect(bottom.dy, closeTo(200, 0.01));
+  });
+
+  testWidgets('hats and the fire ring follow the snapshot and the setting', (
+    tester,
+  ) async {
+    // Alice (the viewer) wears a crown; Bob wears a cowboy hat and runs hot.
+    final snap = fixtureSnapshot().copyWith(
+      seats: [
+        for (final sv in fixtureSnapshot().seats)
+          sv.seat == 0
+              ? sv.copyWith(player: sv.player?.copyWith(hat: 'crown'))
+              : sv,
+      ],
+    );
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    Widget view() =>
+        SizedBox(width: 1000, height: 600, child: TableView(session: session));
+    await tester.pumpWidget(wrap(view()));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('hat-worn-crown')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
+    expect(find.byKey(const Key('heat-4')), findsOneWidget);
+    expect(find.byKey(const Key('heat-0')), findsNothing);
+    // With the setting off only the own hat stays (a fresh scope: a live
+    // ProviderScope may not change its number of overrides).
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      wrap(view(), overrides: [showHatsProvider.overrideWith(_NoHats.new)]),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('hat-worn-crown')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsNothing);
+    expect(find.byKey(const Key('heat-4')), findsOneWidget);
+    // Win streaks off: no fire ring on any seat, hats unaffected.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      wrap(view(), overrides: [showHeatProvider.overrideWith(_NoHeat.new)]),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('heat-4')), findsNothing);
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
   });
 
   testWidgets('a failed voice link shows a badge on that seat', (tester) async {
@@ -128,9 +186,58 @@ void main() {
     expect(find.bySemanticsLabel('Ace of spades'), findsNothing);
   });
 
-  testWidgets('the host opens player actions by tapping another avatar', (
+  testWidgets('per-player choices hide the hat, the streak and the video', (
     tester,
   ) async {
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: fixtureSnapshot(),
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      wrap(
+        Consumer(
+          builder: (context, ref, _) {
+            container = ProviderScope.containerOf(context);
+            return SizedBox(
+              width: 1000,
+              height: 600,
+              child: TableView(session: session),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
+    expect(find.byKey(const Key('heat-4')), findsOneWidget);
+    container
+        .read(peerPrefsProvider.notifier)
+        .set(
+          'p4',
+          const PeerPrefs(
+            muted: true,
+            hideVideo: true,
+            hideHat: true,
+            hideHeat: true,
+          ),
+        );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsNothing);
+    expect(find.byKey(const Key('heat-4')), findsNothing);
+    expect(find.byKey(const Key('peer-muted-4')), findsOneWidget);
+    expect(find.byKey(const Key('peer-novideo-4')), findsOneWidget);
+    container
+        .read(peerPrefsProvider.notifier)
+        .set('p4', const PeerPrefs(volume: 0.4));
+    await tester.pump();
+    expect(find.byKey(const Key('peer-muted-4')), findsNothing);
+    expect(find.byKey(const Key('peer-quiet-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
+  });
+
+  testWidgets('tapping another avatar opens the player menu', (tester) async {
     final snap = fixtureSnapshot();
     final session = TableSessionState(
       connection: const WsState(status: WsStatus.ready),
@@ -145,15 +252,15 @@ void main() {
           height: 600,
           child: TableView(
             session: session,
-            onAdminTap: (p) => tapped = p.name,
+            onPlayerTap: (p) => tapped = p.name,
           ),
         ),
       ),
     );
     await tester.pump();
-    // The host's own seat has no menu; Bob's does.
-    expect(find.byKey(const Key('admin-seat-0')), findsNothing);
-    await tester.tap(find.byKey(const Key('admin-seat-4')));
+    // The own seat has no menu; Bob's does.
+    expect(find.byKey(const Key('player-seat-0')), findsNothing);
+    await tester.tap(find.byKey(const Key('player-seat-4')));
     expect(tapped, 'Bob');
   });
   _moreTests();

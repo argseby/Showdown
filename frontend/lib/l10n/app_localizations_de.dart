@@ -1329,6 +1329,89 @@ class AppLocalizationsDe extends AppLocalizations {
   String get joinAvatarChange => 'Avatar ändern';
 
   @override
+  String get hatTitle => 'Hut';
+
+  @override
+  String get hatChange => 'Hut ändern';
+
+  @override
+  String get hatNone => 'Kein Hut';
+
+  @override
+  String get showHats => 'Hüte der anderen anzeigen';
+
+  @override
+  String get showHeat => 'Siegesserien anzeigen';
+
+  @override
+  String get playerMenuLocal => 'Nur für dich';
+
+  @override
+  String get playerMenuLocalHint =>
+      'Diese Einstellungen gelten nur auf diesem Gerät und werden beim Verlassen des Tischs vergessen. Der Spieler merkt nichts davon.';
+
+  @override
+  String get playerMenuEveryone => 'Für alle (Host)';
+
+  @override
+  String get peerVolume => 'Lautstärke';
+
+  @override
+  String get peerMute => 'Stimme stummschalten';
+
+  @override
+  String get peerHideVideo => 'Video ausblenden';
+
+  @override
+  String get peerHideHat => 'Hut ausblenden';
+
+  @override
+  String get peerHideHeat => 'Siegesserie ausblenden';
+
+  @override
+  String get peerReset => 'Zurücksetzen';
+
+  @override
+  String get peerMutedMark => 'Für dich stummgeschaltet';
+
+  @override
+  String get peerQuietMark => 'Für dich leiser gestellt';
+
+  @override
+  String get peerNoVideoMark => 'Video für dich ausgeblendet';
+
+  @override
+  String heatBadge(String heat) {
+    String _temp0 = intl.Intl.selectLogic(heat, {
+      '1': 'Läuft warm: 2 Hände in Folge',
+      '2': 'Läuft heiß: 3 Hände in Folge',
+      '3': 'Brennt: 4 oder mehr Hände in Folge',
+      'other': 'Läuft heiß',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String hatName(String hat) {
+    String _temp0 = intl.Intl.selectLogic(hat, {
+      'top_hat': 'Zylinder',
+      'cowboy': 'Cowboyhut',
+      'crown': 'Krone',
+      'party': 'Partyhut',
+      'beanie': 'Mütze',
+      'wizard': 'Zauberhut',
+      'chef': 'Kochmütze',
+      'pirate': 'Piratenhut',
+      'cap': 'Baseballkappe',
+      'halo': 'Heiligenschein',
+      'viking': 'Wikingerhelm',
+      'sombrero': 'Sombrero',
+      'other': 'Hut',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get joinPickSeat => 'Platz wählen (optional)';
 
   @override

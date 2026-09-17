@@ -170,6 +170,58 @@ final showCamerasProvider = NotifierProvider<ShowCamerasNotifier, bool>(
   ShowCamerasNotifier.new,
 );
 
+/// Whether the hats of the other players are drawn (default on); the own
+/// hat is always shown.
+class ShowHatsNotifier extends Notifier<bool> {
+  static const _key = 'pref:show_hats';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final showHatsProvider = NotifierProvider<ShowHatsNotifier, bool>(
+  ShowHatsNotifier.new,
+);
+
+/// Whether win streaks (the fire ring around a seat running hot) are
+/// drawn, on every seat including the own one (default on).
+class ShowHeatNotifier extends Notifier<bool> {
+  static const _key = 'pref:show_heat';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final showHeatProvider = NotifierProvider<ShowHeatNotifier, bool>(
+  ShowHeatNotifier.new,
+);
+
 /// Showdown spotlight: lift and highlight each revealed hand's best five
 /// with its name in the middle of the table (default on).
 class ShowdownSpotlightNotifier extends Notifier<bool> {

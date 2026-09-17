@@ -79,7 +79,7 @@ func TestPlayersSessionsChat(t *testing.T) {
 	if err := s.CreateTable(ctx, TableRow{ID: "t1", Name: "T", State: "waiting", CreatedAt: 1, ButtonSeat: -1}, sampleSettings("t1")); err != nil {
 		t.Fatal(err)
 	}
-	p := PlayerRow{ID: "p1", TableID: "t1", Name: "Alice", Seat: 2, Stack: 10000, Status: "active", BuyInTotal: 10000, JoinedAt: 5}
+	p := PlayerRow{ID: "p1", TableID: "t1", Name: "Alice", Seat: 2, Stack: 10000, Status: "active", BuyInTotal: 10000, JoinedAt: 5, Hat: "crown", WinStreak: 3}
 	if err := s.UpsertPlayer(ctx, p); err != nil {
 		t.Fatal(err)
 	}

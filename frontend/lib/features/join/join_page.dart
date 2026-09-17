@@ -9,6 +9,7 @@ import '../../core/rest_client.dart';
 import '../../core/session_store.dart';
 import '../../shared/avatars.dart';
 import '../../shared/display_size_picker.dart';
+import '../../shared/hats.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_session.dart';
 import 'name_rules.dart';
@@ -59,7 +60,39 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     if (picked != null && mounted) setState(() => _avatar = picked);
   }
 
+  Future<void> _pickHat() async {
+    final l10n = context.l10n;
+    final picked = await showOverlay<String>(
+      context,
+      const DialogConfiguration(),
+      builder: (context) => AlertDialog(
+        title: Text(l10n.hatChange),
+        content: SizedBox(
+          width: 320,
+          child: HatPicker(
+            selected: _hat,
+            avatar: _avatar,
+            size: 44,
+            onSelected: (id) => closeOverlay<String>(context, id),
+          ),
+        ),
+        actions: [
+          OutlineButton(
+            onPressed: () => closeOverlay<String>(context),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
+    ).future;
+    if (picked != null && mounted) {
+      setState(() => _hat = picked == hatNone ? null : picked);
+    }
+  }
+
   int _avatar = DateTime.now().millisecondsSinceEpoch % avatarCount;
+
+  /// The hat to wear; null for none.
+  String? _hat;
   bool _hostOpen = false;
   bool _keyBusy = false;
   String? _keyError;
@@ -175,6 +208,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           password: _password.text,
           seat: _seat,
           avatar: _avatar,
+          hat: _hat,
         );
         session = StoredSession(
           token: r.token,
@@ -324,7 +358,8 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(l10n.joinNameLabel).semiBold(),
-                      const Gap(6),
+                      // A hat reaches above the disc: leave room for it.
+                      Gap(_hat == null ? 6 : 6 + 40 * hatOverflow),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -335,7 +370,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                             child: GestureDetector(
                               key: const Key('join-avatar'),
                               onTap: _pickAvatar,
-                              child: PlayerAvatar(index: _avatar, size: 40),
+                              child: PlayerAvatar(
+                                index: _avatar,
+                                size: 40,
+                                hat: _hat,
+                              ),
                             ),
                           ),
                           const Gap(10),
@@ -370,6 +409,16 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                       ],
                       if (canJoin) ...[
                         const Gap(10),
+                        GhostButton(
+                          key: const Key('join-hat'),
+                          size: ButtonSize.small,
+                          alignment: Alignment.centerLeft,
+                          onPressed: _pickHat,
+                          leading: const Icon(LucideIcons.crown),
+                          child: Text(
+                            '${l10n.hatTitle}: ${hatLabel(l10n, _hat)}',
+                          ),
+                        ),
                         GhostButton(
                           key: const Key('join-seats-toggle'),
                           size: ButtonSize.small,

@@ -60,6 +60,12 @@ _RunTwicePayload _$RunTwicePayloadFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RunTwicePayloadToJson(_RunTwicePayload instance) =>
     <String, dynamic>{'agree': instance.agree};
 
+_HatPayload _$HatPayloadFromJson(Map<String, dynamic> json) =>
+    _HatPayload(hat: json['hat'] as String);
+
+Map<String, dynamic> _$HatPayloadToJson(_HatPayload instance) =>
+    <String, dynamic>{'hat': instance.hat};
+
 _SayPayload _$SayPayloadFromJson(Map<String, dynamic> json) =>
     _SayPayload(phrase: json['phrase'] as String);
 
@@ -260,6 +266,8 @@ _PlayerView _$PlayerViewFromJson(Map<String, dynamic> json) => _PlayerView(
   id: json['id'] as String,
   name: json['name'] as String,
   avatar: (json['avatar'] as num).toInt(),
+  hat: json['hat'] as String?,
+  heat: (json['heat'] as num?)?.toInt(),
   voice: json['voice'] as String? ?? 'off',
   muted: json['muted'] as bool?,
   mucked: json['mucked'] as bool?,
@@ -292,6 +300,8 @@ Map<String, dynamic> _$PlayerViewToJson(_PlayerView instance) =>
       'id': instance.id,
       'name': instance.name,
       'avatar': instance.avatar,
+      'hat': ?instance.hat,
+      'heat': ?instance.heat,
       'voice': instance.voice,
       'muted': ?instance.muted,
       'mucked': ?instance.mucked,

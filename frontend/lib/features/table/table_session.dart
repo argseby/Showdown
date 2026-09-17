@@ -733,6 +733,11 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
   Future<void> runTwice(bool agree) =>
       _send(ClientMessage.runTwice(RunTwicePayload(agree: agree)));
 
+  /// Puts a hat on the own avatar (a hat id from hats.dart) or takes it off
+  /// ("none"); everyone sees it as seats[].player.hat.
+  Future<void> setHat(String hat) =>
+      _send(ClientMessage.hat(HatPayload(hat: hat)));
+
   /// Relays one WebRTC signal and reports a refusal to the caller instead of
   /// raising the table's error banner: a rejected signal (an SDP the server
   /// will not carry, say) concerns the voice chat alone.

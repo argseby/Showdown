@@ -82,6 +82,14 @@ abstract class VoiceEngine {
   /// bandwidth: the peers stop sending). Sending is unaffected.
   void setReceiveVideo(bool on);
 
+  /// Playback volume of one peer's voice on this device, 0..1 (0 mutes).
+  /// Nothing is sent; the peer does not notice.
+  void setPeerVolume(String peerId, double volume);
+
+  /// Whether to receive one peer's video (off drops their tile and asks
+  /// them to stop sending to us). Independent of [setReceiveVideo].
+  void setPeerVideo(String peerId, bool on);
+
   /// Creates an offer for [peerId] and returns its serialized description.
   Future<String> createOffer(String peerId);
 

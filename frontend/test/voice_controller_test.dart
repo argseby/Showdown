@@ -36,6 +36,11 @@ class FakeEngine implements VoiceEngine {
   @override
   void setReceiveVideo(bool on) {}
   @override
+  void setPeerVolume(String peerId, double volume) =>
+      calls.add('volume:$peerId:$volume');
+  @override
+  void setPeerVideo(String peerId, bool on) => calls.add('video:$peerId:$on');
+  @override
   Future<String> createOffer(String peerId) async {
     calls.add('offer:$peerId');
     return 'offer-for-$peerId';

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"showdown/internal/botclient"
+	"showdown/internal/protocol"
 )
 
 func main() {
@@ -61,6 +62,7 @@ func run() error {
 	for i, name := range nameList {
 		b := botclient.New(botclient.Config{
 			BaseURL: *server, TableID: *tableID, Name: strings.TrimSpace(name), Password: *password, Avatar: (i * 7) % 20,
+			Hat:      protocol.Hats[i%len(protocol.Hats)],
 			Strategy: botclient.Strategy(*strategy), Log: log, ActDelay: *delay,
 		})
 		if err := b.Join(ctx); err != nil {

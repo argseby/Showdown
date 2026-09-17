@@ -334,7 +334,7 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			err2 = t.Action(client.PlayerID, poker.Action{Kind: poker.ActionKind(a.Kind), Amount: a.Amount})
 		case protocol.TypeSitOut, protocol.TypeSitIn, protocol.TypeRebuy, protocol.TypeLeave, protocol.TypeShowCards,
 			protocol.TypePreAction, protocol.TypeRabbit, protocol.TypeChangeSeat, protocol.TypeVoice, protocol.TypeVoiceSignal,
-			protocol.TypeStraddle, protocol.TypeRunTwice:
+			protocol.TypeStraddle, protocol.TypeRunTwice, protocol.TypeHat:
 			if client.Role != table.RolePlayer {
 				err2 = table.ErrNotSeated
 				break
@@ -391,6 +391,13 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 					break
 				}
 				err2 = t.RunTwice(client.PlayerID, rt.Agree)
+			case protocol.TypeHat:
+				var hp protocol.HatPayload
+				if json.Unmarshal(env.Payload, &hp) != nil {
+					err2 = table.ErrIllegalAction
+					break
+				}
+				err2 = t.SetHat(client.PlayerID, hp.Hat)
 			case protocol.TypeVoiceSignal:
 				var sig protocol.VoiceSignal
 				if json.Unmarshal(env.Payload, &sig) != nil || sig.To == "" || len(sig.Data) > wsSignalDataLimit {

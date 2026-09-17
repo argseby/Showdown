@@ -40,10 +40,11 @@ func (s *Server) handleTableInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 type joinRequest struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	Seat     *int   `json:"seat"`   // wanted seat; omitted = lowest free
-	Avatar   *int   `json:"avatar"` // 0..19; omitted = random
+	Name     string  `json:"name"`
+	Password string  `json:"password"`
+	Seat     *int    `json:"seat"`   // wanted seat; omitted = lowest free
+	Avatar   *int    `json:"avatar"` // 0..19; omitted = random
+	Hat      *string `json:"hat"`    // one of protocol.Hats; omitted = none
 }
 
 func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
@@ -64,14 +65,17 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, protocol.ErrWrongPassword, "wrong table password")
 		return
 	}
-	seat, avatar := -1, -1
+	seat, avatar, hat := -1, -1, ""
 	if req.Seat != nil {
 		seat = *req.Seat
 	}
 	if req.Avatar != nil {
 		avatar = *req.Avatar
 	}
-	res, err := t.Join(req.Name, seat, avatar)
+	if req.Hat != nil {
+		hat = *req.Hat
+	}
+	res, err := t.Join(req.Name, seat, avatar, hat)
 	if err != nil {
 		writeErr(w, err)
 		return

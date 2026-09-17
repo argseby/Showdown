@@ -21,6 +21,10 @@ class _StubVoiceEngine implements VoiceEngine {
   @override
   void setReceiveVideo(bool on) {}
   @override
+  void setPeerVolume(String peerId, double volume) {}
+  @override
+  void setPeerVideo(String peerId, bool on) {}
+  @override
   Future<String> createOffer(String peerId) async => '';
   @override
   Future<String?> acceptOffer(String peerId, String offer) async => '';

@@ -61,6 +61,8 @@ type PlayerRow struct {
 	JoinedAt    int64
 	LeftAt      int64
 	Avatar      int
+	Hat         string // one of protocol.Hats, "" = none
+	WinStreak   int    // hands won in a row
 	// Statistics and standing.
 	VPIPHands    int
 	Showdowns    int

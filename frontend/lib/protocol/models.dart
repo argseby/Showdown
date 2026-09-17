@@ -91,6 +91,15 @@ abstract class RunTwicePayload with _$RunTwicePayload {
       _$RunTwicePayloadFromJson(json);
 }
 
+/// hat payload: the hat to wear on the avatar (one of the server's hat ids)
+/// or "none" to take it off.
+@freezed
+abstract class HatPayload with _$HatPayload {
+  const factory HatPayload({required String hat}) = _HatPayload;
+  factory HatPayload.fromJson(Map<String, dynamic> json) =>
+      _$HatPayloadFromJson(json);
+}
+
 /// say payload: one of the predefined quick phrases.
 @freezed
 abstract class SayPayload with _$SayPayload {
@@ -251,6 +260,13 @@ abstract class PlayerView with _$PlayerView {
     required String id,
     required String name,
     required int avatar,
+
+    /// The hat worn on the avatar (a hat id); absent without one.
+    @JsonKey(includeIfNull: false) String? hat,
+
+    /// Running hot: 1..3 for two, three, four or more hands won in a row;
+    /// absent otherwise.
+    @JsonKey(includeIfNull: false) int? heat,
     @Default('off') String voice,
     @JsonKey(includeIfNull: false) bool? muted,
     @JsonKey(includeIfNull: false) bool? mucked,

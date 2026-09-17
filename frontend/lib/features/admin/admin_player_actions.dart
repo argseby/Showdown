@@ -166,7 +166,7 @@ class AdminPlayerActions {
     return r ?? false;
   }
 
-  /// The action sheet opened by tapping a player's avatar.
+  /// The action sheet opened by tapping a player's avatar (the Admin tab).
   Future<void> showMenu({
     required String playerId,
     required String name,
@@ -185,72 +185,14 @@ class AdminPlayerActions {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              OutlineButton(
-                key: const Key('player-action-chips'),
-                onPressed: () {
-                  closeOverlay<void>(dialog);
-                  chips(playerId, name);
-                },
-                leading: const Icon(LucideIcons.coins),
-                alignment: Alignment.centerLeft,
-                child: Text(l10n.adminChips),
-              ),
-              const Gap(6),
-              OutlineButton(
-                key: const Key('player-action-chat'),
-                onPressed: () {
-                  closeOverlay<void>(dialog);
-                  muteChat(playerId, muted: !chatMuted);
-                },
-                leading: Icon(
-                  chatMuted
-                      ? LucideIcons.messageSquare
-                      : LucideIcons.messageSquareOff,
-                ),
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  chatMuted ? l10n.adminUnmuteChat : l10n.adminMuteChat,
-                ),
-              ),
-              if (voice == 'on') ...[
-                const Gap(6),
-                OutlineButton(
-                  key: const Key('player-action-voice'),
-                  onPressed: () {
-                    closeOverlay<void>(dialog);
-                    muteVoice(playerId);
-                  },
-                  leading: const Icon(LucideIcons.micOff),
-                  alignment: Alignment.centerLeft,
-                  child: Text(l10n.adminMuteVoice),
-                ),
-              ],
-              if (camera) ...[
-                const Gap(6),
-                OutlineButton(
-                  key: const Key('player-action-camera'),
-                  onPressed: () {
-                    closeOverlay<void>(dialog);
-                    cameraOff(playerId);
-                  },
-                  leading: const Icon(LucideIcons.videoOff),
-                  alignment: Alignment.centerLeft,
-                  child: Text(l10n.adminCameraOff),
-                ),
-              ],
-              const Gap(6),
-              DestructiveButton(
-                key: const Key('player-action-kick'),
-                onPressed: () {
-                  closeOverlay<void>(dialog);
-                  kick(playerId, name);
-                },
-                leading: const Icon(LucideIcons.userX),
-                alignment: Alignment.centerLeft,
-                child: Text(l10n.adminKick),
-              ),
-            ],
+            children: actionButtons(
+              dialog: dialog,
+              playerId: playerId,
+              name: name,
+              chatMuted: chatMuted,
+              voice: voice,
+              camera: camera,
+            ),
           ),
         ),
         actions: [
@@ -261,5 +203,80 @@ class AdminPlayerActions {
         ],
       ),
     ).future;
+  }
+
+  /// The host's buttons for one player; each closes [dialog] first. Shared
+  /// by [showMenu] and the player menu at the table.
+  List<Widget> actionButtons({
+    required BuildContext dialog,
+    required String playerId,
+    required String name,
+    required bool chatMuted,
+    required String voice,
+    bool camera = false,
+  }) {
+    final l10n = context.l10n;
+    return [
+      OutlineButton(
+        key: const Key('player-action-chips'),
+        onPressed: () {
+          closeOverlay<void>(dialog);
+          chips(playerId, name);
+        },
+        leading: const Icon(LucideIcons.coins),
+        alignment: Alignment.centerLeft,
+        child: Text(l10n.adminChips),
+      ),
+      const Gap(6),
+      OutlineButton(
+        key: const Key('player-action-chat'),
+        onPressed: () {
+          closeOverlay<void>(dialog);
+          muteChat(playerId, muted: !chatMuted);
+        },
+        leading: Icon(
+          chatMuted ? LucideIcons.messageSquare : LucideIcons.messageSquareOff,
+        ),
+        alignment: Alignment.centerLeft,
+        child: Text(chatMuted ? l10n.adminUnmuteChat : l10n.adminMuteChat),
+      ),
+      if (voice == 'on') ...[
+        const Gap(6),
+        OutlineButton(
+          key: const Key('player-action-voice'),
+          onPressed: () {
+            closeOverlay<void>(dialog);
+            muteVoice(playerId);
+          },
+          leading: const Icon(LucideIcons.micOff),
+          alignment: Alignment.centerLeft,
+          child: Text(l10n.adminMuteVoice),
+        ),
+      ],
+      if (camera) ...[
+        const Gap(6),
+        OutlineButton(
+          key: const Key('player-action-camera'),
+          onPressed: () {
+            closeOverlay<void>(dialog);
+            cameraOff(playerId);
+          },
+          leading: const Icon(LucideIcons.videoOff),
+          alignment: Alignment.centerLeft,
+          child: Text(l10n.adminCameraOff),
+        ),
+      ],
+      const Gap(6),
+      DestructiveButton(
+        key: const Key('player-action-kick'),
+        onPressed: () {
+          closeOverlay<void>(dialog);
+          kick(playerId, name);
+        },
+        leading: const Icon(LucideIcons.userX),
+        alignment: Alignment.centerLeft,
+        child: Text(l10n.adminKick),
+      ),
+    ];
   }
 }

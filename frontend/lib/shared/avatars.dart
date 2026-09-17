@@ -1,5 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import 'hats.dart';
+
 /// The twenty predefined avatars: a Lucide icon (bundled with shadcn_flutter,
 /// no assets, no network) on a colored disc.
 const avatarIcons = <IconData>[
@@ -34,24 +36,30 @@ Color avatarColor(int index) {
   return HSLColor.fromAHSL(1, hue, 0.55, 0.42).toColor();
 }
 
-/// A player avatar: icon on a colored disc.
+/// A player avatar: icon on a colored disc, with a hat on top when the
+/// player wears one. The hat overflows the disc upwards without changing
+/// the widget's own size.
 class PlayerAvatar extends StatelessWidget {
   const PlayerAvatar({
     super.key,
     required this.index,
     this.size = 42,
     this.selected = false,
+    this.hat,
   });
 
   final int index;
   final double size;
   final bool selected;
 
+  /// A hat id (see hats.dart); null, empty or "none" for no hat.
+  final String? hat;
+
   @override
   Widget build(BuildContext context) {
     final i = index.clamp(0, avatarCount - 1);
     final theme = Theme.of(context);
-    return Container(
+    final disc = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -66,6 +74,20 @@ class PlayerAvatar extends StatelessWidget {
         size: size * 0.55,
         color: const Color(0xFFFFFFFF),
       ),
+    );
+    if (!wearsHat(hat)) return disc;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        disc,
+        Positioned(
+          left: size * (1 - hatWidth) / 2,
+          top: -size * hatOverflow,
+          child: IgnorePointer(
+            child: PlayerHat(hat: hat!, width: size * hatWidth),
+          ),
+        ),
+      ],
     );
   }
 }

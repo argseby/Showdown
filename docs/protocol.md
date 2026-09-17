@@ -139,6 +139,15 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   serves the hand history to players and spectators with hole cards only for the
 >   viewer's own seat and revealed hands; the admin route applies the same rule.
 >   `POST /api/admin/tables/{id}/blinds-up` raises the blinds by `blinds_up_percent` now.
+> - **Hats (2026-09-17).** `join` accepts `hat` and the `hat {hat}` message changes it at
+>   the table (§8.2). `seats[].player.hat` (omitted without a hat) and the admin detail's
+>   `players[].hat` show it. Ids: `top_hat, cowboy, crown, party, beanie, wizard, chef,
+>   pirate, cap, halo, viking, sombrero`; the client draws them.
+> - **Running hot (2026-09-17).** `seats[].player.heat` (1..3, omitted at 0) is the
+>   player's streak of hands won in a row: 2 in a row = 1, 3 = 2, 4 or more = 3. A hand
+>   dealt in without winning a pot resets the streak (hands sat out do not count either
+>   way); the streak is stored with the player. The client draws a fire ring around the
+>   avatar in three intensities. The admin detail lists `players[].win_streak`.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / ended / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,
@@ -177,6 +186,7 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `rabbit_hunt` | `{}` | result phase, once per hand, by a player dealt in, when `allow_rabbit_hunt`: reveals the rest of the board (`rabbit_hunt` event, `hand.rabbit_cards`) |
 | `straddle` | `{on}` | arms/disarms the player's straddle (setting `allow_straddle`): whenever they sit left of the big blind with more than 2 BB they post 2×BB before the deal (`blind_posted {blind: "straddle"}`, `hand.straddle_seat`), act last preflop, and the minimum raise is twice the straddle; `you.straddle` mirrors it |
 | `run_twice` | `{agree}` | answer to the run-it-twice vote (setting `run_it_twice`): when everyone is all-in with cards to come the run-out waits up to 8 s (`hand.run_twice_ends_ts`, `you.can_run_twice`, `you.run_twice_vote`); if every live player agrees the remaining streets are dealt twice (`street_dealt {board: 2}`, `hand.board2`, `hand.run_twice`) and each pot is paid in halves per board (`pot_awarded {board: 1|2}`, odd chip to board 1); a single "no" or the timeout runs it once |
+| `hat` | `{hat}` | puts a hat on the player's avatar: one of `top_hat, cowboy, crown, party, beanie, wizard, chef, pirate, cap, halo, viking, sombrero`, or `none` to take it off (`illegal_action` for anything else); everyone sees it as `seats[].player.hat` (absent without a hat); it is stored with the player, so it survives reconnects and restarts; `join` accepts `hat` too. The client draws the hats, the server only knows the ids |
 | `say` | `{phrase}` | one of the quick phrases `nice_hand, nice_call, nice_fold, nice_bluff, well_played, gg, thanks, sorry, wow, oops, furious, lol, hurry_up, brb`; players only, at most one every 3 s (`rate_limited`), rejected while chat-muted; broadcast as `phrase` and never persisted |
 | `chat` | `{text}` | |
 | `ping` | `{}` | client keepalive; server answers `pong` |
@@ -253,7 +263,10 @@ current hand; otherwise it is omitted (not `null`-ed with a count — the client
 face-down cards for any `in_hand && !folded` player). A seat whose hand is fully revealed
 also carries `hand_description` and `best_cards` (its best five against the current board,
 recomputed on every run-out street, so a hand shown after an all-in on the flop is
-described correctly on the turn and the river); both are absent for hidden hands. `hand` is `null` while idle.
+described correctly on the turn and the river); both are absent for hidden hands.
+`seats[].player.hat` names the hat worn on the avatar (§8.2 `hat`) and is absent without
+one; `seats[].player.heat` (1..3) marks a streak of hands won in a row and is absent
+otherwise. `hand` is `null` while idle.
 `hand.phase` ∈ `betting | runout | showdown | result`. `you.options` is `null` unless it
 is the recipient's turn; `pots` shows chips collected from completed streets, while bets
 of the current street are in `bet_this_street`. `you.hand_description` is computed

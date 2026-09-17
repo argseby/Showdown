@@ -6,6 +6,8 @@ import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
+import '../../../protocol/protocol.dart';
+import '../../../shared/hats.dart';
 import '../../../shared/kbd_hint.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
@@ -45,6 +47,8 @@ class TableSettingsTab extends ConsumerWidget {
     final voice = ref.watch(voiceControllerProvider(tableId));
     final notify = ref.watch(notifyTurnProvider);
     final showCameras = ref.watch(showCamerasProvider);
+    final showHats = ref.watch(showHatsProvider);
+    final showHeat = ref.watch(showHeatProvider);
     final scale = ref.watch(uiScaleProvider);
     final handLine = ref.watch(handLineProvider);
     final spotlight = ref.watch(showdownSpotlightProvider);
@@ -53,6 +57,18 @@ class TableSettingsTab extends ConsumerWidget {
     final isHost = ref.watch(
       tableSessionProvider(tableId)
           .select((s) => s.snapshot?.you.isAdmin ?? false),
+    );
+    // The viewer's own seat (for the hat and its preview).
+    final me = ref.watch(
+      tableSessionProvider(tableId).select((s) {
+        final snap = s.snapshot;
+        final seat = snap?.you.seat;
+        if (snap == null || seat == null) return null;
+        for (final sv in snap.seats) {
+          if (sv.seat == seat) return sv.player;
+        }
+        return null;
+      }),
     );
     final brightness = theme.colorScheme.brightness;
     final locale = Localizations.localeOf(context);
@@ -113,6 +129,34 @@ class TableSettingsTab extends ConsumerWidget {
         style: TextStyle(fontSize: 12, color: theme.colorScheme.destructive),
       ),
     );
+
+    Future<void> pickHat(PlayerView me) async {
+      final picked = await showOverlay<String>(
+        context,
+        const DialogConfiguration(),
+        builder: (context) => AlertDialog(
+          title: Text(l10n.hatChange),
+          content: SizedBox(
+            width: 320,
+            child: HatPicker(
+              selected: me.hat,
+              avatar: me.avatar,
+              size: 44,
+              onSelected: (id) => closeOverlay<String>(context, id),
+            ),
+          ),
+          actions: [
+            OutlineButton(
+              onPressed: () => closeOverlay<String>(context),
+              child: Text(l10n.cancel),
+            ),
+          ],
+        ),
+      ).future;
+      if (picked != null) {
+        await ref.read(tableSessionProvider(tableId).notifier).setHat(picked);
+      }
+    }
 
     Future<void> toggleNotify() async {
       if (notify) {
@@ -241,6 +285,20 @@ class TableSettingsTab extends ConsumerWidget {
               key: const Key('drawer-chips'),
             ),
             toggle(
+              LucideIcons.crown,
+              l10n.showHats,
+              showHats,
+              () => ref.read(showHatsProvider.notifier).set(!showHats),
+              key: const Key('drawer-hats'),
+            ),
+            toggle(
+              LucideIcons.flame,
+              l10n.showHeat,
+              showHeat,
+              () => ref.read(showHeatProvider.notifier).set(!showHeat),
+              key: const Key('drawer-heat'),
+            ),
+            toggle(
               LucideIcons.sparkles,
               l10n.showdownSpotlight,
               spotlight,
@@ -320,6 +378,14 @@ class TableSettingsTab extends ConsumerWidget {
                 ),
               ),
             section(l10n.menuTable),
+            if (isPlayer && me != null)
+              button(
+                LucideIcons.crown,
+                l10n.hatTitle,
+                hatLabel(l10n, me.hat),
+                () => pickHat(me),
+                key: const Key('drawer-hat'),
+              ),
             if (!isPlayer)
               button(
                 LucideIcons.armchair,

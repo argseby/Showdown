@@ -443,6 +443,9 @@ func (t *Table) finishHand() {
 		p.Stack = sr.EndStack
 		if sr.Won > 0 {
 			p.HandsWon++
+			p.WinStreak++
+		} else {
+			p.WinStreak = 0
 		}
 	}
 	for _, pot := range res.Pots {

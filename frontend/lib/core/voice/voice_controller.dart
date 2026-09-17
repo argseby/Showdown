@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/preferences.dart';
 import '../../features/table/table_session.dart';
 import '../../protocol/protocol.dart';
+import '../peer_prefs.dart';
 import '../providers.dart';
 import '../session_store.dart';
 import '../ws_client.dart';
@@ -176,7 +177,25 @@ class VoiceController extends Notifier<VoiceState> {
       _engine = null;
     });
     ref.listen(tableSessionProvider(tableId), (_, next) => _sync(next));
+    ref.listen(peerPrefsProvider, (_, next) => _applyPeerPrefs(next));
     return const VoiceState();
+  }
+
+  /// Peers whose volume or video the engine was told about; a peer that
+  /// went back to the defaults is told once more.
+  var _prefPeers = <String>{};
+
+  /// Pushes the viewer's per-player choices (volume, mute, video) into the
+  /// engine; they never leave this device.
+  void _applyPeerPrefs(Map<String, PeerPrefs> prefs) {
+    final engine = _engine;
+    if (engine == null) return;
+    for (final id in {..._prefPeers, ...prefs.keys}) {
+      final p = prefs[id] ?? PeerPrefs.none;
+      engine.setPeerVolume(id, p.effectiveVolume);
+      engine.setPeerVideo(id, !p.hideVideo);
+    }
+    _prefPeers = prefs.keys.toSet();
   }
 
   TableSessionNotifier get _session =>
@@ -212,6 +231,7 @@ class VoiceController extends Notifier<VoiceState> {
     _signalSub = _session.voiceSignals.listen(_onSignal);
     engine.setMuted(muted);
     engine.setReceiveVideo(ref.read(showCamerasProvider));
+    _applyPeerPrefs(ref.read(peerPrefsProvider));
     _wasReady = _connectionReady;
     _announcing = true;
     state = state.copyWith(enabled: true, muted: muted, unavailable: false);

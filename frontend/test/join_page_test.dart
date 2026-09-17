@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/core/session_store.dart';
 import 'package:showdown/features/join/join_page.dart';
 import 'package:showdown/features/join/name_rules.dart';
+import 'package:showdown/shared/hats.dart';
 
 import 'test_helpers.dart';
 
@@ -127,6 +130,39 @@ void main() {
       findsOneWidget,
       reason: 'navigates to the table after joining',
     );
+  });
+
+  testWidgets('a picked hat is sent with the join request', (tester) async {
+    String? body;
+    final rest = client({
+      'GET /api/tables/k7m2p9xq4w/info': (_) => http.Response(infoJson, 200),
+      'POST /api/tables/k7m2p9xq4w/join': (req) {
+        body = req.body;
+        return http.Response(
+          '{"player_token":"t","player_id":"p1","seat":2,"name":"Alice"}',
+          201,
+        );
+      },
+    });
+    await tester.pumpWidget(page(rest));
+    await tester.pumpAndSettle();
+    expect(find.text('Hat: No hat'), findsOneWidget);
+    expect(find.byType(PlayerHat), findsNothing);
+
+    await tester.tap(find.byKey(const Key('join-hat')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('hat-option-crown')));
+    await tester.pumpAndSettle();
+    expect(find.text('Hat: Crown'), findsOneWidget);
+    // The preview next to the name wears it now.
+    expect(find.byKey(const ValueKey('hat-worn-crown')), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('join-name')), 'Alice');
+    await tester.enterText(find.byKey(const Key('join-password')), 'secret');
+    await tester.ensureVisible(find.byKey(const Key('join-submit')));
+    await tester.tap(find.byKey(const Key('join-submit')));
+    await tester.pumpAndSettle();
+    expect(jsonDecode(body!), containsPair('hat', 'crown'));
   });
 
   testWidgets('Enter in the name field submits', (tester) async {

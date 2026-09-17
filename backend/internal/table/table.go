@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"log/slog"
+	"slices"
 	"sort"
 	"time"
 
@@ -105,6 +106,11 @@ type Player struct {
 	JoinedAt    int64
 	LeftAt      int64
 	Avatar      int // 0..19, one of the predefined avatars
+	// Hat is the hat worn on the avatar: one of protocol.Hats, "" = none.
+	Hat string
+	// WinStreak counts the hands won in a row (hands dealt in only); a hand
+	// dealt in without winning a pot resets it. Drives PlayerView.Heat.
+	WinStreak int
 	// Statistics: hands with chips put in voluntarily preflop, showdowns
 	// reached and won.
 	VPIPHands    int
@@ -158,6 +164,41 @@ const (
 
 // AvatarCount is the number of predefined avatars.
 const AvatarCount = 20
+
+// HatNone takes the hat off (an empty string does the same).
+const HatNone = "none"
+
+// Heat thresholds: hands won in a row for heat 1, 2 and 3 ("running hot").
+const (
+	HeatLowStreak  = 2
+	HeatMidStreak  = 3
+	HeatHighStreak = 4
+)
+
+// heatOf maps a win streak to the heat level shown on the seat (0..3).
+func heatOf(streak int) int {
+	switch {
+	case streak >= HeatHighStreak:
+		return 3
+	case streak >= HeatMidStreak:
+		return 2
+	case streak >= HeatLowStreak:
+		return 1
+	}
+	return 0
+}
+
+// normalizeHat maps a hat id to its stored form: "" for no hat, the id
+// itself for one of protocol.Hats; ok is false for anything else.
+func normalizeHat(hat string) (string, bool) {
+	if hat == "" || hat == HatNone {
+		return "", true
+	}
+	if slices.Contains(protocol.Hats, hat) {
+		return hat, true
+	}
+	return "", false
+}
 
 // Deps are the table's external dependencies. Zero values get defaults.
 type Deps struct {
@@ -495,8 +536,9 @@ type JoinResult struct {
 }
 
 // Join seats a new player (password already verified by the caller). seat
-// is the wanted seat or -1 for the lowest free one; avatar is 0..19.
-func (t *Table) Join(rawName string, seat, avatar int) (JoinResult, error) {
+// is the wanted seat or -1 for the lowest free one; avatar is 0..19; hat is
+// one of protocol.Hats (anything else: no hat).
+func (t *Table) Join(rawName string, seat, avatar int, hat string) (JoinResult, error) {
 	var res JoinResult
 	err := t.callErr(func() error {
 		if t.state == StateEnded {
@@ -533,9 +575,10 @@ func (t *Table) Join(rawName string, seat, avatar int) (JoinResult, error) {
 		if avatar < 0 || avatar >= AvatarCount {
 			avatar = int(randomIndex(AvatarCount))
 		}
+		hat, _ = normalizeHat(hat)
 		p := &Player{
 			ID: newPlayerID(), Name: name, Seat: seat, Stack: t.settings.StartMoney, Status: StatusActive,
-			BuyInTotal: t.settings.StartMoney, JoinedAt: t.nowMs(), Avatar: avatar, pendingSeat: -1,
+			BuyInTotal: t.settings.StartMoney, JoinedAt: t.nowMs(), Avatar: avatar, Hat: hat, pendingSeat: -1,
 			TimeBank: t.settings.TimeBankSeconds,
 		}
 		t.seats[seat] = p
@@ -724,6 +767,29 @@ func (t *Table) SetVoice(playerID, state string, camera bool) error {
 		}
 		p.Voice = state
 		p.Camera = camera && state != VoiceOff
+		t.touch()
+		return nil
+	})
+}
+
+// SetHat changes the hat on the player's avatar: one of protocol.Hats, or
+// HatNone to take it off. Cosmetic only; it is persisted with the player,
+// so it survives reconnects and restarts.
+func (t *Table) SetHat(playerID, hat string) error {
+	return t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		h, ok := normalizeHat(hat)
+		if !ok {
+			return ErrIllegalAction
+		}
+		if p.Hat == h {
+			return nil
+		}
+		p.Hat = h
+		t.persistPlayer(p)
 		t.touch()
 		return nil
 	})
@@ -1267,6 +1333,8 @@ type PlayerAdmin struct {
 	BiggestPot  int64  `json:"biggest_pot"`
 	JoinedAt    int64  `json:"joined_at"`
 	Avatar      int    `json:"avatar"`
+	Hat         string `json:"hat,omitempty"`
+	WinStreak   int    `json:"win_streak,omitempty"`
 	Voice       string `json:"voice"` // off | on | muted
 	Camera      bool   `json:"camera"`
 	Place       int    `json:"place"`
@@ -1303,8 +1371,8 @@ func (t *Table) AdminDetail() AdminDetail {
 			d.Players = append(d.Players, PlayerAdmin{
 				ID: p.ID, Name: p.Name, Seat: p.Seat, Stack: t.currentStack(p), Status: p.Status, Connected: p.Connected,
 				Muted: p.Muted, MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed,
-				HandsWon: p.HandsWon, BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, Avatar: p.Avatar,
-				Voice: cmp.Or(p.Voice, VoiceOff), Camera: p.Camera, Place: p.Place,
+				HandsWon: p.HandsWon, BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, Avatar: p.Avatar, Hat: p.Hat,
+				WinStreak: p.WinStreak, Voice: cmp.Or(p.Voice, VoiceOff), Camera: p.Camera, Place: p.Place,
 			})
 		}
 	})
@@ -1541,8 +1609,9 @@ func (t *Table) persistPlayer(p *Player) {
 	row := store.PlayerRow{
 		ID: p.ID, TableID: t.ID, Name: p.Name, Seat: p.Seat, Stack: p.Stack, Status: p.Status, Muted: p.Muted,
 		MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed, HandsWon: p.HandsWon,
-		BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, LeftAt: p.LeftAt, Avatar: p.Avatar,
-		VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon, TimeBank: p.TimeBank, Place: p.Place,
+		BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, LeftAt: p.LeftAt, Avatar: p.Avatar, Hat: p.Hat,
+		WinStreak: p.WinStreak, VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon,
+		TimeBank: p.TimeBank, Place: p.Place,
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpsertPlayer(ctx, row)

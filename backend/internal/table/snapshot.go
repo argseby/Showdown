@@ -87,7 +87,7 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 				voice = VoiceOff
 			}
 			pv := &protocol.PlayerView{
-				ID: p.ID, Name: p.Name, Avatar: p.Avatar, Stack: p.Stack, Status: p.Status, Connected: p.Connected,
+				ID: p.ID, Name: p.Name, Avatar: p.Avatar, Hat: p.Hat, Heat: heatOf(p.WinStreak), Stack: p.Stack, Status: p.Status, Connected: p.Connected,
 				Voice: voice, Muted: p.Muted, Camera: p.Camera, TimeBank: p.TimeBank, Place: p.Place,
 			}
 			if eq, ok := t.equity[seat]; ok && p.inHand {

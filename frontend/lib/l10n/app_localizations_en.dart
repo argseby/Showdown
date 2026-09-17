@@ -1321,6 +1321,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String get joinAvatarChange => 'Change avatar';
 
   @override
+  String get hatTitle => 'Hat';
+
+  @override
+  String get hatChange => 'Change hat';
+
+  @override
+  String get hatNone => 'No hat';
+
+  @override
+  String get showHats => 'Show other players\' hats';
+
+  @override
+  String get showHeat => 'Show win streaks';
+
+  @override
+  String get playerMenuLocal => 'Only for you';
+
+  @override
+  String get playerMenuLocalHint =>
+      'These settings apply on this device only and are forgotten when you leave the table. The player does not notice.';
+
+  @override
+  String get playerMenuEveryone => 'For everyone (host)';
+
+  @override
+  String get peerVolume => 'Voice volume';
+
+  @override
+  String get peerMute => 'Mute voice';
+
+  @override
+  String get peerHideVideo => 'Hide video';
+
+  @override
+  String get peerHideHat => 'Hide hat';
+
+  @override
+  String get peerHideHeat => 'Hide win streak';
+
+  @override
+  String get peerReset => 'Reset';
+
+  @override
+  String get peerMutedMark => 'Muted for you';
+
+  @override
+  String get peerQuietMark => 'Turned down for you';
+
+  @override
+  String get peerNoVideoMark => 'Video hidden for you';
+
+  @override
+  String heatBadge(String heat) {
+    String _temp0 = intl.Intl.selectLogic(heat, {
+      '1': 'Warming up: 2 hands in a row',
+      '2': 'Running hot: 3 hands in a row',
+      '3': 'On fire: 4 or more hands in a row',
+      'other': 'Running hot',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String hatName(String hat) {
+    String _temp0 = intl.Intl.selectLogic(hat, {
+      'top_hat': 'Top hat',
+      'cowboy': 'Cowboy hat',
+      'crown': 'Crown',
+      'party': 'Party hat',
+      'beanie': 'Beanie',
+      'wizard': 'Wizard hat',
+      'chef': 'Chef\'s hat',
+      'pirate': 'Pirate hat',
+      'cap': 'Baseball cap',
+      'halo': 'Halo',
+      'viking': 'Viking helmet',
+      'sombrero': 'Sombrero',
+      'other': 'Hat',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get joinPickSeat => 'Pick a seat (optional)';
 
   @override

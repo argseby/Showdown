@@ -5,10 +5,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../core/formatting.dart';
+import '../../../core/peer_prefs.dart';
 import '../../../core/time_sync.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
 import '../../../shared/chips.dart';
+import '../../../shared/fire_ring.dart';
 import '../../../shared/playing_card.dart';
 
 /// One seat on the table: avatar with countdown ring, name, stack, badges,
@@ -33,7 +35,7 @@ class SeatWidget extends ConsumerWidget {
     this.speaking = false,
     this.scale = 1.0,
     this.phrase,
-    this.onAdminTap,
+    this.onPlayerTap,
     this.onSayTap,
     this.equity,
     this.timeBankActive = false,
@@ -70,8 +72,9 @@ class SeatWidget extends ConsumerWidget {
   /// A quick phrase the player just said (already translated).
   final String? phrase;
 
-  /// Host only: tapping the avatar opens the player actions.
-  final VoidCallback? onAdminTap;
+  /// Another player's seat: tapping (or right-clicking) the avatar opens
+  /// the player menu.
+  final VoidCallback? onPlayerTap;
 
   /// Accessibility scale for cards and avatars (1.0 = normal).
   final double scale;
@@ -178,6 +181,27 @@ class SeatWidget extends ConsumerWidget {
     final showsCards = inHand;
     final folded = inHand && p.folded;
     final fourColor = ref.watch(fourColorDeckProvider);
+    // What the viewer chose for this player on this device (player menu).
+    final prefs =
+        ref.watch(peerPrefsProvider.select((m) => m[p.id])) ?? PeerPrefs.none;
+    // Other players' hats can be hidden; the own hat always shows.
+    final showHats =
+        (isViewer || ref.watch(showHatsProvider)) && !prefs.hideHat;
+    // Win streaks (fire ring) can be switched off for every seat.
+    final heat = ref.watch(showHeatProvider) && !prefs.hideHeat
+        ? (p.heat ?? 0).clamp(0, 3)
+        : 0;
+    final video = prefs.hideVideo ? null : videoViewType;
+    // Small marks for what the viewer muted or hid: they explain a silent
+    // or faceless seat later on.
+    final marks = <(Key, IconData, String)>[
+      if (prefs.muted)
+        (Key('peer-muted-$seat'), LucideIcons.volumeX, l10n.peerMutedMark)
+      else if (prefs.volume < 1)
+        (Key('peer-quiet-$seat'), LucideIcons.volume1, l10n.peerQuietMark),
+      if (prefs.hideVideo)
+        (Key('peer-novideo-$seat'), LucideIcons.videoOff, l10n.peerNoVideoMark),
+    ];
     final cardWidth = (compact ? 26.0 : 34.0) * scale;
     final avatarSize = (compact ? 34.0 : 42.0) * scale;
     final ringSize = (compact ? 44.0 : 54.0) * scale;
@@ -236,6 +260,19 @@ class SeatWidget extends ConsumerWidget {
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
+        // Running hot: flames around the ring, three intensities.
+        if (heat > 0)
+          Positioned.fill(
+            child: Tooltip(
+              tooltip: TooltipContainer(child: Text(l10n.heatBadge('$heat')))
+                  .call,
+              child: FireRing(
+                key: Key('heat-$seat'),
+                intensity: heat,
+                ringSize: ringSize,
+              ),
+            ),
+          ),
         if (isTurn && hand?.deadlineTs != null)
           _CountdownRing(
             deadlineTs: hand!.deadlineTs!,
@@ -259,24 +296,58 @@ class SeatWidget extends ConsumerWidget {
                 ? Border.all(color: theme.colorScheme.primary, width: 2)
                 : null,
           ),
-          child: videoViewType != null
+          child: video != null
               ? ClipOval(
                   child: SizedBox(
                     width: avatarSize,
                     height: avatarSize,
                     child: HtmlElementView(
-                      key: ValueKey(videoViewType),
-                      viewType: videoViewType!,
+                      key: ValueKey(video),
+                      viewType: video,
                     ),
                   ),
                 )
-              : PlayerAvatar(index: p.avatar, size: avatarSize),
+              : PlayerAvatar(
+                  index: p.avatar,
+                  size: avatarSize,
+                  hat: showHats ? p.hat : null,
+                ),
         ),
         if (winner)
           Positioned(
             left: compact ? -2 : 0,
             top: compact ? -2 : 0,
             child: _WinnerMark(size: compact ? 18 : 22, color: winnerColor),
+          ),
+        if (marks.isNotEmpty)
+          Positioned(
+            right: compact ? -4 : -2,
+            top: compact ? -2 : 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (key, icon, hint) in marks)
+                  Tooltip(
+                    tooltip: TooltipContainer(child: Text(hint)).call,
+                    child: Container(
+                      key: key,
+                      width: compact ? 16 : 18,
+                      height: compact ? 16 : 18,
+                      margin: const EdgeInsets.only(bottom: 2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.secondary,
+                        border: Border.all(color: theme.colorScheme.border),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: compact ? 9 : 10,
+                        color: theme.colorScheme.secondaryForeground,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
       ],
     );
@@ -314,13 +385,14 @@ class SeatWidget extends ConsumerWidget {
         else
           SizedBox(height: cardWidth * 1.4),
         const Gap(4),
-        if (onAdminTap != null)
+        if (onPlayerTap != null)
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              key: Key('admin-seat-$seat'),
+              key: Key('player-seat-$seat'),
               behavior: HitTestBehavior.opaque,
-              onTap: onAdminTap,
+              onTap: onPlayerTap,
+              onSecondaryTap: onPlayerTap,
               child: avatarStack,
             ),
           )

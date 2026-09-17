@@ -232,10 +232,56 @@ void main() {
     expect(find.byKey(const Key('drawer-sound')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chip-stacks')), findsOneWidget);
     expect(find.byKey(const Key('drawer-chips')), findsOneWidget);
+    expect(find.byKey(const Key('drawer-hats')), findsOneWidget);
+    expect(find.byKey(const Key('drawer-heat')), findsOneWidget);
     expect(find.byKey(const Key('menu-leave')), findsOneWidget);
     expect(find.byKey(const Key('menu-other-table')), findsOneWidget);
     // A seated player is not offered "take a seat".
     expect(find.byKey(const Key('menu-take-seat')), findsNothing);
+  });
+
+  testWidgets('the settings tab changes the hat and sends the pick', (
+    tester,
+  ) async {
+    await pumpPlay(tester);
+    // Bob wears a cowboy hat in the fixture.
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
+    await tester.ensureVisible(find.byIcon(LucideIcons.settings));
+    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.settings));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('drawer-hat')));
+    await tester.pump();
+    expect(find.text('No hat'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('drawer-hat')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('hat-option-pirate')));
+    await tester.pump(const Duration(milliseconds: 600));
+    final hat = transport.sent.lastWhere((e) => e['type'] == 'hat');
+    expect(hat['payload'], {'hat': 'pirate'});
+  });
+
+  testWidgets('the player menu mutes and hides another player locally', (
+    tester,
+  ) async {
+    await pumpPlay(tester);
+    await tester.tap(find.byKey(const Key('player-seat-4')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Bob'), findsWidgets);
+    expect(find.text('ONLY FOR YOU'), findsOneWidget);
+    // Not the host: no table-wide actions.
+    expect(find.text('FOR EVERYONE (HOST)'), findsNothing);
+    await tester.tap(find.byKey(const Key('peer-mute')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('peer-hide-hat')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('peer-reset')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('player-menu-close')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('peer-muted-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsNothing);
+    // Nothing went to the server.
+    expect(sentTypes().where((t) => t != 'hello' && t != 'ping'), isEmpty);
   });
 
   testWidgets('a free seat asks before moving and sends change_seat', (
@@ -427,6 +473,10 @@ class _ProbeEngine implements VoiceEngine {
   void stopCamera() {}
   @override
   void setReceiveVideo(bool on) {}
+  @override
+  void setPeerVolume(String peerId, double volume) {}
+  @override
+  void setPeerVideo(String peerId, bool on) {}
   @override
   Future<String> createOffer(String peerId) async => '';
   @override
