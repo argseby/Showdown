@@ -642,6 +642,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-fold'),
               label: l10n.fold,
               hint: shortcutLabel(ShortcutAction.fold),
+              pad: padLabel(ShortcutAction.fold),
               enabled: false,
               color: ActionColors.fold,
               onPressed: () {},
@@ -653,6 +654,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-check-call'),
               label: l10n.check,
               hint: shortcutLabel(ShortcutAction.checkCall),
+              pad: padLabel(ShortcutAction.checkCall),
               enabled: false,
               color: ActionColors.check,
               onPressed: () {},
@@ -664,6 +666,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-raise'),
               label: opening ? l10n.bet : l10n.raise,
               hint: shortcutLabel(ShortcutAction.openRaise),
+              pad: padLabel(ShortcutAction.openRaise),
               enabled: false,
               color: ActionColors.raise,
               onPressed: () {},
@@ -721,6 +724,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-fold'),
               label: l10n.fold,
               hint: shortcutLabel(ShortcutAction.fold),
+              pad: padLabel(ShortcutAction.fold),
               enabled: m.canFold && armed,
               color: ActionColors.fold,
               onPressed: fold,
@@ -732,6 +736,7 @@ class ActionBarState extends State<ActionBar> {
               key: const Key('action-check-call'),
               label: callLabel,
               hint: shortcutLabel(ShortcutAction.checkCall),
+              pad: padLabel(ShortcutAction.checkCall),
               enabled: (m.canCheck || m.canCall) && armed,
               color: m.canCall ? ActionColors.call : ActionColors.check,
               onPressed: checkOrCall,
@@ -748,6 +753,9 @@ class ActionBarState extends State<ActionBar> {
                   ? l10n.betAmount(_fmt(_amount))
                   : l10n.raiseTo(_fmt(_amount)),
               hint: shortcutLabel(
+                _raiseOpen ? ShortcutAction.confirm : ShortcutAction.openRaise,
+              ),
+              pad: padLabel(
                 _raiseOpen ? ShortcutAction.confirm : ShortcutAction.openRaise,
               ),
               enabled: m.canRaise && armed,
@@ -926,6 +934,7 @@ class _ActionButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.hint,
+    this.pad,
     required this.enabled,
     required this.onPressed,
     required this.color,
@@ -933,6 +942,7 @@ class _ActionButton extends StatelessWidget {
 
   final String label;
   final String hint;
+  final String? pad;
   final bool enabled;
   final VoidCallback onPressed;
   final Color color;
@@ -971,7 +981,7 @@ class _ActionButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-          if (!compact) ...[const Gap(6), KbdHint(hint)],
+          KbdHint(hint, pad: pad, leadingGap: 6),
         ],
       ),
     );
@@ -1053,8 +1063,13 @@ class _RaisePanel extends StatelessWidget {
                         Flexible(
                           child: Text(label, overflow: TextOverflow.ellipsis),
                         ),
-                        const Gap(4),
-                        KbdHint(hint),
+                        KbdHint(
+                          hint,
+                          pad: index == null
+                              ? padLabel(ShortcutAction.selectAllIn)
+                              : null,
+                          leadingGap: 4,
+                        ),
                       ],
                     ),
                   ),

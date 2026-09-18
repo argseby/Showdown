@@ -107,7 +107,10 @@ class TableView extends ConsumerWidget {
     final l10n = context.l10n;
     final fourColor = ref.watch(fourColorDeckProvider);
     final maxPlayers = snap.table.settings.maxPlayers;
-    final viewerSeat = session.mySeat ?? 0;
+    // Fixed seats: seat 0 sits at the bottom for everyone; otherwise the
+    // viewer does.
+    final fixedSeats = ref.watch(fixedSeatsProvider);
+    final viewerSeat = fixedSeats ? 0 : (session.mySeat ?? 0);
     final hand = snap.hand;
     final chipDisplay = ref.watch(chipDisplayProvider);
     final stacks = ref.watch(chipStacksProvider);
@@ -200,15 +203,26 @@ class TableView extends ConsumerWidget {
               ).compareTo(positionOf(b.seat, viewerSeat, maxPlayers)),
             );
         SeatView? free;
-        for (final sv in snap.seats) {
-          if (sv.player == null) {
-            free = sv;
-            break;
+        if (!fixedSeats) {
+          for (final sv in snap.seats) {
+            if (sv.player == null) {
+              free = sv;
+              break;
+            }
           }
         }
-        final slots = [...players, ?free];
-        num slotPosition(int index) =>
-            free != null && index == players.length ? index - 0.5 : index;
+        // Fixed seats: every seat, taken or not, at its own place on a
+        // ring of maxPlayers. Otherwise the taken seats are spread evenly
+        // with one free seat between the last player and the viewer.
+        final slots = fixedSeats
+            ? ([...snap.seats]..sort((a, b) => a.seat.compareTo(b.seat)))
+            : [...players, ?free];
+        final ring = fixedSeats ? maxPlayers : math.max(1, players.length);
+        num slotPosition(int index) => fixedSeats
+            ? slots[index].seat
+            : free != null && index == players.length
+            ? index - 0.5
+            : index;
         // Every slot's box at its clamped place, and the part of it the
         // content really occupies.
         final boxes = <int, Rect>{};
@@ -216,11 +230,7 @@ class TableView extends ConsumerWidget {
         final occupied = <Rect>[];
         for (final (i, sv) in slots.indexed) {
           final seat = sv.seat;
-          final point = seatPoint(
-            slotPosition(i),
-            math.max(1, players.length),
-            oval,
-          );
+          final point = seatPoint(slotPosition(i), ring, oval);
           final box = Rect.fromLTWH(
             (point.dx - seatW / 2).clamp(0.0, size.width - seatW),
             (point.dy - seatH / 2).clamp(0.0, size.height - seatH),
@@ -231,7 +241,7 @@ class TableView extends ConsumerWidget {
           // Upper or lower half by the seat's place on the ring, so the
           // two seats level with the middle (a four-handed table) align
           // the same way instead of depending on sampling noise.
-          final frac = slotPosition(i) / math.max(1, players.length);
+          final frac = slotPosition(i) / ring;
           final lower = frac < 0.25 || frac > 0.75;
           lowerHalf[seat] = lower;
           occupied.add(

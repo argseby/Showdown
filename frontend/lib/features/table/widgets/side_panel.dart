@@ -8,9 +8,12 @@ import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../core/file_saver.dart';
 import '../../../core/formatting.dart';
+import '../../../core/gamepad/gamepad.dart';
+import '../../../core/gamepad/pad_section.dart';
 import '../../../core/session_store.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
+import '../../../shared/kbd_hint.dart';
 import '../../../shared/suit_painter.dart';
 import '../../admin/admin_panel.dart';
 import '../../admin/table_rules_section.dart';
@@ -52,7 +55,7 @@ class SidePanel extends ConsumerStatefulWidget {
   final ValueChanged<String> onSendChat;
 
   @override
-  ConsumerState<SidePanel> createState() => _SidePanelState();
+  ConsumerState<SidePanel> createState() => SidePanelState();
 }
 
 /// The pages inside the Settings tab. The host's pages need the admin token.
@@ -67,7 +70,7 @@ enum SettingsPage {
   hostHands,
 }
 
-class _SidePanelState extends ConsumerState<SidePanel> {
+class SidePanelState extends ConsumerState<SidePanel> {
   /// The open settings page; null shows the settings menu.
   SettingsPage? _page;
 
@@ -77,9 +80,9 @@ class _SidePanelState extends ConsumerState<SidePanel> {
   late PanelTab _tab = widget.tab;
 
   @override
-  void didUpdateWidget(covariant SidePanel old) {
-    super.didUpdateWidget(old);
-    if (old.tab != widget.tab) _tab = widget.tab;
+  void didUpdateWidget(covariant SidePanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tab != widget.tab) _tab = widget.tab;
     _markRead();
   }
 
@@ -97,6 +100,22 @@ class _SidePanelState extends ConsumerState<SidePanel> {
     widget.onTabChanged(tab);
     _markRead();
   }
+
+  /// Controller: switch tabs (LT / RT).
+  void selectTab(PanelTab tab) => _select(tab);
+
+  /// Controller B: back from a settings page; false when at the top.
+  bool back() {
+    if (_page != null) {
+      setState(() => _page = null);
+      return true;
+    }
+    return false;
+  }
+
+  /// The open settings page's title, for the controller legend.
+  String? pageTitle(AppLocalizations l10n) =>
+      _page == null ? null : _pageTitle(l10n, _page!);
 
   Future<void> _replay() async {
     final session = ref.read(tableSessionProvider(widget.tableId));
@@ -203,8 +222,38 @@ class _SidePanelState extends ConsumerState<SidePanel> {
     // Inside a settings page the tab strip gives way to a back button and
     // the page title: the page is a level below the tabs.
     final page = tab == PanelTab.settings ? _page : null;
+    // With a controller: is its cursor in this panel (caps show LT / RT
+    // for the tabs and B for back) or elsewhere (a Back cap says how to
+    // get here)? Null without a controller.
+    final padHere = ref.watch(gamepadProvider)
+        ? ref.watch(
+            padCursorProvider.select((c) => c.section == PadSection.panel),
+          )
+        : null;
     final header = page == null
-        ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: tabs)
+        ? Row(
+            children: [
+              // Controller caps: how to get here, or how to switch tabs.
+              if (padHere == false) ...[
+                const KbdHint('', pad: 'Back'),
+                const Gap(6),
+              ],
+              if (padHere ?? false) ...[
+                const KbdHint('', pad: 'LT'),
+                const Gap(4),
+              ],
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: tabs,
+                ),
+              ),
+              if (padHere ?? false) ...[
+                const Gap(4),
+                const KbdHint('', pad: 'RT'),
+              ],
+            ],
+          )
         : Row(
             children: [
               GhostButton(
@@ -213,6 +262,10 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                 onPressed: () => setState(() => _page = null),
                 child: const Icon(LucideIcons.arrowLeft),
               ),
+              if (padHere ?? false) ...[
+                const Gap(2),
+                const KbdHint('', pad: 'B'),
+              ],
               const Gap(4),
               Expanded(child: Text(_pageTitle(l10n, page)).semiBold()),
             ],

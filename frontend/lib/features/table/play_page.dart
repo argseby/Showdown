@@ -9,6 +9,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
+import '../../core/gamepad/gamepad.dart';
+import '../../core/gamepad/pad_navigation.dart';
+import '../../core/gamepad/pad_section.dart';
 import '../../core/peer_prefs.dart';
 import '../../core/providers.dart';
 import '../../core/session_store.dart';
@@ -32,6 +35,7 @@ import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
 import 'widgets/invite_dialog.dart';
+import 'widgets/pad_hint_bar.dart';
 import 'widgets/player_menu.dart';
 import 'widgets/say_dialog.dart';
 import 'widgets/self_menu.dart';
@@ -70,6 +74,21 @@ class _PlayPageState extends ConsumerState<PlayPage>
   final _sounds = TableSounds.create();
   final _notifier = TurnNotifier.create();
   StreamSubscription<GameEvent>? _eventSub;
+  StreamSubscription<PadButton>? _padSub;
+
+  /// The preset the controller's ← → last picked in the raise control.
+  int _padPreset = -1;
+
+  /// From the last build: the wide layout, and the side panel widget (the
+  /// controller's Back opens it as a sheet on narrow screens).
+  bool _wide = false;
+  Widget? _panelWidget;
+  final _sidePanel = GlobalKey<SidePanelState>();
+
+  /// The controller cursor (section, dialog, legend) is recomputed between
+  /// frames, never while building: the tree walk would touch widgets on
+  /// their way out. Published through [padCursorProvider].
+  bool _padRefreshPending = false;
   bool _wasMyTurn = false;
 
   @override
@@ -80,6 +99,36 @@ class _PlayPageState extends ConsumerState<PlayPage>
     // Shortcuts are handled at the hardware-keyboard level so they work no
     // matter which widget currently owns focus (see docs §10.3).
     HardwareKeyboard.instance.addHandler(_onHardwareKey);
+    // A controller, when the browser has one: same actions as the keys.
+    final pad = ref.read(gamepadProvider.notifier)..start();
+    _padSub = pad.presses.listen(_onPad);
+    FocusManager.instance.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() => _refreshPadContext();
+
+  /// Recomputes the cursor's context after the current frame.
+  void _refreshPadContext() {
+    if (_padRefreshPending || !mounted) return;
+    _padRefreshPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _padRefreshPending = false;
+      if (!mounted || !ref.read(gamepadProvider)) return;
+      final section = _sectionOf(FocusManager.instance.primaryFocus);
+      final dialog = _overlayControl() != null;
+      final (where, legend) = _padLegend(context.l10n, section, dialog);
+      ref
+          .read(padCursorProvider.notifier)
+          .set(
+            PadCursor(
+              section: section,
+              dialog: dialog,
+              where: where,
+              legend: legend,
+            ),
+          );
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   bool _onHardwareKey(KeyEvent event) {
@@ -94,6 +143,8 @@ class _PlayPageState extends ConsumerState<PlayPage>
     // Per-player choices (volume, hidden video, ...) last one visit.
     _peerPrefs.clear();
     _eventSub?.cancel();
+    _padSub?.cancel();
+    FocusManager.instance.removeListener(_onFocusChange);
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     WidgetsBinding.instance.removeObserver(this);
     _chatFocus.dispose();
@@ -284,6 +335,341 @@ class _PlayPageState extends ConsumerState<PlayPage>
     return KeyEventResult.handled;
   }
 
+  /// A controller button. At the table the buttons are the table actions;
+  /// once a control has focus (the D-pad moved there, or a dialog is
+  /// open) A activates it, B closes the dialog or drops the focus, and
+  /// the directions move between controls.
+  void _onPad(PadButton b) {
+    if (!mounted) return;
+    _refreshPadContext();
+    final bar = _actionBar.currentState;
+    final raise = bar?.raiseOpen ?? false;
+    final focus = FocusManager.instance.primaryFocus;
+    final control =
+        focus != null && focus != _rootFocus && focus is! FocusScopeNode
+        ? focus
+        : null;
+    final controlCtx = control?.context;
+    // Something inside a dialog or sheet: the focused control when it is
+    // in one, else the topmost overlay's first control.
+    final overlayCtx =
+        controlCtx != null &&
+            Data.maybeFind<OverlayCompleter<dynamic>>(controlCtx) != null
+        ? controlCtx
+        : _overlayControl()?.context;
+    final inRaise = raise && control == null && overlayCtx == null;
+    switch (b) {
+      case PadButton.a:
+        // Untyped lookup: shadcn registers a CallbackAction<Intent>, which
+        // the typed one refuses (flutter/flutter#180871).
+        const activate = ActivateIntent();
+        if (controlCtx != null &&
+            Actions.maybeFind<Intent>(controlCtx, intent: activate) != null) {
+          // The control may vanish (a settings page opens, a tab changes):
+          // keep the cursor in its section, or move into a dialog it opened.
+          final section = _sectionOf(control);
+          Actions.invoke(controlCtx, activate);
+          if (section != null) _restoreSoon(section);
+        } else if (overlayCtx == null) {
+          raise ? bar?.confirm() : bar?.checkOrCall();
+        }
+      case PadButton.b:
+        // In the panel a settings page goes back first, also when the
+        // panel is a sheet on a phone (which is an overlay itself).
+        if (_sectionOf(control) == PadSection.panel &&
+            (_sidePanel.currentState?.back() ?? false)) {
+          _restoreSoon(PadSection.panel);
+        } else if (overlayCtx != null) {
+          closeOverlay<void>(overlayCtx);
+        } else if (raise) {
+          bar?.cancel();
+        } else if (control != null) {
+          control.unfocus();
+          _rootFocus.requestFocus();
+        }
+      case PadButton.x:
+        if (overlayCtx == null) bar?.fold();
+      case PadButton.y:
+        if (overlayCtx == null) bar?.openRaise(focusInput: false);
+      case PadButton.rt:
+        if (_sectionOf(control) == PadSection.panel) {
+          _cycleTab(1);
+        } else if (overlayCtx == null) {
+          bar?.selectAllIn();
+        }
+      case PadButton.lt:
+        if (_sectionOf(control) == PadSection.panel) _cycleTab(-1);
+      case PadButton.lb:
+        inRaise ? bar?.adjust(-5) : _cycleSection(-1);
+      case PadButton.rb:
+        inRaise ? bar?.adjust(5) : _cycleSection(1);
+      case PadButton.back:
+        _togglePanelFocus(overlayCtx);
+      case PadButton.start:
+        showShortcutsOverlay(context);
+      case PadButton.up:
+        inRaise ? bar?.adjust(1) : _moveFocus(TraversalDirection.up);
+      case PadButton.down:
+        inRaise ? bar?.adjust(-1) : _moveFocus(TraversalDirection.down);
+      case PadButton.left:
+        inRaise ? _cyclePreset(-1) : _moveFocus(TraversalDirection.left);
+      case PadButton.right:
+        inRaise ? _cyclePreset(1) : _moveFocus(TraversalDirection.right);
+      case PadButton.l3:
+      case PadButton.r3:
+        break;
+    }
+  }
+
+  /// LT / RT inside the panel: the previous or next tab, cursor kept.
+  void _cycleTab(int delta) {
+    const tabs = PanelTab.values;
+    final next = tabs[(tabs.indexOf(_tab) + delta) % tabs.length];
+    final panel = _sidePanel.currentState;
+    if (panel != null) {
+      panel.selectTab(next);
+    } else {
+      setState(() => _tab = next);
+    }
+    _restoreSoon(PadSection.panel);
+  }
+
+  /// After the focused control disappeared: the cursor goes into a dialog
+  /// that just opened, else back to the top of [section].
+  void _restoreSoon(PadSection section, [int tries = 4]) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final f = FocusManager.instance.primaryFocus;
+      if (f != null && f != _rootFocus && f is! FocusScopeNode) return;
+      final node = _overlayControl() ?? _sectionControl(section);
+      if (node != null) {
+        node.requestFocus();
+      } else if (tries > 0) {
+        _restoreSoon(section, tries - 1);
+      }
+    });
+  }
+
+  /// The legend for the controller: where the cursor is and what the
+  /// buttons do there.
+  (String, List<PadLegendItem>) _padLegend(
+    AppLocalizations l10n,
+    PadSection? section,
+    bool dialog,
+  ) {
+    final raise = _actionBar.currentState?.raiseOpen ?? false;
+    const move = '↑ ↓ ← →';
+    // The panel as a sheet on phones is an overlay too, but it is the panel.
+    if (dialog && section != PadSection.panel) {
+      return (
+        l10n.padWhereDialog,
+        [(move, l10n.padMove), ('A', l10n.padSelect), ('B', l10n.padClose)],
+      );
+    }
+    switch (section) {
+      case PadSection.panel:
+        final tab = switch (_tab) {
+          PanelTab.chat => l10n.tabChat,
+          PanelTab.log => l10n.tabLog,
+          PanelTab.leaderboard => l10n.tabLeaderboard,
+          PanelTab.settings => l10n.tabSettings,
+        };
+        final page = _sidePanel.currentState?.pageTitle(l10n);
+        return (
+          [l10n.padWherePanel, tab, ?page].join(' · '),
+          [
+            ('LT RT', l10n.padTab),
+            (move, l10n.padMove),
+            ('A', l10n.padSelect),
+            ('B', l10n.padBack),
+            ('Back', l10n.padClose),
+            ('LB RB', l10n.padSection),
+          ],
+        );
+      case PadSection.table:
+        return (
+          l10n.padWhereTable,
+          [
+            (move, l10n.padMove),
+            ('A', l10n.padOpen),
+            ('B', l10n.padBack),
+            ('LB RB', l10n.padSection),
+            ('Back', l10n.padPanel),
+          ],
+        );
+      case PadSection.actions:
+      case null:
+        if (raise) {
+          return (
+            l10n.padWhereActions,
+            [
+              ('↑ ↓', l10n.padAmount),
+              ('← →', l10n.padPreset),
+              ('LB RB', l10n.padFive),
+              ('A', l10n.padConfirm),
+              ('B', l10n.padCancel),
+            ],
+          );
+        }
+        return (
+          l10n.padWhereActions,
+          [
+            ('X', l10n.fold),
+            ('A', l10n.scCheckCall),
+            ('Y', l10n.raise),
+            ('RT', l10n.presetAllIn),
+            (move, l10n.padMove),
+            ('LB RB', l10n.padSection),
+            ('Back', l10n.padPanel),
+            ('Start', l10n.padHelp),
+          ],
+        );
+    }
+  }
+
+  void _cyclePreset(int delta) {
+    _padPreset = (_padPreset + delta).clamp(0, 3);
+    _actionBar.currentState?.preset(_padPreset);
+  }
+
+  /// Moves focus with the D-pad. With nothing focused yet it starts in the
+  /// open dialog, else in the action bar, the table, the panel.
+  void _moveFocus(TraversalDirection direction) {
+    final focus = FocusManager.instance.primaryFocus;
+    if (focus == null || focus == _rootFocus || focus is FocusScopeNode) {
+      final start =
+          _overlayControl() ??
+          _sectionControl(PadSection.actions) ??
+          _sectionControl(PadSection.table) ??
+          _sectionControl(PadSection.panel) ??
+          _controls().firstOrNull;
+      start?.requestFocus();
+      return;
+    }
+    // Only among the controls of the same dialog, sheet or section: a
+    // seat or an action button behind an open sheet must not catch it.
+    final candidates = _neighbours(focus).toList();
+    final i = padNeighbour(focus.rect, [
+      for (final n in candidates) n.rect,
+    ], direction);
+    if (i == null) return;
+    final target = candidates[i];
+    target.requestFocus();
+    Scrollable.ensureVisible(
+      target.context!,
+      alignment: 0.5,
+      duration: const Duration(milliseconds: 150),
+    );
+  }
+
+  /// The controls the cursor may move to from [node]: those in the same
+  /// dialog or sheet, else those in the same section outside any overlay.
+  Iterable<FocusNode> _neighbours(FocusNode node) {
+    final ctx = node.context!;
+    final overlay = Data.maybeFind<OverlayCompleter<dynamic>>(ctx);
+    final section = PadSectionScope.of(ctx);
+    return _controls().where((n) {
+      if (n == node) return false;
+      final o = Data.maybeFind<OverlayCompleter<dynamic>>(n.context!);
+      if (overlay != null) return identical(o, overlay);
+      return o == null && PadSectionScope.of(n.context!) == section;
+    });
+  }
+
+  /// Every focusable control on screen. Dialogs and sheets live in the
+  /// app's overlay, outside this page's scope, so the root scope it is.
+  Iterable<FocusNode> _controls() => [
+    for (final n in FocusManager.instance.rootScope.traversalDescendants)
+      if (n is! FocusScopeNode && n.context != null) n,
+  ];
+
+  /// The top-left one of [nodes].
+  FocusNode? _topLeft(Iterable<FocusNode> nodes) {
+    FocusNode? best;
+    for (final n in nodes) {
+      if (best == null ||
+          n.rect.top < best.rect.top ||
+          (n.rect.top == best.rect.top && n.rect.left < best.rect.left)) {
+        best = n;
+      }
+    }
+    return best;
+  }
+
+  /// The top-left control inside an open dialog or sheet, if any is open.
+  FocusNode? _overlayControl() => _topLeft(
+    _controls().where(
+      (n) => Data.maybeFind<OverlayCompleter<dynamic>>(n.context!) != null,
+    ),
+  );
+
+  /// The top-left control of [section], null when it has none on screen.
+  FocusNode? _sectionControl(PadSection section) => _topLeft(
+    _controls().where((n) => PadSectionScope.of(n.context!) == section),
+  );
+
+  PadSection? _sectionOf(FocusNode? node) {
+    final ctx = node?.context;
+    return ctx == null ? null : PadSectionScope.of(ctx);
+  }
+
+  static const _sections = [
+    PadSection.actions,
+    PadSection.table,
+    PadSection.panel,
+  ];
+
+  /// LB / RB: the previous or next section that has controls on screen.
+  /// Nothing while a dialog or sheet is open: the sections are behind it.
+  void _cycleSection(int delta) {
+    if (_overlayControl() != null) return;
+    final current = _sectionOf(FocusManager.instance.primaryFocus);
+    var i = current == null ? (delta > 0 ? -1 : 0) : _sections.indexOf(current);
+    for (var n = 0; n < _sections.length; n++) {
+      i = (i + delta) % _sections.length;
+      if (i < 0) i += _sections.length;
+      final node = _sectionControl(_sections[i]);
+      if (node != null) {
+        node.requestFocus();
+        return;
+      }
+    }
+  }
+
+  /// Focuses [section] once it is on screen (a panel or sheet that is
+  /// still opening), giving up after a few frames.
+  void _focusSectionSoon(PadSection section, [int tries = 8]) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final node = _sectionControl(section);
+      if (node != null) {
+        node.requestFocus();
+      } else if (tries > 0) {
+        _focusSectionSoon(section, tries - 1);
+      }
+    });
+  }
+
+  /// Back: into the side panel (opening it when closed), and from the
+  /// panel back out to the action bar (closing it again).
+  void _togglePanelFocus(BuildContext? overlayCtx) {
+    if (_sectionOf(FocusManager.instance.primaryFocus) == PadSection.panel) {
+      if (overlayCtx != null) {
+        closeOverlay<void>(overlayCtx);
+      } else if (_wide) {
+        setState(() => _panelOpen = false);
+      }
+      _focusSectionSoon(PadSection.actions);
+      return;
+    }
+    if (_wide) {
+      if (!_panelOpen) setState(() => _panelOpen = true);
+    } else if (_panelWidget != null) {
+      _openSheet(_panelWidget!);
+    }
+    _focusSectionSoon(PadSection.panel);
+  }
+
   void _togglePanelTab(PanelTab tab) {
     setState(() {
       if (_panelOpen && _tab == tab) {
@@ -387,6 +773,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
     }
 
     final session = ref.watch(tableSessionProvider(widget.tableId));
+    ref.listen(gamepadProvider, (prev, next) {
+      if (next && prev != true) showAdminToast(context, l10n.padConnected);
+    });
     ref.listen(tableSessionProvider(widget.tableId), (prev, next) {
       _updateTitle();
       // Fresh from the join page: the table rules, once the first snapshot
@@ -578,27 +967,33 @@ class _PlayPageState extends ConsumerState<PlayPage>
       }
     });
 
-    final panel = SidePanel(
-      tableId: widget.tableId,
-      adminToken: adminToken,
-      tab: _tab,
-      onTabChanged: (t) => setState(() => _tab = t),
-      chatFocusNode: _chatFocus,
-      onSendChat: _session.chat,
-      onSay: session.isPlayer
-          ? () => showSayDialog(context, ref, widget.tableId)
-          : null,
-      settings: (part) => TableSettingsTab(
-        part: part,
+    _wide = wide;
+    final panel = PadSectionScope(
+      section: PadSection.panel,
+      child: SidePanel(
+        key: _sidePanel,
         tableId: widget.tableId,
-        isPlayer: session.isPlayer,
-        onTakeSeat: _clearAndGoToJoin,
-        onOtherTable: _otherTable,
-        onLeave: session.isPlayer ? _leave : _clearAndGoToJoin,
-        onShortcuts: () => showShortcutsOverlay(context),
-        onRules: _showRules,
+        adminToken: adminToken,
+        tab: _tab,
+        onTabChanged: (t) => setState(() => _tab = t),
+        chatFocusNode: _chatFocus,
+        onSendChat: _session.chat,
+        onSay: session.isPlayer
+            ? () => showSayDialog(context, ref, widget.tableId)
+            : null,
+        settings: (part) => TableSettingsTab(
+          part: part,
+          tableId: widget.tableId,
+          isPlayer: session.isPlayer,
+          onTakeSeat: _clearAndGoToJoin,
+          onOtherTable: _otherTable,
+          onLeave: session.isPlayer ? _leave : _clearAndGoToJoin,
+          onShortcuts: () => showShortcutsOverlay(context),
+          onRules: _showRules,
+        ),
       ),
     );
+    _panelWidget = panel;
 
     final uiScale = ref.watch(uiScaleProvider);
     final canDraw =
@@ -620,58 +1015,65 @@ class _PlayPageState extends ConsumerState<PlayPage>
             info: _phaseStripFor(snap, session, myTurn, l10n),
           ),
         Expanded(
-          child: TableView(
-            session: session,
-            onTakeSeat: _changeSeat,
-            speaking: voice.speaking,
-            onSayTap: session.isPlayer
-                ? () => showSayDialog(context, ref, widget.tableId)
-                : null,
-            videoViews: voice.videoViews,
-            voiceFailed: voice.failed,
-            onSelfTap: session.isPlayer
-                ? () => showSelfMenu(context, ref, widget.tableId)
-                : null,
-            onDraw: canDraw ? _session.draw : null,
-            onErase: canDraw ? _session.eraseDrawings : null,
-            onPlayerTap: (p) => showPlayerMenu(
-              context,
-              tableId: widget.tableId,
-              player: p,
-              admin: (snap?.you.isAdmin ?? false) && adminToken != null
-                  ? AdminPlayerActions(
-                      ref: ref,
-                      context: context,
-                      tableId: widget.tableId,
-                      token: adminToken,
-                    )
+          child: PadSectionScope(
+            section: PadSection.table,
+            child: TableView(
+              session: session,
+              onTakeSeat: _changeSeat,
+              speaking: voice.speaking,
+              onSayTap: session.isPlayer
+                  ? () => showSayDialog(context, ref, widget.tableId)
                   : null,
+              videoViews: voice.videoViews,
+              voiceFailed: voice.failed,
+              onSelfTap: session.isPlayer
+                  ? () => showSelfMenu(context, ref, widget.tableId)
+                  : null,
+              onDraw: canDraw ? _session.draw : null,
+              onErase: canDraw ? _session.eraseDrawings : null,
+              onPlayerTap: (p) => showPlayerMenu(
+                context,
+                tableId: widget.tableId,
+                player: p,
+                admin: (snap?.you.isAdmin ?? false) && adminToken != null
+                    ? AdminPlayerActions(
+                        ref: ref,
+                        context: context,
+                        tableId: widget.tableId,
+                        token: adminToken,
+                      )
+                    : null,
+              ),
             ),
           ),
         ),
         // The accessibility scale enlarges the action bar's text and
         // buttons; cards and seats scale inside the table view.
-        MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(uiScale)),
-          child: ActionBar(
-            key: _actionBar,
-            snapshot: snap,
-            callbacks: callbacks,
-            isPlayer: session.isPlayer,
-            myStatus: myPlayer?.status,
-            chipDisplay: chipDisplay,
-            handLine:
-                ref.watch(handLineProvider) == HandLinePlacement.bottom &&
-                    session.isPlayer
-                ? snap?.you.handDescription
-                : null,
-            shown: session.mySeat != null
-                ? session.shown[session.mySeat!] ?? const []
-                : const [],
-            textFieldFocusChanged: (f) => _amountFocused = f,
+        PadSectionScope(
+          section: PadSection.actions,
+          child: MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(uiScale)),
+            child: ActionBar(
+              key: _actionBar,
+              snapshot: snap,
+              callbacks: callbacks,
+              isPlayer: session.isPlayer,
+              myStatus: myPlayer?.status,
+              chipDisplay: chipDisplay,
+              handLine:
+                  ref.watch(handLineProvider) == HandLinePlacement.bottom &&
+                      session.isPlayer
+                  ? snap?.you.handDescription
+                  : null,
+              shown: session.mySeat != null
+                  ? session.shown[session.mySeat!] ?? const []
+                  : const [],
+              textFieldFocusChanged: (f) => _amountFocused = f,
+            ),
           ),
         ),
+        const PadHintBar(),
       ],
     );
 
@@ -992,7 +1394,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
     return Focus(
       focusNode: _rootFocus,
       autofocus: true,
-      child: Scaffold(headers: [header, const Divider()], child: body),
+      child: Scaffold(
+        headers: [
+          PadSectionScope(section: PadSection.table, child: header),
+          const Divider(),
+        ],
+        child: body,
+      ),
     );
   }
 
@@ -1002,7 +1410,15 @@ class _PlayPageState extends ConsumerState<PlayPage>
       position: OverlayPosition.bottom,
       builder: (context) => SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.7,
-        child: Padding(padding: const EdgeInsets.all(12), child: panel),
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(padding: const EdgeInsets.all(12), child: panel),
+            ),
+            // The sheet covers the strip under the action bar.
+            const PadHintBar(),
+          ],
+        ),
       ),
     );
   }

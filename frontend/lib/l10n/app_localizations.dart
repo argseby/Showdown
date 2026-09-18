@@ -1064,6 +1064,138 @@ abstract class AppLocalizations {
   /// **'This overlay'**
   String get scHelp;
 
+  /// No description provided for @scSettingsPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump into the side panel and back out (opens it)'**
+  String get scSettingsPanel;
+
+  /// No description provided for @scSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump between action bar, table and side panel'**
+  String get scSections;
+
+  /// No description provided for @shortcutsPadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Controller: the D-pad or left stick moves between controls, A activates, B goes back or closes. LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it; LT / RT switch its tabs. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.'**
+  String get shortcutsPadHint;
+
+  /// No description provided for @padWhereActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Action bar'**
+  String get padWhereActions;
+
+  /// No description provided for @padWhereTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get padWhereTable;
+
+  /// No description provided for @padWherePanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Side panel'**
+  String get padWherePanel;
+
+  /// No description provided for @padWhereDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Dialog'**
+  String get padWhereDialog;
+
+  /// No description provided for @padMove.
+  ///
+  /// In en, this message translates to:
+  /// **'move'**
+  String get padMove;
+
+  /// No description provided for @padSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'select'**
+  String get padSelect;
+
+  /// No description provided for @padOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'open'**
+  String get padOpen;
+
+  /// No description provided for @padBack.
+  ///
+  /// In en, this message translates to:
+  /// **'back'**
+  String get padBack;
+
+  /// No description provided for @padClose.
+  ///
+  /// In en, this message translates to:
+  /// **'close'**
+  String get padClose;
+
+  /// No description provided for @padTab.
+  ///
+  /// In en, this message translates to:
+  /// **'tab'**
+  String get padTab;
+
+  /// No description provided for @padSection.
+  ///
+  /// In en, this message translates to:
+  /// **'section'**
+  String get padSection;
+
+  /// No description provided for @padPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'side panel'**
+  String get padPanel;
+
+  /// No description provided for @padAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'amount'**
+  String get padAmount;
+
+  /// No description provided for @padPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'preset'**
+  String get padPreset;
+
+  /// No description provided for @padFive.
+  ///
+  /// In en, this message translates to:
+  /// **'±5 blinds'**
+  String get padFive;
+
+  /// No description provided for @padConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'confirm'**
+  String get padConfirm;
+
+  /// No description provided for @padCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'cancel'**
+  String get padCancel;
+
+  /// No description provided for @padHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'help'**
+  String get padHelp;
+
+  /// No description provided for @padConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons'**
+  String get padConnected;
+
   /// No description provided for @soundOn.
   ///
   /// In en, this message translates to:
@@ -1862,6 +1994,12 @@ abstract class AppLocalizations {
   /// **'Chip stacks on the table'**
   String get chipStacks;
 
+  /// No description provided for @fixedSeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed seats: the same table for everyone (off: you sit at the bottom)'**
+  String get fixedSeats;
+
   /// No description provided for @landingCreateTitle.
   ///
   /// In en, this message translates to:
@@ -2603,7 +2741,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPreferencesHint.
   ///
   /// In en, this message translates to:
-  /// **'Sound, deck, chips, display size, language, theme'**
+  /// **'Sound, deck, chips, seats, display size, language, theme'**
   String get settingsPreferencesHint;
 
   /// No description provided for @settingsTableHint.

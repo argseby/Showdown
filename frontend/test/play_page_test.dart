@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showdown/core/gamepad/gamepad.dart';
+import 'package:showdown/core/gamepad/pad_section.dart';
 import 'package:showdown/core/providers.dart';
 import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/core/session_store.dart';
@@ -19,6 +21,7 @@ import 'package:showdown/core/voice/voice_engine.dart';
 import 'package:showdown/core/ws_transport.dart';
 import 'package:showdown/features/table/play_page.dart';
 import 'package:showdown/features/table/table_session.dart';
+import 'package:showdown/features/table/widgets/side_panel.dart';
 import 'package:showdown/features/table/widgets/table_rules_dialog.dart';
 import 'package:showdown/shared/playing_card.dart';
 
@@ -85,6 +88,25 @@ class _AdminToken extends AdminTokenNotifier {
 
   @override
   Future<String?> build() async => 'adm';
+}
+
+/// A connected controller whose presses the test feeds in.
+class _FakePad extends GamepadNotifier {
+  final ctrl = StreamController<PadButton>.broadcast(sync: true);
+
+  @override
+  bool build() => false;
+
+  @override
+  void start() {}
+
+  /// The first button press makes the browser report the pad.
+  void connect() => state = true;
+
+  @override
+  Stream<PadButton> get presses => ctrl.stream;
+
+  void press(PadButton b) => ctrl.add(b);
 }
 
 /// Fresh from the join page.
@@ -473,6 +495,183 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(TableRulesDialog), findsNothing);
+  });
+
+  testWidgets('a controller plays the table and drives the dialogs', (
+    tester,
+  ) async {
+    final pad = _FakePad();
+    // A focus move, the legend's post-frame refresh, and its rebuild.
+    Future<void> settle() async {
+      for (var i = 0; i < 3; i++) {
+        await tester.pump();
+      }
+    }
+
+    await pumpPlay(tester, extra: [gamepadProvider.overrideWith(() => pad)]);
+    pad.connect();
+    await tester.pump(const Duration(milliseconds: 300));
+    // A toast says so, and the hints show the controller buttons now.
+    expect(
+      find.text(
+        'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('X'), findsWidgets);
+    // Y opens the raise control, → → → → walks to the pot preset, A confirms.
+    pad.press(PadButton.y);
+    await tester.pump();
+    expect(find.byKey(const Key('raise-control')), findsOneWidget);
+    for (var i = 0; i < 4; i++) {
+      pad.press(PadButton.right);
+    }
+    await tester.pump();
+    expect(find.text('Raise to 1,200'), findsOneWidget);
+    pad.press(PadButton.a);
+    await tester.pump();
+    var action = transport.sent.lastWhere((e) => e['type'] == 'action');
+    expect(action['payload'], {'kind': 'raise', 'amount': 1200});
+    expect(find.byKey(const Key('raise-control')), findsNothing);
+    // X folds.
+    pad.press(PadButton.x);
+    await tester.pump();
+    action = transport.sent.lastWhere((e) => e['type'] == 'action');
+    expect(action['payload'], {'kind': 'fold'});
+    // Start opens the help; ↓ focuses its Close button and A presses it.
+    pad.press(PadButton.start);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Keyboard shortcuts'), findsOneWidget);
+    expect(
+      find.text('Jump into the side panel and back out (opens it)'),
+      findsOneWidget,
+    );
+    pad.press(PadButton.down);
+    await tester.pump();
+    final focused = FocusManager.instance.primaryFocus!.context!.widget;
+    expect(
+      find.ancestor(
+        of: find.byWidget(focused),
+        matching: find.byKey(const Key('shortcuts-close')),
+      ),
+      findsOneWidget,
+    );
+    pad.press(PadButton.a);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Keyboard shortcuts'), findsNothing);
+    // Open again: B closes it without any focus inside.
+    pad.press(PadButton.start);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Keyboard shortcuts'), findsOneWidget);
+    pad.press(PadButton.b);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Keyboard shortcuts'), findsNothing);
+    // No stray actions went out for the dialog presses.
+    expect(transport.sent.where((e) => e['type'] == 'action').length, 2);
+    // Back jumps into the side panel, LB / RB cycle the sections, and
+    // Back from the panel closes it and returns to the action bar.
+    Finder focusedIn(PadSection s) => find.ancestor(
+      of: find.byWidget(FocusManager.instance.primaryFocus!.context!.widget),
+      matching: find.byWidgetPredicate(
+        (w) => w is PadSectionScope && w.section == s,
+      ),
+    );
+    // The legend says where the cursor is.
+    expect(find.byKey(const Key('pad-hint')), findsOneWidget);
+    expect(find.text('Action bar'), findsOneWidget);
+    pad.press(PadButton.back);
+    await settle();
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    expect(find.text('Side panel · Settings'), findsOneWidget);
+    // The tab strip shows the LT / RT caps while the cursor is inside.
+    expect(find.text('LT'), findsWidgets);
+    expect(find.text('RT'), findsWidgets);
+    // LT / RT switch the tabs and keep the cursor in the panel.
+    pad.press(PadButton.rt);
+    await settle();
+    expect(find.byKey(const Key('chat-input')), findsOneWidget);
+    expect(find.text('Side panel · Chat'), findsOneWidget);
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    pad.press(PadButton.lt);
+    await settle();
+    expect(find.text('Side panel · Settings'), findsOneWidget);
+    // A on a settings row opens its page and the cursor stays inside;
+    // B goes back to the settings menu.
+    Focus.of(
+      tester.element(
+        find
+            .descendant(
+              of: find.byKey(const Key('settings-table')),
+              matching: find.byType(Text),
+            )
+            .first,
+      ),
+    ).requestFocus();
+    await tester.pump();
+    pad.press(PadButton.a);
+    await settle();
+    expect(find.byKey(const Key('settings-back')), findsOneWidget);
+    expect(find.byKey(const Key('menu-rules')), findsOneWidget);
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    expect(find.text('Side panel · Settings · Table'), findsOneWidget);
+    // ↓ walks the page's rows and stays in the panel (never a seat or
+    // an action button elsewhere on the screen).
+    for (var i = 0; i < 3; i++) {
+      pad.press(PadButton.down);
+      await settle();
+      expect(focusedIn(PadSection.panel), findsOneWidget);
+    }
+    expect(
+      find.ancestor(
+        of: find.byWidget(FocusManager.instance.primaryFocus!.context!.widget),
+        matching: find.byKey(const Key('menu-other-table')),
+      ),
+      findsOneWidget,
+    );
+    pad.press(PadButton.b);
+    await settle();
+    expect(find.byKey(const Key('settings-back')), findsNothing);
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    pad.press(PadButton.rb);
+    await tester.pump();
+    expect(focusedIn(PadSection.actions), findsOneWidget);
+    pad.press(PadButton.rb);
+    await tester.pump();
+    expect(focusedIn(PadSection.table), findsOneWidget);
+    pad.press(PadButton.lb);
+    await tester.pump();
+    expect(focusedIn(PadSection.actions), findsOneWidget);
+    pad.press(PadButton.back);
+    await settle();
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    pad.press(PadButton.back);
+    await settle();
+    expect(find.byType(SidePanel), findsNothing);
+    expect(focusedIn(PadSection.actions), findsOneWidget);
+    // A seat is a control too: focus lands on it and A opens its menu.
+    // Any widget inside the seat's Clickable resolves to its focus node.
+    Focus.of(
+      tester.element(
+        find
+            .descendant(
+              of: find.byKey(const Key('player-seat-4')),
+              matching: find.byType(Stack),
+            )
+            .last,
+      ),
+    ).requestFocus();
+    await tester.pump();
+    pad.press(PadButton.a);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('player-menu-close')), findsOneWidget);
+    pad.press(PadButton.b);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('player-menu-close')), findsNothing);
+    // The connection toast closes by itself.
+    await tester.pump(const Duration(seconds: 6));
   });
 
   testWidgets('tapping the own avatar opens the self menu', (tester) async {

@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import '../../core/gamepad/gamepad.dart';
+
 /// Every keyboard shortcut of the table screen (docs §10.3). This file is the
 /// single source of truth: the action bar hints and the `?` overlay read from
 /// [shortcutBindings].
@@ -153,6 +155,29 @@ const List<ShortcutBinding> shortcutBindings = [
 /// The primary label for an action (for kbd hints on buttons).
 String shortcutLabel(ShortcutAction action) =>
     shortcutBindings.firstWhere((b) => b.action == action).displayLabel;
+
+/// The controller mapping (standard layout). A and LB/RB double up: A
+/// confirms while the raise control is open and checks or calls otherwise;
+/// LB/RB step the amount by five there and jump between the sections of
+/// the screen (action bar, table, side panel) elsewhere. The directions
+/// step the amount and cycle the presets in the raise control and move
+/// focus everywhere else; Back jumps into the side panel and back out.
+const Map<ShortcutAction, PadButton> padBindings = {
+  ShortcutAction.fold: PadButton.x,
+  ShortcutAction.checkCall: PadButton.a,
+  ShortcutAction.openRaise: PadButton.y,
+  ShortcutAction.selectAllIn: PadButton.rt,
+  ShortcutAction.amountUp: PadButton.up,
+  ShortcutAction.amountDown: PadButton.down,
+  ShortcutAction.amountUpBig: PadButton.rb,
+  ShortcutAction.amountDownBig: PadButton.lb,
+  ShortcutAction.confirm: PadButton.a,
+  ShortcutAction.cancel: PadButton.b,
+  ShortcutAction.showHelp: PadButton.start,
+};
+
+/// The controller button label for an action, null when it has none.
+String? padLabel(ShortcutAction action) => padBindings[action]?.label;
 
 /// Resolves a key event to a shortcut. Returns null for non-shortcut keys,
 /// key-up events, or (unless [textFieldFocused] is false) any key while a

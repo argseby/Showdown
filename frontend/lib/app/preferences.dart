@@ -196,6 +196,34 @@ final showHatsProvider = NotifierProvider<ShowHatsNotifier, bool>(
   ShowHatsNotifier.new,
 );
 
+/// Fixed seats (the default): every seat has its place on the oval, seat
+/// 0 at the bottom, so the table looks the same for everyone and "seat 8"
+/// means the same spot on every screen. Off: the viewer is rotated to the
+/// bottom and only the taken seats are spread around the oval.
+class FixedSeatsNotifier extends Notifier<bool> {
+  static const _key = 'pref:fixed_seats';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final fixedSeatsProvider = NotifierProvider<FixedSeatsNotifier, bool>(
+  FixedSeatsNotifier.new,
+);
+
 /// Whether the pencil drawings on the table are shown (default on).
 class ShowDrawingsNotifier extends Notifier<bool> {
   static const _key = 'pref:show_drawings';

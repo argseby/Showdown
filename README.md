@@ -12,7 +12,9 @@ plays in the browser.
   straddle and run-it-twice, blind schedule, time bank, all-in equity. Royal Hold'em
   (only Ten to Ace in the deck) as a per-table game variant.
 - Up to 10 seats per table, reconnect into your seat after a refresh, spectators, seat
-  changes between hands. A rules card on joining shows how the table is set up.
+  changes between hands. A rules card on joining shows how the table is set up. Seats
+  have fixed places so everyone sees the same table; a preference rotates you to the
+  bottom instead.
 - Tournament mode: no chip adjustments, and once a hand is dealt the money settings and
   the seats are locked, for the host too.
 - Host controls at the table: settings, start/pause/end, kick, chips, mute, chat
@@ -26,6 +28,8 @@ plays in the browser.
   or erased by anyone).
 - Hand log with replay and export, per-table leaderboard with statistics, turn sound and
   notifications, English and German.
+- Keyboard shortcuts for every action (press `?` at the table), and a game controller
+  works too: X folds, A checks or calls, Y raises, the D-pad moves through the menus.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install

@@ -545,6 +545,76 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scHelp => 'Dieses Overlay';
 
   @override
+  String get scSettingsPanel =>
+      'In die Seitenleiste springen und zurück (öffnet sie)';
+
+  @override
+  String get scSections =>
+      'Zwischen Aktionsleiste, Tisch und Seitenleiste springen';
+
+  @override
+  String get shortcutsPadHint =>
+      'Controller: Steuerkreuz oder linker Stick wechselt zwischen Bedienelementen, A aktiviert, B geht zurück oder schließt. LB / RB springen zwischen Aktionsleiste, Tisch und Seitenleiste; Back öffnet die Seitenleiste und springt hinein; LT / RT wechseln ihre Tabs. Die Leiste unter der Aktionsleiste zeigt immer, wo du bist und was die Tasten dort tun. Am Tisch foldet X, Y öffnet den Raise, ↑ ↓ ändern den Betrag, ← → wechseln die Vorgaben, LB / RB in Fünferschritten, RT wählt All-in.';
+
+  @override
+  String get padWhereActions => 'Aktionsleiste';
+
+  @override
+  String get padWhereTable => 'Tisch';
+
+  @override
+  String get padWherePanel => 'Seitenleiste';
+
+  @override
+  String get padWhereDialog => 'Dialog';
+
+  @override
+  String get padMove => 'bewegen';
+
+  @override
+  String get padSelect => 'wählen';
+
+  @override
+  String get padOpen => 'öffnen';
+
+  @override
+  String get padBack => 'zurück';
+
+  @override
+  String get padClose => 'schließen';
+
+  @override
+  String get padTab => 'Tab';
+
+  @override
+  String get padSection => 'Bereich';
+
+  @override
+  String get padPanel => 'Seitenleiste';
+
+  @override
+  String get padAmount => 'Betrag';
+
+  @override
+  String get padPreset => 'Vorgabe';
+
+  @override
+  String get padFive => '±5 Blinds';
+
+  @override
+  String get padConfirm => 'bestätigen';
+
+  @override
+  String get padCancel => 'abbrechen';
+
+  @override
+  String get padHelp => 'Hilfe';
+
+  @override
+  String get padConnected =>
+      'Controller verbunden: X foldet, A checkt oder callt, Y öffnet den Raise, Start zeigt alle Tasten';
+
+  @override
   String get soundOn => 'Ton an';
 
   @override
@@ -1031,6 +1101,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get chipStacks => 'Chipstapel auf dem Tisch';
 
   @override
+  String get fixedSeats =>
+      'Feste Plätze: der gleiche Tisch für alle (aus: du sitzt unten)';
+
+  @override
   String get landingCreateTitle => 'Eine Runde hosten';
 
   @override
@@ -1461,7 +1535,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsPreferencesHint =>
-      'Ton, Deck, Chips, Darstellungsgröße, Sprache, Design';
+      'Ton, Deck, Chips, Plätze, Darstellungsgröße, Sprache, Design';
 
   @override
   String get settingsTableHint =>

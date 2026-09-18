@@ -24,6 +24,13 @@ void main() {
     }
     expect(shortcutLabel(ShortcutAction.fold), 'F');
     expect(shortcutLabel(ShortcutAction.amountUpBig), 'Shift+Up');
+    // The controller: table actions on the face buttons, nothing for the
+    // keyboard-only actions.
+    expect(padLabel(ShortcutAction.fold), 'X');
+    expect(padLabel(ShortcutAction.checkCall), 'A');
+    expect(padLabel(ShortcutAction.confirm), 'A');
+    expect(padLabel(ShortcutAction.focusAmount), isNull);
+    expect(padLabel(ShortcutAction.focusChat), isNull);
   });
 
   test('keys map to actions and key-up events are ignored', () {

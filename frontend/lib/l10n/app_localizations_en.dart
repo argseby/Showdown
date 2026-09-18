@@ -541,6 +541,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scHelp => 'This overlay';
 
   @override
+  String get scSettingsPanel =>
+      'Jump into the side panel and back out (opens it)';
+
+  @override
+  String get scSections => 'Jump between action bar, table and side panel';
+
+  @override
+  String get shortcutsPadHint =>
+      'Controller: the D-pad or left stick moves between controls, A activates, B goes back or closes. LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it; LT / RT switch its tabs. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.';
+
+  @override
+  String get padWhereActions => 'Action bar';
+
+  @override
+  String get padWhereTable => 'Table';
+
+  @override
+  String get padWherePanel => 'Side panel';
+
+  @override
+  String get padWhereDialog => 'Dialog';
+
+  @override
+  String get padMove => 'move';
+
+  @override
+  String get padSelect => 'select';
+
+  @override
+  String get padOpen => 'open';
+
+  @override
+  String get padBack => 'back';
+
+  @override
+  String get padClose => 'close';
+
+  @override
+  String get padTab => 'tab';
+
+  @override
+  String get padSection => 'section';
+
+  @override
+  String get padPanel => 'side panel';
+
+  @override
+  String get padAmount => 'amount';
+
+  @override
+  String get padPreset => 'preset';
+
+  @override
+  String get padFive => '±5 blinds';
+
+  @override
+  String get padConfirm => 'confirm';
+
+  @override
+  String get padCancel => 'cancel';
+
+  @override
+  String get padHelp => 'help';
+
+  @override
+  String get padConnected =>
+      'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons';
+
+  @override
   String get soundOn => 'Sound on';
 
   @override
@@ -1026,6 +1095,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chipStacks => 'Chip stacks on the table';
 
   @override
+  String get fixedSeats =>
+      'Fixed seats: the same table for everyone (off: you sit at the bottom)';
+
+  @override
   String get landingCreateTitle => 'Host a game';
 
   @override
@@ -1452,7 +1525,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPreferencesHint =>
-      'Sound, deck, chips, display size, language, theme';
+      'Sound, deck, chips, seats, display size, language, theme';
 
   @override
   String get settingsTableHint =>

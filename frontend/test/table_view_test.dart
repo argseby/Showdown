@@ -39,6 +39,12 @@ class _NoHeat extends ShowHeatNotifier {
   bool build() => false;
 }
 
+/// The viewer rotated to the bottom instead of fixed seats.
+class _Rotating extends FixedSeatsNotifier {
+  @override
+  bool build() => false;
+}
+
 void main() {
   test('seat positions rotate the viewer to the bottom', () {
     expect(TableView.positionOf(4, 4, 9), 0);
@@ -48,6 +54,58 @@ void main() {
     final bottom = TableView.seatPoint(0, 9, oval);
     expect(bottom.dx, closeTo(200, 0.01));
     expect(bottom.dy, closeTo(200, 0.01));
+  });
+
+  testWidgets('fixed seats keep seat 0 at the bottom for a viewer at seat 4', (
+    tester,
+  ) async {
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: fixtureSnapshot(),
+      identity: const YouIdentity(role: 'player', playerId: 'p4', seat: 4),
+    );
+    Widget view() => SizedBox(
+      width: 1000,
+      height: 600,
+      child: TableView(
+        session: session,
+        onTakeSeat: (_) {},
+        onSelfTap: () {},
+        onPlayerTap: (_) {},
+      ),
+    );
+    // Default: fixed. Seat 0 is the lowest seat, every empty seat shows.
+    await tester.pumpWidget(wrap(view()));
+    await tester.pump();
+    final seat0 = tester.getCenter(find.byKey(const Key('player-seat-0')));
+    final seat4 = tester.getCenter(find.byKey(const Key('player-seat-4')));
+    expect(seat0.dy, greaterThan(seat4.dy));
+    final taken = fixtureSnapshot().seats.where((s) => s.player != null);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('take-seat-'),
+      ),
+      findsNWidgets(fixtureSnapshot().seats.length - taken.length),
+    );
+    // Rotating: the viewer's seat 4 is the lowest, one free seat shows.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      wrap(view(), overrides: [fixedSeatsProvider.overrideWith(_Rotating.new)]),
+    );
+    await tester.pump();
+    final r0 = tester.getCenter(find.byKey(const Key('player-seat-0')));
+    final r4 = tester.getCenter(find.byKey(const Key('player-seat-4')));
+    expect(r4.dy, greaterThan(r0.dy));
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('take-seat-'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('hats and the fire ring follow the snapshot and the setting', (
@@ -632,6 +690,7 @@ void _markerTests() {
     tester.view.physicalSize = const Size(1000, 600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
+    // The rotating layout (fixed seats off) spaces only the taken seats.
     Future<void> show(Snapshot s) async {
       await tester.pumpWidget(
         wrap(
@@ -650,6 +709,7 @@ void _markerTests() {
               ),
             ),
           ),
+          overrides: [fixedSeatsProvider.overrideWith(_Rotating.new)],
         ),
       );
       await tester.pump();

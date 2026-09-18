@@ -157,9 +157,9 @@ class SeatWidget extends ConsumerWidget {
             if (onTakeSeat != null)
               Tooltip(
                 tooltip: TooltipContainer(child: Text(l10n.takeSeatHint)).call,
-                child: GestureDetector(
+                child: Clickable(
                   key: Key('take-seat-$seat'),
-                  onTap: onTakeSeat,
+                  onPressed: onTakeSeat,
                   child: disc,
                 ),
               )
@@ -393,11 +393,13 @@ class SeatWidget extends ConsumerWidget {
         if (onPlayerTap != null)
           MouseRegion(
             cursor: SystemMouseCursors.click,
-            child: GestureDetector(
+            // A Clickable rather than a GestureDetector: it takes focus,
+            // so a controller's D-pad can reach the seat and A opens it.
+            child: Clickable(
               key: Key('player-seat-$seat'),
               behavior: HitTestBehavior.opaque,
-              onTap: onPlayerTap,
-              onSecondaryTap: onPlayerTap,
+              onPressed: onPlayerTap,
+              onSecondaryTapUp: (_) => onPlayerTap!(),
               child: avatarStack,
             ),
           )
@@ -422,9 +424,9 @@ class SeatWidget extends ConsumerWidget {
               const Gap(4),
               Tooltip(
                 tooltip: TooltipContainer(child: Text(l10n.sayButton)).call,
-                child: GestureDetector(
+                child: Clickable(
                   key: const Key('say-button'),
-                  onTap: onSayTap,
+                  onPressed: onSayTap,
                   child: Icon(
                     LucideIcons.messageCircleMore,
                     size: compact ? 13 : 15,
