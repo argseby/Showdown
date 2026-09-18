@@ -514,7 +514,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scAllIn => 'Select all-in (Enter confirms)';
 
   @override
-  String get scPresets => 'Presets Min / 1/2 Pot / 3/4 Pot / Pot';
+  String get scPresets =>
+      'Presets Min / 1/2 Pot / 3/4 Pot / Pot (controller: up to all-in)';
 
   @override
   String get scAmount => '+/- one big blind (Shift: +/- five)';
@@ -548,8 +549,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scSections => 'Jump between action bar, table and side panel';
 
   @override
+  String get scPanelTabs =>
+      'Chat, log, leaderboard, settings: the side panel\'s tabs, from anywhere';
+
+  @override
   String get shortcutsPadHint =>
-      'Controller: the D-pad or left stick moves between controls, A activates, B goes back or closes. LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it; LT / RT switch its tabs. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.';
+      'Controller: the D-pad or left stick moves between controls (and on into the next area), A activates, B goes back or closes. LT / RT open the side panel\'s tabs from anywhere; LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.';
 
   @override
   String get padWhereActions => 'Action bar';
@@ -579,7 +584,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get padClose => 'close';
 
   @override
-  String get padTab => 'tab';
+  String get padTab => 'panel tab';
 
   @override
   String get padSection => 'section';
@@ -606,8 +611,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get padHelp => 'help';
 
   @override
-  String get padConnected =>
-      'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons';
+  String padConnected(String id) {
+    return 'Controller connected ($id): X folds, A checks or calls, Y opens the raise, LT / RT open the side panel, Start shows all buttons. On-screen hints: Preferences.';
+  }
+
+  @override
+  String get padHints =>
+      'Show controller hints on screen (legend and button caps)';
+
+  @override
+  String padDetected(String id, String mapping, String button) {
+    return 'Detected: $id, $mapping layout, last button $button';
+  }
+
+  @override
+  String get padMappingStandard => 'standard';
+
+  @override
+  String get padMappingOther => 'non-standard, remapped';
 
   @override
   String get soundOn => 'Sound on';

@@ -160,13 +160,15 @@ String shortcutLabel(ShortcutAction action) =>
 /// confirms while the raise control is open and checks or calls otherwise;
 /// LB/RB step the amount by five there and jump between the sections of
 /// the screen (action bar, table, side panel) elsewhere. The directions
-/// step the amount and cycle the presets in the raise control and move
-/// focus everywhere else; Back jumps into the side panel and back out.
+/// step the amount and cycle the presets (up to all-in) in the raise
+/// control and move focus everywhere else, crossing into the next section
+/// when the current one has nothing further; LT/RT switch the panel's tabs
+/// from anywhere and take the cursor there; Back jumps into the side panel
+/// and back out.
 const Map<ShortcutAction, PadButton> padBindings = {
   ShortcutAction.fold: PadButton.x,
   ShortcutAction.checkCall: PadButton.a,
   ShortcutAction.openRaise: PadButton.y,
-  ShortcutAction.selectAllIn: PadButton.rt,
   ShortcutAction.amountUp: PadButton.up,
   ShortcutAction.amountDown: PadButton.down,
   ShortcutAction.amountUpBig: PadButton.rb,

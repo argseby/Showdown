@@ -224,6 +224,34 @@ final fixedSeatsProvider = NotifierProvider<FixedSeatsNotifier, bool>(
   FixedSeatsNotifier.new,
 );
 
+/// Controller hints on screen (the legend strip under the action bar and
+/// the button caps) while a pad is connected. Off by default: the help
+/// overlay (Start) has the full reference, and a pad that stays plugged
+/// in must not clutter the table for good.
+class PadHintsNotifier extends Notifier<bool> {
+  static const _key = 'pref:pad_hints';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final padHintsProvider = NotifierProvider<PadHintsNotifier, bool>(
+  PadHintsNotifier.new,
+);
+
 /// Whether the pencil drawings on the table are shown (default on).
 class ShowDrawingsNotifier extends Notifier<bool> {
   static const _key = 'pref:show_drawings';

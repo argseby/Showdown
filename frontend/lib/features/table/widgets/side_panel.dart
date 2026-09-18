@@ -79,6 +79,23 @@ class SidePanelState extends ConsumerState<SidePanel> {
   /// initial tab and follows keyboard toggles from the page.
   late PanelTab _tab = widget.tab;
 
+  /// One focus node per tab: with a controller the tabs are controls (the
+  /// cursor lands on the active one, ← → walk them, A selects), so a tab
+  /// without any control of its own, like the leaderboard, still keeps
+  /// the cursor in the panel.
+  final _tabFocus = {for (final t in PanelTab.values) t: FocusNode()};
+
+  /// The focus node of [tab]'s strip item, for the controller.
+  FocusNode tabNode(PanelTab tab) => _tabFocus[tab]!;
+
+  @override
+  void dispose() {
+    for (final n in _tabFocus.values) {
+      n.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   void didUpdateWidget(covariant SidePanel oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -175,47 +192,65 @@ class SidePanelState extends ConsumerState<SidePanel> {
       child: Icon(icon, size: 18),
     );
     final unreadChat = tab == PanelTab.chat ? 0 : session.unreadChat;
+    // Each tab is a control of its own (focus, A), for the controller.
+    Widget padTab(PanelTab t, Widget child) => Clickable(
+      focusNode: _tabFocus[t],
+      onPressed: () => _select(t),
+      child: child,
+    );
     final tabs = Tabs(
       index: visible.indexOf(tab),
       onChanged: (i) => _select(visible[i]),
       children: [
         TabItem(
-          child: narrow
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    iconTab(LucideIcons.messageCircle, l10n.tabChat),
-                    if (unreadChat > 0) ...[
-                      const Gap(4),
-                      PrimaryBadge(child: Text('$unreadChat')),
+          child: padTab(
+            PanelTab.chat,
+            narrow
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      iconTab(LucideIcons.messageCircle, l10n.tabChat),
+                      if (unreadChat > 0) ...[
+                        const Gap(4),
+                        PrimaryBadge(child: Text('$unreadChat')),
+                      ],
                     ],
-                  ],
-                )
-              : label(l10n.tabChat, unreadChat),
+                  )
+                : label(l10n.tabChat, unreadChat),
+          ),
         ),
         // The log carries no counter: only chat messages are announced.
         TabItem(
-          child: narrow
-              ? iconTab(LucideIcons.scrollText, l10n.tabLog)
-              : Text(l10n.tabLog),
+          child: padTab(
+            PanelTab.log,
+            narrow
+                ? iconTab(LucideIcons.scrollText, l10n.tabLog)
+                : Text(l10n.tabLog),
+          ),
         ),
         TabItem(
-          child: narrow
-              ? iconTab(LucideIcons.trophy, l10n.tabLeaderboard)
-              : Text(l10n.tabLeaderboard),
+          child: padTab(
+            PanelTab.leaderboard,
+            narrow
+                ? iconTab(LucideIcons.trophy, l10n.tabLeaderboard)
+                : Text(l10n.tabLeaderboard),
+          ),
         ),
         TabItem(
           key: const Key('tab-settings'),
-          child: narrow
-              ? iconTab(LucideIcons.settings, l10n.tabSettings)
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(LucideIcons.settings, size: 14),
-                    const Gap(6),
-                    Text(l10n.tabSettings),
-                  ],
-                ),
+          child: padTab(
+            PanelTab.settings,
+            narrow
+                ? iconTab(LucideIcons.settings, l10n.tabSettings)
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.settings, size: 14),
+                      const Gap(6),
+                      Text(l10n.tabSettings),
+                    ],
+                  ),
+          ),
         ),
       ],
     );
@@ -225,7 +260,7 @@ class SidePanelState extends ConsumerState<SidePanel> {
     // With a controller: is its cursor in this panel (caps show LT / RT
     // for the tabs and B for back) or elsewhere (a Back cap says how to
     // get here)? Null without a controller.
-    final padHere = ref.watch(gamepadProvider)
+    final padHere = ref.watch(gamepadProvider) && ref.watch(padHintsProvider)
         ? ref.watch(
             padCursorProvider.select((c) => c.section == PadSection.panel),
           )
@@ -238,7 +273,8 @@ class SidePanelState extends ConsumerState<SidePanel> {
                 const KbdHint('', pad: 'Back'),
                 const Gap(6),
               ],
-              if (padHere ?? false) ...[
+              // With text tabs there is no room; the legend has them.
+              if ((padHere ?? false) && narrow) ...[
                 const KbdHint('', pad: 'LT'),
                 const Gap(4),
               ],
@@ -248,7 +284,7 @@ class SidePanelState extends ConsumerState<SidePanel> {
                   child: tabs,
                 ),
               ),
-              if (padHere ?? false) ...[
+              if ((padHere ?? false) && narrow) ...[
                 const Gap(4),
                 const KbdHint('', pad: 'RT'),
               ],

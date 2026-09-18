@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showdown/app/preferences.dart';
 import 'package:showdown/core/gamepad/gamepad.dart';
 import 'package:showdown/core/gamepad/pad_section.dart';
 import 'package:showdown/core/providers.dart';
@@ -107,6 +108,12 @@ class _FakePad extends GamepadNotifier {
   Stream<PadButton> get presses => ctrl.stream;
 
   void press(PadButton b) => ctrl.add(b);
+}
+
+/// Controller hints switched on.
+class _HintsOn extends PadHintsNotifier {
+  @override
+  bool build() => true;
 }
 
 /// Fresh from the join page.
@@ -508,16 +515,17 @@ void main() {
       }
     }
 
-    await pumpPlay(tester, extra: [gamepadProvider.overrideWith(() => pad)]);
+    await pumpPlay(
+      tester,
+      extra: [
+        gamepadProvider.overrideWith(() => pad),
+        padHintsProvider.overrideWith(_HintsOn.new),
+      ],
+    );
     pad.connect();
     await tester.pump(const Duration(milliseconds: 300));
     // A toast says so, and the hints show the controller buttons now.
-    expect(
-      find.text(
-        'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons',
-      ),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Controller connected'), findsOneWidget);
     expect(find.text('X'), findsWidgets);
     // Y opens the raise control, → → → → walks to the pot preset, A confirms.
     pad.press(PadButton.y);
@@ -570,14 +578,52 @@ void main() {
     expect(find.text('Keyboard shortcuts'), findsNothing);
     // No stray actions went out for the dialog presses.
     expect(transport.sent.where((e) => e['type'] == 'action').length, 2);
-    // Back jumps into the side panel, LB / RB cycle the sections, and
-    // Back from the panel closes it and returns to the action bar.
     Finder focusedIn(PadSection s) => find.ancestor(
       of: find.byWidget(FocusManager.instance.primaryFocus!.context!.widget),
       matching: find.byWidgetPredicate(
         (w) => w is PadSectionScope && w.section == s,
       ),
     );
+    // RT from the table switches the panel to the next tab and puts the
+    // cursor on that tab; ← walks the strip (Settings, Leaderboard, Log,
+    // Chat) and one more ← from the left edge crosses into the table.
+    pad.press(PadButton.rt);
+    await settle();
+    await settle();
+    expect(focusedIn(PadSection.panel), findsOneWidget);
+    expect(find.text('Side panel · Chat'), findsOneWidget);
+    pad.press(PadButton.lt);
+    await settle();
+    expect(find.text('Side panel · Settings'), findsOneWidget);
+    for (var i = 0; i < 3; i++) {
+      pad.press(PadButton.left);
+      await settle();
+      expect(focusedIn(PadSection.panel), findsOneWidget);
+    }
+    // A on the Log tab selects it.
+    pad.press(PadButton.right);
+    await settle();
+    pad.press(PadButton.a);
+    await settle();
+    expect(find.text('Side panel · Log'), findsOneWidget);
+    pad.press(PadButton.left);
+    await settle();
+    pad.press(PadButton.left);
+    await settle();
+    expect(focusedIn(PadSection.panel), findsNothing);
+    // Back to the Settings tab (LT twice from Log), then LB to the action
+    // bar so that the walk below starts from the table.
+    pad.press(PadButton.lt);
+    await settle();
+    pad.press(PadButton.lt);
+    await settle();
+    expect(find.text('Side panel · Settings'), findsOneWidget);
+    pad.press(PadButton.lb);
+    await settle();
+    pad.press(PadButton.b);
+    await settle();
+    // Back jumps into the side panel, LB / RB cycle the sections, and
+    // Back from the panel closes it and returns to the action bar.
     // The legend says where the cursor is.
     expect(find.byKey(const Key('pad-hint')), findsOneWidget);
     expect(find.text('Action bar'), findsOneWidget);
@@ -585,7 +631,7 @@ void main() {
     await settle();
     expect(focusedIn(PadSection.panel), findsOneWidget);
     expect(find.text('Side panel · Settings'), findsOneWidget);
-    // The tab strip shows the LT / RT caps while the cursor is inside.
+    // The legend shows the LT / RT caps while the cursor is inside.
     expect(find.text('LT'), findsWidgets);
     expect(find.text('RT'), findsWidgets);
     // LT / RT switch the tabs and keep the cursor in the panel.

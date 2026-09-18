@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../app/preferences.dart';
 import '../core/gamepad/gamepad.dart';
 
 /// A small keycap label used as a shortcut hint on buttons and in the
@@ -23,14 +24,17 @@ class KbdHint extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final padOn = ref.watch(gamepadProvider);
+    final padOn = ref.watch(gamepadProvider) && ref.watch(padHintsProvider);
     final theme = Theme.of(context);
     final String text;
     final bool round;
+    // The pad button replaces the key; a key without a pad button stays
+    // (the help overlay lists keyboard-only actions too).
     if (padOn && pad != null) {
       text = pad!;
       round = true;
-    } else if (!padOn && MediaQuery.sizeOf(context).width >= minWidth) {
+    } else if (label.isNotEmpty &&
+        MediaQuery.sizeOf(context).width >= minWidth) {
       text = label;
       round = false;
     } else {

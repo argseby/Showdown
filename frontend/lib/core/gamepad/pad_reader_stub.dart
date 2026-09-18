@@ -4,3 +4,6 @@ import 'gamepad.dart';
 const bool padSupported = false;
 
 PadFrame? readPad() => null;
+
+/// Nowhere to report to.
+void reportPadDebug(String text) {}

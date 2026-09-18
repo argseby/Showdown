@@ -27,11 +27,7 @@ Future<void> showShortcutsOverlay(BuildContext context) {
       l10n.scOpenRaise,
     ),
     (shortcutLabel(ShortcutAction.focusAmount), null, l10n.scFocusAmount),
-    (
-      shortcutLabel(ShortcutAction.selectAllIn),
-      padLabel(ShortcutAction.selectAllIn),
-      l10n.scAllIn,
-    ),
+    (shortcutLabel(ShortcutAction.selectAllIn), null, l10n.scAllIn),
     ('1 2 3 4', '← →', l10n.scPresets),
     ('Up Down', '↑ ↓ LB RB', l10n.scAmount),
     (
@@ -62,6 +58,7 @@ Future<void> showShortcutsOverlay(BuildContext context) {
       l10n.scHelp,
     ),
     ('', '${PadButton.lb.label} ${PadButton.rb.label}', l10n.scSections),
+    ('', '${PadButton.lt.label} ${PadButton.rt.label}', l10n.scPanelTabs),
     ('', PadButton.back.label, l10n.scSettingsPanel),
   ];
   return showOverlay<void>(
@@ -116,6 +113,19 @@ Future<void> showShortcutsOverlay(BuildContext context) {
                   if (padOn) ...[
                     const Gap(6),
                     Text(l10n.shortcutsPadHint).muted().small(),
+                    if (ref.watch(padInfoProvider) case final info?) ...[
+                      const Gap(6),
+                      Text(
+                        l10n.padDetected(
+                          info.id,
+                          info.standard
+                              ? l10n.padMappingStandard
+                              : l10n.padMappingOther,
+                          info.lastButton?.label ?? '–',
+                        ),
+                        key: const Key('pad-detected'),
+                      ).muted().small(),
+                    ],
                   ],
                 ],
               ),

@@ -1013,7 +1013,7 @@ abstract class AppLocalizations {
   /// No description provided for @scPresets.
   ///
   /// In en, this message translates to:
-  /// **'Presets Min / 1/2 Pot / 3/4 Pot / Pot'**
+  /// **'Presets Min / 1/2 Pot / 3/4 Pot / Pot (controller: up to all-in)'**
   String get scPresets;
 
   /// No description provided for @scAmount.
@@ -1076,10 +1076,16 @@ abstract class AppLocalizations {
   /// **'Jump between action bar, table and side panel'**
   String get scSections;
 
+  /// No description provided for @scPanelTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat, log, leaderboard, settings: the side panel\'s tabs, from anywhere'**
+  String get scPanelTabs;
+
   /// No description provided for @shortcutsPadHint.
   ///
   /// In en, this message translates to:
-  /// **'Controller: the D-pad or left stick moves between controls, A activates, B goes back or closes. LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it; LT / RT switch its tabs. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.'**
+  /// **'Controller: the D-pad or left stick moves between controls (and on into the next area), A activates, B goes back or closes. LT / RT open the side panel\'s tabs from anywhere; LB / RB jump between the action bar, the table and the side panel; Back opens the side panel and jumps into it. The strip under the action bar always shows where you are and what the buttons do there. At the table X folds, Y opens the raise, ↑ ↓ step the amount, ← → cycle the presets, LB / RB step by five, RT selects all-in.'**
   String get shortcutsPadHint;
 
   /// No description provided for @padWhereActions.
@@ -1139,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @padTab.
   ///
   /// In en, this message translates to:
-  /// **'tab'**
+  /// **'panel tab'**
   String get padTab;
 
   /// No description provided for @padSection.
@@ -1193,8 +1199,32 @@ abstract class AppLocalizations {
   /// No description provided for @padConnected.
   ///
   /// In en, this message translates to:
-  /// **'Controller connected: X folds, A checks or calls, Y opens the raise, Start shows all buttons'**
-  String get padConnected;
+  /// **'Controller connected ({id}): X folds, A checks or calls, Y opens the raise, LT / RT open the side panel, Start shows all buttons. On-screen hints: Preferences.'**
+  String padConnected(String id);
+
+  /// No description provided for @padHints.
+  ///
+  /// In en, this message translates to:
+  /// **'Show controller hints on screen (legend and button caps)'**
+  String get padHints;
+
+  /// No description provided for @padDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected: {id}, {mapping} layout, last button {button}'**
+  String padDetected(String id, String mapping, String button);
+
+  /// No description provided for @padMappingStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'standard'**
+  String get padMappingStandard;
+
+  /// No description provided for @padMappingOther.
+  ///
+  /// In en, this message translates to:
+  /// **'non-standard, remapped'**
+  String get padMappingOther;
 
   /// No description provided for @soundOn.
   ///

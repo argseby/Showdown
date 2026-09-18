@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../../app/preferences.dart';
 import '../../../core/gamepad/gamepad.dart';
 import '../../../core/gamepad/pad_section.dart';
 import '../../../shared/kbd_hint.dart';
@@ -15,7 +16,9 @@ class PadHintBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(gamepadProvider)) return const SizedBox.shrink();
+    if (!ref.watch(gamepadProvider) || !ref.watch(padHintsProvider)) {
+      return const SizedBox.shrink();
+    }
     final cursor = ref.watch(padCursorProvider);
     if (cursor.where.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);

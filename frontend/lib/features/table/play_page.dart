@@ -114,9 +114,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _padRefreshPending = false;
       if (!mounted || !ref.read(gamepadProvider)) return;
-      final section = _sectionOf(FocusManager.instance.primaryFocus);
+      final focus = FocusManager.instance.primaryFocus;
+      final section = _sectionOf(focus);
       final dialog = _overlayControl() != null;
       final (where, legend) = _padLegend(context.l10n, section, dialog);
+      reportPadDebug('${section?.name} dialog=$dialog ${_describe(focus)}');
       ref
           .read(padCursorProvider.notifier)
           .set(
@@ -383,7 +385,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
           closeOverlay<void>(overlayCtx);
         } else if (raise) {
           bar?.cancel();
-        } else if (control != null) {
+        } else if (control != null && _sectionOf(control) != PadSection.panel) {
+          // Drop the cursor at the table; in the panel's menu it stays
+          // (Back is the way out), so B never throws players out.
           control.unfocus();
           _rootFocus.requestFocus();
         }
@@ -392,13 +396,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
       case PadButton.y:
         if (overlayCtx == null) bar?.openRaise(focusInput: false);
       case PadButton.rt:
-        if (_sectionOf(control) == PadSection.panel) {
-          _cycleTab(1);
-        } else if (overlayCtx == null) {
-          bar?.selectAllIn();
-        }
+        _cycleTab(1);
       case PadButton.lt:
-        if (_sectionOf(control) == PadSection.panel) _cycleTab(-1);
+        _cycleTab(-1);
       case PadButton.lb:
         inRaise ? bar?.adjust(-5) : _cycleSection(-1);
       case PadButton.rb:
@@ -431,7 +431,27 @@ class _PlayPageState extends ConsumerState<PlayPage>
     } else {
       setState(() => _tab = next);
     }
-    _restoreSoon(PadSection.panel);
+    if (_sectionOf(FocusManager.instance.primaryFocus) == PadSection.panel) {
+      // The cursor follows the active tab (its node stays, the content
+      // under it changes).
+      _focusSectionSoon(PadSection.panel);
+    } else {
+      // From the table: the triggers are the way into the panel too. The
+      // sheet is opened after the rebuild, so it carries the new tab.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _enterPanel();
+      });
+    }
+  }
+
+  /// Opens the panel when it is closed and puts the cursor into it.
+  void _enterPanel() {
+    if (_wide) {
+      if (!_panelOpen) setState(() => _panelOpen = true);
+    } else if (_panelWidget != null && _overlayControl() == null) {
+      _openSheet(_panelWidget!);
+    }
+    _focusSectionSoon(PadSection.panel);
   }
 
   /// After the focused control disappeared: the cursor goes into a dialog
@@ -441,7 +461,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
       if (!mounted) return;
       final f = FocusManager.instance.primaryFocus;
       if (f != null && f != _rootFocus && f is! FocusScopeNode) return;
-      final node = _overlayControl() ?? _sectionControl(section);
+      final node = _overlayControl() ?? _landing(section);
       if (node != null) {
         node.requestFocus();
       } else if (tries > 0) {
@@ -493,7 +513,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
             (move, l10n.padMove),
             ('A', l10n.padOpen),
             ('B', l10n.padBack),
-            ('LB RB', l10n.padSection),
+            ('LT RT', l10n.padTab),
             ('Back', l10n.padPanel),
           ],
         );
@@ -517,9 +537,8 @@ class _PlayPageState extends ConsumerState<PlayPage>
             ('X', l10n.fold),
             ('A', l10n.scCheckCall),
             ('Y', l10n.raise),
-            ('RT', l10n.presetAllIn),
             (move, l10n.padMove),
-            ('LB RB', l10n.padSection),
+            ('LT RT', l10n.padTab),
             ('Back', l10n.padPanel),
             ('Start', l10n.padHelp),
           ],
@@ -527,9 +546,12 @@ class _PlayPageState extends ConsumerState<PlayPage>
     }
   }
 
+  /// ← → in the raise control: min, ½ pot, ¾ pot, pot, all-in.
   void _cyclePreset(int delta) {
-    _padPreset = (_padPreset + delta).clamp(0, 3);
-    _actionBar.currentState?.preset(_padPreset);
+    _padPreset = (_padPreset + delta).clamp(0, 4);
+    _padPreset == 4
+        ? _actionBar.currentState?.selectAllIn()
+        : _actionBar.currentState?.preset(_padPreset);
   }
 
   /// Moves focus with the D-pad. With nothing focused yet it starts in the
@@ -546,14 +568,46 @@ class _PlayPageState extends ConsumerState<PlayPage>
       start?.requestFocus();
       return;
     }
-    // Only among the controls of the same dialog, sheet or section: a
-    // seat or an action button behind an open sheet must not catch it.
-    final candidates = _neighbours(focus).toList();
-    final i = padNeighbour(focus.rect, [
-      for (final n in candidates) n.rect,
-    ], direction);
+    // First among the controls of the same dialog, sheet or section (a
+    // seat behind an open sheet must not catch it); with nothing left
+    // there, across into the neighbouring section, so the D-pad alone
+    // reaches the panel from the table and back.
+    final from = _rectOf(focus);
+    if (from == null) return;
+    int? pick(Iterable<FocusNode> nodes, List<FocusNode> into) {
+      into.clear();
+      final rects = <Rect>[];
+      for (final n in nodes) {
+        final r = _rectOf(n);
+        if (r == null) continue;
+        into.add(n);
+        rects.add(r);
+      }
+      return padNeighbour(from, rects, direction);
+    }
+
+    final candidates = <FocusNode>[];
+    var i = pick(_neighbours(focus), candidates);
+    // Sideways only: the panel sits beside the table. Up and down stay
+    // put, so a tab without controls below it does not spill the cursor
+    // onto the seats.
+    final sideways =
+        direction == TraversalDirection.left ||
+        direction == TraversalDirection.right;
+    if (i == null && sideways && !_inOverlay(focus)) {
+      i = pick(
+        _controls().where((n) => n != focus && !_inOverlay(n)),
+        candidates,
+      );
+    }
     if (i == null) return;
     final target = candidates[i];
+    reportPadDebug(
+      'move $direction -> ${_describe(target)} ${_rectOf(target)} '
+      'section=${_sectionOf(target)?.name} '
+      'canRequestFocus=${target.canRequestFocus} '
+      'widget=${target.context?.widget.runtimeType}',
+    );
     target.requestFocus();
     Scrollable.ensureVisible(
       target.context!,
@@ -561,6 +615,24 @@ class _PlayPageState extends ConsumerState<PlayPage>
       duration: const Duration(milliseconds: 150),
     );
   }
+
+  /// The focused control for the debug hook: the nearest keyed ancestor.
+  String _describe(FocusNode? node) {
+    if (node == null || node == _rootFocus) return 'none';
+    if (node is FocusScopeNode) return 'scope';
+    String? key;
+    node.context?.visitAncestorElements((e) {
+      if (e.widget.key != null) {
+        key = '${e.widget.runtimeType}${e.widget.key}';
+        return false;
+      }
+      return true;
+    });
+    return key ?? '${node.context?.widget.runtimeType}';
+  }
+
+  bool _inOverlay(FocusNode node) =>
+      Data.maybeFind<OverlayCompleter<dynamic>>(node.context!) != null;
 
   /// The controls the cursor may move to from [node]: those in the same
   /// dialog or sheet, else those in the same section outside any overlay.
@@ -578,19 +650,46 @@ class _PlayPageState extends ConsumerState<PlayPage>
 
   /// Every focusable control on screen. Dialogs and sheets live in the
   /// app's overlay, outside this page's scope, so the root scope it is.
+  /// The page's own root node is a focusable too (it catches the keys),
+  /// and its box is the whole screen: never a cursor target. Other
+  /// screen-sized nodes (the app's key handlers) are dropped by [_rectOf].
   Iterable<FocusNode> _controls() => [
     for (final n in FocusManager.instance.rootScope.traversalDescendants)
-      if (n is! FocusScopeNode && n.context != null) n,
+      if (n is! FocusScopeNode && n != _rootFocus && n.context != null) n,
   ];
+
+  /// Where [node] is on screen; null for a node whose box is not laid
+  /// out or has no size (FocusNode.rect would throw on it), which is not
+  /// something the cursor can reach anyway.
+  Rect? _rectOf(FocusNode node) {
+    final box = node.context?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return null;
+    if (box.size.isEmpty) return null;
+    final rect = MatrixUtils.transformRect(
+      box.getTransformTo(null),
+      Offset.zero & box.size,
+    );
+    if (rect.isEmpty) return null;
+    // A node the size of the screen is a key handler, not a control.
+    final screen = MediaQuery.sizeOf(context);
+    if (rect.width * rect.height > 0.5 * screen.width * screen.height) {
+      return null;
+    }
+    return rect;
+  }
 
   /// The top-left one of [nodes].
   FocusNode? _topLeft(Iterable<FocusNode> nodes) {
     FocusNode? best;
+    Rect? bestRect;
     for (final n in nodes) {
-      if (best == null ||
-          n.rect.top < best.rect.top ||
-          (n.rect.top == best.rect.top && n.rect.left < best.rect.left)) {
+      final r = _rectOf(n);
+      if (r == null) continue;
+      if (bestRect == null ||
+          r.top < bestRect.top ||
+          (r.top == bestRect.top && r.left < bestRect.left)) {
         best = n;
+        bestRect = r;
       }
     }
     return best;
@@ -602,6 +701,21 @@ class _PlayPageState extends ConsumerState<PlayPage>
       (n) => Data.maybeFind<OverlayCompleter<dynamic>>(n.context!) != null,
     ),
   );
+
+  /// Where the cursor lands when it enters or returns to [section]: in
+  /// the panel the active tab (its strip is the panel's constant), else
+  /// the section's top-left control.
+  FocusNode? _landing(PadSection section) {
+    if (section == PadSection.panel) {
+      // Only while the strip is on screen (a settings page hides it): a
+      // node keeps a stale context after its widget is gone.
+      final tab = _sidePanel.currentState?.tabNode(_tab);
+      if (tab != null && _controls().contains(tab) && _rectOf(tab) != null) {
+        return tab;
+      }
+    }
+    return _sectionControl(section);
+  }
 
   /// The top-left control of [section], null when it has none on screen.
   FocusNode? _sectionControl(PadSection section) => _topLeft(
@@ -641,7 +755,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
   void _focusSectionSoon(PadSection section, [int tries = 8]) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final node = _sectionControl(section);
+      final node = _landing(section);
       if (node != null) {
         node.requestFocus();
       } else if (tries > 0) {
@@ -662,12 +776,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
       _focusSectionSoon(PadSection.actions);
       return;
     }
-    if (_wide) {
-      if (!_panelOpen) setState(() => _panelOpen = true);
-    } else if (_panelWidget != null) {
-      _openSheet(_panelWidget!);
-    }
-    _focusSectionSoon(PadSection.panel);
+    _enterPanel();
   }
 
   void _togglePanelTab(PanelTab tab) {
@@ -774,7 +883,12 @@ class _PlayPageState extends ConsumerState<PlayPage>
 
     final session = ref.watch(tableSessionProvider(widget.tableId));
     ref.listen(gamepadProvider, (prev, next) {
-      if (next && prev != true) showAdminToast(context, l10n.padConnected);
+      if (next && prev != true) {
+        showAdminToast(
+          context,
+          l10n.padConnected(ref.read(padInfoProvider)?.id ?? ''),
+        );
+      }
     });
     ref.listen(tableSessionProvider(widget.tableId), (prev, next) {
       _updateTitle();

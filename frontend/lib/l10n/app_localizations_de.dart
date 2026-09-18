@@ -553,8 +553,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zwischen Aktionsleiste, Tisch und Seitenleiste springen';
 
   @override
+  String get scPanelTabs =>
+      'Chat, Verlauf, Rangliste, Einstellungen: die Tabs der Seitenleiste, von überall';
+
+  @override
   String get shortcutsPadHint =>
-      'Controller: Steuerkreuz oder linker Stick wechselt zwischen Bedienelementen, A aktiviert, B geht zurück oder schließt. LB / RB springen zwischen Aktionsleiste, Tisch und Seitenleiste; Back öffnet die Seitenleiste und springt hinein; LT / RT wechseln ihre Tabs. Die Leiste unter der Aktionsleiste zeigt immer, wo du bist und was die Tasten dort tun. Am Tisch foldet X, Y öffnet den Raise, ↑ ↓ ändern den Betrag, ← → wechseln die Vorgaben, LB / RB in Fünferschritten, RT wählt All-in.';
+      'Controller: Steuerkreuz oder linker Stick wechselt zwischen Bedienelementen (und weiter in den nächsten Bereich), A aktiviert, B geht zurück oder schließt. LT / RT öffnen die Tabs der Seitenleiste von überall; LB / RB springen zwischen Aktionsleiste, Tisch und Seitenleiste; Back öffnet die Seitenleiste und springt hinein. Die Leiste unter der Aktionsleiste zeigt immer, wo du bist und was die Tasten dort tun. Am Tisch foldet X, Y öffnet den Raise, ↑ ↓ ändern den Betrag, ← → wechseln die Vorgaben, LB / RB in Fünferschritten, RT wählt All-in.';
 
   @override
   String get padWhereActions => 'Aktionsleiste';
@@ -584,7 +588,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get padClose => 'schließen';
 
   @override
-  String get padTab => 'Tab';
+  String get padTab => 'Panel-Tab';
 
   @override
   String get padSection => 'Bereich';
@@ -611,8 +615,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get padHelp => 'Hilfe';
 
   @override
-  String get padConnected =>
-      'Controller verbunden: X foldet, A checkt oder callt, Y öffnet den Raise, Start zeigt alle Tasten';
+  String padConnected(String id) {
+    return 'Controller verbunden ($id): X foldet, A checkt oder callt, Y öffnet den Raise, LT / RT öffnen die Seitenleiste, Start zeigt alle Tasten. Hinweise am Bildschirm: Einstellungen.';
+  }
+
+  @override
+  String get padHints =>
+      'Controller-Hinweise am Bildschirm zeigen (Leiste und Tastenkappen)';
+
+  @override
+  String padDetected(String id, String mapping, String button) {
+    return 'Erkannt: $id, $mapping Belegung, letzte Taste $button';
+  }
+
+  @override
+  String get padMappingStandard => 'Standard-';
+
+  @override
+  String get padMappingOther => 'Nicht-Standard-, umgelegte';
 
   @override
   String get soundOn => 'Ton an';

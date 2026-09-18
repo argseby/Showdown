@@ -4,6 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
+import '../../../core/gamepad/gamepad.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../shared/kbd_hint.dart';
@@ -52,6 +53,8 @@ class TableSettingsTab extends ConsumerWidget {
     final fourColor = ref.watch(fourColorDeckProvider);
     final chipStacks = ref.watch(chipStacksProvider);
     final fixedSeats = ref.watch(fixedSeatsProvider);
+    final padHints = ref.watch(padHintsProvider);
+    final padOn = ref.watch(gamepadProvider);
     final chipDisplay = ref.watch(chipDisplayProvider);
     final voice = ref.watch(voiceControllerProvider(tableId));
     final notify = ref.watch(notifyTurnProvider);
@@ -261,6 +264,15 @@ class TableSettingsTab extends ConsumerWidget {
                 () => ref.read(fixedSeatsProvider.notifier).set(!fixedSeats),
                 key: const Key('drawer-fixed-seats'),
               ),
+              // Only with a controller: the hints mean nothing without one.
+              if (padOn)
+                toggle(
+                  LucideIcons.gamepad2,
+                  l10n.padHints,
+                  padHints,
+                  () => ref.read(padHintsProvider.notifier).set(!padHints),
+                  key: const Key('drawer-pad-hints'),
+                ),
               toggle(
                 LucideIcons.coins,
                 l10n.showBigBlinds,
