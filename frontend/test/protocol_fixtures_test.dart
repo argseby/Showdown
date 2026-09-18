@@ -28,6 +28,10 @@ const clientTypes = {
   'straddle',
   'run_twice',
   'hat',
+  'avatar',
+  'draw',
+  'draw_erase',
+  'draw_clear',
   'ping',
 };
 

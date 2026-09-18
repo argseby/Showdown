@@ -12,6 +12,7 @@ class PeerPrefs {
     this.hideHat = false,
     this.hideHeat = false,
     this.hideStickers = false,
+    this.hideDrawings = false,
   });
 
   static const none = PeerPrefs();
@@ -23,6 +24,7 @@ class PeerPrefs {
   final bool hideHat;
   final bool hideHeat;
   final bool hideStickers;
+  final bool hideDrawings;
 
   /// The volume to play them at.
   double get effectiveVolume => muted ? 0 : volume;
@@ -34,7 +36,8 @@ class PeerPrefs {
       !hideVideo &&
       !hideHat &&
       !hideHeat &&
-      !hideStickers;
+      !hideStickers &&
+      !hideDrawings;
 
   PeerPrefs copyWith({
     double? volume,
@@ -43,6 +46,7 @@ class PeerPrefs {
     bool? hideHat,
     bool? hideHeat,
     bool? hideStickers,
+    bool? hideDrawings,
   }) => PeerPrefs(
     volume: volume ?? this.volume,
     muted: muted ?? this.muted,
@@ -50,6 +54,7 @@ class PeerPrefs {
     hideHat: hideHat ?? this.hideHat,
     hideHeat: hideHeat ?? this.hideHeat,
     hideStickers: hideStickers ?? this.hideStickers,
+    hideDrawings: hideDrawings ?? this.hideDrawings,
   );
 
   @override
@@ -60,11 +65,19 @@ class PeerPrefs {
       other.hideVideo == hideVideo &&
       other.hideHat == hideHat &&
       other.hideHeat == hideHeat &&
-      other.hideStickers == hideStickers;
+      other.hideStickers == hideStickers &&
+      other.hideDrawings == hideDrawings;
 
   @override
-  int get hashCode =>
-      Object.hash(volume, muted, hideVideo, hideHat, hideHeat, hideStickers);
+  int get hashCode => Object.hash(
+    volume,
+    muted,
+    hideVideo,
+    hideHat,
+    hideHeat,
+    hideStickers,
+    hideDrawings,
+  );
 }
 
 /// Per-player choices by player id; entries at their defaults are dropped.

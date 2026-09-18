@@ -35,6 +35,8 @@ type SettingsRow struct {
 	AutoStart              bool
 	HandDelayMs            int
 	AllowRabbitHunt        bool
+	AllowDrawing           bool
+	Tournament             bool
 	BlindsUpMinutes        int
 	BlindsUpPercent        int
 	TimeBankSeconds        int

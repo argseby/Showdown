@@ -221,6 +221,32 @@ func TestFrameBeyondReadLimitClosesConnection(t *testing.T) {
 	alice.expectClosed(int(websocket.StatusMessageTooBig))
 }
 
+// A long pencil stroke is bigger than the ordinary message cap; it must
+// reach the table instead of closing the connection.
+func TestLongStrokeIsNotOversize(t *testing.T) {
+	h := newHarness(t, t.TempDir(), "")
+	defer h.stop()
+	tableID, _ := h.createTable(fastSettings())
+	_, a := h.request(http.MethodPost, "/api/tables/"+tableID+"/join", "", map[string]any{"name": "alice"})
+	_, b := h.request(http.MethodPost, "/api/tables/"+tableID+"/join", "", map[string]any{"name": "bob"})
+	alice := dialRaw(t, h, tableID, a["player_token"].(string), a["player_id"].(string))
+	bob := dialRaw(t, h, tableID, b["player_token"].(string), b["player_id"].(string))
+	pts := make([]float64, 2*protocol.MaxStrokePoints)
+	for i := range pts {
+		pts[i] = float64(i%97) / 97 // full-precision doubles: about 16 KiB
+	}
+	alice.write(protocol.MustEncode(protocol.TypeDraw, "d-1", protocol.DrawPayload{Points: pts}))
+	got := bob.await(5*time.Second, protocol.TypeDrawing)
+	var s protocol.Stroke
+	if err := json.Unmarshal(got.Payload, &s); err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Points) != len(pts) {
+		t.Fatalf("relayed %d points, want %d", len(s.Points), len(pts))
+	}
+	alice.await(5*time.Second, protocol.TypeAck)
+}
+
 // A browser trickles every ICE candidate as its own signal: with STUN, a
 // TURN server and a few network interfaces that is dozens within a second,
 // and a mesh that reconnects multiplies it. The burst must not count as

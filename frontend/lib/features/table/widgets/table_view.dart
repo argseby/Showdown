@@ -13,6 +13,7 @@ import '../../../shared/chips.dart';
 import '../../../shared/phrases.dart';
 import '../../../shared/playing_card.dart';
 import '../../../shared/pot_colors.dart';
+import '../drawing.dart';
 import '../table_session.dart';
 import 'seat_widget.dart';
 
@@ -24,7 +25,10 @@ class TableView extends ConsumerWidget {
     this.onTakeSeat,
     this.speaking = const {},
     this.onPlayerTap,
+    this.onSelfTap,
     this.onSayTap,
+    this.onDraw,
+    this.onErase,
     this.videoViews = const {},
     this.voiceFailed = const {},
   });
@@ -49,8 +53,16 @@ class TableView extends ConsumerWidget {
   /// mute, video, hat and streak on this device; the host's actions too).
   final ValueChanged<PlayerView>? onPlayerTap;
 
+  /// Players: tapping the own avatar opens the self menu (look, voice).
+  final VoidCallback? onSelfTap;
+
   /// Players only: the quick-phrase button on the viewer's own seat.
   final VoidCallback? onSayTap;
+
+  /// Pencil: a finished stroke (normalized points) and strokes to erase;
+  /// null when the viewer may not draw (spectator, setting off).
+  final ValueChanged<List<double>>? onDraw;
+  final ValueChanged<List<int>>? onErase;
 
   /// Position index (0 = bottom center, clockwise) of a seat for a viewer.
   static int positionOf(int seat, int viewerSeat, int maxPlayers) =>
@@ -421,10 +433,11 @@ class TableView extends ConsumerWidget {
                       ? phraseLabel(l10n, session.phrases[sv.seat]!.phrase!)
                       : session.chatBubbles[sv.seat],
                   sticker: session.phrases[sv.seat]?.sticker,
-                  onPlayerTap:
-                      onPlayerTap != null &&
-                          sv.player != null &&
-                          sv.player!.id != session.identity?.playerId
+                  onPlayerTap: sv.player == null
+                      ? null
+                      : sv.player!.id == session.identity?.playerId
+                      ? onSelfTap
+                      : onPlayerTap != null
                       ? () => onPlayerTap!(sv.player!)
                       : null,
                   pendingForViewer: snap.you.pendingSeat == sv.seat,
@@ -589,6 +602,18 @@ class TableView extends ConsumerWidget {
             ),
           );
         }
+        // Pencil drawings over everything; it ignores pointers unless a
+        // tool is active, so the seats keep their taps.
+        children.add(
+          Positioned.fill(
+            child: DrawingLayer(
+              strokes: session.drawings,
+              myPlayerId: session.identity?.playerId,
+              onDraw: onDraw,
+              onErase: onErase,
+            ),
+          ),
+        );
         return Stack(clipBehavior: Clip.none, children: children);
       },
     );

@@ -100,6 +100,8 @@ func wsErrorCode(err error) (string, int) {
 		return protocol.ErrInvalidState, http.StatusConflict
 	case errors.Is(err, table.ErrTableRunning):
 		return protocol.ErrTableRunning, http.StatusConflict
+	case errors.Is(err, table.ErrTournamentLocked):
+		return protocol.ErrTournamentLocked, http.StatusConflict
 	case errors.Is(err, table.ErrTooManyTables):
 		return protocol.ErrTooManyTables, http.StatusConflict
 	case errors.Is(err, table.ErrInvalidText):

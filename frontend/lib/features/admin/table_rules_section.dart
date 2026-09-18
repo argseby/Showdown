@@ -146,9 +146,31 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
+    // A running tournament locks the money and information settings.
+    final locked =
+        detail.settings.tournament &&
+        (detail.state != 'waiting' || detail.handNumber > 0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (locked)
+          Padding(
+            key: const Key('tournament-locked'),
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.lock,
+                  size: 14,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+                const Gap(6),
+                Expanded(
+                  child: Text(l10n.tournamentLockedNote).muted().small(),
+                ),
+              ],
+            ),
+          ),
         // Unsaved changes are announced at the top, with Save right there.
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
@@ -202,6 +224,7 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
           serverErrors: _serverErrors,
           showPasswordKeepHint: true,
           seated: detail.players.length,
+          locked: locked ? tournamentLockedFields : const {},
           onChanged: (s) => setState(() => _form = s),
         ),
       ],

@@ -316,8 +316,9 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			conn.Close(protocol.ClosePolicy, "bad message")
 			return
 		}
-		// Only WebRTC signalling may exceed the ordinary message cap.
-		if size > wsMessageLimit && env.Type != protocol.TypeVoiceSignal {
+		// Only WebRTC signalling and pencil strokes (up to 400 points) may
+		// exceed the ordinary message cap.
+		if size > wsMessageLimit && env.Type != protocol.TypeVoiceSignal && env.Type != protocol.TypeDraw {
 			conn.Close(protocol.ClosePolicy, "message too large")
 			return
 		}
@@ -348,7 +349,7 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 			err2 = t.Action(client.PlayerID, poker.Action{Kind: poker.ActionKind(a.Kind), Amount: a.Amount})
 		case protocol.TypeSitOut, protocol.TypeSitIn, protocol.TypeRebuy, protocol.TypeLeave, protocol.TypeShowCards,
 			protocol.TypePreAction, protocol.TypeRabbit, protocol.TypeChangeSeat, protocol.TypeVoice, protocol.TypeVoiceSignal,
-			protocol.TypeStraddle, protocol.TypeRunTwice, protocol.TypeHat:
+			protocol.TypeStraddle, protocol.TypeRunTwice, protocol.TypeHat, protocol.TypeAvatar:
 			if client.Role != table.RolePlayer {
 				err2 = table.ErrNotSeated
 				break
@@ -412,6 +413,13 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 					break
 				}
 				err2 = t.SetHat(client.PlayerID, hp.Hat)
+			case protocol.TypeAvatar:
+				var ap protocol.AvatarPayload
+				if json.Unmarshal(env.Payload, &ap) != nil {
+					err2 = table.ErrIllegalAction
+					break
+				}
+				err2 = t.SetAvatar(client.PlayerID, ap.Avatar)
 			case protocol.TypeVoiceSignal:
 				var sig protocol.VoiceSignal
 				if json.Unmarshal(env.Payload, &sig) != nil || sig.To == "" || len(sig.Data) > wsSignalDataLimit {
@@ -420,6 +428,27 @@ func (s *Server) readLoop(ctx context.Context, raw *websocket.Conn, conn *wsConn
 				}
 				err2 = t.RelayVoice(client, sig.To, sig)
 			}
+		case protocol.TypeDraw:
+			var dp protocol.DrawPayload
+			if json.Unmarshal(env.Payload, &dp) != nil {
+				err2 = table.ErrIllegalAction
+				break
+			}
+			err2 = t.Draw(client, dp.Points)
+		case protocol.TypeDrawErase:
+			var ep protocol.DrawErasePayload
+			if json.Unmarshal(env.Payload, &ep) != nil {
+				err2 = table.ErrIllegalAction
+				break
+			}
+			err2 = t.EraseDrawings(client, ep.IDs)
+		case protocol.TypeDrawClear:
+			var cp protocol.DrawClearPayload
+			if len(env.Payload) > 0 && json.Unmarshal(env.Payload, &cp) != nil {
+				err2 = table.ErrIllegalAction
+				break
+			}
+			err2 = t.ClearDrawings(client, cp.All)
 		case protocol.TypeSay:
 			var sp protocol.SayPayload
 			if json.Unmarshal(env.Payload, &sp) != nil {

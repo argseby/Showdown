@@ -56,7 +56,7 @@ extension ServerMessagePatterns on ServerMessage {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( WelcomeMessage value)?  welcome,TResult Function( SnapshotMessage value)?  snapshot,TResult Function( EventsMessage value)?  events,TResult Function( ChatServerMessage value)?  chat,TResult Function( ChatHistoryMessage value)?  chatHistory,TResult Function( ChatRemovedMessage value)?  chatRemoved,TResult Function( AckMessage value)?  ack,TResult Function( ErrorMessage value)?  error,TResult Function( KickedMessage value)?  kicked,TResult Function( TableEndedMessage value)?  tableEnded,TResult Function( ServerRestartingMessage value)?  serverRestarting,TResult Function( PongMessage value)?  pong,TResult Function( VoiceSignalMessage value)?  voiceSignal,TResult Function( PhraseMessage value)?  phrase,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( WelcomeMessage value)?  welcome,TResult Function( SnapshotMessage value)?  snapshot,TResult Function( EventsMessage value)?  events,TResult Function( ChatServerMessage value)?  chat,TResult Function( ChatHistoryMessage value)?  chatHistory,TResult Function( ChatRemovedMessage value)?  chatRemoved,TResult Function( AckMessage value)?  ack,TResult Function( ErrorMessage value)?  error,TResult Function( KickedMessage value)?  kicked,TResult Function( TableEndedMessage value)?  tableEnded,TResult Function( ServerRestartingMessage value)?  serverRestarting,TResult Function( PongMessage value)?  pong,TResult Function( VoiceSignalMessage value)?  voiceSignal,TResult Function( PhraseMessage value)?  phrase,TResult Function( DrawingMessage value)?  drawing,TResult Function( DrawingsRemovedMessage value)?  drawingsRemoved,TResult Function( DrawingHistoryMessage value)?  drawingHistory,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case WelcomeMessage() when welcome != null:
@@ -73,7 +73,10 @@ return tableEnded(_that);case ServerRestartingMessage() when serverRestarting !=
 return serverRestarting(_that);case PongMessage() when pong != null:
 return pong(_that);case VoiceSignalMessage() when voiceSignal != null:
 return voiceSignal(_that);case PhraseMessage() when phrase != null:
-return phrase(_that);case _:
+return phrase(_that);case DrawingMessage() when drawing != null:
+return drawing(_that);case DrawingsRemovedMessage() when drawingsRemoved != null:
+return drawingsRemoved(_that);case DrawingHistoryMessage() when drawingHistory != null:
+return drawingHistory(_that);case _:
   return orElse();
 
 }
@@ -91,7 +94,7 @@ return phrase(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( WelcomeMessage value)  welcome,required TResult Function( SnapshotMessage value)  snapshot,required TResult Function( EventsMessage value)  events,required TResult Function( ChatServerMessage value)  chat,required TResult Function( ChatHistoryMessage value)  chatHistory,required TResult Function( ChatRemovedMessage value)  chatRemoved,required TResult Function( AckMessage value)  ack,required TResult Function( ErrorMessage value)  error,required TResult Function( KickedMessage value)  kicked,required TResult Function( TableEndedMessage value)  tableEnded,required TResult Function( ServerRestartingMessage value)  serverRestarting,required TResult Function( PongMessage value)  pong,required TResult Function( VoiceSignalMessage value)  voiceSignal,required TResult Function( PhraseMessage value)  phrase,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( WelcomeMessage value)  welcome,required TResult Function( SnapshotMessage value)  snapshot,required TResult Function( EventsMessage value)  events,required TResult Function( ChatServerMessage value)  chat,required TResult Function( ChatHistoryMessage value)  chatHistory,required TResult Function( ChatRemovedMessage value)  chatRemoved,required TResult Function( AckMessage value)  ack,required TResult Function( ErrorMessage value)  error,required TResult Function( KickedMessage value)  kicked,required TResult Function( TableEndedMessage value)  tableEnded,required TResult Function( ServerRestartingMessage value)  serverRestarting,required TResult Function( PongMessage value)  pong,required TResult Function( VoiceSignalMessage value)  voiceSignal,required TResult Function( PhraseMessage value)  phrase,required TResult Function( DrawingMessage value)  drawing,required TResult Function( DrawingsRemovedMessage value)  drawingsRemoved,required TResult Function( DrawingHistoryMessage value)  drawingHistory,}){
 final _that = this;
 switch (_that) {
 case WelcomeMessage():
@@ -108,7 +111,10 @@ return tableEnded(_that);case ServerRestartingMessage():
 return serverRestarting(_that);case PongMessage():
 return pong(_that);case VoiceSignalMessage():
 return voiceSignal(_that);case PhraseMessage():
-return phrase(_that);}
+return phrase(_that);case DrawingMessage():
+return drawing(_that);case DrawingsRemovedMessage():
+return drawingsRemoved(_that);case DrawingHistoryMessage():
+return drawingHistory(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -122,7 +128,7 @@ return phrase(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( WelcomeMessage value)?  welcome,TResult? Function( SnapshotMessage value)?  snapshot,TResult? Function( EventsMessage value)?  events,TResult? Function( ChatServerMessage value)?  chat,TResult? Function( ChatHistoryMessage value)?  chatHistory,TResult? Function( ChatRemovedMessage value)?  chatRemoved,TResult? Function( AckMessage value)?  ack,TResult? Function( ErrorMessage value)?  error,TResult? Function( KickedMessage value)?  kicked,TResult? Function( TableEndedMessage value)?  tableEnded,TResult? Function( ServerRestartingMessage value)?  serverRestarting,TResult? Function( PongMessage value)?  pong,TResult? Function( VoiceSignalMessage value)?  voiceSignal,TResult? Function( PhraseMessage value)?  phrase,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( WelcomeMessage value)?  welcome,TResult? Function( SnapshotMessage value)?  snapshot,TResult? Function( EventsMessage value)?  events,TResult? Function( ChatServerMessage value)?  chat,TResult? Function( ChatHistoryMessage value)?  chatHistory,TResult? Function( ChatRemovedMessage value)?  chatRemoved,TResult? Function( AckMessage value)?  ack,TResult? Function( ErrorMessage value)?  error,TResult? Function( KickedMessage value)?  kicked,TResult? Function( TableEndedMessage value)?  tableEnded,TResult? Function( ServerRestartingMessage value)?  serverRestarting,TResult? Function( PongMessage value)?  pong,TResult? Function( VoiceSignalMessage value)?  voiceSignal,TResult? Function( PhraseMessage value)?  phrase,TResult? Function( DrawingMessage value)?  drawing,TResult? Function( DrawingsRemovedMessage value)?  drawingsRemoved,TResult? Function( DrawingHistoryMessage value)?  drawingHistory,}){
 final _that = this;
 switch (_that) {
 case WelcomeMessage() when welcome != null:
@@ -139,7 +145,10 @@ return tableEnded(_that);case ServerRestartingMessage() when serverRestarting !=
 return serverRestarting(_that);case PongMessage() when pong != null:
 return pong(_that);case VoiceSignalMessage() when voiceSignal != null:
 return voiceSignal(_that);case PhraseMessage() when phrase != null:
-return phrase(_that);case _:
+return phrase(_that);case DrawingMessage() when drawing != null:
+return drawing(_that);case DrawingsRemovedMessage() when drawingsRemoved != null:
+return drawingsRemoved(_that);case DrawingHistoryMessage() when drawingHistory != null:
+return drawingHistory(_that);case _:
   return null;
 
 }
@@ -156,7 +165,7 @@ return phrase(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Welcome payload)?  welcome,TResult Function( Snapshot payload)?  snapshot,TResult Function( EventsPayload payload)?  events,TResult Function( ChatMessage payload)?  chat,TResult Function( ChatHistory payload)?  chatHistory,TResult Function( ChatRemoved payload)?  chatRemoved,TResult Function( Ack payload)?  ack,TResult Function( ErrorPayload payload)?  error,TResult Function( Kicked payload)?  kicked,TResult Function( TableEnded payload)?  tableEnded,TResult Function()?  serverRestarting,TResult Function( Pong payload)?  pong,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( PhrasePayload payload)?  phrase,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Welcome payload)?  welcome,TResult Function( Snapshot payload)?  snapshot,TResult Function( EventsPayload payload)?  events,TResult Function( ChatMessage payload)?  chat,TResult Function( ChatHistory payload)?  chatHistory,TResult Function( ChatRemoved payload)?  chatRemoved,TResult Function( Ack payload)?  ack,TResult Function( ErrorPayload payload)?  error,TResult Function( Kicked payload)?  kicked,TResult Function( TableEnded payload)?  tableEnded,TResult Function()?  serverRestarting,TResult Function( Pong payload)?  pong,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( PhrasePayload payload)?  phrase,TResult Function( Stroke payload)?  drawing,TResult Function( DrawingsRemoved payload)?  drawingsRemoved,TResult Function( DrawingHistory payload)?  drawingHistory,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case WelcomeMessage() when welcome != null:
 return welcome(_that.payload);case SnapshotMessage() when snapshot != null:
@@ -172,7 +181,10 @@ return tableEnded(_that.payload);case ServerRestartingMessage() when serverResta
 return serverRestarting();case PongMessage() when pong != null:
 return pong(_that.payload);case VoiceSignalMessage() when voiceSignal != null:
 return voiceSignal(_that.payload);case PhraseMessage() when phrase != null:
-return phrase(_that.payload);case _:
+return phrase(_that.payload);case DrawingMessage() when drawing != null:
+return drawing(_that.payload);case DrawingsRemovedMessage() when drawingsRemoved != null:
+return drawingsRemoved(_that.payload);case DrawingHistoryMessage() when drawingHistory != null:
+return drawingHistory(_that.payload);case _:
   return orElse();
 
 }
@@ -190,7 +202,7 @@ return phrase(_that.payload);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Welcome payload)  welcome,required TResult Function( Snapshot payload)  snapshot,required TResult Function( EventsPayload payload)  events,required TResult Function( ChatMessage payload)  chat,required TResult Function( ChatHistory payload)  chatHistory,required TResult Function( ChatRemoved payload)  chatRemoved,required TResult Function( Ack payload)  ack,required TResult Function( ErrorPayload payload)  error,required TResult Function( Kicked payload)  kicked,required TResult Function( TableEnded payload)  tableEnded,required TResult Function()  serverRestarting,required TResult Function( Pong payload)  pong,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( PhrasePayload payload)  phrase,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Welcome payload)  welcome,required TResult Function( Snapshot payload)  snapshot,required TResult Function( EventsPayload payload)  events,required TResult Function( ChatMessage payload)  chat,required TResult Function( ChatHistory payload)  chatHistory,required TResult Function( ChatRemoved payload)  chatRemoved,required TResult Function( Ack payload)  ack,required TResult Function( ErrorPayload payload)  error,required TResult Function( Kicked payload)  kicked,required TResult Function( TableEnded payload)  tableEnded,required TResult Function()  serverRestarting,required TResult Function( Pong payload)  pong,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( PhrasePayload payload)  phrase,required TResult Function( Stroke payload)  drawing,required TResult Function( DrawingsRemoved payload)  drawingsRemoved,required TResult Function( DrawingHistory payload)  drawingHistory,}) {final _that = this;
 switch (_that) {
 case WelcomeMessage():
 return welcome(_that.payload);case SnapshotMessage():
@@ -206,7 +218,10 @@ return tableEnded(_that.payload);case ServerRestartingMessage():
 return serverRestarting();case PongMessage():
 return pong(_that.payload);case VoiceSignalMessage():
 return voiceSignal(_that.payload);case PhraseMessage():
-return phrase(_that.payload);}
+return phrase(_that.payload);case DrawingMessage():
+return drawing(_that.payload);case DrawingsRemovedMessage():
+return drawingsRemoved(_that.payload);case DrawingHistoryMessage():
+return drawingHistory(_that.payload);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -220,7 +235,7 @@ return phrase(_that.payload);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Welcome payload)?  welcome,TResult? Function( Snapshot payload)?  snapshot,TResult? Function( EventsPayload payload)?  events,TResult? Function( ChatMessage payload)?  chat,TResult? Function( ChatHistory payload)?  chatHistory,TResult? Function( ChatRemoved payload)?  chatRemoved,TResult? Function( Ack payload)?  ack,TResult? Function( ErrorPayload payload)?  error,TResult? Function( Kicked payload)?  kicked,TResult? Function( TableEnded payload)?  tableEnded,TResult? Function()?  serverRestarting,TResult? Function( Pong payload)?  pong,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( PhrasePayload payload)?  phrase,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Welcome payload)?  welcome,TResult? Function( Snapshot payload)?  snapshot,TResult? Function( EventsPayload payload)?  events,TResult? Function( ChatMessage payload)?  chat,TResult? Function( ChatHistory payload)?  chatHistory,TResult? Function( ChatRemoved payload)?  chatRemoved,TResult? Function( Ack payload)?  ack,TResult? Function( ErrorPayload payload)?  error,TResult? Function( Kicked payload)?  kicked,TResult? Function( TableEnded payload)?  tableEnded,TResult? Function()?  serverRestarting,TResult? Function( Pong payload)?  pong,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( PhrasePayload payload)?  phrase,TResult? Function( Stroke payload)?  drawing,TResult? Function( DrawingsRemoved payload)?  drawingsRemoved,TResult? Function( DrawingHistory payload)?  drawingHistory,}) {final _that = this;
 switch (_that) {
 case WelcomeMessage() when welcome != null:
 return welcome(_that.payload);case SnapshotMessage() when snapshot != null:
@@ -236,7 +251,10 @@ return tableEnded(_that.payload);case ServerRestartingMessage() when serverResta
 return serverRestarting();case PongMessage() when pong != null:
 return pong(_that.payload);case VoiceSignalMessage() when voiceSignal != null:
 return voiceSignal(_that.payload);case PhraseMessage() when phrase != null:
-return phrase(_that.payload);case _:
+return phrase(_that.payload);case DrawingMessage() when drawing != null:
+return drawing(_that.payload);case DrawingsRemovedMessage() when drawingsRemoved != null:
+return drawingsRemoved(_that.payload);case DrawingHistoryMessage() when drawingHistory != null:
+return drawingHistory(_that.payload);case _:
   return null;
 
 }
@@ -1278,6 +1296,237 @@ $PhrasePayloadCopyWith<$Res> get payload {
 }
 
 /// @nodoc
+
+
+class DrawingMessage implements ServerMessage {
+  const DrawingMessage(this.payload);
+  
+
+ final  Stroke payload;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawingMessageCopyWith<DrawingMessage> get copyWith => _$DrawingMessageCopyWithImpl<DrawingMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawingMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ServerMessage.drawing(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawingMessageCopyWith<$Res> implements $ServerMessageCopyWith<$Res> {
+  factory $DrawingMessageCopyWith(DrawingMessage value, $Res Function(DrawingMessage) _then) = _$DrawingMessageCopyWithImpl;
+@useResult
+$Res call({
+ Stroke payload
+});
+
+
+$StrokeCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawingMessageCopyWithImpl<$Res>
+    implements $DrawingMessageCopyWith<$Res> {
+  _$DrawingMessageCopyWithImpl(this._self, this._then);
+
+  final DrawingMessage _self;
+  final $Res Function(DrawingMessage) _then;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawingMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as Stroke,
+  ));
+}
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StrokeCopyWith<$Res> get payload {
+  
+  return $StrokeCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DrawingsRemovedMessage implements ServerMessage {
+  const DrawingsRemovedMessage(this.payload);
+  
+
+ final  DrawingsRemoved payload;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawingsRemovedMessageCopyWith<DrawingsRemovedMessage> get copyWith => _$DrawingsRemovedMessageCopyWithImpl<DrawingsRemovedMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawingsRemovedMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ServerMessage.drawingsRemoved(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawingsRemovedMessageCopyWith<$Res> implements $ServerMessageCopyWith<$Res> {
+  factory $DrawingsRemovedMessageCopyWith(DrawingsRemovedMessage value, $Res Function(DrawingsRemovedMessage) _then) = _$DrawingsRemovedMessageCopyWithImpl;
+@useResult
+$Res call({
+ DrawingsRemoved payload
+});
+
+
+$DrawingsRemovedCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawingsRemovedMessageCopyWithImpl<$Res>
+    implements $DrawingsRemovedMessageCopyWith<$Res> {
+  _$DrawingsRemovedMessageCopyWithImpl(this._self, this._then);
+
+  final DrawingsRemovedMessage _self;
+  final $Res Function(DrawingsRemovedMessage) _then;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawingsRemovedMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as DrawingsRemoved,
+  ));
+}
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DrawingsRemovedCopyWith<$Res> get payload {
+  
+  return $DrawingsRemovedCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DrawingHistoryMessage implements ServerMessage {
+  const DrawingHistoryMessage(this.payload);
+  
+
+ final  DrawingHistory payload;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawingHistoryMessageCopyWith<DrawingHistoryMessage> get copyWith => _$DrawingHistoryMessageCopyWithImpl<DrawingHistoryMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawingHistoryMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ServerMessage.drawingHistory(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawingHistoryMessageCopyWith<$Res> implements $ServerMessageCopyWith<$Res> {
+  factory $DrawingHistoryMessageCopyWith(DrawingHistoryMessage value, $Res Function(DrawingHistoryMessage) _then) = _$DrawingHistoryMessageCopyWithImpl;
+@useResult
+$Res call({
+ DrawingHistory payload
+});
+
+
+$DrawingHistoryCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawingHistoryMessageCopyWithImpl<$Res>
+    implements $DrawingHistoryMessageCopyWith<$Res> {
+  _$DrawingHistoryMessageCopyWithImpl(this._self, this._then);
+
+  final DrawingHistoryMessage _self;
+  final $Res Function(DrawingHistoryMessage) _then;
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawingHistoryMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as DrawingHistory,
+  ));
+}
+
+/// Create a copy of ServerMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DrawingHistoryCopyWith<$Res> get payload {
+  
+  return $DrawingHistoryCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$ClientMessage {
 
 
@@ -1321,7 +1570,7 @@ extension ClientMessagePatterns on ClientMessage {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( HelloMessage value)?  hello,TResult Function( ActionMessage value)?  action,TResult Function( SitOutMessage value)?  sitOut,TResult Function( SitInMessage value)?  sitIn,TResult Function( RebuyMessage value)?  rebuy,TResult Function( LeaveMessage value)?  leave,TResult Function( ShowCardsMessage value)?  showCards,TResult Function( PreActionMessage value)?  preAction,TResult Function( RabbitHuntMessage value)?  rabbitHunt,TResult Function( ChangeSeatMessage value)?  changeSeat,TResult Function( VoiceMessage value)?  voice,TResult Function( VoiceSignalClientMessage value)?  voiceSignal,TResult Function( SayMessage value)?  say,TResult Function( StraddleMessage value)?  straddle,TResult Function( RunTwiceMessage value)?  runTwice,TResult Function( HatMessage value)?  hat,TResult Function( ChatClientMessage value)?  chat,TResult Function( PingMessage value)?  ping,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( HelloMessage value)?  hello,TResult Function( ActionMessage value)?  action,TResult Function( SitOutMessage value)?  sitOut,TResult Function( SitInMessage value)?  sitIn,TResult Function( RebuyMessage value)?  rebuy,TResult Function( LeaveMessage value)?  leave,TResult Function( ShowCardsMessage value)?  showCards,TResult Function( PreActionMessage value)?  preAction,TResult Function( RabbitHuntMessage value)?  rabbitHunt,TResult Function( ChangeSeatMessage value)?  changeSeat,TResult Function( VoiceMessage value)?  voice,TResult Function( VoiceSignalClientMessage value)?  voiceSignal,TResult Function( SayMessage value)?  say,TResult Function( StraddleMessage value)?  straddle,TResult Function( RunTwiceMessage value)?  runTwice,TResult Function( HatMessage value)?  hat,TResult Function( AvatarMessage value)?  avatar,TResult Function( DrawMessage value)?  draw,TResult Function( DrawEraseMessage value)?  drawErase,TResult Function( DrawClearMessage value)?  drawClear,TResult Function( ChatClientMessage value)?  chat,TResult Function( PingMessage value)?  ping,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
@@ -1340,7 +1589,11 @@ return voiceSignal(_that);case SayMessage() when say != null:
 return say(_that);case StraddleMessage() when straddle != null:
 return straddle(_that);case RunTwiceMessage() when runTwice != null:
 return runTwice(_that);case HatMessage() when hat != null:
-return hat(_that);case ChatClientMessage() when chat != null:
+return hat(_that);case AvatarMessage() when avatar != null:
+return avatar(_that);case DrawMessage() when draw != null:
+return draw(_that);case DrawEraseMessage() when drawErase != null:
+return drawErase(_that);case DrawClearMessage() when drawClear != null:
+return drawClear(_that);case ChatClientMessage() when chat != null:
 return chat(_that);case PingMessage() when ping != null:
 return ping(_that);case _:
   return orElse();
@@ -1360,7 +1613,7 @@ return ping(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( HelloMessage value)  hello,required TResult Function( ActionMessage value)  action,required TResult Function( SitOutMessage value)  sitOut,required TResult Function( SitInMessage value)  sitIn,required TResult Function( RebuyMessage value)  rebuy,required TResult Function( LeaveMessage value)  leave,required TResult Function( ShowCardsMessage value)  showCards,required TResult Function( PreActionMessage value)  preAction,required TResult Function( RabbitHuntMessage value)  rabbitHunt,required TResult Function( ChangeSeatMessage value)  changeSeat,required TResult Function( VoiceMessage value)  voice,required TResult Function( VoiceSignalClientMessage value)  voiceSignal,required TResult Function( SayMessage value)  say,required TResult Function( StraddleMessage value)  straddle,required TResult Function( RunTwiceMessage value)  runTwice,required TResult Function( HatMessage value)  hat,required TResult Function( ChatClientMessage value)  chat,required TResult Function( PingMessage value)  ping,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( HelloMessage value)  hello,required TResult Function( ActionMessage value)  action,required TResult Function( SitOutMessage value)  sitOut,required TResult Function( SitInMessage value)  sitIn,required TResult Function( RebuyMessage value)  rebuy,required TResult Function( LeaveMessage value)  leave,required TResult Function( ShowCardsMessage value)  showCards,required TResult Function( PreActionMessage value)  preAction,required TResult Function( RabbitHuntMessage value)  rabbitHunt,required TResult Function( ChangeSeatMessage value)  changeSeat,required TResult Function( VoiceMessage value)  voice,required TResult Function( VoiceSignalClientMessage value)  voiceSignal,required TResult Function( SayMessage value)  say,required TResult Function( StraddleMessage value)  straddle,required TResult Function( RunTwiceMessage value)  runTwice,required TResult Function( HatMessage value)  hat,required TResult Function( AvatarMessage value)  avatar,required TResult Function( DrawMessage value)  draw,required TResult Function( DrawEraseMessage value)  drawErase,required TResult Function( DrawClearMessage value)  drawClear,required TResult Function( ChatClientMessage value)  chat,required TResult Function( PingMessage value)  ping,}){
 final _that = this;
 switch (_that) {
 case HelloMessage():
@@ -1379,7 +1632,11 @@ return voiceSignal(_that);case SayMessage():
 return say(_that);case StraddleMessage():
 return straddle(_that);case RunTwiceMessage():
 return runTwice(_that);case HatMessage():
-return hat(_that);case ChatClientMessage():
+return hat(_that);case AvatarMessage():
+return avatar(_that);case DrawMessage():
+return draw(_that);case DrawEraseMessage():
+return drawErase(_that);case DrawClearMessage():
+return drawClear(_that);case ChatClientMessage():
 return chat(_that);case PingMessage():
 return ping(_that);}
 }
@@ -1395,7 +1652,7 @@ return ping(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( HelloMessage value)?  hello,TResult? Function( ActionMessage value)?  action,TResult? Function( SitOutMessage value)?  sitOut,TResult? Function( SitInMessage value)?  sitIn,TResult? Function( RebuyMessage value)?  rebuy,TResult? Function( LeaveMessage value)?  leave,TResult? Function( ShowCardsMessage value)?  showCards,TResult? Function( PreActionMessage value)?  preAction,TResult? Function( RabbitHuntMessage value)?  rabbitHunt,TResult? Function( ChangeSeatMessage value)?  changeSeat,TResult? Function( VoiceMessage value)?  voice,TResult? Function( VoiceSignalClientMessage value)?  voiceSignal,TResult? Function( SayMessage value)?  say,TResult? Function( StraddleMessage value)?  straddle,TResult? Function( RunTwiceMessage value)?  runTwice,TResult? Function( HatMessage value)?  hat,TResult? Function( ChatClientMessage value)?  chat,TResult? Function( PingMessage value)?  ping,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( HelloMessage value)?  hello,TResult? Function( ActionMessage value)?  action,TResult? Function( SitOutMessage value)?  sitOut,TResult? Function( SitInMessage value)?  sitIn,TResult? Function( RebuyMessage value)?  rebuy,TResult? Function( LeaveMessage value)?  leave,TResult? Function( ShowCardsMessage value)?  showCards,TResult? Function( PreActionMessage value)?  preAction,TResult? Function( RabbitHuntMessage value)?  rabbitHunt,TResult? Function( ChangeSeatMessage value)?  changeSeat,TResult? Function( VoiceMessage value)?  voice,TResult? Function( VoiceSignalClientMessage value)?  voiceSignal,TResult? Function( SayMessage value)?  say,TResult? Function( StraddleMessage value)?  straddle,TResult? Function( RunTwiceMessage value)?  runTwice,TResult? Function( HatMessage value)?  hat,TResult? Function( AvatarMessage value)?  avatar,TResult? Function( DrawMessage value)?  draw,TResult? Function( DrawEraseMessage value)?  drawErase,TResult? Function( DrawClearMessage value)?  drawClear,TResult? Function( ChatClientMessage value)?  chat,TResult? Function( PingMessage value)?  ping,}){
 final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
@@ -1414,7 +1671,11 @@ return voiceSignal(_that);case SayMessage() when say != null:
 return say(_that);case StraddleMessage() when straddle != null:
 return straddle(_that);case RunTwiceMessage() when runTwice != null:
 return runTwice(_that);case HatMessage() when hat != null:
-return hat(_that);case ChatClientMessage() when chat != null:
+return hat(_that);case AvatarMessage() when avatar != null:
+return avatar(_that);case DrawMessage() when draw != null:
+return draw(_that);case DrawEraseMessage() when drawErase != null:
+return drawErase(_that);case DrawClearMessage() when drawClear != null:
+return drawClear(_that);case ChatClientMessage() when chat != null:
 return chat(_that);case PingMessage() when ping != null:
 return ping(_that);case _:
   return null;
@@ -1433,7 +1694,7 @@ return ping(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Hello payload)?  hello,TResult Function( ActionPayload payload)?  action,TResult Function()?  sitOut,TResult Function()?  sitIn,TResult Function()?  rebuy,TResult Function()?  leave,TResult Function( ShowCardsPayload payload)?  showCards,TResult Function( PreActionPayload payload)?  preAction,TResult Function()?  rabbitHunt,TResult Function( ChangeSeatPayload payload)?  changeSeat,TResult Function( VoicePayload payload)?  voice,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( SayPayload payload)?  say,TResult Function( StraddlePayload payload)?  straddle,TResult Function( RunTwicePayload payload)?  runTwice,TResult Function( HatPayload payload)?  hat,TResult Function( ChatPayload payload)?  chat,TResult Function()?  ping,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Hello payload)?  hello,TResult Function( ActionPayload payload)?  action,TResult Function()?  sitOut,TResult Function()?  sitIn,TResult Function()?  rebuy,TResult Function()?  leave,TResult Function( ShowCardsPayload payload)?  showCards,TResult Function( PreActionPayload payload)?  preAction,TResult Function()?  rabbitHunt,TResult Function( ChangeSeatPayload payload)?  changeSeat,TResult Function( VoicePayload payload)?  voice,TResult Function( VoiceSignal payload)?  voiceSignal,TResult Function( SayPayload payload)?  say,TResult Function( StraddlePayload payload)?  straddle,TResult Function( RunTwicePayload payload)?  runTwice,TResult Function( HatPayload payload)?  hat,TResult Function( AvatarPayload payload)?  avatar,TResult Function( DrawPayload payload)?  draw,TResult Function( DrawErasePayload payload)?  drawErase,TResult Function( DrawClearPayload payload)?  drawClear,TResult Function( ChatPayload payload)?  chat,TResult Function()?  ping,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
 return hello(_that.payload);case ActionMessage() when action != null:
@@ -1451,7 +1712,11 @@ return voiceSignal(_that.payload);case SayMessage() when say != null:
 return say(_that.payload);case StraddleMessage() when straddle != null:
 return straddle(_that.payload);case RunTwiceMessage() when runTwice != null:
 return runTwice(_that.payload);case HatMessage() when hat != null:
-return hat(_that.payload);case ChatClientMessage() when chat != null:
+return hat(_that.payload);case AvatarMessage() when avatar != null:
+return avatar(_that.payload);case DrawMessage() when draw != null:
+return draw(_that.payload);case DrawEraseMessage() when drawErase != null:
+return drawErase(_that.payload);case DrawClearMessage() when drawClear != null:
+return drawClear(_that.payload);case ChatClientMessage() when chat != null:
 return chat(_that.payload);case PingMessage() when ping != null:
 return ping();case _:
   return orElse();
@@ -1471,7 +1736,7 @@ return ping();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Hello payload)  hello,required TResult Function( ActionPayload payload)  action,required TResult Function()  sitOut,required TResult Function()  sitIn,required TResult Function()  rebuy,required TResult Function()  leave,required TResult Function( ShowCardsPayload payload)  showCards,required TResult Function( PreActionPayload payload)  preAction,required TResult Function()  rabbitHunt,required TResult Function( ChangeSeatPayload payload)  changeSeat,required TResult Function( VoicePayload payload)  voice,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( SayPayload payload)  say,required TResult Function( StraddlePayload payload)  straddle,required TResult Function( RunTwicePayload payload)  runTwice,required TResult Function( HatPayload payload)  hat,required TResult Function( ChatPayload payload)  chat,required TResult Function()  ping,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Hello payload)  hello,required TResult Function( ActionPayload payload)  action,required TResult Function()  sitOut,required TResult Function()  sitIn,required TResult Function()  rebuy,required TResult Function()  leave,required TResult Function( ShowCardsPayload payload)  showCards,required TResult Function( PreActionPayload payload)  preAction,required TResult Function()  rabbitHunt,required TResult Function( ChangeSeatPayload payload)  changeSeat,required TResult Function( VoicePayload payload)  voice,required TResult Function( VoiceSignal payload)  voiceSignal,required TResult Function( SayPayload payload)  say,required TResult Function( StraddlePayload payload)  straddle,required TResult Function( RunTwicePayload payload)  runTwice,required TResult Function( HatPayload payload)  hat,required TResult Function( AvatarPayload payload)  avatar,required TResult Function( DrawPayload payload)  draw,required TResult Function( DrawErasePayload payload)  drawErase,required TResult Function( DrawClearPayload payload)  drawClear,required TResult Function( ChatPayload payload)  chat,required TResult Function()  ping,}) {final _that = this;
 switch (_that) {
 case HelloMessage():
 return hello(_that.payload);case ActionMessage():
@@ -1489,7 +1754,11 @@ return voiceSignal(_that.payload);case SayMessage():
 return say(_that.payload);case StraddleMessage():
 return straddle(_that.payload);case RunTwiceMessage():
 return runTwice(_that.payload);case HatMessage():
-return hat(_that.payload);case ChatClientMessage():
+return hat(_that.payload);case AvatarMessage():
+return avatar(_that.payload);case DrawMessage():
+return draw(_that.payload);case DrawEraseMessage():
+return drawErase(_that.payload);case DrawClearMessage():
+return drawClear(_that.payload);case ChatClientMessage():
 return chat(_that.payload);case PingMessage():
 return ping();}
 }
@@ -1505,7 +1774,7 @@ return ping();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Hello payload)?  hello,TResult? Function( ActionPayload payload)?  action,TResult? Function()?  sitOut,TResult? Function()?  sitIn,TResult? Function()?  rebuy,TResult? Function()?  leave,TResult? Function( ShowCardsPayload payload)?  showCards,TResult? Function( PreActionPayload payload)?  preAction,TResult? Function()?  rabbitHunt,TResult? Function( ChangeSeatPayload payload)?  changeSeat,TResult? Function( VoicePayload payload)?  voice,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( SayPayload payload)?  say,TResult? Function( StraddlePayload payload)?  straddle,TResult? Function( RunTwicePayload payload)?  runTwice,TResult? Function( HatPayload payload)?  hat,TResult? Function( ChatPayload payload)?  chat,TResult? Function()?  ping,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Hello payload)?  hello,TResult? Function( ActionPayload payload)?  action,TResult? Function()?  sitOut,TResult? Function()?  sitIn,TResult? Function()?  rebuy,TResult? Function()?  leave,TResult? Function( ShowCardsPayload payload)?  showCards,TResult? Function( PreActionPayload payload)?  preAction,TResult? Function()?  rabbitHunt,TResult? Function( ChangeSeatPayload payload)?  changeSeat,TResult? Function( VoicePayload payload)?  voice,TResult? Function( VoiceSignal payload)?  voiceSignal,TResult? Function( SayPayload payload)?  say,TResult? Function( StraddlePayload payload)?  straddle,TResult? Function( RunTwicePayload payload)?  runTwice,TResult? Function( HatPayload payload)?  hat,TResult? Function( AvatarPayload payload)?  avatar,TResult? Function( DrawPayload payload)?  draw,TResult? Function( DrawErasePayload payload)?  drawErase,TResult? Function( DrawClearPayload payload)?  drawClear,TResult? Function( ChatPayload payload)?  chat,TResult? Function()?  ping,}) {final _that = this;
 switch (_that) {
 case HelloMessage() when hello != null:
 return hello(_that.payload);case ActionMessage() when action != null:
@@ -1523,7 +1792,11 @@ return voiceSignal(_that.payload);case SayMessage() when say != null:
 return say(_that.payload);case StraddleMessage() when straddle != null:
 return straddle(_that.payload);case RunTwiceMessage() when runTwice != null:
 return runTwice(_that.payload);case HatMessage() when hat != null:
-return hat(_that.payload);case ChatClientMessage() when chat != null:
+return hat(_that.payload);case AvatarMessage() when avatar != null:
+return avatar(_that.payload);case DrawMessage() when draw != null:
+return draw(_that.payload);case DrawEraseMessage() when drawErase != null:
+return drawErase(_that.payload);case DrawClearMessage() when drawClear != null:
+return drawClear(_that.payload);case ChatClientMessage() when chat != null:
 return chat(_that.payload);case PingMessage() when ping != null:
 return ping();case _:
   return null;
@@ -2535,6 +2808,314 @@ as HatPayload,
 $HatPayloadCopyWith<$Res> get payload {
   
   return $HatPayloadCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class AvatarMessage implements ClientMessage {
+  const AvatarMessage(this.payload);
+  
+
+ final  AvatarPayload payload;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AvatarMessageCopyWith<AvatarMessage> get copyWith => _$AvatarMessageCopyWithImpl<AvatarMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is AvatarMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ClientMessage.avatar(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AvatarMessageCopyWith<$Res> implements $ClientMessageCopyWith<$Res> {
+  factory $AvatarMessageCopyWith(AvatarMessage value, $Res Function(AvatarMessage) _then) = _$AvatarMessageCopyWithImpl;
+@useResult
+$Res call({
+ AvatarPayload payload
+});
+
+
+$AvatarPayloadCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$AvatarMessageCopyWithImpl<$Res>
+    implements $AvatarMessageCopyWith<$Res> {
+  _$AvatarMessageCopyWithImpl(this._self, this._then);
+
+  final AvatarMessage _self;
+  final $Res Function(AvatarMessage) _then;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(AvatarMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as AvatarPayload,
+  ));
+}
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AvatarPayloadCopyWith<$Res> get payload {
+  
+  return $AvatarPayloadCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DrawMessage implements ClientMessage {
+  const DrawMessage(this.payload);
+  
+
+ final  DrawPayload payload;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawMessageCopyWith<DrawMessage> get copyWith => _$DrawMessageCopyWithImpl<DrawMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ClientMessage.draw(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawMessageCopyWith<$Res> implements $ClientMessageCopyWith<$Res> {
+  factory $DrawMessageCopyWith(DrawMessage value, $Res Function(DrawMessage) _then) = _$DrawMessageCopyWithImpl;
+@useResult
+$Res call({
+ DrawPayload payload
+});
+
+
+$DrawPayloadCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawMessageCopyWithImpl<$Res>
+    implements $DrawMessageCopyWith<$Res> {
+  _$DrawMessageCopyWithImpl(this._self, this._then);
+
+  final DrawMessage _self;
+  final $Res Function(DrawMessage) _then;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as DrawPayload,
+  ));
+}
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DrawPayloadCopyWith<$Res> get payload {
+  
+  return $DrawPayloadCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DrawEraseMessage implements ClientMessage {
+  const DrawEraseMessage(this.payload);
+  
+
+ final  DrawErasePayload payload;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawEraseMessageCopyWith<DrawEraseMessage> get copyWith => _$DrawEraseMessageCopyWithImpl<DrawEraseMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawEraseMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ClientMessage.drawErase(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawEraseMessageCopyWith<$Res> implements $ClientMessageCopyWith<$Res> {
+  factory $DrawEraseMessageCopyWith(DrawEraseMessage value, $Res Function(DrawEraseMessage) _then) = _$DrawEraseMessageCopyWithImpl;
+@useResult
+$Res call({
+ DrawErasePayload payload
+});
+
+
+$DrawErasePayloadCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawEraseMessageCopyWithImpl<$Res>
+    implements $DrawEraseMessageCopyWith<$Res> {
+  _$DrawEraseMessageCopyWithImpl(this._self, this._then);
+
+  final DrawEraseMessage _self;
+  final $Res Function(DrawEraseMessage) _then;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawEraseMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as DrawErasePayload,
+  ));
+}
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DrawErasePayloadCopyWith<$Res> get payload {
+  
+  return $DrawErasePayloadCopyWith<$Res>(_self.payload, (value) {
+    return _then(_self.copyWith(payload: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DrawClearMessage implements ClientMessage {
+  const DrawClearMessage(this.payload);
+  
+
+ final  DrawClearPayload payload;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawClearMessageCopyWith<DrawClearMessage> get copyWith => _$DrawClearMessageCopyWithImpl<DrawClearMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawClearMessage&&(identical(other.payload, payload) || other.payload == payload));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,payload);
+}
+
+@override
+String toString() {
+    return 'ClientMessage.drawClear(payload: $payload)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawClearMessageCopyWith<$Res> implements $ClientMessageCopyWith<$Res> {
+  factory $DrawClearMessageCopyWith(DrawClearMessage value, $Res Function(DrawClearMessage) _then) = _$DrawClearMessageCopyWithImpl;
+@useResult
+$Res call({
+ DrawClearPayload payload
+});
+
+
+$DrawClearPayloadCopyWith<$Res> get payload;
+
+}
+/// @nodoc
+class _$DrawClearMessageCopyWithImpl<$Res>
+    implements $DrawClearMessageCopyWith<$Res> {
+  _$DrawClearMessageCopyWithImpl(this._self, this._then);
+
+  final DrawClearMessage _self;
+  final $Res Function(DrawClearMessage) _then;
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? payload = null,}) {
+  return _then(DrawClearMessage(
+null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
+as DrawClearPayload,
+  ));
+}
+
+/// Create a copy of ClientMessage
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DrawClearPayloadCopyWith<$Res> get payload {
+  
+  return $DrawClearPayloadCopyWith<$Res>(_self.payload, (value) {
     return _then(_self.copyWith(payload: value));
   });
 }

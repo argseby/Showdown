@@ -91,6 +91,74 @@ abstract class RunTwicePayload with _$RunTwicePayload {
       _$RunTwicePayloadFromJson(json);
 }
 
+/// draw payload: one pencil stroke, x0,y0,x1,y1,... in 0..1 of the table.
+@freezed
+abstract class DrawPayload with _$DrawPayload {
+  const factory DrawPayload({required List<double> points}) = _DrawPayload;
+  factory DrawPayload.fromJson(Map<String, dynamic> json) =>
+      _$DrawPayloadFromJson(json);
+}
+
+/// draw_erase payload: stroke ids to remove.
+@freezed
+abstract class DrawErasePayload with _$DrawErasePayload {
+  const factory DrawErasePayload({required List<int> ids}) = _DrawErasePayload;
+  factory DrawErasePayload.fromJson(Map<String, dynamic> json) =>
+      _$DrawErasePayloadFromJson(json);
+}
+
+/// draw_clear payload: own strokes, or every stroke with all.
+@freezed
+abstract class DrawClearPayload with _$DrawClearPayload {
+  const factory DrawClearPayload({@JsonKey(includeIfNull: false) bool? all}) =
+      _DrawClearPayload;
+  factory DrawClearPayload.fromJson(Map<String, dynamic> json) =>
+      _$DrawClearPayloadFromJson(json);
+}
+
+/// One pencil stroke on the table as everyone sees it.
+@freezed
+abstract class Stroke with _$Stroke {
+  const factory Stroke({
+    required int id,
+    required String playerId,
+    required int seat,
+    required String name,
+    required int avatar,
+    required List<double> points,
+    required int ts,
+  }) = _Stroke;
+  factory Stroke.fromJson(Map<String, dynamic> json) => _$StrokeFromJson(json);
+}
+
+/// drawings_removed push: ids gone, or everything with all.
+@freezed
+abstract class DrawingsRemoved with _$DrawingsRemoved {
+  const factory DrawingsRemoved({
+    @JsonKey(includeIfNull: false) List<int>? ids,
+    @JsonKey(includeIfNull: false) bool? all,
+  }) = _DrawingsRemoved;
+  factory DrawingsRemoved.fromJson(Map<String, dynamic> json) =>
+      _$DrawingsRemovedFromJson(json);
+}
+
+/// drawing_history push: every current stroke, on connect.
+@freezed
+abstract class DrawingHistory with _$DrawingHistory {
+  const factory DrawingHistory({required List<Stroke> strokes}) =
+      _DrawingHistory;
+  factory DrawingHistory.fromJson(Map<String, dynamic> json) =>
+      _$DrawingHistoryFromJson(json);
+}
+
+/// avatar payload: the new avatar (0..19).
+@freezed
+abstract class AvatarPayload with _$AvatarPayload {
+  const factory AvatarPayload({required int avatar}) = _AvatarPayload;
+  factory AvatarPayload.fromJson(Map<String, dynamic> json) =>
+      _$AvatarPayloadFromJson(json);
+}
+
 /// hat payload: the hat to wear on the avatar (one of the server's hat ids)
 /// or "none" to take it off.
 @freezed
@@ -239,6 +307,8 @@ abstract class PublicSettings with _$PublicSettings {
     required bool spectatorChat,
     required bool requiresPassword,
     required bool allowRabbitHunt,
+    @Default(true) bool allowDrawing,
+    @Default(false) bool tournament,
     required int blindsUpMinutes,
     required int blindsUpPercent,
     @Default(0) int timeBankSeconds,
@@ -272,6 +342,7 @@ abstract class PlayerView with _$PlayerView {
     /// Running hot: 1..3 for two, three, four or more hands won in a row;
     /// absent otherwise.
     @JsonKey(includeIfNull: false) int? heat,
+
     @Default('off') String voice,
     @JsonKey(includeIfNull: false) bool? muted,
     @JsonKey(includeIfNull: false) bool? mucked,

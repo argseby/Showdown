@@ -6,11 +6,10 @@ import '../../../app/preferences.dart';
 import '../../../app/theme.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
-import '../../../protocol/protocol.dart';
-import '../../../shared/hats.dart';
 import '../../../shared/kbd_hint.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
+import 'self_menu.dart';
 
 /// True while the browser's notification prompt is open.
 bool _notifyPrompt = false;
@@ -31,6 +30,7 @@ class TableSettingsTab extends ConsumerWidget {
     required this.onOtherTable,
     required this.onLeave,
     required this.onShortcuts,
+    required this.onRules,
   });
 
   final SettingsPart part;
@@ -40,6 +40,9 @@ class TableSettingsTab extends ConsumerWidget {
   final VoidCallback onOtherTable;
   final VoidCallback onLeave;
   final VoidCallback onShortcuts;
+
+  /// Opens the table rules card (the one shown on joining).
+  final VoidCallback onRules;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,6 +57,7 @@ class TableSettingsTab extends ConsumerWidget {
     final showCameras = ref.watch(showCamerasProvider);
     final showHats = ref.watch(showHatsProvider);
     final showHeat = ref.watch(showHeatProvider);
+    final showDrawings = ref.watch(showDrawingsProvider);
     final scale = ref.watch(uiScaleProvider);
     final handLine = ref.watch(handLineProvider);
     final spotlight = ref.watch(showdownSpotlightProvider);
@@ -130,34 +134,6 @@ class TableSettingsTab extends ConsumerWidget {
         style: TextStyle(fontSize: 12, color: theme.colorScheme.destructive),
       ),
     );
-
-    Future<void> pickHat(PlayerView me) async {
-      final picked = await showOverlay<String>(
-        context,
-        const DialogConfiguration(),
-        builder: (context) => AlertDialog(
-          title: Text(l10n.hatChange),
-          content: SizedBox(
-            width: 320,
-            child: HatPicker(
-              selected: me.hat,
-              avatar: me.avatar,
-              size: 44,
-              onSelected: (id) => closeOverlay<String>(context, id),
-            ),
-          ),
-          actions: [
-            OutlineButton(
-              onPressed: () => closeOverlay<String>(context),
-              child: Text(l10n.cancel),
-            ),
-          ],
-        ),
-      ).future;
-      if (picked != null) {
-        await ref.read(tableSessionProvider(tableId).notifier).setHat(picked);
-      }
-    }
 
     Future<void> toggleNotify() async {
       if (notify) {
@@ -299,6 +275,14 @@ class TableSettingsTab extends ConsumerWidget {
                 key: const Key('drawer-heat'),
               ),
               toggle(
+                LucideIcons.pencil,
+                l10n.showDrawings,
+                showDrawings,
+                () =>
+                    ref.read(showDrawingsProvider.notifier).set(!showDrawings),
+                key: const Key('drawer-drawings'),
+              ),
+              toggle(
                 LucideIcons.sparkles,
                 l10n.showdownSpotlight,
                 spotlight,
@@ -383,10 +367,10 @@ class TableSettingsTab extends ConsumerWidget {
               if (isPlayer && me != null)
                 button(
                   LucideIcons.crown,
-                  l10n.hatTitle,
-                  hatLabel(l10n, me.hat),
-                  () => pickHat(me),
-                  key: const Key('drawer-hat'),
+                  l10n.lookTitle,
+                  l10n.joinAvatarChange,
+                  () => changeLook(context, ref, tableId, me),
+                  key: const Key('drawer-look'),
                 ),
               if (!isPlayer)
                 button(
@@ -396,6 +380,13 @@ class TableSettingsTab extends ConsumerWidget {
                   onTakeSeat,
                   key: const Key('menu-take-seat'),
                 ),
+              button(
+                LucideIcons.scrollText,
+                l10n.rulesTitle,
+                l10n.rulesShow,
+                onRules,
+                key: const Key('menu-rules'),
+              ),
               button(
                 LucideIcons.house,
                 l10n.otherTable,

@@ -173,35 +173,60 @@ class _LandingFooter extends ConsumerWidget {
     // reached, the rest of the footer still shows.
     final version = ref.watch(serverVersionProvider).value;
 
+    final theme = Theme.of(context);
+    final style = TextStyle(
+      fontSize: 12,
+      color: theme.colorScheme.mutedForeground,
+    );
+    // Every item in the same quiet style, links underlined on hover only,
+    // dots between them; the row wraps and stays centred on phones.
+    Widget link(Key key, String label, String url, {IconData? icon}) =>
+        GhostButton(
+          key: key,
+          size: ButtonSize.xSmall,
+          density: ButtonDensity.compact,
+          onPressed: () => opener.open(url),
+          leading: icon == null
+              ? null
+              : Icon(icon, size: 12, color: theme.colorScheme.mutedForeground),
+          child: Text(label, style: style),
+        );
+    final items = <Widget>[
+      if (version != null)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Text(
+            l10n.landingServerVersion(version),
+            key: const Key('landing-version'),
+            style: style,
+          ),
+        ),
+      link(
+        const Key('landing-source'),
+        l10n.landingSource,
+        projectUrl,
+        icon: LucideIcons.github,
+      ),
+      link(
+        const Key('landing-author'),
+        l10n.landingCreatedBy(authorName),
+        authorUrl,
+      ),
+      link(const Key('landing-stickers'), l10n.landingStickers, stickersUrl),
+    ];
     return Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
+      runSpacing: 2,
       children: [
-        if (version != null)
-          Text(
-            l10n.landingServerVersion(version),
-            key: const Key('landing-version'),
-          ).muted().small(),
-        LinkButton(
-          key: const Key('landing-source'),
-          onPressed: () => opener.open(projectUrl),
-          leading: const Icon(LucideIcons.github),
-          size: ButtonSize.small,
-          child: Text(l10n.landingSource),
-        ),
-        LinkButton(
-          key: const Key('landing-author'),
-          onPressed: () => opener.open(authorUrl),
-          size: ButtonSize.small,
-          child: Text(l10n.landingCreatedBy(authorName)),
-        ),
-        LinkButton(
-          key: const Key('landing-stickers'),
-          onPressed: () => opener.open(stickersUrl),
-          size: ButtonSize.small,
-          child: Text(l10n.landingStickers),
-        ),
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text('·', style: style),
+            ),
+          items[i],
+        ],
       ],
     );
   }

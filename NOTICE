@@ -1,0 +1,8 @@
+Third-party material bundled with Showdown
+
+- Noto Animated Emoji (frontend/assets/stickers): Google, Creative Commons
+  Attribution 4.0 (CC BY 4.0), https://googlefonts.github.io/noto-emoji-animation/
+  Unmodified Lottie exports, renamed by id.
+- Lucide icons (via shadcn_flutter): ISC License.
+- Other dependencies keep their own licences; see backend/go.mod and
+  frontend/pubspec.yaml.

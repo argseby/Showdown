@@ -146,14 +146,20 @@ void main() {
     });
     await tester.pumpWidget(page(rest));
     await tester.pumpAndSettle();
-    expect(find.text('Hat: No hat'), findsOneWidget);
     expect(find.byType(PlayerHat), findsNothing);
 
-    await tester.tap(find.byKey(const Key('join-hat')));
+    // The avatar opens one dialog with two tabs: avatar and hat.
+    await tester.tap(find.byKey(const Key('join-avatar')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('look-tab-avatar')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('avatar-5')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('look-tab-hat')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('hat-option-crown')));
     await tester.pumpAndSettle();
-    expect(find.text('Hat: Crown'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('look-done')));
+    await tester.pumpAndSettle();
     // The preview next to the name wears it now.
     expect(find.byKey(const ValueKey('hat-worn-crown')), findsOneWidget);
 
@@ -163,6 +169,7 @@ void main() {
     await tester.tap(find.byKey(const Key('join-submit')));
     await tester.pumpAndSettle();
     expect(jsonDecode(body!), containsPair('hat', 'crown'));
+    expect(jsonDecode(body!), containsPair('avatar', 5));
   });
 
   testWidgets('Enter in the name field submits', (tester) async {

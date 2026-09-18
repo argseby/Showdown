@@ -11,13 +11,21 @@ plays in the browser.
 - Real No-Limit rules: side pots, odd chips, min-raise rules, staged showdown, optional
   straddle and run-it-twice, blind schedule, time bank, all-in equity. Royal Hold'em
   (only Ten to Ace in the deck) as a per-table game variant.
-- Up to 10 seats per table, reconnect into your seat after a refresh, spectators.
+- Up to 10 seats per table, reconnect into your seat after a refresh, spectators, seat
+  changes between hands. A rules card on joining shows how the table is set up.
+- Tournament mode: no chip adjustments, and once a hand is dealt the money settings and
+  the seats are locked, for the host too.
 - Host controls at the table: settings, start/pause/end, kick, chips, mute, chat
-  moderation, hand history.
+  moderation, switching off a player's microphone or camera, hand history.
+- A menu on every player: volume, mute, hide their video, hat, win streak, stickers or
+  drawings, just for you.
 - Voice chat and a small video tile per player, browser to browser (WebRTC). The server
-  only relays the handshake.
-- Hand log with replay and export, per-table leaderboard with statistics, quick phrases,
-  turn sound and notifications, English and German.
+  only relays the handshake; a TURN relay is supported for strict networks.
+- Avatars with hats, a fire ring for players on a win streak, animated stickers and
+  quick phrases, pencil drawings on the table (per table on or off, hidden per player
+  or erased by anyone).
+- Hand log with replay and export, per-table leaderboard with statistics, turn sound and
+  notifications, English and German.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install
@@ -115,15 +123,15 @@ Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_I
 (`info`), `LOG_FORMAT` (`json` or `text`).
 
 Table settings (game variant, blinds, antes, turn time, time bank, rebuys, straddle,
-run it twice, showdown reveal, blind schedule and more) are set per table by its host in
-the Admin tab.
+run it twice, showdoOne small UI change: in the settings/wn reveal, blind schedule, tournament mode and more) are set per
+table by its host under Settings at the table.
 
 ## Hosting a table
 
 There is no admin account. Whoever creates a table is its host: the creating browser
-stores an **admin key** for that table and shows an **Admin** tab at the table. Copy the
-key from that tab to manage the table from another device (the join page has an
-"I host this table" field). Anyone with the key can manage the table, so share it only
+stores an **admin key** for that table and shows the host pages (table rules, players,
+hands) under **Settings** at the table. Copy the key from there to manage the table from
+another device (the join page has an "I host this table" field). Anyone with the key can manage the table, so share it only
 with co-hosts. Each table has its own leaderboard; there is no instance-wide one, since
 display names are chosen freely and are not identities.
 
@@ -168,3 +176,11 @@ make bots TABLE=<id>  # scripted players
 Poker rules: `docs/rules.md`. Wire protocol: `docs/protocol.md`. Load test: see
 `deploy/docker-compose.loadtest.yml` and `make loadtest`. The server is a single process
 by design (one goroutine per table); there is no horizontal scaling.
+
+## Licence
+
+Showdown is free to use, copy and modify, but not to sell: it is licensed under
+the [GNU AGPL v3](LICENSE) with the Commons Clause. Changes must be published,
+also when a modified version is only hosted, and nobody may charge for the
+software or a service built on it. Bundled third-party material is listed in
+[NOTICE](NOTICE).

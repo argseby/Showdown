@@ -35,23 +35,28 @@ void main() {
     }
   });
 
-  testWidgets('the picker lists every sticker and reports the tap', (
+  testWidgets('the picker scrolls through every sticker and reports the tap', (
     tester,
   ) async {
     String? picked;
     await tester.pumpWidget(
       wrap(
-        SingleChildScrollView(
-          child: StickerPicker(onSelected: (id) => picked = id),
+        SizedBox(
+          width: 400,
+          child: StickerPicker(height: 150, onSelected: (id) => picked = id),
         ),
       ),
     );
     await tester.pump();
-    for (final id in stickerIds) {
-      expect(find.byKey(Key('sticker-$id')), findsOneWidget);
-    }
-    await tester.ensureVisible(find.byKey(const Key('sticker-fire')));
-    await tester.tap(find.byKey(const Key('sticker-fire')));
-    expect(picked, 'fire');
+    expect(find.byKey(Key('sticker-${stickerIds.first}')), findsOneWidget);
+    await tester.tap(find.byKey(Key('sticker-${stickerIds.first}')));
+    expect(picked, stickerIds.first);
+    await tester.scrollUntilVisible(
+      find.byKey(Key('sticker-${stickerIds.last}')),
+      100,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(Key('sticker-${stickerIds.last}')));
+    expect(picked, stickerIds.last);
   });
 }

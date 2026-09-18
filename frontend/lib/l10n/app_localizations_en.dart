@@ -1076,6 +1076,148 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setBlindsUpPercent => 'Blinds up by (%)';
 
   @override
+  String get setAllowDrawing => 'Allow drawing on the table';
+
+  @override
+  String get setTournament =>
+      'Tournament mode: no chip adjustments at all, and once a hand is dealt money and information settings and seat changes are locked, for the host too';
+
+  @override
+  String get tournamentBadge => 'Tournament';
+
+  @override
+  String get tournamentLockedNote =>
+      'Tournament running: the settings that could move chips or change what players know are locked.';
+
+  @override
+  String get rulesTitle => 'Rules at this table';
+
+  @override
+  String get rulesShow => 'Show';
+
+  @override
+  String rulesIntro(String table) {
+    return 'How $table is set up. You can open this again under Settings.';
+  }
+
+  @override
+  String get rulesGame => 'Game';
+
+  @override
+  String get rulesBlinds => 'Blinds';
+
+  @override
+  String get rulesBlindSchedule => 'Blind schedule';
+
+  @override
+  String rulesBlindsUp(int minutes, int percent) {
+    return 'Up every $minutes min by $percent %';
+  }
+
+  @override
+  String get rulesBlindsUpOff => 'Fixed';
+
+  @override
+  String get rulesTiming => 'Time';
+
+  @override
+  String rulesTurnTime(int seconds) {
+    return '$seconds s per turn';
+  }
+
+  @override
+  String rulesTimeBank(int seconds, int refill) {
+    return '$seconds s time bank, +$refill s per hand';
+  }
+
+  @override
+  String get rulesSeatChange => 'Seat changes';
+
+  @override
+  String get rulesSeatChangeFree => 'Between hands, cost a dead big blind';
+
+  @override
+  String get rulesSeatChangeUntilDeal => 'Only until the first hand is dealt';
+
+  @override
+  String get rulesSeatChangeLocked => 'Locked, a hand has been dealt';
+
+  @override
+  String get rulesOptions => 'Options';
+
+  @override
+  String get rulesPassword => 'Password protected';
+
+  @override
+  String get rulesTournament => 'Tournament mode';
+
+  @override
+  String get rulesLockedNow => 'locked';
+
+  @override
+  String get rulesTournamentBody =>
+      'Everyone plays the start money: the host can never give or take chips. Once a hand is dealt, blinds, ante, start money, rebuys, the game, the showdown reveal, the blind schedule and the seats are locked, for the host too.';
+
+  @override
+  String get rulesCashGame => 'Cash game';
+
+  @override
+  String get rulesCashGameBody =>
+      'The host may give or take chips and change blinds and other settings at any time; money changes apply from the next hand.';
+
+  @override
+  String get rulesHost => 'What the host can do';
+
+  @override
+  String get rulesHostLifecycle =>
+      'Start, pause and end the table, kick players';
+
+  @override
+  String get rulesHostModeration =>
+      'Mute the chat, switch off a player\'s microphone or camera (never on)';
+
+  @override
+  String get rulesHostTiming =>
+      'Change turn time, time bank and the pause between hands';
+
+  @override
+  String get rulesHostBlindsUp =>
+      'Raise the blinds by hand, for everyone and logged';
+
+  @override
+  String get rulesHostChips => 'Give or take chips';
+
+  @override
+  String get rulesHostMoney =>
+      'Change blinds, start money, rebuys, game and showdown reveal at any time';
+
+  @override
+  String get rulesHostMoneyBeforeDeal =>
+      'Change blinds, start money, rebuys, game and showdown reveal, but only until the first deal';
+
+  @override
+  String get rulesHostMoneyLocked =>
+      'Change blinds, start money, rebuys, game or showdown reveal (locked since the first deal)';
+
+  @override
+  String get showDrawings => 'Show drawings';
+
+  @override
+  String get peerHideDrawings => 'Hide drawings';
+
+  @override
+  String get drawPencil => 'Draw on the table';
+
+  @override
+  String get drawEraser => 'Eraser';
+
+  @override
+  String get drawClearMine => 'Clear my drawings';
+
+  @override
+  String get drawClearAll => 'Clear all drawings';
+
+  @override
   String get setAllowRabbitHunt => 'Allow rabbit hunting';
 
   @override
@@ -1313,7 +1455,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sound, deck, chips, display size, language, theme';
 
   @override
-  String get settingsTableHint => 'Your hat, another table, leave';
+  String get settingsTableHint =>
+      'Your hat, the table rules, another table, leave';
 
   @override
   String get hostControls => 'Game controls';
@@ -1370,6 +1513,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hatChange => 'Change hat';
 
   @override
+  String get lookTitle => 'Avatar & hat';
+
+  @override
+  String get selfMenuTitle => 'You';
+
+  @override
   String get hatNone => 'No hat';
 
   @override
@@ -1387,6 +1536,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerMenuEveryone => 'For everyone (host)';
+
+  @override
+  String get hostMuteAll => 'Mute chat, stickers and drawings';
+
+  @override
+  String get hostMic => 'Microphone';
+
+  @override
+  String get hostCamera => 'Camera';
+
+  @override
+  String get hostOnlyPlayerUnmutes =>
+      'The host can only switch this off; the player turns it on again';
 
   @override
   String get peerVolume => 'Voice volume';
@@ -1453,6 +1615,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'halo': 'Halo',
       'viking': 'Viking helmet',
       'sombrero': 'Sombrero',
+      'fedora': 'Fedora',
+      'bowler': 'Bowler hat',
+      'santa': 'Santa hat',
+      'tiara': 'Tiara',
+      'propeller': 'Propeller beanie',
+      'bunny_ears': 'Bunny ears',
+      'flower_crown': 'Flower crown',
+      'headband': 'Headband',
       'other': 'Hat',
     });
     return '$_temp0';

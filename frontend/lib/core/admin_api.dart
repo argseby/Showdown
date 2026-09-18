@@ -20,6 +20,8 @@ class AdminSettings {
     required this.autoStart,
     required this.handDelayMs,
     this.allowRabbitHunt = true,
+    this.allowDrawing = true,
+    this.tournament = false,
     this.blindsUpMinutes = 0,
     this.blindsUpPercent = 100,
     this.timeBankSeconds = 30,
@@ -48,6 +50,8 @@ class AdminSettings {
     autoStart: json['auto_start'] as bool,
     handDelayMs: json['hand_delay_ms'] as int,
     allowRabbitHunt: json['allow_rabbit_hunt'] as bool? ?? true,
+    allowDrawing: json['allow_drawing'] as bool? ?? true,
+    tournament: json['tournament'] as bool? ?? false,
     blindsUpMinutes: json['blinds_up_minutes'] as int? ?? 0,
     blindsUpPercent: json['blinds_up_percent'] as int? ?? 100,
     timeBankSeconds: json['time_bank_seconds'] as int? ?? 30,
@@ -96,6 +100,8 @@ class AdminSettings {
   final bool autoStart;
   final int handDelayMs;
   final bool allowRabbitHunt;
+  final bool allowDrawing;
+  final bool tournament;
   final int blindsUpMinutes;
   final int blindsUpPercent;
   final int timeBankSeconds;
@@ -125,6 +131,8 @@ class AdminSettings {
     'auto_start': autoStart,
     'hand_delay_ms': handDelayMs,
     'allow_rabbit_hunt': allowRabbitHunt,
+    'allow_drawing': allowDrawing,
+    'tournament': tournament,
     'blinds_up_minutes': blindsUpMinutes,
     'blinds_up_percent': blindsUpPercent,
     'time_bank_seconds': timeBankSeconds,

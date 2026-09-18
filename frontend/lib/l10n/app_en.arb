@@ -802,6 +802,81 @@
   "adminTabHands": "Hands",
   "setBlindsUpMinutes": "Blinds up every (minutes, 0 = off)",
   "setBlindsUpPercent": "Blinds up by (%)",
+  "setAllowDrawing": "Allow drawing on the table",
+  "setTournament": "Tournament mode: no chip adjustments at all, and once a hand is dealt money and information settings and seat changes are locked, for the host too",
+  "tournamentBadge": "Tournament",
+  "tournamentLockedNote": "Tournament running: the settings that could move chips or change what players know are locked.",
+  "rulesTitle": "Rules at this table",
+  "rulesShow": "Show",
+  "rulesIntro": "How {table} is set up. You can open this again under Settings.",
+  "@rulesIntro": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "rulesGame": "Game",
+  "rulesBlinds": "Blinds",
+  "rulesBlindSchedule": "Blind schedule",
+  "rulesBlindsUp": "Up every {minutes} min by {percent} %",
+  "@rulesBlindsUp": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "rulesBlindsUpOff": "Fixed",
+  "rulesTiming": "Time",
+  "rulesTurnTime": "{seconds} s per turn",
+  "@rulesTurnTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "rulesTimeBank": "{seconds} s time bank, +{refill} s per hand",
+  "@rulesTimeBank": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      },
+      "refill": {
+        "type": "int"
+      }
+    }
+  },
+  "rulesSeatChange": "Seat changes",
+  "rulesSeatChangeFree": "Between hands, cost a dead big blind",
+  "rulesSeatChangeUntilDeal": "Only until the first hand is dealt",
+  "rulesSeatChangeLocked": "Locked, a hand has been dealt",
+  "rulesOptions": "Options",
+  "rulesPassword": "Password protected",
+  "rulesTournament": "Tournament mode",
+  "rulesLockedNow": "locked",
+  "rulesTournamentBody": "Everyone plays the start money: the host can never give or take chips. Once a hand is dealt, blinds, ante, start money, rebuys, the game, the showdown reveal, the blind schedule and the seats are locked, for the host too.",
+  "rulesCashGame": "Cash game",
+  "rulesCashGameBody": "The host may give or take chips and change blinds and other settings at any time; money changes apply from the next hand.",
+  "rulesHost": "What the host can do",
+  "rulesHostLifecycle": "Start, pause and end the table, kick players",
+  "rulesHostModeration": "Mute the chat, switch off a player's microphone or camera (never on)",
+  "rulesHostTiming": "Change turn time, time bank and the pause between hands",
+  "rulesHostBlindsUp": "Raise the blinds by hand, for everyone and logged",
+  "rulesHostChips": "Give or take chips",
+  "rulesHostMoney": "Change blinds, start money, rebuys, game and showdown reveal at any time",
+  "rulesHostMoneyBeforeDeal": "Change blinds, start money, rebuys, game and showdown reveal, but only until the first deal",
+  "rulesHostMoneyLocked": "Change blinds, start money, rebuys, game or showdown reveal (locked since the first deal)",
+  "showDrawings": "Show drawings",
+  "peerHideDrawings": "Hide drawings",
+  "drawPencil": "Draw on the table",
+  "drawEraser": "Eraser",
+  "drawClearMine": "Clear my drawings",
+  "drawClearAll": "Clear all drawings",
   "setAllowRabbitHunt": "Allow rabbit hunting",
   "logRabbitHunt": "{name} rabbit hunts: {cards}",
   "@logRabbitHunt": {
@@ -975,7 +1050,7 @@
   "settingsVoiceVideo": "Voice & video",
   "settingsVoiceVideoHint": "Microphone, camera, network check",
   "settingsPreferencesHint": "Sound, deck, chips, display size, language, theme",
-  "settingsTableHint": "Your hat, another table, leave",
+  "settingsTableHint": "Your hat, the table rules, another table, leave",
   "hostControls": "Game controls",
   "hostControlsHint": "Start, pause, end, blinds up, admin key",
   "hostPlayersHint": "Chips, mute, kick",
@@ -1016,12 +1091,18 @@
   "joinAvatarChange": "Change avatar",
   "hatTitle": "Hat",
   "hatChange": "Change hat",
+  "lookTitle": "Avatar & hat",
+  "selfMenuTitle": "You",
   "hatNone": "No hat",
   "showHats": "Show other players' hats",
   "showHeat": "Show win streaks",
   "playerMenuLocal": "Only for you",
   "playerMenuLocalHint": "These settings apply on this device only and are forgotten when you leave the table. The player does not notice.",
   "playerMenuEveryone": "For everyone (host)",
+  "hostMuteAll": "Mute chat, stickers and drawings",
+  "hostMic": "Microphone",
+  "hostCamera": "Camera",
+  "hostOnlyPlayerUnmutes": "The host can only switch this off; the player turns it on again",
   "peerVolume": "Voice volume",
   "peerMute": "Mute voice",
   "peerHideVideo": "Hide video",
@@ -1043,7 +1124,7 @@
       }
     }
   },
-  "hatName": "{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef's hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} other{Hat}}",
+  "hatName": "{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef's hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} fedora{Fedora} bowler{Bowler hat} santa{Santa hat} tiara{Tiara} propeller{Propeller beanie} bunny_ears{Bunny ears} flower_crown{Flower crown} headband{Headband} other{Hat}}",
   "@hatName": {
     "placeholders": {
       "hat": {

@@ -10,6 +10,7 @@ import '../../core/session_store.dart';
 import '../../shared/avatars.dart';
 import '../../shared/display_size_picker.dart';
 import '../../shared/hats.dart';
+import '../../shared/look_dialog.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_session.dart';
 import 'name_rules.dart';
@@ -34,58 +35,14 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   bool _camera = false;
   bool _seatsOpen = false;
 
-  Future<void> _pickAvatar() async {
-    final l10n = context.l10n;
-    final picked = await showOverlay<int>(
-      context,
-      const DialogConfiguration(),
-      builder: (context) => AlertDialog(
-        title: Text(l10n.joinAvatarChange),
-        content: SizedBox(
-          width: 320,
-          child: AvatarPicker(
-            selected: _avatar,
-            size: 44,
-            onSelected: (i) => closeOverlay<int>(context, i),
-          ),
-        ),
-        actions: [
-          OutlineButton(
-            onPressed: () => closeOverlay<int>(context),
-            child: Text(l10n.cancel),
-          ),
-        ],
-      ),
-    ).future;
-    if (picked != null && mounted) setState(() => _avatar = picked);
-  }
-
-  Future<void> _pickHat() async {
-    final l10n = context.l10n;
-    final picked = await showOverlay<String>(
-      context,
-      const DialogConfiguration(),
-      builder: (context) => AlertDialog(
-        title: Text(l10n.hatChange),
-        content: SizedBox(
-          width: 320,
-          child: HatPicker(
-            selected: _hat,
-            avatar: _avatar,
-            size: 44,
-            onSelected: (id) => closeOverlay<String>(context, id),
-          ),
-        ),
-        actions: [
-          OutlineButton(
-            onPressed: () => closeOverlay<String>(context),
-            child: Text(l10n.cancel),
-          ),
-        ],
-      ),
-    ).future;
+  /// Avatar and hat in one dialog with two tabs.
+  Future<void> _pickLook() async {
+    final picked = await showLookDialog(context, avatar: _avatar, hat: _hat);
     if (picked != null && mounted) {
-      setState(() => _hat = picked == hatNone ? null : picked);
+      setState(() {
+        _avatar = picked.avatar;
+        _hat = picked.hat;
+      });
     }
   }
 
@@ -220,7 +177,10 @@ class _JoinPageState extends ConsumerState<JoinPage> {
         );
       }
       await ref.read(sessionProvider(widget.tableId).notifier).save(session);
-      if (mounted) context.go('/t/${widget.tableId}/play');
+      if (!mounted) return;
+      // The play page greets a fresh arrival with the table rules.
+      ref.read(justJoinedProvider.notifier).mark(widget.tableId);
+      context.go('/t/${widget.tableId}/play');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -349,6 +309,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                         key: const Key('join-variant-badge'),
                         child: Text(l10n.variantRoyal),
                       ),
+                    if (info.tournament)
+                      PrimaryBadge(
+                        key: const Key('join-tournament-badge'),
+                        child: Text(l10n.tournamentBadge),
+                      ),
                   ],
                 ),
                 const Gap(24),
@@ -369,7 +334,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                             ).call,
                             child: GestureDetector(
                               key: const Key('join-avatar'),
-                              onTap: _pickAvatar,
+                              onTap: _pickLook,
                               child: PlayerAvatar(
                                 index: _avatar,
                                 size: 40,
@@ -409,16 +374,6 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                       ],
                       if (canJoin) ...[
                         const Gap(10),
-                        GhostButton(
-                          key: const Key('join-hat'),
-                          size: ButtonSize.small,
-                          alignment: Alignment.centerLeft,
-                          onPressed: _pickHat,
-                          leading: const Icon(LucideIcons.crown),
-                          child: Text(
-                            '${l10n.hatTitle}: ${hatLabel(l10n, _hat)}',
-                          ),
-                        ),
                         GhostButton(
                           key: const Key('join-seats-toggle'),
                           size: ButtonSize.small,

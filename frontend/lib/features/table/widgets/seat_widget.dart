@@ -193,9 +193,8 @@ class SeatWidget extends ConsumerWidget {
     final showHats =
         (isViewer || ref.watch(showHatsProvider)) && !prefs.hideHat;
     // Win streaks (fire ring) can be switched off for every seat.
-    final heat = ref.watch(showHeatProvider) && !prefs.hideHeat
-        ? (p.heat ?? 0).clamp(0, 3)
-        : 0;
+    final streaks = ref.watch(showHeatProvider) && !prefs.hideHeat;
+    final heat = streaks ? (p.heat ?? 0).clamp(0, 3) : 0;
     final video = prefs.hideVideo ? null : videoViewType;
     final shownSticker = prefs.hideStickers ? null : sticker;
     // Small marks for what the viewer muted or hid: they explain a silent

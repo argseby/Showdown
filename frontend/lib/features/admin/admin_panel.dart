@@ -429,11 +429,13 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
                         spacing: 4,
                         runSpacing: 4,
                         children: [
-                          OutlineButton(
-                            size: ButtonSize.small,
-                            onPressed: () => _chips(p),
-                            child: Text(l10n.adminChips),
-                          ),
+                          // A tournament never hands out chips.
+                          if (!detail.settings.tournament)
+                            OutlineButton(
+                              size: ButtonSize.small,
+                              onPressed: () => _chips(p),
+                              child: Text(l10n.adminChips),
+                            ),
                           OutlineButton(
                             size: ButtonSize.small,
                             onPressed: () => _mute(p),

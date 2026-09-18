@@ -10,6 +10,7 @@ import '../../app/l10n.dart';
 import '../../app/preferences.dart';
 import '../../core/formatting.dart';
 import '../../core/peer_prefs.dart';
+import '../../core/providers.dart';
 import '../../core/session_store.dart';
 import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
@@ -23,6 +24,7 @@ import '../../shared/connection_banner.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_player_actions.dart';
 import '../admin/admin_widgets.dart';
+import 'drawing.dart';
 import 'focus_utils.dart';
 import 'network_texts.dart';
 import 'replay/replay_dialog.dart';
@@ -32,9 +34,11 @@ import 'widgets/action_bar.dart';
 import 'widgets/invite_dialog.dart';
 import 'widgets/player_menu.dart';
 import 'widgets/say_dialog.dart';
+import 'widgets/self_menu.dart';
 import 'widgets/settings_tab.dart';
 import 'widgets/shortcuts_overlay.dart';
 import 'widgets/side_panel.dart';
+import 'widgets/table_rules_dialog.dart';
 import 'widgets/table_view.dart';
 
 /// The table screen (`/t/:tableId/play`).
@@ -331,6 +335,12 @@ class _PlayPageState extends ConsumerState<PlayPage>
     if (mounted) context.go('/');
   }
 
+  /// The rules card again, from the Settings tab.
+  void _showRules() {
+    final snap = ref.read(tableSessionProvider(widget.tableId)).snapshot;
+    if (snap != null) showTableRulesDialog(context, snapshot: snap);
+  }
+
   /// A side drawer for everything that is not play: voice chat,
   /// preferences, help and leaving.
   Future<void> _invite(BuildContext context, TableSessionState session) {
@@ -379,6 +389,17 @@ class _PlayPageState extends ConsumerState<PlayPage>
     final session = ref.watch(tableSessionProvider(widget.tableId));
     ref.listen(tableSessionProvider(widget.tableId), (prev, next) {
       _updateTitle();
+      // Fresh from the join page: the table rules, once the first snapshot
+      // is in (and only then; a reload does not repeat it).
+      final snap = next.snapshot;
+      if (snap != null &&
+          prev?.snapshot == null &&
+          ref.read(justJoinedProvider) == widget.tableId) {
+        ref.read(justJoinedProvider.notifier).clear();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) showTableRulesDialog(context, snapshot: snap);
+        });
+      }
       final myTurn = next.isPlayer && next.snapshot?.you.options != null;
       if (myTurn && !_wasMyTurn) {
         if (ref.read(soundEnabledProvider)) _sounds.play(SoundCue.turn);
@@ -575,10 +596,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
         onOtherTable: _otherTable,
         onLeave: session.isPlayer ? _leave : _clearAndGoToJoin,
         onShortcuts: () => showShortcutsOverlay(context),
+        onRules: _showRules,
       ),
     );
 
     final uiScale = ref.watch(uiScaleProvider);
+    final canDraw =
+        session.isPlayer && (snap?.table.settings.allowDrawing ?? false);
     final table = Column(
       children: [
         if (banner != null)
@@ -605,8 +629,14 @@ class _PlayPageState extends ConsumerState<PlayPage>
                 : null,
             videoViews: voice.videoViews,
             voiceFailed: voice.failed,
+            onSelfTap: session.isPlayer
+                ? () => showSelfMenu(context, ref, widget.tableId)
+                : null,
+            onDraw: canDraw ? _session.draw : null,
+            onErase: canDraw ? _session.eraseDrawings : null,
             onPlayerTap: (p) => showPlayerMenu(
               context,
+              tableId: widget.tableId,
               player: p,
               admin: (snap?.you.isAdmin ?? false) && adminToken != null
                   ? AdminPlayerActions(
@@ -791,6 +821,69 @@ class _PlayPageState extends ConsumerState<PlayPage>
             ),
           )
         : null;
+    // The pencil: one button toggles drawing; while it is on, the eraser
+    // and a clear menu sit next to it.
+    final tool = ref.watch(drawToolProvider);
+    final pencilButtons = <Widget>[
+      if (canDraw) ...[
+        Tooltip(
+          tooltip: TooltipContainer(child: Text(l10n.drawPencil)).call,
+          child: GhostButton(
+            key: const Key('draw-pen'),
+            density: ButtonDensity.icon,
+            onPressed: () =>
+                ref.read(drawToolProvider.notifier).toggle(DrawTool.pen),
+            child: Icon(
+              LucideIcons.pencil,
+              color: tool == DrawTool.pen
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.mutedForeground,
+            ),
+          ),
+        ),
+        if (tool != DrawTool.none) ...[
+          Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.drawEraser)).call,
+            child: GhostButton(
+              key: const Key('draw-eraser'),
+              density: ButtonDensity.icon,
+              onPressed: () =>
+                  ref.read(drawToolProvider.notifier).toggle(DrawTool.eraser),
+              child: Icon(
+                LucideIcons.eraser,
+                color: tool == DrawTool.eraser
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.mutedForeground,
+              ),
+            ),
+          ),
+          Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.drawClearMine)).call,
+            child: GhostButton(
+              key: const Key('draw-clear-mine'),
+              density: ButtonDensity.icon,
+              onPressed: () => _session.clearDrawings(),
+              child: Icon(
+                LucideIcons.trash2,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+          ),
+          Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.drawClearAll)).call,
+            child: GhostButton(
+              key: const Key('draw-clear-all'),
+              density: ButtonDensity.icon,
+              onPressed: () => _session.clearDrawings(all: true),
+              child: Icon(
+                LucideIcons.paintbrush,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+          ),
+        ],
+      ],
+    ];
     final header = TopBar(
       compact: compact,
       showToggles: false,
@@ -830,7 +923,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${l10n.blindsShort(formatChips(snap.table.settings.smallBlind, locale), formatChips(snap.table.settings.bigBlind, locale))} · ${l10n.handNumber(snap.table.handNumber)}',
+                  '${snap.table.settings.tournament ? '${l10n.tournamentBadge} · ' : ''}${l10n.blindsShort(formatChips(snap.table.settings.smallBlind, locale), formatChips(snap.table.settings.bigBlind, locale))} · ${l10n.handNumber(snap.table.handNumber)}',
                 ),
                 if ((snap.table.nextBlindsUpTs ?? 0) > 0) ...[
                   const Text(' · '),
@@ -843,6 +936,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
         const Gap(4),
         ?micButton,
         ?cameraButton,
+        ...pencilButtons,
         // Phones: the replay lives in the Log tab; the bar keeps the room
         // for the table name.
         if (!compact)

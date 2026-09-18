@@ -1958,6 +1958,252 @@ abstract class AppLocalizations {
   /// **'Blinds up by (%)'**
   String get setBlindsUpPercent;
 
+  /// No description provided for @setAllowDrawing.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow drawing on the table'**
+  String get setAllowDrawing;
+
+  /// No description provided for @setTournament.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament mode: no chip adjustments at all, and once a hand is dealt money and information settings and seat changes are locked, for the host too'**
+  String get setTournament;
+
+  /// No description provided for @tournamentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament'**
+  String get tournamentBadge;
+
+  /// No description provided for @tournamentLockedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament running: the settings that could move chips or change what players know are locked.'**
+  String get tournamentLockedNote;
+
+  /// No description provided for @rulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules at this table'**
+  String get rulesTitle;
+
+  /// No description provided for @rulesShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get rulesShow;
+
+  /// No description provided for @rulesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'How {table} is set up. You can open this again under Settings.'**
+  String rulesIntro(String table);
+
+  /// No description provided for @rulesGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Game'**
+  String get rulesGame;
+
+  /// No description provided for @rulesBlinds.
+  ///
+  /// In en, this message translates to:
+  /// **'Blinds'**
+  String get rulesBlinds;
+
+  /// No description provided for @rulesBlindSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind schedule'**
+  String get rulesBlindSchedule;
+
+  /// No description provided for @rulesBlindsUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up every {minutes} min by {percent} %'**
+  String rulesBlindsUp(int minutes, int percent);
+
+  /// No description provided for @rulesBlindsUpOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed'**
+  String get rulesBlindsUpOff;
+
+  /// No description provided for @rulesTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get rulesTiming;
+
+  /// No description provided for @rulesTurnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s per turn'**
+  String rulesTurnTime(int seconds);
+
+  /// No description provided for @rulesTimeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s time bank, +{refill} s per hand'**
+  String rulesTimeBank(int seconds, int refill);
+
+  /// No description provided for @rulesSeatChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Seat changes'**
+  String get rulesSeatChange;
+
+  /// No description provided for @rulesSeatChangeFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Between hands, cost a dead big blind'**
+  String get rulesSeatChangeFree;
+
+  /// No description provided for @rulesSeatChangeUntilDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Only until the first hand is dealt'**
+  String get rulesSeatChangeUntilDeal;
+
+  /// No description provided for @rulesSeatChangeLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked, a hand has been dealt'**
+  String get rulesSeatChangeLocked;
+
+  /// No description provided for @rulesOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get rulesOptions;
+
+  /// No description provided for @rulesPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password protected'**
+  String get rulesPassword;
+
+  /// No description provided for @rulesTournament.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament mode'**
+  String get rulesTournament;
+
+  /// No description provided for @rulesLockedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'locked'**
+  String get rulesLockedNow;
+
+  /// No description provided for @rulesTournamentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone plays the start money: the host can never give or take chips. Once a hand is dealt, blinds, ante, start money, rebuys, the game, the showdown reveal, the blind schedule and the seats are locked, for the host too.'**
+  String get rulesTournamentBody;
+
+  /// No description provided for @rulesCashGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash game'**
+  String get rulesCashGame;
+
+  /// No description provided for @rulesCashGameBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The host may give or take chips and change blinds and other settings at any time; money changes apply from the next hand.'**
+  String get rulesCashGameBody;
+
+  /// No description provided for @rulesHost.
+  ///
+  /// In en, this message translates to:
+  /// **'What the host can do'**
+  String get rulesHost;
+
+  /// No description provided for @rulesHostLifecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start, pause and end the table, kick players'**
+  String get rulesHostLifecycle;
+
+  /// No description provided for @rulesHostModeration.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute the chat, switch off a player\'s microphone or camera (never on)'**
+  String get rulesHostModeration;
+
+  /// No description provided for @rulesHostTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Change turn time, time bank and the pause between hands'**
+  String get rulesHostTiming;
+
+  /// No description provided for @rulesHostBlindsUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise the blinds by hand, for everyone and logged'**
+  String get rulesHostBlindsUp;
+
+  /// No description provided for @rulesHostChips.
+  ///
+  /// In en, this message translates to:
+  /// **'Give or take chips'**
+  String get rulesHostChips;
+
+  /// No description provided for @rulesHostMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Change blinds, start money, rebuys, game and showdown reveal at any time'**
+  String get rulesHostMoney;
+
+  /// No description provided for @rulesHostMoneyBeforeDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Change blinds, start money, rebuys, game and showdown reveal, but only until the first deal'**
+  String get rulesHostMoneyBeforeDeal;
+
+  /// No description provided for @rulesHostMoneyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Change blinds, start money, rebuys, game or showdown reveal (locked since the first deal)'**
+  String get rulesHostMoneyLocked;
+
+  /// No description provided for @showDrawings.
+  ///
+  /// In en, this message translates to:
+  /// **'Show drawings'**
+  String get showDrawings;
+
+  /// No description provided for @peerHideDrawings.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide drawings'**
+  String get peerHideDrawings;
+
+  /// No description provided for @drawPencil.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw on the table'**
+  String get drawPencil;
+
+  /// No description provided for @drawEraser.
+  ///
+  /// In en, this message translates to:
+  /// **'Eraser'**
+  String get drawEraser;
+
+  /// No description provided for @drawClearMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear my drawings'**
+  String get drawClearMine;
+
+  /// No description provided for @drawClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all drawings'**
+  String get drawClearAll;
+
   /// No description provided for @setAllowRabbitHunt.
   ///
   /// In en, this message translates to:
@@ -2363,7 +2609,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTableHint.
   ///
   /// In en, this message translates to:
-  /// **'Your hat, another table, leave'**
+  /// **'Your hat, the table rules, another table, leave'**
   String get settingsTableHint;
 
   /// No description provided for @hostControls.
@@ -2462,6 +2708,18 @@ abstract class AppLocalizations {
   /// **'Change hat'**
   String get hatChange;
 
+  /// No description provided for @lookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar & hat'**
+  String get lookTitle;
+
+  /// No description provided for @selfMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get selfMenuTitle;
+
   /// No description provided for @hatNone.
   ///
   /// In en, this message translates to:
@@ -2497,6 +2755,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For everyone (host)'**
   String get playerMenuEveryone;
+
+  /// No description provided for @hostMuteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute chat, stickers and drawings'**
+  String get hostMuteAll;
+
+  /// No description provided for @hostMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone'**
+  String get hostMic;
+
+  /// No description provided for @hostCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get hostCamera;
+
+  /// No description provided for @hostOnlyPlayerUnmutes.
+  ///
+  /// In en, this message translates to:
+  /// **'The host can only switch this off; the player turns it on again'**
+  String get hostOnlyPlayerUnmutes;
 
   /// No description provided for @peerVolume.
   ///
@@ -2585,7 +2867,7 @@ abstract class AppLocalizations {
   /// No description provided for @hatName.
   ///
   /// In en, this message translates to:
-  /// **'{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef\'s hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} other{Hat}}'**
+  /// **'{hat, select, top_hat{Top hat} cowboy{Cowboy hat} crown{Crown} party{Party hat} beanie{Beanie} wizard{Wizard hat} chef{Chef\'s hat} pirate{Pirate hat} cap{Baseball cap} halo{Halo} viking{Viking helmet} sombrero{Sombrero} fedora{Fedora} bowler{Bowler hat} santa{Santa hat} tiara{Tiara} propeller{Propeller beanie} bunny_ears{Bunny ears} flower_crown{Flower crown} headband{Headband} other{Hat}}'**
   String hatName(String hat);
 
   /// No description provided for @joinPickSeat.

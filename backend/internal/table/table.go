@@ -111,6 +111,9 @@ type Player struct {
 	// WinStreak counts the hands won in a row (hands dealt in only); a hand
 	// dealt in without winning a pot resets it. Drives PlayerView.Heat.
 	WinStreak int
+
+	// Pencil strokes drawn in the last minute (rate limit).
+	drawTimes []int64
 	// Statistics: hands with chips put in voluntarily preflop, showdowns
 	// reached and won.
 	VPIPHands    int
@@ -175,7 +178,8 @@ const (
 	HeatHighStreak = 4
 )
 
-// heatOf maps a win streak to the heat level shown on the seat (0..3).
+// heatOf maps a win streak (or a lose streak, for the tilt) to the level
+// shown on the seat (0..3).
 func heatOf(streak int) int {
 	switch {
 	case streak >= HeatHighStreak:
@@ -268,8 +272,11 @@ type Table struct {
 	clients       map[*Client]struct{}
 	playerClients map[string]*Client
 
-	chat    []protocol.ChatMessage
-	chatSeq int64
+	chat []protocol.ChatMessage
+	// Pencil drawings on the table, oldest first; not persisted.
+	drawings []protocol.Stroke
+	drawSeq  int64
+	chatSeq  int64
 
 	hand            *poker.Hand
 	handStartedAt   int64
@@ -496,6 +503,7 @@ type Info struct {
 	SmallBlind       int64
 	BigBlind         int64
 	Variant          string
+	Tournament       bool
 	HandNumber       int
 	CreatedAt        int64
 	EndedAt          int64
@@ -509,7 +517,7 @@ func (t *Table) Info() Info {
 			ID: t.ID, Name: t.name, State: t.state, RequiresPassword: t.settings.PasswordHash != "",
 			PasswordHash: t.settings.PasswordHash, JoinPolicy: t.settings.JoinPolicy,
 			AllowSpectators: t.settings.AllowSpectators, Seated: t.seatedCount(), MaxPlayers: t.settings.MaxPlayers,
-			SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, Variant: t.settings.Variant, HandNumber: t.handNumber,
+			SmallBlind: t.settings.SmallBlind, BigBlind: t.settings.BigBlind, Variant: t.settings.Variant, Tournament: t.settings.Tournament, HandNumber: t.handNumber,
 			CreatedAt: t.createdAt, EndedAt: t.endedAt, TakenSeats: []int{},
 		}
 		for i := 0; i < t.settings.MaxPlayers; i++ {
@@ -665,6 +673,9 @@ func (t *Table) Attach(c *Client) error {
 			hist = hist[len(hist)-chatOnConnect:]
 		}
 		c.Conn.Send(protocol.MustEncode(protocol.TypeChatHistory, "", protocol.ChatHistory{Messages: append([]protocol.ChatMessage{}, hist...)}))
+		if len(t.drawings) > 0 {
+			c.Conn.Send(protocol.MustEncode(protocol.TypeDrawingHistory, "", protocol.DrawingHistory{Strokes: append([]protocol.Stroke{}, t.drawings...)}))
+		}
 		t.touch()
 		return nil
 	})
@@ -789,6 +800,27 @@ func (t *Table) SetHat(playerID, hat string) error {
 			return nil
 		}
 		p.Hat = h
+		t.persistPlayer(p)
+		t.touch()
+		return nil
+	})
+}
+
+// SetAvatar changes the player's avatar (0..AvatarCount-1); persisted with
+// the player like the hat.
+func (t *Table) SetAvatar(playerID string, avatar int) error {
+	return t.callErr(func() error {
+		p, err := t.seatedPlayer(playerID)
+		if err != nil {
+			return err
+		}
+		if avatar < 0 || avatar >= AvatarCount {
+			return ErrIllegalAction
+		}
+		if p.Avatar == avatar {
+			return nil
+		}
+		p.Avatar = avatar
 		t.persistPlayer(p)
 		t.touch()
 		return nil
@@ -950,6 +982,9 @@ func (t *Table) ChangeSeat(playerID string, seat int) error {
 		if seat < 0 || seat >= t.settings.MaxPlayers || seat == p.Seat {
 			return ErrSeatTaken
 		}
+		if t.tournamentLocked() {
+			return ErrTournamentLocked
+		}
 		if !t.canChangeSeat(p) {
 			return ErrInvalidState
 		}
@@ -969,6 +1004,9 @@ func (t *Table) ChangeSeat(playerID string, seat int) error {
 
 // canChangeSeat is the cooldown rule.
 func (t *Table) canChangeSeat(p *Player) bool {
+	if t.tournamentLocked() {
+		return false
+	}
 	return p.pendingSeat < 0 && (p.lastSeatChangeHand == 0 || t.handNumber-p.lastSeatChangeHand >= SeatChangeCooldownHands)
 }
 
@@ -1182,6 +1220,8 @@ func (t *Table) removePlayer(p *Player, kicked bool) {
 			return // seat is freed when the hand ends
 		}
 	}
+	// A leaver's scribbles go with them.
+	t.removeDrawings(func(s protocol.Stroke) bool { return s.PlayerID == p.ID }, false)
 	if p.Status != StatusLeft {
 		t.freeSeat(p)
 	}
@@ -1394,6 +1434,13 @@ func (t *Table) UpdateSettings(p SettingsPatch, passwordHash string) (changed, n
 		if err != nil {
 			return err
 		}
+		if t.tournamentLocked() {
+			for _, f := range ch {
+				if slices.Contains(TournamentLocked, f) {
+					return ErrTournamentLocked
+				}
+			}
+		}
 		t.settings = s
 		changed, next = ch, nx
 		if len(ch) > 0 {
@@ -1419,6 +1466,12 @@ func (t *Table) UpdateSettings(p SettingsPatch, passwordHash string) (changed, n
 		return nil
 	})
 	return changed, next, err
+}
+
+// tournamentLocked: a tournament that has dealt a hand (or is running)
+// refuses everything that could move chips or change what players know.
+func (t *Table) tournamentLocked() bool {
+	return t.settings.Tournament && (t.state != StateWaiting || t.handNumber > 0)
 }
 
 // Start moves waiting -> running.
@@ -1506,7 +1559,8 @@ func (t *Table) Kick(playerID string) error {
 }
 
 // AdjustChips changes a stack between hands (queued while a hand runs).
-// It reports whether the change was applied immediately.
+// It reports whether the change was applied immediately. A tournament
+// never hands out chips: everyone plays the start money.
 func (t *Table) AdjustChips(playerID string, delta int64, note string) (bool, error) {
 	applied := false
 	err := t.callErr(func() error {
@@ -1516,6 +1570,9 @@ func (t *Table) AdjustChips(playerID string, delta int64, note string) (bool, er
 		}
 		if delta == 0 {
 			return ErrIllegalAction
+		}
+		if t.settings.Tournament {
+			return ErrTournamentLocked
 		}
 		if t.betweenHands() {
 			if err := t.applyChips(p, delta, note); err != nil {
@@ -1562,6 +1619,8 @@ func (t *Table) Mute(playerID string, muted bool) error {
 		p.Muted = muted
 		t.persistPlayer(p)
 		t.audit("mute", playerID, map[string]any{"muted": muted})
+		// Everyone sees seats[].player.muted: the host's switch follows it.
+		t.touch()
 		return nil
 	})
 }

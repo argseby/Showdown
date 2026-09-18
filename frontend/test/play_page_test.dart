@@ -19,6 +19,7 @@ import 'package:showdown/core/voice/voice_engine.dart';
 import 'package:showdown/core/ws_transport.dart';
 import 'package:showdown/features/table/play_page.dart';
 import 'package:showdown/features/table/table_session.dart';
+import 'package:showdown/features/table/widgets/table_rules_dialog.dart';
 import 'package:showdown/shared/playing_card.dart';
 
 import 'test_helpers.dart';
@@ -28,6 +29,9 @@ import 'test_helpers.dart';
 class ScriptedTransport implements WsTransport {
   final controller = StreamController<String>();
   final sent = <Map<String, dynamic>>[];
+
+  /// The welcome flags the viewer as the table's host.
+  bool admin = false;
 
   @override
   Future<void> connect() async {}
@@ -43,12 +47,14 @@ class ScriptedTransport implements WsTransport {
       final snap = jsonDecode(
         File('../docs/protocol/fixtures/snapshot.json').readAsStringSync(),
       ) as Map<String, dynamic>;
+      final payload = snap['payload'] as Map<String, dynamic>;
+      if (admin) (payload['you'] as Map<String, dynamic>)['is_admin'] = true;
       controller.add(
         jsonEncode({
           'type': 'welcome',
           'payload': {
             'you': {'role': 'player', 'player_id': 'p1', 'seat': 0},
-            'snapshot': snap['payload'],
+            'snapshot': payload,
           },
         }),
       );
@@ -71,6 +77,34 @@ class ScriptedTransport implements WsTransport {
   int? get closeCode => null;
   @override
   String? get closeReason => null;
+}
+
+/// The stored admin key of the test table.
+class _AdminToken extends AdminTokenNotifier {
+  _AdminToken() : super('k7m2p9xq4w');
+
+  @override
+  Future<String?> build() async => 'adm';
+}
+
+/// Fresh from the join page.
+class _JustJoined extends JustJoinedNotifier {
+  @override
+  String? build() => 'k7m2p9xq4w';
+}
+
+/// The snapshot fixture with Bob's voice state set.
+Map<String, dynamic> _bobVoice(String voice) {
+  final snap = jsonDecode(
+    File('../docs/protocol/fixtures/snapshot.json').readAsStringSync(),
+  ) as Map<String, dynamic>;
+  final payload = snap['payload'] as Map<String, dynamic>;
+  (payload['you'] as Map<String, dynamic>)['is_admin'] = true;
+  for (final sv in payload['seats'] as List<dynamic>) {
+    final p = (sv as Map<String, dynamic>)['player'] as Map<String, dynamic>?;
+    if (p != null && p['id'] == 'p4') p['voice'] = voice;
+  }
+  return payload;
 }
 
 class _MemorySessionStore extends SessionStore {
@@ -291,15 +325,171 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.tap(find.byKey(const Key('settings-table')));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.ensureVisible(find.byKey(const Key('drawer-hat')));
+    await tester.ensureVisible(find.byKey(const Key('drawer-look')));
     await tester.pump();
-    expect(find.text('No hat'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('drawer-hat')));
+    await tester.tap(find.byKey(const Key('drawer-look')));
     await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('look-tab-hat')));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.byKey(const Key('hat-option-pirate')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('look-done')));
     await tester.pump(const Duration(milliseconds: 600));
     final hat = transport.sent.lastWhere((e) => e['type'] == 'hat');
     expect(hat['payload'], {'hat': 'pirate'});
+    // The avatar was not touched: no avatar message.
+    expect(transport.sent.where((e) => e['type'] == 'avatar'), isEmpty);
+  });
+
+  testWidgets('the pencil draws a stroke, shows others and erases', (
+    tester,
+  ) async {
+    await pumpPlay(tester);
+    // Without a tool the layer ignores pointers: no surface to drag on.
+    expect(find.byKey(const Key('drawing-surface')), findsNothing);
+    await tester.tap(find.byKey(const Key('draw-pen')));
+    await tester.pump();
+    expect(find.byKey(const Key('draw-eraser')), findsOneWidget);
+    final surface = find.byKey(const Key('drawing-surface'));
+    expect(surface, findsOneWidget);
+    final box = tester.getRect(surface);
+    await tester.timedDrag(
+      surface,
+      const Offset(80, 40),
+      const Duration(milliseconds: 200),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    final draw = transport.sent.lastWhere((e) => e['type'] == 'draw');
+    final pts = (draw['payload'] as Map)['points'] as List<dynamic>;
+    expect(pts.length, greaterThanOrEqualTo(4));
+    expect(pts.length.isEven, isTrue);
+    for (final v in pts) {
+      expect(v as num, inInclusiveRange(0, 1));
+      // Three decimals: the message stays far under the server's cap.
+      expect(((v * 1000).round() / 1000 - v).abs(), lessThan(1e-9));
+    }
+    expect(pts.length, lessThanOrEqualTo(400));
+    expect(jsonEncode(draw).length, lessThan(6000));
+    // A stroke from Bob arrives; the eraser drags over it and asks the
+    // server to remove it.
+    transport.controller.add(
+      jsonEncode({
+        'type': 'drawing',
+        'payload': {
+          'id': 9,
+          'player_id': 'p4',
+          'seat': 4,
+          'name': 'Bob',
+          'avatar': 0,
+          'points': [0.5, 0.5, 0.6, 0.5],
+          'ts': 1,
+        },
+      }),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('draw-eraser')));
+    await tester.pump();
+    final at = Offset(box.left + box.width * 0.5, box.top + box.height * 0.5);
+    final gesture = await tester.startGesture(at);
+    await gesture.moveBy(const Offset(20, 0));
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 300));
+    final erase = transport.sent.lastWhere((e) => e['type'] == 'draw_erase');
+    expect((erase['payload'] as Map)['ids'], [9]);
+    // Clear all goes out as one message.
+    await tester.tap(find.byKey(const Key('draw-clear-all')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(transport.sent.last['type'], 'draw_clear');
+    expect(transport.sent.last['payload'], {'all': true});
+  });
+
+  testWidgets('the host switches follow the next snapshot', (tester) async {
+    transport.admin = true;
+    await pumpPlay(
+      tester,
+      extra: [adminTokenProvider('k7m2p9xq4w').overrideWith(_AdminToken.new)],
+    );
+    // Bob is in the voice chat: the microphone switch is on and live.
+    transport.controller.add(
+      jsonEncode({'type': 'snapshot', 'payload': _bobVoice('on')}),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('player-seat-4')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('FOR EVERYONE (HOST)'), findsOneWidget);
+    var mic = tester.widget<Switch>(find.byKey(const Key('host-mic')));
+    expect(mic.value, isTrue);
+    expect(mic.onChanged, isNotNull);
+    // The server mutes him and pushes a snapshot: the open menu updates.
+    transport.controller.add(
+      jsonEncode({'type': 'snapshot', 'payload': _bobVoice('muted')}),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    mic = tester.widget<Switch>(find.byKey(const Key('host-mic')));
+    expect(mic.value, isFalse);
+    expect(mic.onChanged, isNull);
+  });
+
+  testWidgets('a tournament has no chips button in the player menu', (
+    tester,
+  ) async {
+    transport.admin = true;
+    await pumpPlay(
+      tester,
+      extra: [adminTokenProvider('k7m2p9xq4w').overrideWith(_AdminToken.new)],
+    );
+    final payload = _bobVoice('on');
+    final table = payload['table'] as Map<String, dynamic>;
+    (table['settings'] as Map<String, dynamic>)['tournament'] = true;
+    transport.controller.add(
+      jsonEncode({'type': 'snapshot', 'payload': payload}),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('player-seat-4')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('FOR EVERYONE (HOST)'), findsOneWidget);
+    expect(find.byKey(const Key('player-action-kick')), findsOneWidget);
+    expect(find.byKey(const Key('player-action-chips')), findsNothing);
+  });
+
+  testWidgets('the table rules open once right after joining', (tester) async {
+    await pumpPlay(
+      tester,
+      extra: [justJoinedProvider.overrideWith(_JustJoined.new)],
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(TableRulesDialog), findsOneWidget);
+    expect(find.text('Rules at this table'), findsOneWidget);
+    expect(find.byKey(const Key('rules-cash')), findsOneWidget);
+    expect(find.text('50 / 100'), findsOneWidget);
+    expect(find.text('Give or take chips'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('rules-close')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(TableRulesDialog), findsNothing);
+    // A later snapshot does not bring it back.
+    transport.controller.add(
+      jsonEncode({'type': 'snapshot', 'payload': _bobVoice('on')}),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(TableRulesDialog), findsNothing);
+  });
+
+  testWidgets('tapping the own avatar opens the self menu', (tester) async {
+    await pumpPlay(tester);
+    await tester.tap(find.byKey(const Key('player-seat-0')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('self-voice')), findsOneWidget);
+    expect(find.byKey(const Key('self-camera')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('self-look')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('avatar-5')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('look-done')));
+    await tester.pump(const Duration(milliseconds: 600));
+    final avatar = transport.sent.lastWhere((e) => e['type'] == 'avatar');
+    expect(avatar['payload'], {'avatar': 5});
+    expect(transport.sent.where((e) => e['type'] == 'hat'), isEmpty);
   });
 
   testWidgets('the player menu mutes and hides another player locally', (
@@ -424,11 +614,10 @@ void main() {
     // A sticker goes the same way and pops up over the seat.
     await tester.tap(find.byKey(const Key('say-button')));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.ensureVisible(find.byKey(const Key('sticker-fire')));
-    await tester.tap(find.byKey(const Key('sticker-fire')));
+    await tester.tap(find.byKey(const Key('sticker-all_in')));
     await tester.pump(const Duration(milliseconds: 300));
     final sticker = transport.sent.lastWhere((e) => e['type'] == 'say');
-    expect(sticker['payload'], {'sticker': 'fire'});
+    expect(sticker['payload'], {'sticker': 'all_in'});
     transport.controller.add(
       jsonEncode({
         'type': 'phrase',

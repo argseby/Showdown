@@ -60,6 +60,82 @@ _RunTwicePayload _$RunTwicePayloadFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RunTwicePayloadToJson(_RunTwicePayload instance) =>
     <String, dynamic>{'agree': instance.agree};
 
+_DrawPayload _$DrawPayloadFromJson(Map<String, dynamic> json) => _DrawPayload(
+  points: (json['points'] as List<dynamic>)
+      .map((e) => (e as num).toDouble())
+      .toList(),
+);
+
+Map<String, dynamic> _$DrawPayloadToJson(_DrawPayload instance) =>
+    <String, dynamic>{'points': instance.points};
+
+_DrawErasePayload _$DrawErasePayloadFromJson(Map<String, dynamic> json) =>
+    _DrawErasePayload(
+      ids: (json['ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+    );
+
+Map<String, dynamic> _$DrawErasePayloadToJson(_DrawErasePayload instance) =>
+    <String, dynamic>{'ids': instance.ids};
+
+_DrawClearPayload _$DrawClearPayloadFromJson(Map<String, dynamic> json) =>
+    _DrawClearPayload(all: json['all'] as bool?);
+
+Map<String, dynamic> _$DrawClearPayloadToJson(_DrawClearPayload instance) =>
+    <String, dynamic>{'all': ?instance.all};
+
+_Stroke _$StrokeFromJson(Map<String, dynamic> json) => _Stroke(
+  id: (json['id'] as num).toInt(),
+  playerId: json['player_id'] as String,
+  seat: (json['seat'] as num).toInt(),
+  name: json['name'] as String,
+  avatar: (json['avatar'] as num).toInt(),
+  points: (json['points'] as List<dynamic>)
+      .map((e) => (e as num).toDouble())
+      .toList(),
+  ts: (json['ts'] as num).toInt(),
+);
+
+Map<String, dynamic> _$StrokeToJson(_Stroke instance) => <String, dynamic>{
+  'id': instance.id,
+  'player_id': instance.playerId,
+  'seat': instance.seat,
+  'name': instance.name,
+  'avatar': instance.avatar,
+  'points': instance.points,
+  'ts': instance.ts,
+};
+
+_DrawingsRemoved _$DrawingsRemovedFromJson(Map<String, dynamic> json) =>
+    _DrawingsRemoved(
+      ids: (json['ids'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
+      all: json['all'] as bool?,
+    );
+
+Map<String, dynamic> _$DrawingsRemovedToJson(_DrawingsRemoved instance) =>
+    <String, dynamic>{'ids': ?instance.ids, 'all': ?instance.all};
+
+_DrawingHistory _$DrawingHistoryFromJson(Map<String, dynamic> json) =>
+    _DrawingHistory(
+      strokes: (json['strokes'] as List<dynamic>)
+          .map((e) => Stroke.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$DrawingHistoryToJson(_DrawingHistory instance) =>
+    <String, dynamic>{
+      'strokes': instance.strokes.map((e) => e.toJson()).toList(),
+    };
+
+_AvatarPayload _$AvatarPayloadFromJson(Map<String, dynamic> json) =>
+    _AvatarPayload(avatar: (json['avatar'] as num).toInt());
+
+Map<String, dynamic> _$AvatarPayloadToJson(_AvatarPayload instance) =>
+    <String, dynamic>{'avatar': instance.avatar};
+
 _HatPayload _$HatPayloadFromJson(Map<String, dynamic> json) =>
     _HatPayload(hat: json['hat'] as String);
 
@@ -220,6 +296,8 @@ _PublicSettings _$PublicSettingsFromJson(Map<String, dynamic> json) =>
       spectatorChat: json['spectator_chat'] as bool,
       requiresPassword: json['requires_password'] as bool,
       allowRabbitHunt: json['allow_rabbit_hunt'] as bool,
+      allowDrawing: json['allow_drawing'] as bool? ?? true,
+      tournament: json['tournament'] as bool? ?? false,
       blindsUpMinutes: (json['blinds_up_minutes'] as num).toInt(),
       blindsUpPercent: (json['blinds_up_percent'] as num).toInt(),
       timeBankSeconds: (json['time_bank_seconds'] as num?)?.toInt() ?? 0,
@@ -245,6 +323,8 @@ Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
       'spectator_chat': instance.spectatorChat,
       'requires_password': instance.requiresPassword,
       'allow_rabbit_hunt': instance.allowRabbitHunt,
+      'allow_drawing': instance.allowDrawing,
+      'tournament': instance.tournament,
       'blinds_up_minutes': instance.blindsUpMinutes,
       'blinds_up_percent': instance.blindsUpPercent,
       'time_bank_seconds': instance.timeBankSeconds,

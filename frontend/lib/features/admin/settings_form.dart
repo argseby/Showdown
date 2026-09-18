@@ -16,6 +16,7 @@ class SettingsForm extends StatelessWidget {
     this.showName = false,
     this.showPasswordKeepHint = false,
     this.seated = 0,
+    this.locked = const {},
   });
 
   final SettingsFormState state;
@@ -25,6 +26,9 @@ class SettingsForm extends StatelessWidget {
   final bool showName;
   final bool showPasswordKeepHint;
   final int seated;
+
+  /// Fields a running tournament refuses to change (shown disabled).
+  final Set<String> locked;
 
   String? _errorText(AppLocalizations l10n, String field) {
     final server = serverErrors[field];
@@ -125,6 +129,7 @@ class SettingsForm extends StatelessWidget {
       TextField(
         key: Key('field-$key'),
         initialValue: state.numbers[key],
+        enabled: !locked.contains(key),
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9-]'))],
         onChanged: (v) => onChanged(state.setNumber(key, v)),
@@ -138,7 +143,9 @@ class SettingsForm extends StatelessWidget {
           Switch(
             key: Key('field-$key'),
             value: state.flags[key] ?? false,
-            onChanged: (v) => onChanged(state.setFlag(key, v)),
+            onChanged: locked.contains(key)
+                ? null
+                : (v) => onChanged(state.setFlag(key, v)),
           ),
           const Gap(8),
           Expanded(child: Text(label)),
@@ -167,6 +174,7 @@ class SettingsForm extends StatelessWidget {
         value: value,
         itemBuilder: (context, item) =>
             Text(options.firstWhere((o) => o.$1 == item).$2),
+        enabled: !locked.contains(key),
         onChanged: (v) {
           if (v != null) onSelect(v);
         },
@@ -312,6 +320,8 @@ class SettingsForm extends StatelessWidget {
         flag('chat_enabled', l10n.setChatEnabled),
         flag('allow_rebuy', l10n.setAllowRebuy),
         flag('allow_rabbit_hunt', l10n.setAllowRabbitHunt),
+        flag('tournament', l10n.setTournament),
+        flag('allow_drawing', l10n.setAllowDrawing),
         flag('allow_straddle', l10n.setAllowStraddle),
         flag('run_it_twice', l10n.setRunItTwice),
         flag('auto_start', l10n.setAutoStart),

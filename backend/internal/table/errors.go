@@ -16,6 +16,7 @@ var (
 	ErrInvalidState       = errors.New("not allowed in the current table state")
 	ErrSpectatorsDisabled = errors.New("spectators are not allowed")
 	ErrTableRunning       = errors.New("table is running")
+	ErrTournamentLocked   = errors.New("locked while the tournament runs")
 	ErrNotFound           = errors.New("not found")
 	ErrIllegalAction      = errors.New("illegal action")
 	ErrSeatTaken          = errors.New("seat taken")

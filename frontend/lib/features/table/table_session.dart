@@ -44,6 +44,7 @@ class TableSessionState {
     this.winnerLines = const [],
     this.phrases = const {},
     this.chatBubbles = const {},
+    this.drawings = const [],
     this.spotlight,
     this.winnerPotIndex,
     this.winnerAmounts = const {},
@@ -83,6 +84,9 @@ class TableSessionState {
   /// for a few seconds, by seat.
   final Map<int, String> chatBubbles;
 
+  /// Pencil strokes on the table, oldest first.
+  final List<Stroke> drawings;
+
   /// The pot whose award is being presented (0 = main pot, 1 = first side
   /// pot, ...); null when no pot is on display. Colours the winner visuals.
   final int? winnerPotIndex;
@@ -119,6 +123,7 @@ class TableSessionState {
     List<String>? winnerLines,
     Map<int, PhrasePayload>? phrases,
     Map<int, String>? chatBubbles,
+    List<Stroke>? drawings,
     Spotlight? spotlight,
     bool clearSpotlight = false,
     int? winnerPotIndex,
@@ -143,6 +148,7 @@ class TableSessionState {
     winnerLines: winnerLines ?? this.winnerLines,
     phrases: phrases ?? this.phrases,
     chatBubbles: chatBubbles ?? this.chatBubbles,
+    drawings: drawings ?? this.drawings,
     spotlight: clearSpotlight ? null : (spotlight ?? this.spotlight),
     winnerPotIndex: clearWinnerPot
         ? null
@@ -365,6 +371,19 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
             );
           }
         });
+      case DrawingMessage(:final payload):
+        state = state.copyWith(drawings: [...state.drawings, payload]);
+      case DrawingsRemovedMessage(:final payload):
+        state = state.copyWith(
+          drawings: payload.all ?? false
+              ? const []
+              : [
+                  for (final s in state.drawings)
+                    if (!(payload.ids ?? const []).contains(s.id)) s,
+                ],
+        );
+      case DrawingHistoryMessage(:final payload):
+        state = state.copyWith(drawings: payload.strokes);
       case AckMessage():
         break;
     }
@@ -735,6 +754,18 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
 
   /// Puts a hat on the own avatar (a hat id from hats.dart) or takes it off
   /// ("none"); everyone sees it as seats[].player.hat.
+  /// Pencil: a stroke (x,y pairs in 0..1), erasing by id, clearing own or
+  /// all strokes.
+  Future<void> draw(List<double> points) =>
+      _send(ClientMessage.draw(DrawPayload(points: points)));
+  Future<void> eraseDrawings(List<int> ids) =>
+      _send(ClientMessage.drawErase(DrawErasePayload(ids: ids)));
+  Future<void> clearDrawings({bool all = false}) =>
+      _send(ClientMessage.drawClear(DrawClearPayload(all: all ? true : null)));
+
+  /// Changes the own avatar (0..19).
+  Future<void> setAvatar(int avatar) =>
+      _send(ClientMessage.avatar(AvatarPayload(avatar: avatar)));
   Future<void> setHat(String hat) =>
       _send(ClientMessage.hat(HatPayload(hat: hat)));
 

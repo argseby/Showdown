@@ -13,3 +13,18 @@ final serverVersionProvider = FutureProvider<String?>(
 
 /// Opens external links (the project page in the footer) in a new tab.
 final linkOpenerProvider = Provider<LinkOpener>((ref) => LinkOpener.create());
+
+/// The table the viewer has just joined from the join page, so the play
+/// page shows the table rules once; null after that and after a reload.
+class JustJoinedNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void mark(String tableId) => state = tableId;
+
+  void clear() => state = null;
+}
+
+final justJoinedProvider = NotifierProvider<JustJoinedNotifier, String?>(
+  JustJoinedNotifier.new,
+);

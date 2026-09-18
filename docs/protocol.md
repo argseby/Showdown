@@ -150,12 +150,24 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 > - **Hats (2026-09-17).** `join` accepts `hat` and the `hat {hat}` message changes it at
 >   the table (§8.2). `seats[].player.hat` (omitted without a hat) and the admin detail's
 >   `players[].hat` show it. Ids: `top_hat, cowboy, crown, party, beanie, wizard, chef,
->   pirate, cap, halo, viking, sombrero`; the client draws them.
+>   pirate, cap, halo, viking, sombrero, fedora, bowler, santa, tiara, propeller,
+>   bunny_ears, flower_crown, headband`; the client draws them.
 > - **Running hot (2026-09-17).** `seats[].player.heat` (1..3, omitted at 0) is the
 >   player's streak of hands won in a row: 2 in a row = 1, 3 = 2, 4 or more = 3. A hand
 >   dealt in without winning a pot resets the streak (hands sat out do not count either
 >   way); the streak is stored with the player. The client draws a fire ring around the
 >   avatar in three intensities. The admin detail lists `players[].win_streak`.
+> - **Tournament mode (2026-09-18).** Setting `tournament` (default false, public as
+>   `settings.tournament`, also in the `info` response). The admin chip adjustment is
+>   refused with `tournament_locked` (409) for the life of such a table. Once it has dealt
+>   a hand (or is running), changes to `tournament, start_money, small_blind, big_blind,
+>   ante, max_players, variant, allow_rebuy, showdown_reveal, blinds_up_minutes,
+>   blinds_up_percent` and `change_seat` are refused the same way; `you.can_change_seat`
+>   is false. Time settings, chat, drawings, kicks and the
+>   manual blinds-up (equal for everyone, logged) stay available.
+> - **Pencil drawings (2026-09-18).** Setting `allow_drawing` (default true)
+>   enables the `draw` / `draw_erase` / `draw_clear` messages and the `drawing`,
+>   `drawings_removed`, `drawing_history` pushes (§8.2, §8.3).
 > - **Stickers (2026-09-17).** `say` takes `{sticker}` as an alternative to `{phrase}`;
 >   the broadcast `phrase` carries `sticker` instead of `phrase` then. The ids are listed
 >   in `protocol.Stickers`; the client bundles Noto Animated Emoji (CC BY 4.0) for them.
@@ -203,7 +215,11 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `rabbit_hunt` | `{}` | result phase, once per hand, by a player dealt in, when `allow_rabbit_hunt`: reveals the rest of the board (`rabbit_hunt` event, `hand.rabbit_cards`) |
 | `straddle` | `{on}` | arms/disarms the player's straddle (setting `allow_straddle`): whenever they sit left of the big blind with more than 2 BB they post 2×BB before the deal (`blind_posted {blind: "straddle"}`, `hand.straddle_seat`), act last preflop, and the minimum raise is twice the straddle; `you.straddle` mirrors it |
 | `run_twice` | `{agree}` | answer to the run-it-twice vote (setting `run_it_twice`): when everyone is all-in with cards to come the run-out waits up to 8 s (`hand.run_twice_ends_ts`, `you.can_run_twice`, `you.run_twice_vote`); if every live player agrees the remaining streets are dealt twice (`street_dealt {board: 2}`, `hand.board2`, `hand.run_twice`) and each pot is paid in halves per board (`pot_awarded {board: 1|2}`, odd chip to board 1); a single "no" or the timeout runs it once |
-| `hat` | `{hat}` | puts a hat on the player's avatar: one of `top_hat, cowboy, crown, party, beanie, wizard, chef, pirate, cap, halo, viking, sombrero`, or `none` to take it off (`illegal_action` for anything else); everyone sees it as `seats[].player.hat` (absent without a hat); it is stored with the player, so it survives reconnects and restarts; `join` accepts `hat` too. The client draws the hats, the server only knows the ids |
+| `hat` | `{hat}` | puts a hat on the player's avatar: one of `top_hat, cowboy, crown, party, beanie, wizard, chef, pirate, cap, halo, viking, sombrero, fedora, bowler, santa, tiara, propeller, bunny_ears, flower_crown, headband`, or `none` to take it off (`illegal_action` for anything else); everyone sees it as `seats[].player.hat` (absent without a hat); it is stored with the player, so it survives reconnects and restarts; `join` accepts `hat` too. The client draws the hats, the server only knows the ids |
+| `avatar` | `{avatar}` | changes the player's avatar (0–19, `illegal_action` otherwise); stored with the player like the hat |
+| `draw` | `{points}` | a pencil stroke on the table: `x0,y0,x1,y1,...` in 0–1 of the table area, at most 400 pairs (like `voice_signal` it may exceed the 8 KiB message cap, up to the 32 KiB frame; the client sends at most 200 points at three decimals); players only, when `allow_drawing`, not while chat-muted, at most 60 a minute (`rate_limited`); broadcast as `drawing`. A player keeps at most 40 strokes and the table 200, the oldest go first |
+| `draw_erase` | `{ids}` | removes strokes by id, anyone's; broadcast as `drawings_removed {ids}` |
+| `draw_clear` | `{all?}` | removes the sender's strokes, or every stroke with `all`; broadcast as `drawings_removed {ids}` or `{all: true}` |
 | `say` | `{phrase}` or `{sticker}` | a quick phrase, one of `nice_hand, nice_call, nice_fold, nice_bluff, well_played, gg, thanks, sorry, wow, oops, furious, lol, hurry_up, brb`, or an animated sticker, one of the ids in `protocol.Stickers` (22 poker scenes such as `all_in`, `royal_flush`, `bad_beat`, `tilt`, `shark`, then emoji such as `poker_face`, `fire`, `skull`; 64 in all; the client ships or draws the animations); exactly one of the two, players only, at most one every 3 s (`rate_limited`), rejected while chat-muted; broadcast as `phrase {seat, name, phrase?, sticker?, ts}` and never persisted |
 | `chat` | `{text}` | |
 | `ping` | `{}` | client keepalive; server answers `pong` |
@@ -229,6 +245,9 @@ Close codes from the server: `4001` bad token, `4002` unsupported protocol versi
 | `server_restarting` | `{}` |
 | `pong` | `{server_ts}` |
 | `phrase` | `{seat, name, phrase?, sticker?, ts}` — a quick phrase or a sticker to show next to the seat for a few seconds |
+| `drawing` | `{id, player_id, seat, name, avatar, points, ts}` — one new pencil stroke |
+| `drawings_removed` | `{ids?, all?}` — strokes gone |
+| `drawing_history` | `{strokes}` — every current stroke, sent on connect after `chat_history` when there are any; strokes are not persisted and vanish with the player who drew them |
 
 ### 8.4 Hand events
 

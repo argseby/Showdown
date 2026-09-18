@@ -196,6 +196,31 @@ final showHatsProvider = NotifierProvider<ShowHatsNotifier, bool>(
   ShowHatsNotifier.new,
 );
 
+/// Whether the pencil drawings on the table are shown (default on).
+class ShowDrawingsNotifier extends Notifier<bool> {
+  static const _key = 'pref:show_drawings';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return true;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final showDrawingsProvider = NotifierProvider<ShowDrawingsNotifier, bool>(
+  ShowDrawingsNotifier.new,
+);
+
 /// Whether win streaks (the fire ring around a seat running hot) are
 /// drawn, on every seat including the own one (default on).
 class ShowHeatNotifier extends Notifier<bool> {

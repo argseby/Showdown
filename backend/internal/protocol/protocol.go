@@ -35,10 +35,17 @@ const (
 	TypeSay         = "say"
 	TypeStraddle    = "straddle"
 	TypeRunTwice    = "run_twice"
-	// TypeHat puts a hat on the player's avatar (see Hats).
-	TypeHat  = "hat"
-	TypeChat = "chat"
-	TypePing = "ping"
+	// TypeHat puts a hat on the player's avatar (see Hats); TypeAvatar
+	// changes the avatar itself.
+	TypeHat    = "hat"
+	TypeAvatar = "avatar"
+	// Pencil drawings on the table: a stroke, erasing strokes by id, or
+	// clearing own / all strokes.
+	TypeDraw      = "draw"
+	TypeDrawErase = "draw_erase"
+	TypeDrawClear = "draw_clear"
+	TypeChat      = "chat"
+	TypePing      = "ping"
 )
 
 // Server → client message types.
@@ -56,6 +63,10 @@ const (
 	TypePong             = "pong"
 	// TypePhrase broadcasts a quick phrase a player picked (say).
 	TypePhrase = "phrase"
+	// Drawings: one new stroke, strokes removed, and the full set on connect.
+	TypeDrawing         = "drawing"
+	TypeDrawingsRemoved = "drawings_removed"
+	TypeDrawingHistory  = "drawing_history"
 )
 
 // WebSocket close codes sent by the server.
@@ -96,6 +107,7 @@ const (
 	ErrTooManyTables      = "too_many_tables"
 	ErrSeatTaken          = "seat_taken"
 	ErrRabbitNotAllowed   = "rabbit_not_allowed"
+	ErrTournamentLocked   = "tournament_locked"
 	ErrInternal           = "internal_error"
 )
 
@@ -140,7 +152,7 @@ type SayPayload struct {
 // scenes the client draws itself, the rest emoji.
 var Stickers = []string{
 	"all_in", "pocket_aces", "seven_deuce", "fold", "royal_flush",
-	"chip_rain", "shuffle", "dealer_button", "chip_flip", "bad_beat",
+	"chip_rain", "shuffle", "dealer_button", "chip_flip", "bad_beat", "good_fold", "nice_hand", "nice_bluff",
 	"quads", "straight", "hearts", "tilt", "cooler", "river",
 	"pot_splash", "fish", "shark", "knock", "raise", "time",
 	"poker_face", "cool", "smirk", "thinking", "eyebrow", "monocle",
@@ -149,7 +161,7 @@ var Stickers = []string{
 	"rofl", "sleeping", "drooling", "money_face", "star_struck", "party_face",
 	"pleading", "eye_roll", "clown", "skull", "cold", "hot",
 	"fire", "hundred", "party_popper", "money_wings", "clover", "fingers_crossed",
-	"thumbs_up", "thumbs_down", "clap", "pray", "flex", "trophy",
+	"thumbs_up", "thumbs_down", "clap", "pray", "flex", "trophy", "cursing", "broken_heart",
 }
 
 // Phrases are the quick phrases a player may say; the client translates them.
@@ -163,12 +175,60 @@ var Phrases = []string{
 var Hats = []string{
 	"top_hat", "cowboy", "crown", "party", "beanie", "wizard",
 	"chef", "pirate", "cap", "halo", "viking", "sombrero",
+	"fedora", "bowler", "santa", "tiara", "propeller", "bunny_ears",
+	"flower_crown", "headband",
 }
 
 // HatPayload changes the hat on the player's avatar: one of Hats, or "none"
 // (also "") to take it off.
 type HatPayload struct {
 	Hat string `json:"hat"`
+}
+
+// DrawPayload is one pencil stroke: points as x0,y0,x1,y1,... in 0..1 of
+// the table area (at most MaxStrokePoints pairs).
+type DrawPayload struct {
+	Points []float64 `json:"points"`
+}
+
+// MaxStrokePoints caps the points of one stroke.
+const MaxStrokePoints = 400
+
+// DrawErasePayload removes strokes by id (anyone may erase any stroke).
+type DrawErasePayload struct {
+	IDs []int64 `json:"ids"`
+}
+
+// DrawClearPayload removes the sender's strokes, or every stroke with All.
+type DrawClearPayload struct {
+	All bool `json:"all,omitempty"`
+}
+
+// Stroke is one drawing as everyone sees it; Avatar picks its colour.
+type Stroke struct {
+	ID       int64     `json:"id"`
+	PlayerID string    `json:"player_id"`
+	Seat     int       `json:"seat"`
+	Name     string    `json:"name"`
+	Avatar   int       `json:"avatar"`
+	Points   []float64 `json:"points"`
+	TS       int64     `json:"ts"`
+}
+
+// DrawingsRemoved lists removed stroke ids, or All for a clear.
+type DrawingsRemoved struct {
+	IDs []int64 `json:"ids,omitempty"`
+	All bool    `json:"all,omitempty"`
+}
+
+// DrawingHistory is every current stroke, sent on connect.
+type DrawingHistory struct {
+	Strokes []Stroke `json:"strokes"`
+}
+
+// AvatarPayload changes the player's avatar (0..19).
+type AvatarPayload struct {
+	Avatar int `json:"avatar"`
 }
 
 // PhrasePayload is a quick phrase or a sticker shown next to the player's
@@ -284,6 +344,11 @@ type PublicSettings struct {
 	// RunItTwice offers to deal the run-out twice when everyone is all-in.
 	RunItTwice      bool `json:"run_it_twice"`
 	AllowRabbitHunt bool `json:"allow_rabbit_hunt"`
+	// AllowDrawing lets players scribble on the table with the pencil.
+	AllowDrawing bool `json:"allow_drawing"`
+	// Tournament locks every setting that could move chips or information
+	// once the first hand is dealt, chip adjustments and seat changes too.
+	Tournament bool `json:"tournament"`
 	// Variant is the deck: "holdem" (52 cards) or "royal" (Ten to Ace only).
 	Variant         string `json:"variant"`
 	BlindsUpMinutes int    `json:"blinds_up_minutes"`

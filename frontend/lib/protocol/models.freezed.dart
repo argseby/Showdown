@@ -1660,6 +1660,1949 @@ as bool,
 
 
 /// @nodoc
+mixin _$DrawPayload {
+
+ List<double> get points;
+/// Create a copy of DrawPayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawPayloadCopyWith<DrawPayload> get copyWith => _$DrawPayloadCopyWithImpl<DrawPayload>(this as DrawPayload, _$identity);
+
+  /// Serializes this DrawPayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DrawPayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawPayload&&const DeepCollectionEquality().equals(other.points, _this.points));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DrawPayload;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.points));
+}
+
+@override
+String toString() {
+  final _this = this as DrawPayload;
+  return 'DrawPayload(points: ${_this.points})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawPayloadCopyWith<$Res>  {
+  factory $DrawPayloadCopyWith(DrawPayload value, $Res Function(DrawPayload) _then) = _$DrawPayloadCopyWithImpl;
+@useResult
+$Res call({
+ List<double> points
+});
+
+
+
+
+}
+/// @nodoc
+class _$DrawPayloadCopyWithImpl<$Res>
+    implements $DrawPayloadCopyWith<$Res> {
+  _$DrawPayloadCopyWithImpl(this._self, this._then);
+
+  final DrawPayload _self;
+  final $Res Function(DrawPayload) _then;
+
+/// Create a copy of DrawPayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? points = null,}) {
+  return _then(DrawPayload(
+points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
+as List<double>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DrawPayload].
+extension DrawPayloadPatterns on DrawPayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DrawPayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DrawPayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DrawPayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _DrawPayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DrawPayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DrawPayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<double> points)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DrawPayload() when $default != null:
+return $default(_that.points);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<double> points)  $default,) {final _that = this;
+switch (_that) {
+case _DrawPayload():
+return $default(_that.points);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<double> points)?  $default,) {final _that = this;
+switch (_that) {
+case _DrawPayload() when $default != null:
+return $default(_that.points);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DrawPayload implements DrawPayload {
+  const _DrawPayload({required  List<double> points}): _points = points;
+  factory _DrawPayload.fromJson(Map<String, dynamic> json) => _$DrawPayloadFromJson(json);
+
+ final  List<double> _points;
+@override List<double> get points {
+  if (_points is EqualUnmodifiableListView) return _points;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_points);
+}
+
+
+/// Create a copy of DrawPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DrawPayloadCopyWith<_DrawPayload> get copyWith => __$DrawPayloadCopyWithImpl<_DrawPayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DrawPayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DrawPayload&&const DeepCollectionEquality().equals(other.points, _points));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_points));
+}
+
+@override
+String toString() {
+    return 'DrawPayload(points: $points)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DrawPayloadCopyWith<$Res> implements $DrawPayloadCopyWith<$Res> {
+  factory _$DrawPayloadCopyWith(_DrawPayload value, $Res Function(_DrawPayload) _then) = __$DrawPayloadCopyWithImpl;
+@override @useResult
+$Res call({
+ List<double> points
+});
+
+
+
+
+}
+/// @nodoc
+class __$DrawPayloadCopyWithImpl<$Res>
+    implements _$DrawPayloadCopyWith<$Res> {
+  __$DrawPayloadCopyWithImpl(this._self, this._then);
+
+  final _DrawPayload _self;
+  final $Res Function(_DrawPayload) _then;
+
+/// Create a copy of DrawPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? points = null,}) {
+  return _then(_DrawPayload(
+points: null == points ? _self._points : points // ignore: cast_nullable_to_non_nullable
+as List<double>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DrawErasePayload {
+
+ List<int> get ids;
+/// Create a copy of DrawErasePayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawErasePayloadCopyWith<DrawErasePayload> get copyWith => _$DrawErasePayloadCopyWithImpl<DrawErasePayload>(this as DrawErasePayload, _$identity);
+
+  /// Serializes this DrawErasePayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DrawErasePayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawErasePayload&&const DeepCollectionEquality().equals(other.ids, _this.ids));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DrawErasePayload;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.ids));
+}
+
+@override
+String toString() {
+  final _this = this as DrawErasePayload;
+  return 'DrawErasePayload(ids: ${_this.ids})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawErasePayloadCopyWith<$Res>  {
+  factory $DrawErasePayloadCopyWith(DrawErasePayload value, $Res Function(DrawErasePayload) _then) = _$DrawErasePayloadCopyWithImpl;
+@useResult
+$Res call({
+ List<int> ids
+});
+
+
+
+
+}
+/// @nodoc
+class _$DrawErasePayloadCopyWithImpl<$Res>
+    implements $DrawErasePayloadCopyWith<$Res> {
+  _$DrawErasePayloadCopyWithImpl(this._self, this._then);
+
+  final DrawErasePayload _self;
+  final $Res Function(DrawErasePayload) _then;
+
+/// Create a copy of DrawErasePayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? ids = null,}) {
+  return _then(DrawErasePayload(
+ids: null == ids ? _self.ids : ids // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DrawErasePayload].
+extension DrawErasePayloadPatterns on DrawErasePayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DrawErasePayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DrawErasePayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DrawErasePayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _DrawErasePayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DrawErasePayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DrawErasePayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<int> ids)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DrawErasePayload() when $default != null:
+return $default(_that.ids);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<int> ids)  $default,) {final _that = this;
+switch (_that) {
+case _DrawErasePayload():
+return $default(_that.ids);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<int> ids)?  $default,) {final _that = this;
+switch (_that) {
+case _DrawErasePayload() when $default != null:
+return $default(_that.ids);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DrawErasePayload implements DrawErasePayload {
+  const _DrawErasePayload({required  List<int> ids}): _ids = ids;
+  factory _DrawErasePayload.fromJson(Map<String, dynamic> json) => _$DrawErasePayloadFromJson(json);
+
+ final  List<int> _ids;
+@override List<int> get ids {
+  if (_ids is EqualUnmodifiableListView) return _ids;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_ids);
+}
+
+
+/// Create a copy of DrawErasePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DrawErasePayloadCopyWith<_DrawErasePayload> get copyWith => __$DrawErasePayloadCopyWithImpl<_DrawErasePayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DrawErasePayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DrawErasePayload&&const DeepCollectionEquality().equals(other.ids, _ids));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_ids));
+}
+
+@override
+String toString() {
+    return 'DrawErasePayload(ids: $ids)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DrawErasePayloadCopyWith<$Res> implements $DrawErasePayloadCopyWith<$Res> {
+  factory _$DrawErasePayloadCopyWith(_DrawErasePayload value, $Res Function(_DrawErasePayload) _then) = __$DrawErasePayloadCopyWithImpl;
+@override @useResult
+$Res call({
+ List<int> ids
+});
+
+
+
+
+}
+/// @nodoc
+class __$DrawErasePayloadCopyWithImpl<$Res>
+    implements _$DrawErasePayloadCopyWith<$Res> {
+  __$DrawErasePayloadCopyWithImpl(this._self, this._then);
+
+  final _DrawErasePayload _self;
+  final $Res Function(_DrawErasePayload) _then;
+
+/// Create a copy of DrawErasePayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? ids = null,}) {
+  return _then(_DrawErasePayload(
+ids: null == ids ? _self._ids : ids // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DrawClearPayload {
+
+@JsonKey(includeIfNull: false) bool? get all;
+/// Create a copy of DrawClearPayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawClearPayloadCopyWith<DrawClearPayload> get copyWith => _$DrawClearPayloadCopyWithImpl<DrawClearPayload>(this as DrawClearPayload, _$identity);
+
+  /// Serializes this DrawClearPayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DrawClearPayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawClearPayload&&(identical(other.all, _this.all) || other.all == _this.all));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DrawClearPayload;
+  return Object.hash(runtimeType,_this.all);
+}
+
+@override
+String toString() {
+  final _this = this as DrawClearPayload;
+  return 'DrawClearPayload(all: ${_this.all})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawClearPayloadCopyWith<$Res>  {
+  factory $DrawClearPayloadCopyWith(DrawClearPayload value, $Res Function(DrawClearPayload) _then) = _$DrawClearPayloadCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(includeIfNull: false) bool? all
+});
+
+
+
+
+}
+/// @nodoc
+class _$DrawClearPayloadCopyWithImpl<$Res>
+    implements $DrawClearPayloadCopyWith<$Res> {
+  _$DrawClearPayloadCopyWithImpl(this._self, this._then);
+
+  final DrawClearPayload _self;
+  final $Res Function(DrawClearPayload) _then;
+
+/// Create a copy of DrawClearPayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? all = freezed,}) {
+  return _then(DrawClearPayload(
+all: freezed == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DrawClearPayload].
+extension DrawClearPayloadPatterns on DrawClearPayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DrawClearPayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DrawClearPayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DrawClearPayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _DrawClearPayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DrawClearPayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DrawClearPayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  bool? all)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DrawClearPayload() when $default != null:
+return $default(_that.all);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  bool? all)  $default,) {final _that = this;
+switch (_that) {
+case _DrawClearPayload():
+return $default(_that.all);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(includeIfNull: false)  bool? all)?  $default,) {final _that = this;
+switch (_that) {
+case _DrawClearPayload() when $default != null:
+return $default(_that.all);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DrawClearPayload implements DrawClearPayload {
+  const _DrawClearPayload({@JsonKey(includeIfNull: false) this.all});
+  factory _DrawClearPayload.fromJson(Map<String, dynamic> json) => _$DrawClearPayloadFromJson(json);
+
+@override@JsonKey(includeIfNull: false) final  bool? all;
+
+/// Create a copy of DrawClearPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DrawClearPayloadCopyWith<_DrawClearPayload> get copyWith => __$DrawClearPayloadCopyWithImpl<_DrawClearPayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DrawClearPayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DrawClearPayload&&(identical(other.all, all) || other.all == all));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,all);
+}
+
+@override
+String toString() {
+    return 'DrawClearPayload(all: $all)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DrawClearPayloadCopyWith<$Res> implements $DrawClearPayloadCopyWith<$Res> {
+  factory _$DrawClearPayloadCopyWith(_DrawClearPayload value, $Res Function(_DrawClearPayload) _then) = __$DrawClearPayloadCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(includeIfNull: false) bool? all
+});
+
+
+
+
+}
+/// @nodoc
+class __$DrawClearPayloadCopyWithImpl<$Res>
+    implements _$DrawClearPayloadCopyWith<$Res> {
+  __$DrawClearPayloadCopyWithImpl(this._self, this._then);
+
+  final _DrawClearPayload _self;
+  final $Res Function(_DrawClearPayload) _then;
+
+/// Create a copy of DrawClearPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? all = freezed,}) {
+  return _then(_DrawClearPayload(
+all: freezed == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$Stroke {
+
+ int get id; String get playerId; int get seat; String get name; int get avatar; List<double> get points; int get ts;
+/// Create a copy of Stroke
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StrokeCopyWith<Stroke> get copyWith => _$StrokeCopyWithImpl<Stroke>(this as Stroke, _$identity);
+
+  /// Serializes this Stroke to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as Stroke;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Stroke&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.playerId, _this.playerId) || other.playerId == _this.playerId)&&(identical(other.seat, _this.seat) || other.seat == _this.seat)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&const DeepCollectionEquality().equals(other.points, _this.points)&&(identical(other.ts, _this.ts) || other.ts == _this.ts));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as Stroke;
+  return Object.hash(runtimeType,_this.id,_this.playerId,_this.seat,_this.name,_this.avatar,const DeepCollectionEquality().hash(_this.points),_this.ts);
+}
+
+@override
+String toString() {
+  final _this = this as Stroke;
+  return 'Stroke(id: ${_this.id}, playerId: ${_this.playerId}, seat: ${_this.seat}, name: ${_this.name}, avatar: ${_this.avatar}, points: ${_this.points}, ts: ${_this.ts})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $StrokeCopyWith<$Res>  {
+  factory $StrokeCopyWith(Stroke value, $Res Function(Stroke) _then) = _$StrokeCopyWithImpl;
+@useResult
+$Res call({
+ int id, String playerId, int seat, String name, int avatar, List<double> points, int ts
+});
+
+
+
+
+}
+/// @nodoc
+class _$StrokeCopyWithImpl<$Res>
+    implements $StrokeCopyWith<$Res> {
+  _$StrokeCopyWithImpl(this._self, this._then);
+
+  final Stroke _self;
+  final $Res Function(Stroke) _then;
+
+/// Create a copy of Stroke
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? playerId = null,Object? seat = null,Object? name = null,Object? avatar = null,Object? points = null,Object? ts = null,}) {
+  return _then(Stroke(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
+as String,seat: null == seat ? _self.seat : seat // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
+as List<double>,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [Stroke].
+extension StrokePatterns on Stroke {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Stroke value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Stroke() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Stroke value)  $default,){
+final _that = this;
+switch (_that) {
+case _Stroke():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Stroke value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Stroke() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String playerId,  int seat,  String name,  int avatar,  List<double> points,  int ts)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Stroke() when $default != null:
+return $default(_that.id,_that.playerId,_that.seat,_that.name,_that.avatar,_that.points,_that.ts);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String playerId,  int seat,  String name,  int avatar,  List<double> points,  int ts)  $default,) {final _that = this;
+switch (_that) {
+case _Stroke():
+return $default(_that.id,_that.playerId,_that.seat,_that.name,_that.avatar,_that.points,_that.ts);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String playerId,  int seat,  String name,  int avatar,  List<double> points,  int ts)?  $default,) {final _that = this;
+switch (_that) {
+case _Stroke() when $default != null:
+return $default(_that.id,_that.playerId,_that.seat,_that.name,_that.avatar,_that.points,_that.ts);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _Stroke implements Stroke {
+  const _Stroke({required this.id, required this.playerId, required this.seat, required this.name, required this.avatar, required  List<double> points, required this.ts}): _points = points;
+  factory _Stroke.fromJson(Map<String, dynamic> json) => _$StrokeFromJson(json);
+
+@override final  int id;
+@override final  String playerId;
+@override final  int seat;
+@override final  String name;
+@override final  int avatar;
+ final  List<double> _points;
+@override List<double> get points {
+  if (_points is EqualUnmodifiableListView) return _points;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_points);
+}
+
+@override final  int ts;
+
+/// Create a copy of Stroke
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StrokeCopyWith<_Stroke> get copyWith => __$StrokeCopyWithImpl<_Stroke>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$StrokeToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Stroke&&(identical(other.id, id) || other.id == id)&&(identical(other.playerId, playerId) || other.playerId == playerId)&&(identical(other.seat, seat) || other.seat == seat)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other.points, _points)&&(identical(other.ts, ts) || other.ts == ts));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,playerId,seat,name,avatar,const DeepCollectionEquality().hash(_points),ts);
+}
+
+@override
+String toString() {
+    return 'Stroke(id: $id, playerId: $playerId, seat: $seat, name: $name, avatar: $avatar, points: $points, ts: $ts)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$StrokeCopyWith<$Res> implements $StrokeCopyWith<$Res> {
+  factory _$StrokeCopyWith(_Stroke value, $Res Function(_Stroke) _then) = __$StrokeCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String playerId, int seat, String name, int avatar, List<double> points, int ts
+});
+
+
+
+
+}
+/// @nodoc
+class __$StrokeCopyWithImpl<$Res>
+    implements _$StrokeCopyWith<$Res> {
+  __$StrokeCopyWithImpl(this._self, this._then);
+
+  final _Stroke _self;
+  final $Res Function(_Stroke) _then;
+
+/// Create a copy of Stroke
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? playerId = null,Object? seat = null,Object? name = null,Object? avatar = null,Object? points = null,Object? ts = null,}) {
+  return _then(_Stroke(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,playerId: null == playerId ? _self.playerId : playerId // ignore: cast_nullable_to_non_nullable
+as String,seat: null == seat ? _self.seat : seat // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,points: null == points ? _self._points : points // ignore: cast_nullable_to_non_nullable
+as List<double>,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DrawingsRemoved {
+
+@JsonKey(includeIfNull: false) List<int>? get ids;@JsonKey(includeIfNull: false) bool? get all;
+/// Create a copy of DrawingsRemoved
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawingsRemovedCopyWith<DrawingsRemoved> get copyWith => _$DrawingsRemovedCopyWithImpl<DrawingsRemoved>(this as DrawingsRemoved, _$identity);
+
+  /// Serializes this DrawingsRemoved to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DrawingsRemoved;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawingsRemoved&&const DeepCollectionEquality().equals(other.ids, _this.ids)&&(identical(other.all, _this.all) || other.all == _this.all));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DrawingsRemoved;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.ids),_this.all);
+}
+
+@override
+String toString() {
+  final _this = this as DrawingsRemoved;
+  return 'DrawingsRemoved(ids: ${_this.ids}, all: ${_this.all})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawingsRemovedCopyWith<$Res>  {
+  factory $DrawingsRemovedCopyWith(DrawingsRemoved value, $Res Function(DrawingsRemoved) _then) = _$DrawingsRemovedCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(includeIfNull: false) List<int>? ids,@JsonKey(includeIfNull: false) bool? all
+});
+
+
+
+
+}
+/// @nodoc
+class _$DrawingsRemovedCopyWithImpl<$Res>
+    implements $DrawingsRemovedCopyWith<$Res> {
+  _$DrawingsRemovedCopyWithImpl(this._self, this._then);
+
+  final DrawingsRemoved _self;
+  final $Res Function(DrawingsRemoved) _then;
+
+/// Create a copy of DrawingsRemoved
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? ids = freezed,Object? all = freezed,}) {
+  return _then(DrawingsRemoved(
+ids: freezed == ids ? _self.ids : ids // ignore: cast_nullable_to_non_nullable
+as List<int>?,all: freezed == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DrawingsRemoved].
+extension DrawingsRemovedPatterns on DrawingsRemoved {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DrawingsRemoved value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DrawingsRemoved() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DrawingsRemoved value)  $default,){
+final _that = this;
+switch (_that) {
+case _DrawingsRemoved():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DrawingsRemoved value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DrawingsRemoved() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  List<int>? ids, @JsonKey(includeIfNull: false)  bool? all)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DrawingsRemoved() when $default != null:
+return $default(_that.ids,_that.all);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(includeIfNull: false)  List<int>? ids, @JsonKey(includeIfNull: false)  bool? all)  $default,) {final _that = this;
+switch (_that) {
+case _DrawingsRemoved():
+return $default(_that.ids,_that.all);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(includeIfNull: false)  List<int>? ids, @JsonKey(includeIfNull: false)  bool? all)?  $default,) {final _that = this;
+switch (_that) {
+case _DrawingsRemoved() when $default != null:
+return $default(_that.ids,_that.all);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DrawingsRemoved implements DrawingsRemoved {
+  const _DrawingsRemoved({@JsonKey(includeIfNull: false)  List<int>? ids, @JsonKey(includeIfNull: false) this.all}): _ids = ids;
+  factory _DrawingsRemoved.fromJson(Map<String, dynamic> json) => _$DrawingsRemovedFromJson(json);
+
+ final  List<int>? _ids;
+@override@JsonKey(includeIfNull: false) List<int>? get ids {
+  final value = _ids;
+  if (value == null) return null;
+  if (_ids is EqualUnmodifiableListView) return _ids;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override@JsonKey(includeIfNull: false) final  bool? all;
+
+/// Create a copy of DrawingsRemoved
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DrawingsRemovedCopyWith<_DrawingsRemoved> get copyWith => __$DrawingsRemovedCopyWithImpl<_DrawingsRemoved>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DrawingsRemovedToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DrawingsRemoved&&const DeepCollectionEquality().equals(other.ids, _ids)&&(identical(other.all, all) || other.all == all));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_ids),all);
+}
+
+@override
+String toString() {
+    return 'DrawingsRemoved(ids: $ids, all: $all)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DrawingsRemovedCopyWith<$Res> implements $DrawingsRemovedCopyWith<$Res> {
+  factory _$DrawingsRemovedCopyWith(_DrawingsRemoved value, $Res Function(_DrawingsRemoved) _then) = __$DrawingsRemovedCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(includeIfNull: false) List<int>? ids,@JsonKey(includeIfNull: false) bool? all
+});
+
+
+
+
+}
+/// @nodoc
+class __$DrawingsRemovedCopyWithImpl<$Res>
+    implements _$DrawingsRemovedCopyWith<$Res> {
+  __$DrawingsRemovedCopyWithImpl(this._self, this._then);
+
+  final _DrawingsRemoved _self;
+  final $Res Function(_DrawingsRemoved) _then;
+
+/// Create a copy of DrawingsRemoved
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? ids = freezed,Object? all = freezed,}) {
+  return _then(_DrawingsRemoved(
+ids: freezed == ids ? _self._ids : ids // ignore: cast_nullable_to_non_nullable
+as List<int>?,all: freezed == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DrawingHistory {
+
+ List<Stroke> get strokes;
+/// Create a copy of DrawingHistory
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DrawingHistoryCopyWith<DrawingHistory> get copyWith => _$DrawingHistoryCopyWithImpl<DrawingHistory>(this as DrawingHistory, _$identity);
+
+  /// Serializes this DrawingHistory to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as DrawingHistory;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DrawingHistory&&const DeepCollectionEquality().equals(other.strokes, _this.strokes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as DrawingHistory;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.strokes));
+}
+
+@override
+String toString() {
+  final _this = this as DrawingHistory;
+  return 'DrawingHistory(strokes: ${_this.strokes})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DrawingHistoryCopyWith<$Res>  {
+  factory $DrawingHistoryCopyWith(DrawingHistory value, $Res Function(DrawingHistory) _then) = _$DrawingHistoryCopyWithImpl;
+@useResult
+$Res call({
+ List<Stroke> strokes
+});
+
+
+
+
+}
+/// @nodoc
+class _$DrawingHistoryCopyWithImpl<$Res>
+    implements $DrawingHistoryCopyWith<$Res> {
+  _$DrawingHistoryCopyWithImpl(this._self, this._then);
+
+  final DrawingHistory _self;
+  final $Res Function(DrawingHistory) _then;
+
+/// Create a copy of DrawingHistory
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? strokes = null,}) {
+  return _then(DrawingHistory(
+strokes: null == strokes ? _self.strokes : strokes // ignore: cast_nullable_to_non_nullable
+as List<Stroke>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DrawingHistory].
+extension DrawingHistoryPatterns on DrawingHistory {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DrawingHistory value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DrawingHistory() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DrawingHistory value)  $default,){
+final _that = this;
+switch (_that) {
+case _DrawingHistory():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DrawingHistory value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DrawingHistory() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Stroke> strokes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DrawingHistory() when $default != null:
+return $default(_that.strokes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Stroke> strokes)  $default,) {final _that = this;
+switch (_that) {
+case _DrawingHistory():
+return $default(_that.strokes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Stroke> strokes)?  $default,) {final _that = this;
+switch (_that) {
+case _DrawingHistory() when $default != null:
+return $default(_that.strokes);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DrawingHistory implements DrawingHistory {
+  const _DrawingHistory({required  List<Stroke> strokes}): _strokes = strokes;
+  factory _DrawingHistory.fromJson(Map<String, dynamic> json) => _$DrawingHistoryFromJson(json);
+
+ final  List<Stroke> _strokes;
+@override List<Stroke> get strokes {
+  if (_strokes is EqualUnmodifiableListView) return _strokes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_strokes);
+}
+
+
+/// Create a copy of DrawingHistory
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DrawingHistoryCopyWith<_DrawingHistory> get copyWith => __$DrawingHistoryCopyWithImpl<_DrawingHistory>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DrawingHistoryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DrawingHistory&&const DeepCollectionEquality().equals(other.strokes, _strokes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_strokes));
+}
+
+@override
+String toString() {
+    return 'DrawingHistory(strokes: $strokes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DrawingHistoryCopyWith<$Res> implements $DrawingHistoryCopyWith<$Res> {
+  factory _$DrawingHistoryCopyWith(_DrawingHistory value, $Res Function(_DrawingHistory) _then) = __$DrawingHistoryCopyWithImpl;
+@override @useResult
+$Res call({
+ List<Stroke> strokes
+});
+
+
+
+
+}
+/// @nodoc
+class __$DrawingHistoryCopyWithImpl<$Res>
+    implements _$DrawingHistoryCopyWith<$Res> {
+  __$DrawingHistoryCopyWithImpl(this._self, this._then);
+
+  final _DrawingHistory _self;
+  final $Res Function(_DrawingHistory) _then;
+
+/// Create a copy of DrawingHistory
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? strokes = null,}) {
+  return _then(_DrawingHistory(
+strokes: null == strokes ? _self._strokes : strokes // ignore: cast_nullable_to_non_nullable
+as List<Stroke>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$AvatarPayload {
+
+ int get avatar;
+/// Create a copy of AvatarPayload
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AvatarPayloadCopyWith<AvatarPayload> get copyWith => _$AvatarPayloadCopyWithImpl<AvatarPayload>(this as AvatarPayload, _$identity);
+
+  /// Serializes this AvatarPayload to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as AvatarPayload;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AvatarPayload&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as AvatarPayload;
+  return Object.hash(runtimeType,_this.avatar);
+}
+
+@override
+String toString() {
+  final _this = this as AvatarPayload;
+  return 'AvatarPayload(avatar: ${_this.avatar})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AvatarPayloadCopyWith<$Res>  {
+  factory $AvatarPayloadCopyWith(AvatarPayload value, $Res Function(AvatarPayload) _then) = _$AvatarPayloadCopyWithImpl;
+@useResult
+$Res call({
+ int avatar
+});
+
+
+
+
+}
+/// @nodoc
+class _$AvatarPayloadCopyWithImpl<$Res>
+    implements $AvatarPayloadCopyWith<$Res> {
+  _$AvatarPayloadCopyWithImpl(this._self, this._then);
+
+  final AvatarPayload _self;
+  final $Res Function(AvatarPayload) _then;
+
+/// Create a copy of AvatarPayload
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? avatar = null,}) {
+  return _then(AvatarPayload(
+avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [AvatarPayload].
+extension AvatarPayloadPatterns on AvatarPayload {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _AvatarPayload value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _AvatarPayload() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _AvatarPayload value)  $default,){
+final _that = this;
+switch (_that) {
+case _AvatarPayload():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _AvatarPayload value)?  $default,){
+final _that = this;
+switch (_that) {
+case _AvatarPayload() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int avatar)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _AvatarPayload() when $default != null:
+return $default(_that.avatar);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int avatar)  $default,) {final _that = this;
+switch (_that) {
+case _AvatarPayload():
+return $default(_that.avatar);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int avatar)?  $default,) {final _that = this;
+switch (_that) {
+case _AvatarPayload() when $default != null:
+return $default(_that.avatar);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _AvatarPayload implements AvatarPayload {
+  const _AvatarPayload({required this.avatar});
+  factory _AvatarPayload.fromJson(Map<String, dynamic> json) => _$AvatarPayloadFromJson(json);
+
+@override final  int avatar;
+
+/// Create a copy of AvatarPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AvatarPayloadCopyWith<_AvatarPayload> get copyWith => __$AvatarPayloadCopyWithImpl<_AvatarPayload>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$AvatarPayloadToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AvatarPayload&&(identical(other.avatar, avatar) || other.avatar == avatar));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,avatar);
+}
+
+@override
+String toString() {
+    return 'AvatarPayload(avatar: $avatar)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AvatarPayloadCopyWith<$Res> implements $AvatarPayloadCopyWith<$Res> {
+  factory _$AvatarPayloadCopyWith(_AvatarPayload value, $Res Function(_AvatarPayload) _then) = __$AvatarPayloadCopyWithImpl;
+@override @useResult
+$Res call({
+ int avatar
+});
+
+
+
+
+}
+/// @nodoc
+class __$AvatarPayloadCopyWithImpl<$Res>
+    implements _$AvatarPayloadCopyWith<$Res> {
+  __$AvatarPayloadCopyWithImpl(this._self, this._then);
+
+  final _AvatarPayload _self;
+  final $Res Function(_AvatarPayload) _then;
+
+/// Create a copy of AvatarPayload
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? avatar = null,}) {
+  return _then(_AvatarPayload(
+avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$HatPayload {
 
  String get hat;
@@ -5108,7 +7051,7 @@ $PublicSettingsCopyWith<$Res> get settings {
 /// @nodoc
 mixin _$PublicSettings {
 
- int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; int get blindsUpMinutes; int get blindsUpPercent; int get timeBankSeconds; int get timeBankRefillSeconds; bool get allowStraddle; bool get runItTwice; String get variant;
+ int get smallBlind; int get bigBlind; int get ante; int get turnTime; int get maxPlayers; int get startMoney; String get joinPolicy; bool get allowRebuy; String get showdownReveal; bool get chatEnabled; bool get spectatorChat; bool get requiresPassword; bool get allowRabbitHunt; bool get allowDrawing; bool get tournament; int get blindsUpMinutes; int get blindsUpPercent; int get timeBankSeconds; int get timeBankRefillSeconds; bool get allowStraddle; bool get runItTwice; String get variant;
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5122,20 +7065,20 @@ $PublicSettingsCopyWith<PublicSettings> get copyWith => _$PublicSettingsCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as PublicSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent)&&(identical(other.timeBankSeconds, _this.timeBankSeconds) || other.timeBankSeconds == _this.timeBankSeconds)&&(identical(other.timeBankRefillSeconds, _this.timeBankRefillSeconds) || other.timeBankRefillSeconds == _this.timeBankRefillSeconds)&&(identical(other.allowStraddle, _this.allowStraddle) || other.allowStraddle == _this.allowStraddle)&&(identical(other.runItTwice, _this.runItTwice) || other.runItTwice == _this.runItTwice)&&(identical(other.variant, _this.variant) || other.variant == _this.variant));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicSettings&&(identical(other.smallBlind, _this.smallBlind) || other.smallBlind == _this.smallBlind)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&(identical(other.ante, _this.ante) || other.ante == _this.ante)&&(identical(other.turnTime, _this.turnTime) || other.turnTime == _this.turnTime)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.startMoney, _this.startMoney) || other.startMoney == _this.startMoney)&&(identical(other.joinPolicy, _this.joinPolicy) || other.joinPolicy == _this.joinPolicy)&&(identical(other.allowRebuy, _this.allowRebuy) || other.allowRebuy == _this.allowRebuy)&&(identical(other.showdownReveal, _this.showdownReveal) || other.showdownReveal == _this.showdownReveal)&&(identical(other.chatEnabled, _this.chatEnabled) || other.chatEnabled == _this.chatEnabled)&&(identical(other.spectatorChat, _this.spectatorChat) || other.spectatorChat == _this.spectatorChat)&&(identical(other.requiresPassword, _this.requiresPassword) || other.requiresPassword == _this.requiresPassword)&&(identical(other.allowRabbitHunt, _this.allowRabbitHunt) || other.allowRabbitHunt == _this.allowRabbitHunt)&&(identical(other.allowDrawing, _this.allowDrawing) || other.allowDrawing == _this.allowDrawing)&&(identical(other.tournament, _this.tournament) || other.tournament == _this.tournament)&&(identical(other.blindsUpMinutes, _this.blindsUpMinutes) || other.blindsUpMinutes == _this.blindsUpMinutes)&&(identical(other.blindsUpPercent, _this.blindsUpPercent) || other.blindsUpPercent == _this.blindsUpPercent)&&(identical(other.timeBankSeconds, _this.timeBankSeconds) || other.timeBankSeconds == _this.timeBankSeconds)&&(identical(other.timeBankRefillSeconds, _this.timeBankRefillSeconds) || other.timeBankRefillSeconds == _this.timeBankRefillSeconds)&&(identical(other.allowStraddle, _this.allowStraddle) || other.allowStraddle == _this.allowStraddle)&&(identical(other.runItTwice, _this.runItTwice) || other.runItTwice == _this.runItTwice)&&(identical(other.variant, _this.variant) || other.variant == _this.variant));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PublicSettings;
-  return Object.hashAll([runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.blindsUpMinutes,_this.blindsUpPercent,_this.timeBankSeconds,_this.timeBankRefillSeconds,_this.allowStraddle,_this.runItTwice,_this.variant]);
+  return Object.hashAll([runtimeType,_this.smallBlind,_this.bigBlind,_this.ante,_this.turnTime,_this.maxPlayers,_this.startMoney,_this.joinPolicy,_this.allowRebuy,_this.showdownReveal,_this.chatEnabled,_this.spectatorChat,_this.requiresPassword,_this.allowRabbitHunt,_this.allowDrawing,_this.tournament,_this.blindsUpMinutes,_this.blindsUpPercent,_this.timeBankSeconds,_this.timeBankRefillSeconds,_this.allowStraddle,_this.runItTwice,_this.variant]);
 }
 
 @override
 String toString() {
   final _this = this as PublicSettings;
-  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent}, timeBankSeconds: ${_this.timeBankSeconds}, timeBankRefillSeconds: ${_this.timeBankRefillSeconds}, allowStraddle: ${_this.allowStraddle}, runItTwice: ${_this.runItTwice}, variant: ${_this.variant})';
+  return 'PublicSettings(smallBlind: ${_this.smallBlind}, bigBlind: ${_this.bigBlind}, ante: ${_this.ante}, turnTime: ${_this.turnTime}, maxPlayers: ${_this.maxPlayers}, startMoney: ${_this.startMoney}, joinPolicy: ${_this.joinPolicy}, allowRebuy: ${_this.allowRebuy}, showdownReveal: ${_this.showdownReveal}, chatEnabled: ${_this.chatEnabled}, spectatorChat: ${_this.spectatorChat}, requiresPassword: ${_this.requiresPassword}, allowRabbitHunt: ${_this.allowRabbitHunt}, allowDrawing: ${_this.allowDrawing}, tournament: ${_this.tournament}, blindsUpMinutes: ${_this.blindsUpMinutes}, blindsUpPercent: ${_this.blindsUpPercent}, timeBankSeconds: ${_this.timeBankSeconds}, timeBankRefillSeconds: ${_this.timeBankRefillSeconds}, allowStraddle: ${_this.allowStraddle}, runItTwice: ${_this.runItTwice}, variant: ${_this.variant})';
 }
 
 
@@ -5146,7 +7089,7 @@ abstract mixin class $PublicSettingsCopyWith<$Res>  {
   factory $PublicSettingsCopyWith(PublicSettings value, $Res Function(PublicSettings) _then) = _$PublicSettingsCopyWithImpl;
 @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice, String variant
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, bool allowDrawing, bool tournament, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice, String variant
 });
 
 
@@ -5163,7 +7106,7 @@ class _$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,Object? variant = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? allowDrawing = null,Object? tournament = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,Object? variant = null,}) {
   return _then(PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -5178,6 +7121,8 @@ as String,chatEnabled: null == chatEnabled ? _self.chatEnabled : chatEnabled // 
 as bool,spectatorChat: null == spectatorChat ? _self.spectatorChat : spectatorChat // ignore: cast_nullable_to_non_nullable
 as bool,requiresPassword: null == requiresPassword ? _self.requiresPassword : requiresPassword // ignore: cast_nullable_to_non_nullable
 as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allowRabbitHunt // ignore: cast_nullable_to_non_nullable
+as bool,allowDrawing: null == allowDrawing ? _self.allowDrawing : allowDrawing // ignore: cast_nullable_to_non_nullable
+as bool,tournament: null == tournament ? _self.tournament : tournament // ignore: cast_nullable_to_non_nullable
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
 as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable
@@ -5270,10 +7215,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  bool allowDrawing,  bool tournament,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.allowDrawing,_that.tournament,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
   return orElse();
 
 }
@@ -5291,10 +7236,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  bool allowDrawing,  bool tournament,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings():
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.allowDrawing,_that.tournament,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5311,10 +7256,10 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int smallBlind,  int bigBlind,  int ante,  int turnTime,  int maxPlayers,  int startMoney,  String joinPolicy,  bool allowRebuy,  String showdownReveal,  bool chatEnabled,  bool spectatorChat,  bool requiresPassword,  bool allowRabbitHunt,  bool allowDrawing,  bool tournament,  int blindsUpMinutes,  int blindsUpPercent,  int timeBankSeconds,  int timeBankRefillSeconds,  bool allowStraddle,  bool runItTwice,  String variant)?  $default,) {final _that = this;
 switch (_that) {
 case _PublicSettings() when $default != null:
-return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
+return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.maxPlayers,_that.startMoney,_that.joinPolicy,_that.allowRebuy,_that.showdownReveal,_that.chatEnabled,_that.spectatorChat,_that.requiresPassword,_that.allowRabbitHunt,_that.allowDrawing,_that.tournament,_that.blindsUpMinutes,_that.blindsUpPercent,_that.timeBankSeconds,_that.timeBankRefillSeconds,_that.allowStraddle,_that.runItTwice,_that.variant);case _:
   return null;
 
 }
@@ -5326,7 +7271,7 @@ return $default(_that.smallBlind,_that.bigBlind,_that.ante,_that.turnTime,_that.
 @JsonSerializable()
 
 class _PublicSettings implements PublicSettings {
-  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, required this.blindsUpMinutes, required this.blindsUpPercent, this.timeBankSeconds = 0, this.timeBankRefillSeconds = 1, this.allowStraddle = false, this.runItTwice = false, this.variant = 'holdem'});
+  const _PublicSettings({required this.smallBlind, required this.bigBlind, required this.ante, required this.turnTime, required this.maxPlayers, required this.startMoney, required this.joinPolicy, required this.allowRebuy, required this.showdownReveal, required this.chatEnabled, required this.spectatorChat, required this.requiresPassword, required this.allowRabbitHunt, this.allowDrawing = true, this.tournament = false, required this.blindsUpMinutes, required this.blindsUpPercent, this.timeBankSeconds = 0, this.timeBankRefillSeconds = 1, this.allowStraddle = false, this.runItTwice = false, this.variant = 'holdem'});
   factory _PublicSettings.fromJson(Map<String, dynamic> json) => _$PublicSettingsFromJson(json);
 
 @override final  int smallBlind;
@@ -5342,6 +7287,8 @@ class _PublicSettings implements PublicSettings {
 @override final  bool spectatorChat;
 @override final  bool requiresPassword;
 @override final  bool allowRabbitHunt;
+@override@JsonKey() final  bool allowDrawing;
+@override@JsonKey() final  bool tournament;
 @override final  int blindsUpMinutes;
 @override final  int blindsUpPercent;
 @override@JsonKey() final  int timeBankSeconds;
@@ -5363,18 +7310,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent)&&(identical(other.timeBankSeconds, timeBankSeconds) || other.timeBankSeconds == timeBankSeconds)&&(identical(other.timeBankRefillSeconds, timeBankRefillSeconds) || other.timeBankRefillSeconds == timeBankRefillSeconds)&&(identical(other.allowStraddle, allowStraddle) || other.allowStraddle == allowStraddle)&&(identical(other.runItTwice, runItTwice) || other.runItTwice == runItTwice)&&(identical(other.variant, variant) || other.variant == variant));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicSettings&&(identical(other.smallBlind, smallBlind) || other.smallBlind == smallBlind)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&(identical(other.ante, ante) || other.ante == ante)&&(identical(other.turnTime, turnTime) || other.turnTime == turnTime)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.startMoney, startMoney) || other.startMoney == startMoney)&&(identical(other.joinPolicy, joinPolicy) || other.joinPolicy == joinPolicy)&&(identical(other.allowRebuy, allowRebuy) || other.allowRebuy == allowRebuy)&&(identical(other.showdownReveal, showdownReveal) || other.showdownReveal == showdownReveal)&&(identical(other.chatEnabled, chatEnabled) || other.chatEnabled == chatEnabled)&&(identical(other.spectatorChat, spectatorChat) || other.spectatorChat == spectatorChat)&&(identical(other.requiresPassword, requiresPassword) || other.requiresPassword == requiresPassword)&&(identical(other.allowRabbitHunt, allowRabbitHunt) || other.allowRabbitHunt == allowRabbitHunt)&&(identical(other.allowDrawing, allowDrawing) || other.allowDrawing == allowDrawing)&&(identical(other.tournament, tournament) || other.tournament == tournament)&&(identical(other.blindsUpMinutes, blindsUpMinutes) || other.blindsUpMinutes == blindsUpMinutes)&&(identical(other.blindsUpPercent, blindsUpPercent) || other.blindsUpPercent == blindsUpPercent)&&(identical(other.timeBankSeconds, timeBankSeconds) || other.timeBankSeconds == timeBankSeconds)&&(identical(other.timeBankRefillSeconds, timeBankRefillSeconds) || other.timeBankRefillSeconds == timeBankRefillSeconds)&&(identical(other.allowStraddle, allowStraddle) || other.allowStraddle == allowStraddle)&&(identical(other.runItTwice, runItTwice) || other.runItTwice == runItTwice)&&(identical(other.variant, variant) || other.variant == variant));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,blindsUpMinutes,blindsUpPercent,timeBankSeconds,timeBankRefillSeconds,allowStraddle,runItTwice,variant]);
+    return Object.hashAll([runtimeType,smallBlind,bigBlind,ante,turnTime,maxPlayers,startMoney,joinPolicy,allowRebuy,showdownReveal,chatEnabled,spectatorChat,requiresPassword,allowRabbitHunt,allowDrawing,tournament,blindsUpMinutes,blindsUpPercent,timeBankSeconds,timeBankRefillSeconds,allowStraddle,runItTwice,variant]);
 }
 
 @override
 String toString() {
-    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent, timeBankSeconds: $timeBankSeconds, timeBankRefillSeconds: $timeBankRefillSeconds, allowStraddle: $allowStraddle, runItTwice: $runItTwice, variant: $variant)';
+    return 'PublicSettings(smallBlind: $smallBlind, bigBlind: $bigBlind, ante: $ante, turnTime: $turnTime, maxPlayers: $maxPlayers, startMoney: $startMoney, joinPolicy: $joinPolicy, allowRebuy: $allowRebuy, showdownReveal: $showdownReveal, chatEnabled: $chatEnabled, spectatorChat: $spectatorChat, requiresPassword: $requiresPassword, allowRabbitHunt: $allowRabbitHunt, allowDrawing: $allowDrawing, tournament: $tournament, blindsUpMinutes: $blindsUpMinutes, blindsUpPercent: $blindsUpPercent, timeBankSeconds: $timeBankSeconds, timeBankRefillSeconds: $timeBankRefillSeconds, allowStraddle: $allowStraddle, runItTwice: $runItTwice, variant: $variant)';
 }
 
 
@@ -5385,7 +7332,7 @@ abstract mixin class _$PublicSettingsCopyWith<$Res> implements $PublicSettingsCo
   factory _$PublicSettingsCopyWith(_PublicSettings value, $Res Function(_PublicSettings) _then) = __$PublicSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice, String variant
+ int smallBlind, int bigBlind, int ante, int turnTime, int maxPlayers, int startMoney, String joinPolicy, bool allowRebuy, String showdownReveal, bool chatEnabled, bool spectatorChat, bool requiresPassword, bool allowRabbitHunt, bool allowDrawing, bool tournament, int blindsUpMinutes, int blindsUpPercent, int timeBankSeconds, int timeBankRefillSeconds, bool allowStraddle, bool runItTwice, String variant
 });
 
 
@@ -5402,7 +7349,7 @@ class __$PublicSettingsCopyWithImpl<$Res>
 
 /// Create a copy of PublicSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,Object? variant = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? smallBlind = null,Object? bigBlind = null,Object? ante = null,Object? turnTime = null,Object? maxPlayers = null,Object? startMoney = null,Object? joinPolicy = null,Object? allowRebuy = null,Object? showdownReveal = null,Object? chatEnabled = null,Object? spectatorChat = null,Object? requiresPassword = null,Object? allowRabbitHunt = null,Object? allowDrawing = null,Object? tournament = null,Object? blindsUpMinutes = null,Object? blindsUpPercent = null,Object? timeBankSeconds = null,Object? timeBankRefillSeconds = null,Object? allowStraddle = null,Object? runItTwice = null,Object? variant = null,}) {
   return _then(_PublicSettings(
 smallBlind: null == smallBlind ? _self.smallBlind : smallBlind // ignore: cast_nullable_to_non_nullable
 as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
@@ -5417,6 +7364,8 @@ as String,chatEnabled: null == chatEnabled ? _self.chatEnabled : chatEnabled // 
 as bool,spectatorChat: null == spectatorChat ? _self.spectatorChat : spectatorChat // ignore: cast_nullable_to_non_nullable
 as bool,requiresPassword: null == requiresPassword ? _self.requiresPassword : requiresPassword // ignore: cast_nullable_to_non_nullable
 as bool,allowRabbitHunt: null == allowRabbitHunt ? _self.allowRabbitHunt : allowRabbitHunt // ignore: cast_nullable_to_non_nullable
+as bool,allowDrawing: null == allowDrawing ? _self.allowDrawing : allowDrawing // ignore: cast_nullable_to_non_nullable
+as bool,tournament: null == tournament ? _self.tournament : tournament // ignore: cast_nullable_to_non_nullable
 as bool,blindsUpMinutes: null == blindsUpMinutes ? _self.blindsUpMinutes : blindsUpMinutes // ignore: cast_nullable_to_non_nullable
 as int,blindsUpPercent: null == blindsUpPercent ? _self.blindsUpPercent : blindsUpPercent // ignore: cast_nullable_to_non_nullable
 as int,timeBankSeconds: null == timeBankSeconds ? _self.timeBankSeconds : timeBankSeconds // ignore: cast_nullable_to_non_nullable

@@ -1083,6 +1083,149 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setBlindsUpPercent => 'Blinds erhöhen um (%)';
 
   @override
+  String get setAllowDrawing => 'Zeichnen auf dem Tisch erlauben';
+
+  @override
+  String get setTournament =>
+      'Turniermodus: keine Chip-Korrekturen, und sobald eine Hand gegeben ist, sind Geld- und Informationseinstellungen und Platzwechsel gesperrt, auch für den Host';
+
+  @override
+  String get tournamentBadge => 'Turnier';
+
+  @override
+  String get tournamentLockedNote =>
+      'Turnier läuft: die Einstellungen, die Chips bewegen oder das Wissen der Spieler ändern könnten, sind gesperrt.';
+
+  @override
+  String get rulesTitle => 'Regeln an diesem Tisch';
+
+  @override
+  String get rulesShow => 'Anzeigen';
+
+  @override
+  String rulesIntro(String table) {
+    return 'So ist $table eingestellt. Du findest das jederzeit wieder unter Einstellungen.';
+  }
+
+  @override
+  String get rulesGame => 'Spiel';
+
+  @override
+  String get rulesBlinds => 'Blinds';
+
+  @override
+  String get rulesBlindSchedule => 'Blindstruktur';
+
+  @override
+  String rulesBlindsUp(int minutes, int percent) {
+    return 'Alle $minutes min um $percent % höher';
+  }
+
+  @override
+  String get rulesBlindsUpOff => 'Fest';
+
+  @override
+  String get rulesTiming => 'Zeit';
+
+  @override
+  String rulesTurnTime(int seconds) {
+    return '$seconds s pro Zug';
+  }
+
+  @override
+  String rulesTimeBank(int seconds, int refill) {
+    return '$seconds s Zeitbank, +$refill s pro Hand';
+  }
+
+  @override
+  String get rulesSeatChange => 'Platzwechsel';
+
+  @override
+  String get rulesSeatChangeFree =>
+      'Zwischen den Händen, kostet einen toten Big Blind';
+
+  @override
+  String get rulesSeatChangeUntilDeal => 'Nur bis die erste Hand gegeben ist';
+
+  @override
+  String get rulesSeatChangeLocked => 'Gesperrt, es wurde schon gegeben';
+
+  @override
+  String get rulesOptions => 'Optionen';
+
+  @override
+  String get rulesPassword => 'Passwortgeschützt';
+
+  @override
+  String get rulesTournament => 'Turniermodus';
+
+  @override
+  String get rulesLockedNow => 'gesperrt';
+
+  @override
+  String get rulesTournamentBody =>
+      'Alle spielen mit dem Startgeld: der Host kann nie Chips geben oder nehmen. Sobald eine Hand gegeben ist, sind Blinds, Ante, Startgeld, Rebuys, Spiel, Showdown-Aufdecken, Blindstruktur und Plätze gesperrt, auch für den Host.';
+
+  @override
+  String get rulesCashGame => 'Cashgame';
+
+  @override
+  String get rulesCashGameBody =>
+      'Der Host darf jederzeit Chips geben oder nehmen und Blinds und andere Einstellungen ändern; Geldänderungen gelten ab der nächsten Hand.';
+
+  @override
+  String get rulesHost => 'Was der Host darf';
+
+  @override
+  String get rulesHostLifecycle =>
+      'Tisch starten, pausieren und beenden, Spieler rauswerfen';
+
+  @override
+  String get rulesHostModeration =>
+      'Chat stummschalten, Mikrofon oder Kamera eines Spielers ausschalten (nie einschalten)';
+
+  @override
+  String get rulesHostTiming =>
+      'Zugzeit, Zeitbank und Pause zwischen den Händen ändern';
+
+  @override
+  String get rulesHostBlindsUp =>
+      'Blinds von Hand erhöhen, für alle und protokolliert';
+
+  @override
+  String get rulesHostChips => 'Chips geben oder nehmen';
+
+  @override
+  String get rulesHostMoney =>
+      'Blinds, Startgeld, Rebuys, Spiel und Showdown-Aufdecken jederzeit ändern';
+
+  @override
+  String get rulesHostMoneyBeforeDeal =>
+      'Blinds, Startgeld, Rebuys, Spiel und Showdown-Aufdecken ändern, nur bis zur ersten Hand';
+
+  @override
+  String get rulesHostMoneyLocked =>
+      'Blinds, Startgeld, Rebuys, Spiel oder Showdown-Aufdecken ändern (seit der ersten Hand gesperrt)';
+
+  @override
+  String get showDrawings => 'Zeichnungen anzeigen';
+
+  @override
+  String get peerHideDrawings => 'Zeichnungen ausblenden';
+
+  @override
+  String get drawPencil => 'Auf den Tisch zeichnen';
+
+  @override
+  String get drawEraser => 'Radierer';
+
+  @override
+  String get drawClearMine => 'Meine Zeichnungen löschen';
+
+  @override
+  String get drawClearAll => 'Alle Zeichnungen löschen';
+
+  @override
   String get setAllowRabbitHunt => 'Rabbit Hunting erlauben';
 
   @override
@@ -1321,7 +1464,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ton, Deck, Chips, Darstellungsgröße, Sprache, Design';
 
   @override
-  String get settingsTableHint => 'Dein Hut, anderer Tisch, verlassen';
+  String get settingsTableHint =>
+      'Dein Hut, die Tischregeln, anderer Tisch, verlassen';
 
   @override
   String get hostControls => 'Spielsteuerung';
@@ -1379,6 +1523,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get hatChange => 'Hut ändern';
 
   @override
+  String get lookTitle => 'Avatar & Hut';
+
+  @override
+  String get selfMenuTitle => 'Du';
+
+  @override
   String get hatNone => 'Kein Hut';
 
   @override
@@ -1396,6 +1546,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get playerMenuEveryone => 'Für alle (Host)';
+
+  @override
+  String get hostMuteAll => 'Chat, Sticker und Zeichnungen stummschalten';
+
+  @override
+  String get hostMic => 'Mikrofon';
+
+  @override
+  String get hostCamera => 'Kamera';
+
+  @override
+  String get hostOnlyPlayerUnmutes =>
+      'Der Host kann das nur ausschalten; einschalten kann es nur der Spieler';
 
   @override
   String get peerVolume => 'Lautstärke';
@@ -1462,6 +1625,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'halo': 'Heiligenschein',
       'viking': 'Wikingerhelm',
       'sombrero': 'Sombrero',
+      'fedora': 'Fedora',
+      'bowler': 'Melone',
+      'santa': 'Weihnachtsmütze',
+      'tiara': 'Diadem',
+      'propeller': 'Propellermütze',
+      'bunny_ears': 'Hasenohren',
+      'flower_crown': 'Blumenkranz',
+      'headband': 'Stirnband',
       'other': 'Hut',
     });
     return '$_temp0';

@@ -19,6 +19,9 @@ const pokerStickerIds = <String>[
   'dealer_button',
   'chip_flip',
   'bad_beat',
+  'good_fold',
+  'nice_hand',
+  'nice_bluff',
   'quads',
   'straight',
   'hearts',
@@ -42,11 +45,16 @@ class PokerSticker extends StatefulWidget {
     required this.id,
     required this.size,
     this.animate = true,
+    this.fps,
   });
 
   final String id;
   final double size;
   final bool animate;
+
+  /// Repaints per second (null = every frame). The picker shows many at
+  /// once and a third of the rate is plenty at that size.
+  final int? fps;
 
   /// The phase of the still frame: reveals done, labels up.
   static const stillPhase = 0.6;
@@ -59,27 +67,39 @@ class _PokerStickerState extends State<PokerSticker>
     with SingleTickerProviderStateMixin {
   AnimationController? _c;
 
+  /// The phase the scene is drawn at; with [PokerSticker.fps] set it only
+  /// changes that often, so the scene repaints at that rate.
+  final _phase = ValueNotifier<double>(0);
+
+  static const _loop = PokerSceneFrame.loop;
+
   @override
   void initState() {
     super.initState();
     if (widget.animate) {
-      _c = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 2600),
-      )..repeat();
+      final c = AnimationController(vsync: this, duration: _loop)..repeat();
+      final fps = widget.fps;
+      final steps = fps == null
+          ? 0
+          : (fps * _loop.inMilliseconds / 1000).round();
+      c.addListener(() {
+        final v = steps == 0 ? c.value : (c.value * steps).floor() / steps;
+        if (v != _phase.value) _phase.value = v;
+      });
+      _c = c;
     }
   }
 
   @override
   void dispose() {
     _c?.dispose();
+    _phase.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = _c;
-    if (c == null) {
+    if (_c == null) {
       return _Scene(
         id: widget.id,
         t: PokerSticker.stillPhase,
@@ -87,13 +107,34 @@ class _PokerStickerState extends State<PokerSticker>
       );
     }
     return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: c,
-        builder: (context, _) =>
-            _Scene(id: widget.id, t: c.value, size: widget.size),
+      child: ValueListenableBuilder<double>(
+        valueListenable: _phase,
+        builder: (context, t, _) =>
+            _Scene(id: widget.id, t: t, size: widget.size),
       ),
     );
   }
+}
+
+/// One frame of a poker scene: [id] at phase [t] (0..1) in a [size]
+/// square, with no animation of its own. The picker captures these.
+class PokerSceneFrame extends StatelessWidget {
+  const PokerSceneFrame({
+    super.key,
+    required this.id,
+    required this.t,
+    required this.size,
+  });
+
+  final String id;
+  final double t;
+  final double size;
+
+  /// Length of every scene's loop.
+  static const loop = Duration(milliseconds: 2600);
+
+  @override
+  Widget build(BuildContext context) => _Scene(id: id, t: t, size: size);
 }
 
 /// Builds the scene for [id] at phase [t] (0..1) in a [size] square.
@@ -242,6 +283,89 @@ class _Scene extends StatelessWidget {
           flip('Ah', a: 0.4, b: 0.65, c: p(0.6, 0.52), angle: 0.12),
           _sparkle(p(0.2, 0.2), 0.7),
           _sparkle(p(0.82, 0.25), 0.8),
+        ];
+      case 'good_fold':
+        // The cards slide away face down and a green tick lands: the right
+        // lay-down.
+        final s = seg(0.15, 0.55, Curves.easeInOut);
+        final tick = seg(0.55, 0.75, Curves.easeOutBack);
+        return [
+          for (var i = 0; i < 2; i++)
+            card(
+              null,
+              c: p(0.42 + 0.14 * i - 0.55 * s, 0.5 + 0.03 * i),
+              angle: (i == 0 ? -0.1 : 0.1) - s * 0.6,
+              opacity: 1 - s * 0.6,
+            ),
+          Positioned(
+            left: size * 0.58,
+            top: size * 0.3,
+            child: Transform.scale(
+              scale: tick,
+              child: Icon(
+                LucideIcons.circleCheck,
+                size: size * 0.34,
+                color: const Color(0xFF43A047),
+              ),
+            ),
+          ),
+          label('GOOD FOLD', a: 0.7, color: const Color(0xFF66BB6A)),
+        ];
+      case 'nice_hand':
+        // A strong hand turns over and gets its applause.
+        final clap = seg(0.6, 0.95, Curves.easeInOut);
+        return [
+          flip('Ks', a: 0.15, b: 0.4, c: p(0.4, 0.48), angle: -0.12),
+          flip('Kh', a: 0.3, b: 0.55, c: p(0.6, 0.5), angle: 0.12),
+          for (var i = 0; i < 6; i++)
+            Positioned(
+              left: size * (0.1 + 0.16 * i),
+              top:
+                  size * (0.12 + 0.06 * (i % 2)) -
+                  size * 0.1 * math.sin(clap * math.pi + i),
+              child: Opacity(
+                opacity: seg(0.55, 0.7),
+                child: Icon(
+                  LucideIcons.sparkles,
+                  size: size * 0.1,
+                  color: const Color(0xFFFFD54F),
+                ),
+              ),
+            ),
+          label('NICE HAND', a: 0.65, color: const Color(0xFFFFD54F)),
+        ];
+      case 'nice_bluff':
+        // Two face-down cards shoved forward with a stack, then a wink.
+        final push = seg(0.1, 0.45, Curves.easeOutCubic);
+        return [
+          for (var i = 0; i < 2; i++)
+            card(
+              null,
+              c: p(0.4 + 0.14 * i, 0.62 - 0.3 * push),
+              angle: i == 0 ? -0.08 : 0.08,
+            ),
+          Positioned(
+            left: size * 0.62,
+            top: size * (0.75 - 0.25 * push),
+            child: SizedBox(
+              width: size * 0.22,
+              height: size * 0.22,
+              child: CustomPaint(painter: _ChipPilePainter(size * 0.22)),
+            ),
+          ),
+          Positioned(
+            left: size * 0.1,
+            top: size * 0.08,
+            child: Opacity(
+              opacity: seg(0.5, 0.65),
+              child: Icon(
+                LucideIcons.eyeClosed,
+                size: size * 0.2,
+                color: const Color(0xFFFFFFFF),
+              ),
+            ),
+          ),
+          label('NICE BLUFF', a: 0.7, color: const Color(0xFFFF7043)),
         ];
       case 'seven_deuce':
         return [
@@ -843,4 +967,33 @@ class _BoltPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BoltPainter old) => false;
+}
+
+/// A small pile of three chips for the bluff scene.
+class _ChipPilePainter extends CustomPainter {
+  const _ChipPilePainter(this.side);
+
+  final double side;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const colors = [Color(0xFFE53935), Color(0xFF1E88E5), Color(0xFF43A047)];
+    for (var i = 0; i < 3; i++) {
+      final c = Offset(side / 2, side * (0.7 - 0.18 * i));
+      canvas.drawOval(
+        Rect.fromCenter(center: c, width: side * 0.9, height: side * 0.42),
+        Paint()..color = colors[i],
+      );
+      canvas.drawOval(
+        Rect.fromCenter(center: c, width: side * 0.55, height: side * 0.24),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = side * 0.06
+          ..color = const Color(0xFFFFFFFF),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ChipPilePainter old) => old.side != side;
 }

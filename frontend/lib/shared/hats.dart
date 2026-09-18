@@ -19,6 +19,14 @@ const hatIds = <String>[
   'halo',
   'viking',
   'sombrero',
+  'fedora',
+  'bowler',
+  'santa',
+  'tiara',
+  'propeller',
+  'bunny_ears',
+  'flower_crown',
+  'headband',
 ];
 
 /// The wire value that takes the hat off.
@@ -311,6 +319,110 @@ class HatPainter extends CustomPainter {
         );
         shape(dome(0.34, 0.66, 0.76, 0.06), const Color(0xFFF9A825));
         box(0.34, 0.58, 0.66, 0.7, const Color(0xFFD84315));
+      case 'fedora':
+        final crown = Path()
+          ..moveTo(0.25 * w, 0.74 * h)
+          ..lineTo(0.3 * w, 0.16 * h)
+          ..quadraticBezierTo(0.5 * w, 0.02 * h, 0.7 * w, 0.16 * h)
+          ..lineTo(0.75 * w, 0.74 * h)
+          ..close();
+        shape(crown, const Color(0xFF5D4037));
+        // The pinch in the crown.
+        canvas.drawLine(
+          o(0.5, 0.1),
+          o(0.5, 0.3),
+          Paint()
+            ..color = const Color(0x55000000)
+            ..strokeWidth = w * 0.03
+            ..strokeCap = StrokeCap.round,
+        );
+        box(0.25, 0.58, 0.75, 0.7, const Color(0xFF212121));
+        shape(
+          Path()..addOval(r(0.02, 0.62, 0.98, 0.9)),
+          const Color(0xFF6D4C41),
+        );
+      case 'bowler':
+        const dark = Color(0xFF263238);
+        shape(dome(0.26, 0.74, 0.76, 0.1), dark);
+        box(0.26, 0.62, 0.74, 0.72, const Color(0xFF455A64));
+        shape(Path()..addOval(r(0.06, 0.64, 0.94, 0.9)), dark);
+      case 'santa':
+        final cap = Path()
+          ..moveTo(0.22 * w, 0.78 * h)
+          ..quadraticBezierTo(0.3 * w, 0.2 * h, 0.6 * w, 0.08 * h)
+          ..quadraticBezierTo(0.82 * w, 0.0, 0.9 * w, 0.18 * h)
+          ..quadraticBezierTo(0.72 * w, 0.14 * h, 0.64 * w, 0.32 * h)
+          ..lineTo(0.78 * w, 0.78 * h)
+          ..close();
+        shape(cap, const Color(0xFFE53935));
+        box(0.14, 0.72, 0.86, 0.92, const Color(0xFFFAFAFA));
+        dot(0.9, 0.18, 0.09, const Color(0xFFFAFAFA));
+      case 'tiara':
+        final points = Path()
+          ..moveTo(0.22 * w, 0.86 * h)
+          ..lineTo(0.26 * w, 0.52 * h)
+          ..lineTo(0.38 * w, 0.68 * h)
+          ..lineTo(0.5 * w, 0.28 * h)
+          ..lineTo(0.62 * w, 0.68 * h)
+          ..lineTo(0.74 * w, 0.52 * h)
+          ..lineTo(0.78 * w, 0.86 * h)
+          ..close();
+        shape(points, const Color(0xFFE0E0E0));
+        dot(0.5, 0.5, 0.055, const Color(0xFFEC407A));
+        dot(0.3, 0.68, 0.03, const Color(0xFF80DEEA));
+        dot(0.7, 0.68, 0.03, const Color(0xFF80DEEA));
+      case 'propeller':
+        shape(dome(0.16, 0.84, 0.82, 0.3), const Color(0xFFFFB300));
+        final wedge = Path()
+          ..moveTo(0.5 * w, 0.82 * h)
+          ..quadraticBezierTo(0.5 * w, 0.3 * h, 0.5 * w, 0.3 * h)
+          ..quadraticBezierTo(0.7 * w, 0.32 * h, 0.78 * w, 0.82 * h)
+          ..close();
+        shape(wedge, const Color(0xFF1E88E5));
+        canvas.drawLine(
+          o(0.5, 0.3),
+          o(0.5, 0.12),
+          Paint()
+            ..color = const Color(0xFF616161)
+            ..strokeWidth = w * 0.035,
+        );
+        shape(
+          Path()..addOval(r(0.18, 0.06, 0.5, 0.18)),
+          const Color(0xFFE53935),
+        );
+        shape(
+          Path()..addOval(r(0.5, 0.06, 0.82, 0.18)),
+          const Color(0xFF43A047),
+        );
+        dot(0.5, 0.12, 0.04, const Color(0xFF616161));
+      case 'bunny_ears':
+        const fur = Color(0xFFFAFAFA);
+        const inner = Color(0xFFF8BBD0);
+        for (final x in [0.34, 0.66]) {
+          shape(Path()..addOval(r(x - 0.11, 0.0, x + 0.11, 0.8)), fur);
+          canvas.drawOval(
+            r(x - 0.05, 0.1, x + 0.05, 0.68),
+            Paint()..color = inner,
+          );
+        }
+        box(0.18, 0.74, 0.82, 0.86, const Color(0xFF9E9E9E));
+      case 'flower_crown':
+        box(0.08, 0.62, 0.92, 0.8, const Color(0xFF66BB6A));
+        for (final (x, y, c) in [
+          (0.22, 0.7, const Color(0xFFF48FB1)),
+          (0.42, 0.6, const Color(0xFFFFEE58)),
+          (0.62, 0.62, const Color(0xFFFAFAFA)),
+          (0.82, 0.7, const Color(0xFFCE93D8)),
+        ]) {
+          dot(x, y, 0.075, c);
+          dot(x, y, 0.03, const Color(0xFFFFA000));
+        }
+      case 'headband':
+        box(0.1, 0.5, 0.9, 0.74, const Color(0xFFEF5350));
+        canvas.drawRect(
+          r(0.1, 0.58, 0.9, 0.65),
+          Paint()..color = const Color(0xFFFAFAFA),
+        );
       default:
         // An id this client does not know (a newer server): draw nothing.
         break;

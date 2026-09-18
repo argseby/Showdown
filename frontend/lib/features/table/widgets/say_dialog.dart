@@ -50,6 +50,10 @@ Future<void> showSayDialog(
               Text(l10n.sayStickers.toUpperCase()).muted().xSmall().semiBold(),
               const Gap(6),
               StickerPicker(
+                height: (MediaQuery.sizeOf(context).height * 0.4).clamp(
+                  180.0,
+                  360.0,
+                ),
                 onSelected: (id) {
                   closeOverlay<void>(dialog);
                   ref

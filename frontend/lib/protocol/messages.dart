@@ -26,6 +26,11 @@ sealed class ServerMessage with _$ServerMessage {
   const factory ServerMessage.voiceSignal(VoiceSignal payload) =
       VoiceSignalMessage;
   const factory ServerMessage.phrase(PhrasePayload payload) = PhraseMessage;
+  const factory ServerMessage.drawing(Stroke payload) = DrawingMessage;
+  const factory ServerMessage.drawingsRemoved(DrawingsRemoved payload) =
+      DrawingsRemovedMessage;
+  const factory ServerMessage.drawingHistory(DrawingHistory payload) =
+      DrawingHistoryMessage;
 }
 
 /// Every message the client can send. [toEnvelope] adds the command id.
@@ -53,6 +58,12 @@ sealed class ClientMessage with _$ClientMessage {
   const factory ClientMessage.runTwice(RunTwicePayload payload) =
       RunTwiceMessage;
   const factory ClientMessage.hat(HatPayload payload) = HatMessage;
+  const factory ClientMessage.avatar(AvatarPayload payload) = AvatarMessage;
+  const factory ClientMessage.draw(DrawPayload payload) = DrawMessage;
+  const factory ClientMessage.drawErase(DrawErasePayload payload) =
+      DrawEraseMessage;
+  const factory ClientMessage.drawClear(DrawClearPayload payload) =
+      DrawClearMessage;
   const factory ClientMessage.chat(ChatPayload payload) = ChatClientMessage;
   const factory ClientMessage.ping() = PingMessage;
 }
@@ -76,6 +87,13 @@ class MessageTypes {
   static const straddle = 'straddle';
   static const runTwice = 'run_twice';
   static const hat = 'hat';
+  static const avatar = 'avatar';
+  static const draw = 'draw';
+  static const drawErase = 'draw_erase';
+  static const drawClear = 'draw_clear';
+  static const drawing = 'drawing';
+  static const drawingsRemoved = 'drawings_removed';
+  static const drawingHistory = 'drawing_history';
   static const chat = 'chat';
   static const ping = 'ping';
   static const welcome = 'welcome';
@@ -127,6 +145,16 @@ ServerMessage decodeServerMessage(Envelope env) {
         return ServerMessage.voiceSignal(VoiceSignal.fromJson(_payload(env)));
       case MessageTypes.phrase:
         return ServerMessage.phrase(PhrasePayload.fromJson(_payload(env)));
+      case MessageTypes.drawing:
+        return ServerMessage.drawing(Stroke.fromJson(_payload(env)));
+      case MessageTypes.drawingsRemoved:
+        return ServerMessage.drawingsRemoved(
+          DrawingsRemoved.fromJson(_payload(env)),
+        );
+      case MessageTypes.drawingHistory:
+        return ServerMessage.drawingHistory(
+          DrawingHistory.fromJson(_payload(env)),
+        );
     }
   } on ProtocolError {
     rethrow;
@@ -194,6 +222,18 @@ Envelope encodeServerMessage(ServerMessage msg) => switch (msg) {
     type: MessageTypes.phrase,
     payload: payload.toJson(),
   ),
+  DrawingMessage(:final payload) => Envelope(
+    type: MessageTypes.drawing,
+    payload: payload.toJson(),
+  ),
+  DrawingsRemovedMessage(:final payload) => Envelope(
+    type: MessageTypes.drawingsRemoved,
+    payload: payload.toJson(),
+  ),
+  DrawingHistoryMessage(:final payload) => Envelope(
+    type: MessageTypes.drawingHistory,
+    payload: payload.toJson(),
+  ),
 };
 
 /// Decodes a client envelope (used by tests and fixtures).
@@ -238,6 +278,18 @@ ClientMessage decodeClientMessage(Envelope env) {
         return ClientMessage.runTwice(RunTwicePayload.fromJson(_payload(env)));
       case MessageTypes.hat:
         return ClientMessage.hat(HatPayload.fromJson(_payload(env)));
+      case MessageTypes.avatar:
+        return ClientMessage.avatar(AvatarPayload.fromJson(_payload(env)));
+      case MessageTypes.draw:
+        return ClientMessage.draw(DrawPayload.fromJson(_payload(env)));
+      case MessageTypes.drawErase:
+        return ClientMessage.drawErase(
+          DrawErasePayload.fromJson(_payload(env)),
+        );
+      case MessageTypes.drawClear:
+        return ClientMessage.drawClear(
+          DrawClearPayload.fromJson(_payload(env)),
+        );
       case MessageTypes.chat:
         return ClientMessage.chat(ChatPayload.fromJson(_payload(env)));
       case MessageTypes.ping:
@@ -314,6 +366,26 @@ Envelope encodeClientMessage(ClientMessage msg, {String? id}) => switch (msg) {
   ),
   HatMessage(:final payload) => Envelope(
     type: MessageTypes.hat,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  AvatarMessage(:final payload) => Envelope(
+    type: MessageTypes.avatar,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  DrawMessage(:final payload) => Envelope(
+    type: MessageTypes.draw,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  DrawEraseMessage(:final payload) => Envelope(
+    type: MessageTypes.drawErase,
+    id: id,
+    payload: payload.toJson(),
+  ),
+  DrawClearMessage(:final payload) => Envelope(
+    type: MessageTypes.drawClear,
     id: id,
     payload: payload.toJson(),
   ),

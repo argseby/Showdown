@@ -42,7 +42,10 @@ const detailJson =
     '"players":[{"id":"p1","name":"Alice","seat":0,"stack":12000,"status":"active","connected":true,"muted":false,"missed_turns":0,'
     '"buy_in_total":10000,"hands_played":3,"hands_won":2,"biggest_pot":900,"joined_at":1}],"spectators":1,"connections":2,"join_url":"/t/k7m2p9xq4w"}';
 
-RestClient restFor(List<String> log) => RestClient(
+RestClient restFor(
+  List<String> log, {
+  String detail = detailJson,
+}) => RestClient(
   baseUrl: 'http://test',
   client: MockClient((req) async {
     log.add('${req.method} ${req.url.path} ${req.body}');
@@ -53,7 +56,7 @@ RestClient restFor(List<String> log) => RestClient(
       );
     }
     if (req.url.path == '/api/admin/tables/k7m2p9xq4w' && req.method == 'GET') {
-      return http.Response(detailJson, 200);
+      return http.Response(detail, 200);
     }
     if (req.url.path.endsWith('/hands')) {
       return http.Response('{"hands":[]}', 200);
@@ -137,6 +140,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Alice'), findsWidgets);
     expect(find.text('Kick'), findsOneWidget);
+  });
+
+  testWidgets('a tournament has no chips button on the players page', (
+    tester,
+  ) async {
+    final log = <String>[];
+    tester.view.physicalSize = const Size(900, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      wrap(
+        const AdminPanel(tableId: 'k7m2p9xq4w', token: 'adm'),
+        overrides: [
+          restClientProvider.overrideWithValue(
+            restFor(
+              log,
+              detail: detailJson.replaceFirst(
+                '"auto_start":true',
+                '"auto_start":true,"tournament":true',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Players'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kick'), findsOneWidget);
+    expect(find.text('Chips'), findsNothing);
   });
 
   testWidgets('the settings menu shows the host pages only with a token', (

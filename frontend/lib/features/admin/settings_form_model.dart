@@ -22,6 +22,8 @@ const Map<String, AppliesWhen> settingsApplies = {
   'auto_start': AppliesWhen.immediately,
   'hand_delay_ms': AppliesWhen.nextHand,
   'allow_rabbit_hunt': AppliesWhen.immediately,
+  'allow_drawing': AppliesWhen.immediately,
+  'tournament': AppliesWhen.immediately,
   'blinds_up_minutes': AppliesWhen.immediately,
   'blinds_up_percent': AppliesWhen.immediately,
   'time_bank_seconds': AppliesWhen.immediately,
@@ -273,3 +275,18 @@ class SettingsFormState {
 
   bool get hasChanges => toPatch().isNotEmpty;
 }
+
+/// The settings a running tournament locks (mirrors the server's list).
+const tournamentLockedFields = {
+  'tournament',
+  'start_money',
+  'small_blind',
+  'big_blind',
+  'ante',
+  'max_players',
+  'variant',
+  'allow_rebuy',
+  'showdown_reveal',
+  'blinds_up_minutes',
+  'blinds_up_percent',
+};

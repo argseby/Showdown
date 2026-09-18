@@ -895,7 +895,7 @@ func TestHats(t *testing.T) {
 		t.Fatal(err)
 	}
 	// An unknown hat at join time means no hat.
-	b, err := tbl.Join("Bob", -1, -1, "fedora")
+	b, err := tbl.Join("Bob", -1, -1, "fez")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -917,7 +917,7 @@ func TestHats(t *testing.T) {
 	if got := hatOf(b.PlayerID); got != "" {
 		t.Fatalf("Bob's hat = %q, want none", got)
 	}
-	if err := tbl.SetHat(a.PlayerID, "fedora"); !errors.Is(err, ErrIllegalAction) {
+	if err := tbl.SetHat(a.PlayerID, "fez"); !errors.Is(err, ErrIllegalAction) {
 		t.Fatalf("unknown hat: %v", err)
 	}
 	if err := tbl.SetHat("nobody", "crown"); !errors.Is(err, ErrNotSeated) {
@@ -939,6 +939,21 @@ func TestHats(t *testing.T) {
 	if d.Players[0].Hat != "" || d.Players[1].Hat != "beanie" {
 		t.Fatalf("admin hats = %q %q", d.Players[0].Hat, d.Players[1].Hat)
 	}
+	// The avatar changes the same way.
+	if err := tbl.SetAvatar(b.PlayerID, AvatarCount); !errors.Is(err, ErrIllegalAction) {
+		t.Fatalf("avatar out of range: %v", err)
+	}
+	if err := tbl.SetAvatar(b.PlayerID, 11); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "new avatar in snapshot", func() bool {
+		for _, sv := range conn.lastSnapshot(t).Seats {
+			if sv.Player != nil && sv.Player.ID == b.PlayerID {
+				return sv.Player.Avatar == 11
+			}
+		}
+		return false
+	})
 }
 
 // TestWinStreakHeat: Alice shoves every hand and the others fold, so she
@@ -994,6 +1009,63 @@ func TestWinStreakHeat(t *testing.T) {
 		t.Fatalf("win streak = %d", d.Players[0].WinStreak)
 	}
 }
+
+// A tournament never hands out chips, not even before the first deal.
+func TestTournamentRefusesChipsBeforeDeal(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.Tournament = true
+	s.AutoStart = false
+	tbl := newTestTable(t, s)
+	a, _ := join(t, tbl, "Alice")
+	if _, err := tbl.AdjustChips(a.PlayerID, 500, "gift"); !errors.Is(err, ErrTournamentLocked) {
+		t.Fatalf("chips before the deal: %v", err)
+	}
+	if err := tbl.ChangeSeat(a.PlayerID, 5); err != nil {
+		t.Fatalf("a seat change before the deal is fine: %v", err)
+	}
+}
+
+// A tournament that has dealt a hand refuses the settings, chip and seat
+// changes a host could cheat with; harmless settings still change.
+func TestTournamentLock(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.Tournament = true
+	// Valid timing, so the lock (not validation) is what refuses a patch.
+	s.TurnTime, s.DisconnectedTurnTime, s.HandDelayMs = 5, 3, 2000
+	tbl := newTestTable(t, s)
+	a, _ := join(t, tbl, "Alice")
+	join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	for name, patch := range map[string]SettingsPatch{
+		"start money": {StartMoney: protocol.Int64(999)},
+		"blinds":      {BigBlind: protocol.Int64(400), SmallBlind: protocol.Int64(200)},
+		"rebuy":       {AllowRebuy: protocol.Bool(false)},
+		"variant":     {Variant: strPtr(VariantRoyal), MaxPlayers: protocol.Int(6)},
+		"switch off":  {Tournament: protocol.Bool(false)},
+	} {
+		if _, _, err := tbl.UpdateSettings(patch, ""); !errors.Is(err, ErrTournamentLocked) {
+			t.Fatalf("%s: %v", name, err)
+		}
+	}
+	if _, _, err := tbl.UpdateSettings(SettingsPatch{TurnTime: protocol.Int(20), DisconnectedTurnTime: protocol.Int(5)}, ""); err != nil {
+		t.Fatalf("turn time is harmless: %v", err)
+	}
+	if _, err := tbl.AdjustChips(a.PlayerID, 500, "gift"); !errors.Is(err, ErrTournamentLocked) {
+		t.Fatalf("chips: %v", err)
+	}
+	if err := tbl.ChangeSeat(a.PlayerID, 5); !errors.Is(err, ErrTournamentLocked) {
+		t.Fatalf("seat: %v", err)
+	}
+	var can bool
+	tbl.call(func() { can = tbl.canChangeSeat(tbl.players[a.PlayerID]) })
+	if can {
+		t.Fatal("can_change_seat must be false in a running tournament")
+	}
+}
+
+func strPtr(s string) *string { return &s }
 
 func TestHeatOf(t *testing.T) {
 	t.Parallel()

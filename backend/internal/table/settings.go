@@ -60,6 +60,12 @@ type Settings struct {
 	// AllowRabbitHunt lets players see the rest of the board after a hand
 	// ended before the river.
 	AllowRabbitHunt bool
+	// AllowDrawing lets players scribble on the table with the pencil.
+	AllowDrawing bool
+	// Tournament: chip adjustments are refused for the life of the table;
+	// once the first hand is dealt, the settings in TournamentLocked and
+	// seat changes are refused too.
+	Tournament bool
 	// BlindsUpMinutes raises the blinds every N minutes (0 = manual only);
 	// BlindsUpPercent is the increase (100 = double).
 	BlindsUpMinutes int
@@ -84,7 +90,7 @@ func DefaultSettings() Settings {
 		TurnTime: 30, DisconnectedTurnTime: 10, SitOutAfterMissedTurns: 2,
 		JoinPolicy: JoinAlways, AllowSpectators: true, SpectatorChat: true, ChatEnabled: true,
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
-		AllowRabbitHunt: true, BlindsUpMinutes: 0, BlindsUpPercent: 100,
+		AllowRabbitHunt: true, AllowDrawing: true, Tournament: false, BlindsUpMinutes: 0, BlindsUpPercent: 100,
 		TimeBankSeconds: 30, TimeBankRefillSeconds: 1, AllowStraddle: false, RunItTwice: false,
 		Variant: VariantHoldem,
 	}
@@ -105,7 +111,7 @@ func (s Settings) Public() protocol.PublicSettings {
 		MaxPlayers: s.MaxPlayers, StartMoney: s.StartMoney, JoinPolicy: s.JoinPolicy,
 		AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal, ChatEnabled: s.ChatEnabled,
 		SpectatorChat: s.SpectatorChat, RequiresPassword: s.PasswordHash != "",
-		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -120,7 +126,7 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 		JoinPolicy: s.JoinPolicy, AllowSpectators: s.AllowSpectators, SpectatorChat: s.SpectatorChat,
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
-		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -140,7 +146,7 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 		JoinPolicy: r.JoinPolicy, AllowSpectators: r.AllowSpectators, SpectatorChat: r.SpectatorChat,
 		ChatEnabled: r.ChatEnabled, AllowRebuy: r.AllowRebuy, ShowdownReveal: r.ShowdownReveal,
 		AutoStart: r.AutoStart, HandDelayMs: r.HandDelayMs,
-		AllowRabbitHunt: r.AllowRabbitHunt, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
+		AllowRabbitHunt: r.AllowRabbitHunt, AllowDrawing: r.AllowDrawing, Tournament: r.Tournament, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
 		TimeBankSeconds: r.TimeBankSeconds, TimeBankRefillSeconds: r.TimeBankRefillSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
 		Variant: variant,
 	}
@@ -167,6 +173,8 @@ type AdminView struct {
 	AutoStart              bool   `json:"auto_start"`
 	HandDelayMs            int    `json:"hand_delay_ms"`
 	AllowRabbitHunt        bool   `json:"allow_rabbit_hunt"`
+	AllowDrawing           bool   `json:"allow_drawing"`
+	Tournament             bool   `json:"tournament"`
 	BlindsUpMinutes        int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        int    `json:"blinds_up_percent"`
 	TimeBankSeconds        int    `json:"time_bank_seconds"`
@@ -185,7 +193,7 @@ func (s Settings) Admin() AdminView {
 		JoinPolicy: s.JoinPolicy, AllowSpectators: s.AllowSpectators, SpectatorChat: s.SpectatorChat,
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
-		AllowRabbitHunt: s.AllowRabbitHunt, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -213,6 +221,8 @@ type SettingsPatch struct {
 	AutoStart              *bool   `json:"auto_start"`
 	HandDelayMs            *int    `json:"hand_delay_ms"`
 	AllowRabbitHunt        *bool   `json:"allow_rabbit_hunt"`
+	AllowDrawing           *bool   `json:"allow_drawing"`
+	Tournament             *bool   `json:"tournament"`
 	BlindsUpMinutes        *int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        *int    `json:"blinds_up_percent"`
 	TimeBankSeconds        *int    `json:"time_bank_seconds"`
@@ -333,6 +343,14 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 		out.AllowRabbitHunt = *p.AllowRabbitHunt
 		set("allow_rabbit_hunt")
 	}
+	if p.AllowDrawing != nil {
+		out.AllowDrawing = *p.AllowDrawing
+		set("allow_drawing")
+	}
+	if p.Tournament != nil {
+		out.Tournament = *p.Tournament
+		set("tournament")
+	}
 	if p.BlindsUpMinutes != nil {
 		out.BlindsUpMinutes = *p.BlindsUpMinutes
 		set("blinds_up_minutes")
@@ -448,4 +466,11 @@ func (s Settings) Validate(seated int) error {
 		return &ve
 	}
 	return nil
+}
+
+// TournamentLocked are the settings a running tournament refuses to change:
+// everything that moves chips or changes what players know.
+var TournamentLocked = []string{
+	"tournament", "start_money", "small_blind", "big_blind", "ante", "max_players", "variant",
+	"allow_rebuy", "showdown_reveal", "blinds_up_minutes", "blinds_up_percent",
 }
