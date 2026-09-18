@@ -615,72 +615,71 @@ class _HandTileState extends State<_HandTile> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final h = widget.hand;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GhostButton(
-              onPressed: () => setState(() => _open = !_open),
-              alignment: Alignment.centerLeft,
-              leading: Icon(
-                _open ? LucideIcons.chevronDown : LucideIcons.chevronRight,
+    // One plain row per hand, like the list in the replay dialog; the
+    // events unfold underneath it.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GhostButton(
+          onPressed: () => setState(() => _open = !_open),
+          alignment: Alignment.centerLeft,
+          leading: Icon(
+            _open ? LucideIcons.chevronDown : LucideIcons.chevronRight,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.adminHandRow(h.number, formatClock(h.startedAt)),
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.adminHandRow(h.number, formatClock(h.startedAt)),
-                    ),
-                  ),
-                  if (h.voided)
-                    SecondaryBadge(child: Text(l10n.adminHandVoided)),
-                  if (widget.onReplay != null)
-                    GhostButton(
-                      size: ButtonSize.small,
-                      onPressed: widget.onReplay,
-                      leading: const Icon(LucideIcons.rotateCcw),
-                      child: Text(l10n.replayOpen),
-                    ),
-                ],
-              ),
-            ),
-            if (_open) ...[
-              const Gap(4),
-              for (final raw in h.events)
-                if (logLineText(
-                      l10n,
-                      LogEntry(
-                        handNumber: h.number,
-                        event: GameEvent.fromJson(raw),
-                        names: widget.names,
-                      ),
-                      locale: widget.locale,
-                    )
-                    case final text?)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 1,
-                      horizontal: 8,
-                    ),
-                    child: Text.rich(
-                      TextSpan(
-                        children: cardSpans(
-                          text,
-                          blackSuit: theme.colorScheme.foreground,
+              if (h.voided) SecondaryBadge(child: Text(l10n.adminHandVoided)),
+              if (widget.onReplay != null)
+                GhostButton(
+                  size: ButtonSize.small,
+                  onPressed: widget.onReplay,
+                  leading: const Icon(LucideIcons.rotateCcw),
+                  child: Text(l10n.replayOpen),
+                ),
+            ],
+          ),
+        ),
+        if (_open)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, right: 8, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final raw in h.events)
+                  if (logLineText(
+                        l10n,
+                        LogEntry(
+                          handNumber: h.number,
+                          event: GameEvent.fromJson(raw),
+                          names: widget.names,
+                        ),
+                        locale: widget.locale,
+                      )
+                      case final text?)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1),
+                      child: Text.rich(
+                        TextSpan(
+                          children: cardSpans(
+                            text,
+                            blackSuit: theme.colorScheme.foreground,
+                          ),
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.foreground,
                         ),
                       ),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.foreground,
-                      ),
                     ),
-                  ),
-            ],
-          ],
-        ),
-      ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
