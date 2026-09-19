@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Friend errors the HTTP layer turns into answers of its own.
@@ -315,11 +316,11 @@ func (s *Store) Unfriend(ctx context.Context, accountID, friendID string) error 
 // name. Profiles either side of a block are left out, and so is the
 // searcher: a friend list is not a way to find out who blocked you.
 func (s *Store) SearchAccounts(ctx context.Context, accountID, query string, limit int) ([]FriendRow, error) {
-	like := query + "%"
+	like := escapeLike(query) + "%"
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT `+friendCols+`, a.created_at FROM accounts a
 		WHERE a.id != ?
-			AND (a.handle_key LIKE ? OR LOWER(a.display_name) LIKE ?)
+			AND (a.handle_key LIKE ? ESCAPE '\' OR LOWER(a.display_name) LIKE ? ESCAPE '\')
 			AND NOT EXISTS (
 				SELECT 1 FROM friend_blocks b
 				WHERE (b.account_id = ? AND b.blocked_id = a.id)
@@ -340,15 +341,42 @@ func (s *Store) SearchAccounts(ctx context.Context, accountID, query string, lim
 	return out, rows.Err()
 }
 
+// escapeLike makes a search term mean itself: without this a query of "%"
+// lists every profile on the instance and "_" probes for names, which is
+// not what looking somebody up is for.
+func escapeLike(q string) string {
+	var b strings.Builder
+	for _, r := range q {
+		if r == '\\' || r == '%' || r == '_' {
+			b.WriteRune('\\')
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
 // CreateInvite records an invitation to a table.
 func (s *Store) CreateInvite(ctx context.Context, r InviteRow) error {
-	if _, err := s.db.ExecContext(ctx, `
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	// Asking the same friend to the same table again renews the one
+	// invitation instead of adding another: a friend pressing the button
+	// twice is impatience, not two invitations.
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM table_invites WHERE from_id = ? AND to_id = ? AND table_id = ?`,
+		r.FromID, r.ToID, r.TableID); err != nil {
+		return fmt.Errorf("replace invite: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO table_invites (id, table_id, table_name, from_id, to_id, created_at, expires_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		r.ID, r.TableID, r.TableName, r.FromID, r.ToID, r.CreatedAt, r.ExpiresAt); err != nil {
 		return fmt.Errorf("create invite: %w", err)
 	}
-	return nil
+	return tx.Commit()
 }
 
 // Invites lists the invitations waiting for a profile, newest first, and

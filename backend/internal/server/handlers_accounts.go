@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 	"errors"
 	"net/http"
 	"strings"
@@ -76,9 +77,18 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, protocol.ErrValidation, err.Error())
 		return
 	}
-	display := req.DisplayName
-	if display == "" {
-		display = req.Handle
+	// The display name goes through the same rules as a later change: it
+	// is shown to other people (friend lists, requests, invitations), so
+	// "Showdown Support" in 900 characters of right-to-left marks is not
+	// something a sign-up gets to store.
+	display := req.Handle
+	if req.DisplayName != "" {
+		name, err := table.NormalizeName(req.DisplayName)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "invalid display name")
+			return
+		}
+		display = name
 	}
 	pwHash, err := hashPassword(req.Password)
 	if err != nil {
@@ -201,7 +211,9 @@ func (s *Server) handleAccountPassword(w http.ResponseWriter, r *http.Request) {
 	case req.RecoveryCode != "":
 		handle := account.Key(r.Header.Get("X-Handle"))
 		found, err := s.store.GetAccountByHandle(r.Context(), handle)
-		if err != nil || found.RecoveryHash == "" || found.RecoveryHash != hashToken(req.RecoveryCode) {
+		given := hashToken(req.RecoveryCode)
+		if err != nil || found.RecoveryHash == "" ||
+			subtle.ConstantTimeCompare([]byte(found.RecoveryHash), []byte(given)) != 1 {
 			writeError(w, http.StatusUnauthorized, protocol.ErrBadCredentials, "wrong name or recovery code")
 			return
 		}

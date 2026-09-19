@@ -196,7 +196,9 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   `GET /api/config` reports `accounts`, and with it false every profile route
 >   answers 404 `accounts_disabled`. A profile is a handle (3–20 of `a-z 0-9 _`,
 >   unique on a folded form that treats `1`, `l` and `i`, `0` and `o`, `5` and `s`
->   as the same stroke and drops `_`), a display name, a bcrypt password (8–64)
+>   as the same stroke and drops `_`), a display name (the table's name rules,
+>   checked at sign-up and on every change — it is what other people are shown),
+>   a bcrypt password (8–64)
 >   and one recovery code, shown once at sign-up and the only way back in — the
 >   server sends no mail. `POST /api/accounts` → `{token, account, recovery_code}`
 >   (201); `POST /api/accounts/session` → `{token, account}`; `DELETE` the same
@@ -231,7 +233,8 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   row that answering removes, and a block is one-way and silent. `GET
 >   /api/friends` answers the whole screen (`friends`, `incoming`, `outgoing`,
 >   `blocked`, `invites`); `GET /api/friends/search?q=` finds profiles by the
->   start of a handle or display name and says how each already stands to the
+>   start of a handle or display name — as literal text, `%` and `_` included —
+>   and says how each already stands to the
 >   searcher (`none`, `friend`, `pending_out`, `pending_in`). `POST
 >   /api/friends/requests` asks — two profiles that have each asked the other
 >   are friends at once — and `POST /api/friends/requests/{handle}/{accept |
@@ -251,7 +254,9 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 > - **Table invitations and who is playing (2026-09-20).** `POST
 >   /api/tables/{id}/invites` asks a friend to a table, and only a friend, and
 >   only from somebody sitting at it; the invitation is stored (two hours) as
->   well as pushed, and `DELETE /api/friends/invites/{id}` spends it. `GET
+>   well as pushed, and `DELETE /api/friends/invites/{id}` spends it. Asking the
+>   same friend to the same table again renews that one invitation instead of
+>   adding another. `GET
 >   /api/friends/playing` lists the live tables friends are seated at with the
 >   stakes, the free seats and whether the door is open. A friend sitting down
 >   pushes `friends_playing` to their friends; nobody is told when one gets up,

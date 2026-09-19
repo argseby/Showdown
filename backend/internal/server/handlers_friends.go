@@ -182,8 +182,11 @@ func (s *Server) handleFriendRequest(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, protocol.ErrValidation, "already friends")
 		return
 	case errors.Is(err, store.ErrBlocked):
-		// Say no more than "no": a block is not announced.
-		writeError(w, http.StatusForbidden, protocol.ErrForbidden, "cannot ask this profile")
+		// A block is never announced. The blocked side gets the same answer
+		// as for a handle nobody ever took — the profile route and the
+		// search already behave that way, and one route saying otherwise
+		// would give the whole thing away.
+		writeError(w, http.StatusNotFound, protocol.ErrNotFound, "no such profile")
 		return
 	case err != nil:
 		s.log.Error("request friend", "err", err)
@@ -237,6 +240,10 @@ func (s *Server) handleFriendAnswer(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"state": relNone})
 	case "block":
 		if err := s.store.BlockAccount(r.Context(), a.ID, other.ID, now); err != nil {
+			if errors.Is(err, store.ErrSelf) {
+				writeError(w, http.StatusBadRequest, protocol.ErrValidation, "that is you")
+				return
+			}
 			s.log.Error("block", "err", err)
 			writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not block")
 			return

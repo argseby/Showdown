@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -165,10 +167,17 @@ func TestDeclineIsQuietAndBlockIsFinal(t *testing.T) {
 	if status, _ := h.request(http.MethodPost, "/api/friends/requests/ann/block", ben, nil); status != http.StatusOK {
 		t.Fatal("block")
 	}
+	// To the blocked side it reads exactly like a name nobody ever took —
+	// the same answer the profile route and the search give.
 	status, out := h.request(http.MethodPost, "/api/friends/requests", ann,
 		map[string]string{"handle": "ben"})
-	if status != http.StatusForbidden {
+	_, missing := h.request(http.MethodPost, "/api/friends/requests", ann,
+		map[string]string{"handle": "nobody"})
+	if status != http.StatusNotFound {
 		t.Errorf("asking after a block: %d %v", status, out)
+	}
+	if out["error"].(map[string]any)["code"] != missing["error"].(map[string]any)["code"] {
+		t.Errorf("a block is told apart from a missing profile: %v vs %v", out, missing)
 	}
 	// Neither finds the other by searching.
 	_, found := h.request(http.MethodGet, "/api/friends/search?q=be", ann, nil)
@@ -178,6 +187,48 @@ func TestDeclineIsQuietAndBlockIsFinal(t *testing.T) {
 	_, list = h.request(http.MethodGet, "/api/friends", ben, nil)
 	if len(list["blocked"].([]any)) != 1 {
 		t.Errorf("ben's block list: %v", list)
+	}
+}
+
+// Blocking yourself is a mistake, not a server failure, and a display
+// name is checked at sign-up the same way it is on a change.
+func TestSelfBlockAndDisplayNameAreRefusedPlainly(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", on)
+	defer h.stop()
+	ann := signUp(t, h, "ann")
+
+	if status, _ := h.request(http.MethodPost, "/api/friends/requests/ann/block", ann, nil); status != http.StatusBadRequest {
+		t.Errorf("blocking yourself: %d, want 400", status)
+	}
+
+	// A name shown to other people cannot be 900 characters of anything.
+	for _, name := range []string{
+		strings.Repeat("a", 300),
+		"  ",
+		"admin",
+		"we\u202eird",
+	} {
+		status, out := h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+			"handle": "ben" + strconv.Itoa(len(name)), "password": "hunter22",
+			"display_name": name,
+		})
+		if status != http.StatusBadRequest {
+			t.Errorf("sign-up with display name %q: %d %v", name, status, out)
+		}
+	}
+	// A plain one is kept, and none at all falls back to the handle.
+	_, out := h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+		"handle": "cid", "password": "hunter22", "display_name": "Cid the Kid",
+	})
+	if out["account"].(map[string]any)["display_name"] != "Cid the Kid" {
+		t.Errorf("display name: %v", out)
+	}
+	_, out = h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+		"handle": "dora", "password": "hunter22",
+	})
+	if out["account"].(map[string]any)["display_name"] != "dora" {
+		t.Errorf("display name falls back to the handle: %v", out)
 	}
 }
 

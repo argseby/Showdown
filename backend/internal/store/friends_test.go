@@ -166,6 +166,60 @@ func TestSearchFindsByHandleAndName(t *testing.T) {
 	}
 }
 
+// A search term means itself: the SQL wildcards are just characters, so
+// nobody lists the whole instance by searching for "%".
+func TestSearchTakesNoWildcards(t *testing.T) {
+	t.Parallel()
+	s, ctx := friendsStore(t)
+	for _, q := range []string{"%", "_", "%e%"} {
+		found, err := s.SearchAccounts(ctx, "a", q, 10)
+		if err != nil {
+			t.Fatalf("search %q: %v", q, err)
+		}
+		if len(found) != 0 {
+			t.Errorf("search %q listed %d profiles", q, len(found))
+		}
+	}
+	// A profile whose name really contains one is still found by it.
+	account(t, s, ctx, "d", "od_d")
+	found, err := s.SearchAccounts(ctx, "a", "od_", 10)
+	if err != nil || len(found) != 1 || found[0].ID != "d" {
+		t.Errorf("search for a literal underscore: %v %v", found, err)
+	}
+}
+
+// Asking the same friend to the same table again renews the invitation
+// rather than adding one.
+func TestInvitingTwiceLeavesOneInvitation(t *testing.T) {
+	t.Parallel()
+	s, ctx := friendsStore(t)
+	for i, id := range []string{"i1", "i2", "i3"} {
+		if err := s.CreateInvite(ctx, InviteRow{
+			ID: id, TableID: "t1", TableName: "Kitchen", FromID: "a", ToID: "b",
+			CreatedAt: int64(10 + i), ExpiresAt: 1_000_000,
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	invites, err := s.Invites(ctx, "b", 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(invites) != 1 || invites[0].ID != "i3" {
+		t.Fatalf("after three asks: %v", invites)
+	}
+	// A different table is a different invitation.
+	if err := s.CreateInvite(ctx, InviteRow{
+		ID: "i4", TableID: "t2", TableName: "Garage", FromID: "a", ToID: "b",
+		CreatedAt: 20, ExpiresAt: 1_000_000,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if invites, _ = s.Invites(ctx, "b", 100); len(invites) != 2 {
+		t.Errorf("two tables, two invitations: %v", invites)
+	}
+}
+
 func TestInvitesExpireAndAreSpent(t *testing.T) {
 	t.Parallel()
 	s, ctx := friendsStore(t)
