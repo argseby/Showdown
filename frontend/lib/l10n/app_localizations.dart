@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'All-in'**
   String get allIn;
 
+  /// No description provided for @allInAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'All-in {amount}'**
+  String allInAmount(String amount);
+
   /// No description provided for @raiseTo.
   ///
   /// In en, this message translates to:

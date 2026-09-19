@@ -8,6 +8,7 @@ class ActionBarModel {
     required this.callAmount,
     required this.raise,
     required this.allIn,
+    required this.currentBet,
     required this.isOpeningBet,
     required this.bigBlind,
     required this.potForPresets,
@@ -36,6 +37,7 @@ class ActionBarModel {
       callAmount: o.call,
       raise: o.raise,
       allIn: o.allIn,
+      currentBet: hand.currentBet,
       isOpeningBet: hand.currentBet == 0,
       bigBlind: s.table.settings.bigBlind,
       potForPresets: pot,
@@ -48,6 +50,9 @@ class ActionBarModel {
   final int callAmount;
   final RaiseView? raise;
   final int allIn;
+
+  /// The price of the street so far (a bet-to amount, 0 when nobody has bet).
+  final int currentBet;
   final bool isOpeningBet;
   final int bigBlind;
 
@@ -58,6 +63,15 @@ class ActionBarModel {
   bool get canCall => callAmount > 0;
   bool get canRaise => raise != null;
   bool get canAllIn => allIn > 0;
+
+  /// A stack short of a full bet or raise may still put everything in, but
+  /// the server offers no range for it (there is nothing to choose). The
+  /// raise button becomes an All-in button then — without it a short stack
+  /// could only check or call.
+  ///
+  /// An all-in that does not reach the current bet is a short call and the
+  /// call button already does it.
+  bool get canShoveOnly => raise == null && allIn > currentBet;
 
   /// Clamps a raise-to amount into the legal range.
   int clamp(int amount) {

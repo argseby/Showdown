@@ -99,6 +99,7 @@
   "bet": "Setzen",
   "raise": "Erhöhen",
   "allIn": "All-in",
+  "allInAmount": "All-in {amount}",
   "raiseTo": "Erhöhen auf {amount}",
   "betAmount": "Setzen {amount}",
   "presetMin": "Min",

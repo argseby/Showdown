@@ -32,6 +32,56 @@ void main() {
       expect(m.clamp(99999), 8450);
     });
 
+    test('a stack short of a bet or raise can still shove', () {
+      final s = fixtureSnapshot();
+      // Nobody has bet this street and the stack is under the big blind:
+      // the server offers no raise range, only the shove.
+      final opening = s.copyWith(
+        hand: s.hand!.copyWith(currentBet: 0),
+        you: s.you.copyWith(
+          options: const OptionsView(
+            fold: true,
+            check: true,
+            call: 0,
+            raise: null,
+            allIn: 40,
+          ),
+        ),
+      );
+      final m = ActionBarModel.from(opening)!;
+      expect(m.canRaise, isFalse);
+      expect(m.canShoveOnly, isTrue);
+
+      // Facing a bet, too short for a full raise but past the current bet.
+      final short = s.copyWith(
+        you: s.you.copyWith(
+          options: const OptionsView(
+            fold: true,
+            check: false,
+            call: 300,
+            raise: null,
+            allIn: 400,
+          ),
+        ),
+      );
+      expect(ActionBarModel.from(short)!.canShoveOnly, isTrue);
+
+      // An all-in that does not reach the bet is a short call: the call
+      // button already does it, the raise button stays out of the way.
+      final shortCall = s.copyWith(
+        you: s.you.copyWith(
+          options: const OptionsView(
+            fold: true,
+            check: false,
+            call: 200,
+            raise: null,
+            allIn: 200,
+          ),
+        ),
+      );
+      expect(ActionBarModel.from(shortCall)!.canShoveOnly, isFalse);
+    });
+
     test('is null when it is not the viewer turn', () {
       final s = fixtureSnapshot();
       final notMyTurn = s.copyWith(you: s.you.copyWith(options: null));
@@ -217,6 +267,30 @@ void main() {
       expect(state.confirm(), isTrue);
       expect(acted, ['raise:8450']);
       await tester.pumpAndSettle();
+      expect(find.byKey(const Key('raise-control')), findsNothing);
+    });
+
+    testWidgets('a short stack shoves straight from the raise button', (
+      tester,
+    ) async {
+      final s = fixtureSnapshot();
+      const opts = OptionsView(
+        fold: true,
+        check: false,
+        call: 300,
+        raise: null,
+        allIn: 400,
+      );
+      final (_, acted) = await pump(
+        tester,
+        s.copyWith(you: s.you.copyWith(options: opts)),
+      );
+      // No range to choose from, so the button is the all-in itself.
+      expect(find.text('All-in 400'), findsOneWidget);
+      expect(enabled(tester, const Key('action-raise')), isTrue);
+      await tester.tap(find.byKey(const Key('action-raise')));
+      await tester.pumpAndSettle();
+      expect(acted, ['all_in']);
       expect(find.byKey(const Key('raise-control')), findsNothing);
     });
 

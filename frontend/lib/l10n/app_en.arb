@@ -167,6 +167,14 @@
   "bet": "Bet",
   "raise": "Raise",
   "allIn": "All-in",
+  "allInAmount": "All-in {amount}",
+  "@allInAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "raiseTo": "Raise to {amount}",
   "@raiseTo": {
     "placeholders": {

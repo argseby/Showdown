@@ -250,7 +250,13 @@ class ActionBarState extends State<ActionBar> {
   /// that the letter shortcuts (A, 1-4) keep working; N focuses it.
   void openRaise({bool focusInput = false}) {
     final m = _model;
-    if (m == null || !m.canRaise) return;
+    if (m == null) return;
+    if (m.canShoveOnly) {
+      // Nothing to pick: the raise key is the all-in, like the button.
+      _act('all_in');
+      return;
+    }
+    if (!m.canRaise) return;
     if (!_raiseOpen) _freshController();
     setState(() {
       _raiseOpen = true;
@@ -746,9 +752,13 @@ class ActionBarState extends State<ActionBar> {
           Expanded(
             flex: _raiseOpen ? 2 : 1,
             child: _ActionButton(
+              // A stack too short to bet or raise has nothing to choose:
+              // the button is the all-in itself and acts on the press.
               key: const Key('action-raise'),
               label: !_raiseOpen
-                  ? raiseLabel
+                  ? (m.canShoveOnly
+                        ? l10n.allInAmount(_fmt(m.allIn))
+                        : raiseLabel)
                   : m.isOpeningBet
                   ? l10n.betAmount(_fmt(_amount))
                   : l10n.raiseTo(_fmt(_amount)),
@@ -758,7 +768,7 @@ class ActionBarState extends State<ActionBar> {
               pad: padLabel(
                 _raiseOpen ? ShortcutAction.confirm : ShortcutAction.openRaise,
               ),
-              enabled: m.canRaise && armed,
+              enabled: (m.canRaise || m.canShoveOnly) && armed,
               color: ActionColors.raise,
               onPressed: () => _raiseOpen ? confirm() : openRaise(),
             ),

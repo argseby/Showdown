@@ -294,6 +294,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get allIn => 'All-in';
 
   @override
+  String allInAmount(String amount) {
+    return 'All-in $amount';
+  }
+
+  @override
   String raiseTo(String amount) {
     return 'Erhöhen auf $amount';
   }
