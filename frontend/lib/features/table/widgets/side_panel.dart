@@ -511,7 +511,9 @@ class _ChatPanelState extends State<ChatPanel> {
                                 borderRadius: BorderRadius.circular(4),
                               )
                             : null,
-                        child: Text.rich(
+                        // Selectable so a line can be picked up and copied
+                        // (a link someone posted, a name, the whole message).
+                        child: SelectableText.rich(
                           TextSpan(
                             children: [
                               TextSpan(

@@ -149,6 +149,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
     _padSub?.cancel();
     FocusManager.instance.removeListener(_onFocusChange);
     HardwareKeyboard.instance.removeHandler(_onHardwareKey);
+    _holdTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _chatFocus.dispose();
     _rootFocus.dispose();
@@ -277,13 +278,70 @@ class _PlayPageState extends ConsumerState<PlayPage>
   TableSessionNotifier get _session =>
       ref.read(tableSessionProvider(widget.tableId).notifier);
 
+  /// The hold shortcut whose key is down, the key itself and the timer that
+  /// fires it; the action bar fills the key cap while this runs.
+  ShortcutAction? _holdAction;
+  LogicalKeyboardKey? _holdKey;
+  Timer? _holdTimer;
+
+  void _startHold(ShortcutAction action, LogicalKeyboardKey key) {
+    if (_holdAction == action) return; // auto-repeat while already holding
+    _holdTimer?.cancel();
+    setState(() {
+      _holdAction = action;
+      _holdKey = key;
+    });
+    _holdTimer = Timer(shortcutHoldDuration, () {
+      final held = _holdAction;
+      _cancelHold();
+      if (held != null) _runShortcut(held);
+    });
+  }
+
+  void _cancelHold() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    if (_holdAction == null || !mounted) return;
+    setState(() {
+      _holdAction = null;
+      _holdKey = null;
+    });
+  }
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    // Hold shortcuts: letting go of the key (or of Shift) before the cap
+    // has filled calls the whole thing off.
+    if (event is KeyUpEvent) {
+      if (_holdAction == null) return KeyEventResult.ignored;
+      final key = event.logicalKey;
+      if (key == _holdKey ||
+          key == LogicalKeyboardKey.shiftLeft ||
+          key == LogicalKeyboardKey.shiftRight) {
+        _cancelHold();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+    if (event is KeyRepeatEvent) {
+      return _holdAction != null
+          ? KeyEventResult.handled
+          : KeyEventResult.ignored;
+    }
     final action = shortcutFor(
       event,
       textFieldFocused:
           _amountFocused || _chatFocus.hasFocus || isTextFieldFocused(),
     );
     if (action == null) return KeyEventResult.ignored;
+    if (shortcutHolds(action)) {
+      _startHold(action, event.logicalKey);
+      return KeyEventResult.handled;
+    }
+    return _runShortcut(action);
+  }
+
+  /// Runs a shortcut; hold shortcuts arrive here once their time is up.
+  KeyEventResult _runShortcut(ShortcutAction action) {
     final bar = _actionBar.currentState;
     switch (action) {
       case ShortcutAction.fold:
@@ -296,6 +354,22 @@ class _PlayPageState extends ConsumerState<PlayPage>
         bar?.focusAmount();
       case ShortcutAction.selectAllIn:
         bar?.selectAllIn();
+      case ShortcutAction.showFirst:
+        bar?.showCards('first');
+      case ShortcutAction.showSecond:
+        bar?.showCards('second');
+      case ShortcutAction.showBoth:
+        bar?.showCards('both');
+      case ShortcutAction.rabbitHunt:
+        bar?.rabbitHunt();
+      case ShortcutAction.preCheckFold:
+        bar?.preAction('check_fold');
+      case ShortcutAction.preCallAny:
+        bar?.preAction('call_any');
+      case ShortcutAction.sitOut:
+        bar?.toggleSitOut();
+      case ShortcutAction.rebuy:
+        bar?.rebuy();
       case ShortcutAction.preset1:
         bar?.preset(0);
       case ShortcutAction.preset2:
@@ -1204,6 +1278,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
               callbacks: callbacks,
               isPlayer: session.isPlayer,
               myStatus: myPlayer?.status,
+              heldShortcut: _holdAction,
               chipDisplay: chipDisplay,
               handLine:
                   ref.watch(handLineProvider) == HandLinePlacement.bottom &&

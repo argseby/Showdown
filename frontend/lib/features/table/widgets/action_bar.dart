@@ -58,6 +58,7 @@ class ActionBar extends StatefulWidget {
     required this.callbacks,
     required this.isPlayer,
     required this.myStatus,
+    this.heldShortcut,
     required this.textFieldFocusChanged,
     this.chipDisplay = ChipDisplay.coins,
     this.shown = const [],
@@ -68,6 +69,9 @@ class ActionBar extends StatefulWidget {
   final ActionCallbacks callbacks;
   final bool isPlayer;
   final String? myStatus;
+
+  /// The hold shortcut whose key is down right now; its cap fills up.
+  final ShortcutAction? heldShortcut;
 
   /// Coins or big blinds for every amount, including the raise input.
   final ChipDisplay chipDisplay;
@@ -270,6 +274,51 @@ class ActionBarState extends State<ActionBar> {
         extentOffset: _amountController.text.length,
       );
     }
+  }
+
+  /// Shows one or both hole cards once the hand is over for the viewer.
+  void showCards(String which) {
+    final you = widget.snapshot?.you;
+    if (you == null || !you.canShowCards) return;
+    final shown = widget.shown;
+    final first = shown.isNotEmpty && shown[0];
+    final second = shown.length > 1 && shown[1];
+    if (which == 'first' && first) return;
+    if (which == 'second' && second) return;
+    widget.callbacks.showCards(which);
+  }
+
+  /// Looks at the rest of the board after the hand ended early.
+  void rabbitHunt() {
+    final you = widget.snapshot?.you;
+    if (you == null || !you.canRabbitHunt) return;
+    widget.callbacks.rabbitHunt?.call();
+  }
+
+  /// Arms (or disarms) a pre-action: "check_fold" or "call_any".
+  void preAction(String kind) {
+    final you = widget.snapshot?.you;
+    final snap = widget.snapshot;
+    final cb = widget.callbacks.preAction;
+    if (you == null || snap == null || cb == null) return;
+    // Same rule as the toggles: not on turn and not after folding.
+    if (_model != null || _hasFolded(snap, you)) return;
+    cb(you.preAction == kind ? 'none' : kind);
+  }
+
+  /// Sits out (or back in, when already away).
+  void toggleSitOut() {
+    switch (widget.myStatus) {
+      case 'active':
+        widget.callbacks.sitOut();
+      case 'sitting_out':
+        widget.callbacks.sitIn();
+    }
+  }
+
+  /// Buys back in after busting, when the table allows it.
+  void rebuy() {
+    if (widget.snapshot?.you.canRebuy ?? false) widget.callbacks.rebuy();
   }
 
   void selectAllIn() {
@@ -535,27 +584,28 @@ class ActionBarState extends State<ActionBar> {
   }) {
     final l10n = context.l10n;
     final enabled = togglesEnabled;
-    Widget toggle(String kind, String label, Key key) {
+    Widget toggle(String kind, String label, Key key, ShortcutAction action) {
       final on = you.preAction == kind;
       void cb() => widget.callbacks.preAction!(on ? 'none' : kind);
       final icon = Icon(
         on ? LucideIcons.squareCheck : LucideIcons.square,
         size: 14,
       );
+      final content = _withHint(label, action);
       return on
           ? PrimaryButton(
               key: key,
               size: ButtonSize.small,
               onPressed: enabled ? cb : null,
               leading: icon,
-              child: Text(label),
+              child: content,
             )
           : OutlineButton(
               key: key,
               size: ButtonSize.small,
               onPressed: enabled ? cb : null,
               leading: icon,
-              child: Text(label),
+              child: content,
             );
     }
 
@@ -564,8 +614,18 @@ class ActionBarState extends State<ActionBar> {
       // Pre-actions may be armed at any time (also while waiting for the
       // next hand), so the toggles are always there for a seated player.
       if (widget.callbacks.preAction != null) ...[
-        toggle('check_fold', l10n.preCheckFold, const Key('pre-check-fold')),
-        toggle('call_any', l10n.preCallAny, const Key('pre-call-any')),
+        toggle(
+          'check_fold',
+          l10n.preCheckFold,
+          const Key('pre-check-fold'),
+          ShortcutAction.preCheckFold,
+        ),
+        toggle(
+          'call_any',
+          l10n.preCallAny,
+          const Key('pre-call-any'),
+          ShortcutAction.preCallAny,
+        ),
       ],
       // The straddle is armed for the next hand: same row, same look.
       if (snap.table.settings.allowStraddle &&
@@ -592,6 +652,23 @@ class ActionBarState extends State<ActionBar> {
     );
   }
 
+  /// A button label with its shortcut cap; the cap fills while the key is
+  /// held for a hold shortcut, and disappears on screens without a keyboard.
+  Widget _withHint(String label, ShortcutAction action) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Flexible(
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+      KbdHint(
+        shortcutLabel(action),
+        pad: padLabel(action),
+        leadingGap: 6,
+        holding: widget.heldShortcut == action,
+      ),
+    ],
+  );
+
   Widget _straddleToggle(BuildContext context, You you) {
     final l10n = context.l10n;
     final on = you.straddle ?? false;
@@ -616,8 +693,9 @@ class ActionBarState extends State<ActionBar> {
     size: ButtonSize.small,
     onPressed: widget.callbacks.rebuy,
     leading: const Icon(LucideIcons.coins, size: 14),
-    child: Text(
+    child: _withHint(
       context.l10n.rebuy(_fmt(widget.snapshot!.table.settings.startMoney)),
+      ShortcutAction.rebuy,
     ),
   );
 
@@ -627,7 +705,7 @@ class ActionBarState extends State<ActionBar> {
     size: ButtonSize.small,
     onPressed: widget.callbacks.sitOut,
     leading: const Icon(LucideIcons.armchair, size: 14),
-    child: Text(context.l10n.sitOut),
+    child: _withHint(context.l10n.sitOut, ShortcutAction.sitOut),
   );
 
   /// The viewer's turn: presets and amount (when raising) above the three
@@ -854,20 +932,36 @@ class ActionBarState extends State<ActionBar> {
       final second = widget.shown.length > 1 && widget.shown[1];
       // On narrow screens the three buttons say it with the cards alone:
       // the white card (with its little ace) is the one that gets shown.
-      Widget cards(String text, {required bool a, required bool b}) => compact
+      Widget cards(
+        String text,
+        ShortcutAction action, {
+        required bool a,
+        required bool b,
+      }) => compact
           ? Semantics(
               label: text,
               button: true,
               child: ShownCardsIcon(first: a, second: b),
             )
-          : label(text);
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: label(text)),
+                KbdHint(shortcutLabel(action), leadingGap: 6),
+              ],
+            );
       items.add(
         OutlineButton(
           key: const Key('show-first'),
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: first ? null : () => widget.callbacks.showCards('first'),
-          child: cards(l10n.showFirstCard, a: true, b: false),
+          child: cards(
+            l10n.showFirstCard,
+            ShortcutAction.showFirst,
+            a: true,
+            b: false,
+          ),
         ),
       );
       items.add(
@@ -876,7 +970,12 @@ class ActionBarState extends State<ActionBar> {
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: second ? null : () => widget.callbacks.showCards('second'),
-          child: cards(l10n.showSecondCard, a: false, b: true),
+          child: cards(
+            l10n.showSecondCard,
+            ShortcutAction.showSecond,
+            a: false,
+            b: true,
+          ),
         ),
       );
       items.add(
@@ -886,7 +985,12 @@ class ActionBarState extends State<ActionBar> {
           alignment: Alignment.center,
           onPressed: () => widget.callbacks.showCards('both'),
           leading: compact ? null : const Icon(LucideIcons.eye, size: 18),
-          child: cards(l10n.showCards, a: true, b: true),
+          child: cards(
+            l10n.showCards,
+            ShortcutAction.showBoth,
+            a: true,
+            b: true,
+          ),
         ),
       );
     }
@@ -898,7 +1002,13 @@ class ActionBarState extends State<ActionBar> {
           alignment: Alignment.center,
           onPressed: widget.callbacks.rabbitHunt,
           leading: const Icon(LucideIcons.rabbit, size: 18),
-          child: label(l10n.rabbitHunt),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: label(l10n.rabbitHunt)),
+              KbdHint(shortcutLabel(ShortcutAction.rabbitHunt), leadingGap: 6),
+            ],
+          ),
         ),
       );
     }

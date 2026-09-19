@@ -28,6 +28,14 @@ Future<void> showShortcutsOverlay(BuildContext context) {
     ),
     (shortcutLabel(ShortcutAction.focusAmount), null, l10n.scFocusAmount),
     (shortcutLabel(ShortcutAction.selectAllIn), null, l10n.scAllIn),
+    (shortcutLabel(ShortcutAction.showFirst), null, l10n.scShowFirst),
+    (shortcutLabel(ShortcutAction.showSecond), null, l10n.scShowSecond),
+    (shortcutLabel(ShortcutAction.showBoth), null, l10n.scShowBoth),
+    (shortcutLabel(ShortcutAction.rabbitHunt), null, l10n.scRabbitHunt),
+    (shortcutLabel(ShortcutAction.preCheckFold), null, l10n.scPreCheckFold),
+    (shortcutLabel(ShortcutAction.preCallAny), null, l10n.scPreCallAny),
+    (shortcutLabel(ShortcutAction.sitOut), null, l10n.scSitOut),
+    (shortcutLabel(ShortcutAction.rebuy), null, l10n.scRebuy),
     ('1 2 3 4', '← →', l10n.scPresets),
     ('Up Down', '↑ ↓ LB RB', l10n.scAmount),
     (
@@ -109,6 +117,8 @@ Future<void> showShortcutsOverlay(BuildContext context) {
                         ),
                       ),
                   const Gap(12),
+                  Text(l10n.scHoldHint).muted().small(),
+                  const Gap(6),
                   Text(l10n.shortcutsHint).muted().small(),
                   if (padOn) ...[
                     const Gap(6),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../../app/l10n.dart';
@@ -16,13 +18,22 @@ Future<void> showTableRulesDialog(
   builder: (context) => TableRulesDialog(snapshot: snapshot),
 ).future;
 
-class TableRulesDialog extends StatelessWidget {
+class TableRulesDialog extends StatefulWidget {
   const TableRulesDialog({super.key, required this.snapshot});
 
   final Snapshot snapshot;
 
   @override
+  State<TableRulesDialog> createState() => _TableRulesDialogState();
+}
+
+class _TableRulesDialogState extends State<TableRulesDialog> {
+  /// The page on show: the game, the table's options, the host's powers.
+  int _tab = 0;
+
+  @override
   Widget build(BuildContext context) {
+    final snapshot = widget.snapshot;
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
@@ -58,16 +69,20 @@ class TableRulesDialog extends StatelessWidget {
         ? l10n.rulesSeatChangeLocked
         : l10n.rulesSeatChangeUntilDeal;
 
-    Widget heading(String text) => Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 4),
-      child: Text(text).semiBold().small(),
-    );
+    // The dialog fits the screen it is on: a phone gets the full width
+    // minus a margin, and the page below the tabs scrolls instead of
+    // pushing the buttons off the bottom.
+    final media = MediaQuery.sizeOf(context);
+    final width = math.min(400.0, media.width - 40);
+    final compact = width < 340;
+    final labelWidth = compact ? 104.0 : 130.0;
+
     Widget fact(String label, String value) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 130, child: Text(label).muted().small()),
+          SizedBox(width: labelWidth, child: Text(label).muted().small()),
           const Gap(8),
           Expanded(child: Text(value).small()),
         ],
@@ -160,42 +175,75 @@ class TableRulesDialog extends StatelessWidget {
       ),
     );
 
+    // One page per tab: the whole card at once is a long scroll on a phone.
+    final pages = <List<Widget>>[
+      [
+        fact(l10n.setVariant, variant),
+        fact(l10n.rulesBlinds, '${chips(s.smallBlind)} / ${chips(s.bigBlind)}'),
+        if (s.ante > 0) fact(l10n.setAnte, chips(s.ante)),
+        fact(l10n.setStartMoney, chips(s.startMoney)),
+        fact(l10n.setMaxPlayers, '${s.maxPlayers}'),
+        fact(
+          l10n.rulesBlindSchedule,
+          s.blindsUpMinutes > 0
+              ? l10n.rulesBlindsUp(s.blindsUpMinutes, s.blindsUpPercent)
+              : l10n.rulesBlindsUpOff,
+        ),
+        fact(l10n.rulesTiming, timing),
+        fact(l10n.setShowdownReveal, reveal),
+        fact(l10n.setJoinPolicy, joinPolicy),
+        fact(l10n.rulesSeatChange, seats),
+      ],
+      [for (final (on, text) in options) mark(on, text)],
+      [for (final (on, text) in host) mark(on, text)],
+    ];
+
     return AlertDialog(
       title: Text(l10n.rulesTitle),
       content: SizedBox(
-        width: 400,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(l10n.rulesIntro(table.name)).muted().small(),
-              mode,
-              heading(l10n.rulesGame),
-              fact(l10n.setVariant, variant),
-              fact(
-                l10n.rulesBlinds,
-                '${chips(s.smallBlind)} / ${chips(s.bigBlind)}',
+        width: width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // On a phone the hint about finding this again costs three
+            // lines above the fold; the card itself is what matters there.
+            if (!compact) Text(l10n.rulesIntro(table.name)).muted().small(),
+            mode,
+            const Gap(12),
+            Tabs(
+              index: _tab,
+              onChanged: (i) => setState(() => _tab = i),
+              children: [
+                TabItem(
+                  key: const Key('rules-tab-game'),
+                  child: Text(l10n.rulesGame),
+                ),
+                TabItem(
+                  key: const Key('rules-tab-options'),
+                  child: Text(l10n.rulesOptions),
+                ),
+                TabItem(
+                  key: const Key('rules-tab-host'),
+                  child: Text(l10n.rulesHost),
+                ),
+              ],
+            ),
+            const Gap(8),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: math.max(150.0, media.height * 0.4),
               ),
-              if (s.ante > 0) fact(l10n.setAnte, chips(s.ante)),
-              fact(l10n.setStartMoney, chips(s.startMoney)),
-              fact(l10n.setMaxPlayers, '${s.maxPlayers}'),
-              fact(
-                l10n.rulesBlindSchedule,
-                s.blindsUpMinutes > 0
-                    ? l10n.rulesBlindsUp(s.blindsUpMinutes, s.blindsUpPercent)
-                    : l10n.rulesBlindsUpOff,
+              child: SingleChildScrollView(
+                child: Column(
+                  key: ValueKey(_tab),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: pages[_tab],
+                ),
               ),
-              fact(l10n.rulesTiming, timing),
-              fact(l10n.setShowdownReveal, reveal),
-              fact(l10n.setJoinPolicy, joinPolicy),
-              fact(l10n.rulesSeatChange, seats),
-              heading(l10n.rulesOptions),
-              for (final (on, text) in options) mark(on, text),
-              heading(l10n.rulesHost),
-              for (final (on, text) in host) mark(on, text),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       actions: [

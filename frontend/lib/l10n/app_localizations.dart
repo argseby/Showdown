@@ -1052,6 +1052,60 @@ abstract class AppLocalizations {
   /// **'Select all-in (Enter confirms)'**
   String get scAllIn;
 
+  /// No description provided for @scShowFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the first card'**
+  String get scShowFirst;
+
+  /// No description provided for @scShowSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the second card'**
+  String get scShowSecond;
+
+  /// No description provided for @scShowBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Show both cards'**
+  String get scShowBoth;
+
+  /// No description provided for @scRabbitHunt.
+  ///
+  /// In en, this message translates to:
+  /// **'See the rest of the board'**
+  String get scRabbitHunt;
+
+  /// No description provided for @scPreCheckFold.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm check / fold (hold)'**
+  String get scPreCheckFold;
+
+  /// No description provided for @scPreCallAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm call any (hold)'**
+  String get scPreCallAny;
+
+  /// No description provided for @scSitOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sit out, or come back (hold)'**
+  String get scSitOut;
+
+  /// No description provided for @scRebuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy back in (hold)'**
+  String get scRebuy;
+
+  /// No description provided for @scHoldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Held keys fill up while you press them.'**
+  String get scHoldHint;
+
   /// No description provided for @scPresets.
   ///
   /// In en, this message translates to:
@@ -2363,7 +2417,7 @@ abstract class AppLocalizations {
   /// No description provided for @rulesHost.
   ///
   /// In en, this message translates to:
-  /// **'What the host can do'**
+  /// **'Host'**
   String get rulesHost;
 
   /// No description provided for @rulesHostLifecycle.

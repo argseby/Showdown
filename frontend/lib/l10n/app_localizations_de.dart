@@ -549,6 +549,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scAllIn => 'All-in wählen (Enter bestätigt)';
 
   @override
+  String get scShowFirst => 'Erste Karte zeigen';
+
+  @override
+  String get scShowSecond => 'Zweite Karte zeigen';
+
+  @override
+  String get scShowBoth => 'Beide Karten zeigen';
+
+  @override
+  String get scRabbitHunt => 'Den Rest des Boards ansehen';
+
+  @override
+  String get scPreCheckFold => 'Schieben / Passen vormerken (halten)';
+
+  @override
+  String get scPreCallAny => 'Alles mitgehen vormerken (halten)';
+
+  @override
+  String get scSitOut => 'Aussetzen oder zurückkommen (halten)';
+
+  @override
+  String get scRebuy => 'Nachkaufen (halten)';
+
+  @override
+  String get scHoldHint => 'Tasten zum Halten füllen sich beim Drücken.';
+
+  @override
   String get scPresets => 'Vorgaben Min / 1/2 Pot / 3/4 Pot / Pot';
 
   @override
@@ -1319,7 +1346,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Host darf jederzeit Chips geben oder nehmen und Blinds und andere Einstellungen ändern; Geldänderungen gelten ab der nächsten Hand.';
 
   @override
-  String get rulesHost => 'Was der Host darf';
+  String get rulesHost => 'Host';
 
   @override
   String get rulesHostLifecycle =>

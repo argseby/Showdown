@@ -69,6 +69,116 @@ void main() {
     'description': desc,
   };
 
+  testWidgets('the winner keeps the five they finally made', (tester) async {
+    // The mirror of the replay case: hands turned over on the flop during a
+    // run-out, the board runs out, and the results name the final five.
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await tester.pump();
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        {
+          'seq': 30,
+          'ts': 1,
+          'kind': 'hands_revealed',
+          'reveals': [
+            {
+              'seat': 0,
+              'cards': ['9c', '9h'],
+              'description': 'Three of a Kind, Nines',
+              'best': ['9c', '9h', '9s', 'Kh', '7c'],
+            },
+          ],
+        },
+      ],
+    });
+    await tester.pump();
+    expect(container.read(tableSessionProvider('t1')).best[0], [
+      '9c',
+      '9h',
+      '9s',
+      'Kh',
+      '7c',
+    ]);
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        award(0, 0, 'Alice', 'Three of a Kind, Nines'),
+        {
+          'seq': 50,
+          'ts': 1,
+          'kind': 'hand_ended',
+          'results': {
+            'pots': <Object>[],
+            'seats': {
+              '0': {
+                'net': 100,
+                'won': 200,
+                'folded': false,
+                'revealed': true,
+                'best': ['9c', '9h', '9s', 'Kh', 'Jc'],
+              },
+            },
+          },
+        },
+      ],
+    });
+    await tester.pump();
+    final s = container.read(tableSessionProvider('t1'));
+    expect(s.best[0], ['9c', '9h', '9s', 'Kh', 'Jc']);
+    expect(s.spotlight?.cards, ['9c', '9h', '9s', 'Kh', 'Jc']);
+    await finish(tester);
+  });
+
+  testWidgets('a hand shown after everyone folded is named and framed', (
+    tester,
+  ) async {
+    container.read(tableSessionProvider('t1').notifier).start('tok');
+    await tester.pump();
+    // An uncontested pot: awarded without a hand description.
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        {
+          'seq': 40,
+          'ts': 1,
+          'kind': 'pot_awarded',
+          'pot_index': 0,
+          'seat': 0,
+          'name': 'Alice',
+          'amount': 150,
+        },
+      ],
+    });
+    await tester.pump();
+    expect(container.read(tableSessionProvider('t1')).spotlight, isNull);
+    // The winner shows before the flop: both cards are the hand.
+    transport.push('events', {
+      'hand_number': 12,
+      'events': [
+        {
+          'seq': 41,
+          'ts': 1,
+          'kind': 'hands_revealed',
+          'reveals': [
+            {
+              'seat': 0,
+              'cards': ['As', 'Kd'],
+              'description': 'Ace-King suited',
+              'best': ['As', 'Kd'],
+            },
+          ],
+        },
+      ],
+    });
+    await tester.pump();
+    final s = container.read(tableSessionProvider('t1'));
+    expect(s.best[0], ['As', 'Kd']);
+    expect(s.spotlight?.description, 'Ace-King suited');
+    expect(s.spotlight?.cards, ['As', 'Kd']);
+    await finish(tester);
+  });
+
   testWidgets('a split pot spotlights every tied winner', (tester) async {
     container.read(tableSessionProvider('t1').notifier).start('tok');
     await tester.pump();

@@ -117,9 +117,10 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 					}
 					if st.Revealed && !st.Folded {
 						// Public cards, public hand: everyone sees what the
-						// revealed hand makes on the board as it runs out.
+						// revealed hand makes on the board as it runs out —
+						// and before the flop the two cards themselves.
 						pv.HandDescription = t.hand.Description(seat)
-						pv.BestCards = cardStrings(t.hand.BestCards(seat))
+						pv.BestCards = cardStrings(t.hand.ShownBest(seat))
 					}
 				}
 			}

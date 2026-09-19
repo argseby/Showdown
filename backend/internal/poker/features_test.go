@@ -189,3 +189,41 @@ func TestActionEventsCarryTheStreet(t *testing.T) {
 		t.Fatalf("event %+v", ev[0])
 	}
 }
+
+// Everyone folds before the flop and the winner shows: the hand is the two
+// cards, and both of them are what gets framed.
+func TestShowCardsBeforeTheFlopDescribesTheHand(t *testing.T) {
+	t.Parallel()
+	seats := []Seat{{0, 1000}, {1, 1000}}
+	holes := map[int]string{0: "As Kd", 1: "7c 2h"}
+	h, _ := newTestHand(t, cfgWith(0), seats, holes, "9s Kh 7h 4d Jc")
+	act(t, h, 0, Fold, 0) // the small blind gives it up preflop
+	if h.Phase() != PhaseResult {
+		t.Fatalf("phase = %v", h.Phase())
+	}
+	events, err := h.ShowCards(1, true, true)
+	if err != nil {
+		t.Fatalf("ShowCards: %v", err)
+	}
+	var r Reveal
+	for _, e := range events {
+		if e.Kind == EvHandsRevealed && len(e.Reveals) == 1 {
+			r = e.Reveals[0]
+		}
+	}
+	if r.Description != "Seven high" {
+		t.Errorf("description = %q, want %q", r.Description, "Seven high")
+	}
+	if len(r.Best) != 2 {
+		t.Fatalf("best = %v, want both hole cards", r.Best)
+	}
+	if got := h.Results().Seats[1]; got.Description != r.Description || len(got.Best) != 2 {
+		t.Errorf("results carry %q / %v", got.Description, got.Best)
+	}
+	if got := h.ShownBest(1); len(got) != 2 {
+		t.Errorf("ShownBest = %v, want both hole cards", got)
+	}
+	if got := h.Description(1); got != "Seven high" {
+		t.Errorf("Description = %q", got)
+	}
+}

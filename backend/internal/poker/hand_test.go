@@ -381,7 +381,13 @@ func TestFoldToUncontestedWinnerAndShowCards(t *testing.T) {
 		t.Fatalf("unknown seat show: %v", err)
 	}
 	show, err := h.ShowCards(0, true, true)
-	if err != nil || len(show) != 1 || show[0].Kind != EvHandsRevealed || cardsString(show[0].Reveals[0].Cards) != "As Ad" || show[0].Reveals[0].Description != "" {
+	r := Reveal{}
+	if err == nil && len(show) == 1 && show[0].Kind == EvHandsRevealed {
+		r = show[0].Reveals[0]
+	}
+	// Before the flop the two cards are the hand: they are named and both
+	// of them are the five to frame.
+	if cardsString(r.Cards) != "As Ad" || r.Description != "Pair of Aces" || cardsString(r.Best) != "As Ad" {
 		t.Fatalf("show = %+v, %v", show, err)
 	}
 	if !h.Results().Seats[0].Revealed || cardsString(h.Results().Seats[0].Cards) != "As Ad" {

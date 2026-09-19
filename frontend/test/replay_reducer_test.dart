@@ -95,4 +95,96 @@ void main() {
       if (i < 11) expect(sum, 2000, reason: 'step $i');
     }
   });
+
+  test('the winner is framed by what the hand finally made', () {
+    // Seat 2 folds, the other two are all-in on the flop and the board runs
+    // out. The reveal is evaluated against the flop, so only the results
+    // know the final five: seat 1's trip nines end with the Jc kicker, not
+    // the 7c they held when the cards were turned over.
+    final base = fixtureSnapshot();
+    GameEvent ev(int seq, String kind, Map<String, dynamic> extra) =>
+        GameEvent.fromJson({'seq': seq, 'ts': 0, 'kind': kind, ...extra});
+    final events = [
+      ev(1, 'hand_started', {
+        'button_seat': 0,
+        'sb_seat': 1,
+        'bb_seat': 2,
+        'stacks': {'0': 1000, '1': 1000, '2': 1000},
+      }),
+      ev(2, 'action', {'seat': 0, 'action': 'all_in', 'amount': 1000}),
+      ev(3, 'action', {'seat': 1, 'action': 'call', 'amount': 1000}),
+      ev(4, 'action', {'seat': 2, 'action': 'fold'}),
+      ev(5, 'street_dealt', {
+        'street': 'flop',
+        'cards': ['9s', 'Kh', '7c'],
+      }),
+      ev(6, 'hands_revealed', {
+        'reveals': [
+          {
+            'seat': 1,
+            'cards': ['9c', '9h'],
+            'description': 'Three of a Kind, Nines',
+            'best': ['9c', '9h', '9s', 'Kh', '7c'],
+          },
+          {
+            'seat': 0,
+            'cards': ['As', 'Kd'],
+            'description': 'Pair of Kings',
+            'best': ['Kd', 'Kh', 'As', '9s', '7c'],
+          },
+        ],
+      }),
+      ev(7, 'street_dealt', {
+        'street': 'turn',
+        'cards': ['4d'],
+      }),
+      ev(8, 'street_dealt', {
+        'street': 'river',
+        'cards': ['Jc'],
+      }),
+      ev(9, 'pot_awarded', {
+        'pot_index': 0,
+        'seat': 1,
+        'amount': 2000,
+        'description': 'Three of a Kind, Nines',
+      }),
+      ev(10, 'hand_ended', {
+        'results': {
+          'pots': <Object>[],
+          'seats': {
+            '0': {
+              'net': -1000,
+              'won': 0,
+              'folded': false,
+              'revealed': true,
+              'best': ['Kd', 'Kh', 'As', 'Jc', '9s'],
+            },
+            '1': {
+              'net': 1000,
+              'won': 2000,
+              'folded': false,
+              'revealed': true,
+              'best': ['9c', '9h', '9s', 'Kh', 'Jc'],
+            },
+            '2': {'net': 0, 'won': 0, 'folded': true, 'revealed': false},
+          },
+        },
+      }),
+    ];
+    final r = ReplayReducer(
+      events: events,
+      base: base,
+      handNumber: 8,
+      names: const {0: 'Alice', 1: 'Bob', 2: 'Carol'},
+      avatars: const {0: 1, 1: 2, 2: 3},
+      viewerSeat: 0,
+    );
+    // While the board is still the flop, the reveal stands as it was.
+    expect(r.frame(6).best[1], ['9c', '9h', '9s', 'Kh', '7c']);
+    // Once the pot is awarded the five framed cards are the final ones.
+    final end = r.frame(events.length);
+    expect(end.best[1], ['9c', '9h', '9s', 'Kh', 'Jc']);
+    expect(end.spotlight!.cards, ['9c', '9h', '9s', 'Kh', 'Jc']);
+    expect(end.best[0], ['Kd', 'Kh', 'As', 'Jc', '9s']);
+  });
 }

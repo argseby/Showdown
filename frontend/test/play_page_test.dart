@@ -497,8 +497,16 @@ void main() {
     expect(find.byType(TableRulesDialog), findsOneWidget);
     expect(find.text('Rules at this table'), findsOneWidget);
     expect(find.byKey(const Key('rules-cash')), findsOneWidget);
+    // One page at a time: the game first, the host's powers a tap away.
     expect(find.text('50 / 100'), findsOneWidget);
+    expect(find.text('Give or take chips'), findsNothing);
+    await tester.tap(find.byKey(const Key('rules-tab-host')));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Give or take chips'), findsOneWidget);
+    expect(find.text('50 / 100'), findsNothing);
+    await tester.tap(find.byKey(const Key('rules-tab-game')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('50 / 100'), findsOneWidget);
     await tester.tap(find.byKey(const Key('rules-close')));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
@@ -919,6 +927,54 @@ void main() {
     // net gain from the results, not the pot.
     expect(find.text('+300'), findsOneWidget);
     expect(find.text('+900'), findsNothing);
+  });
+
+  group('keyboard shortcuts', () {
+    testWidgets('sitting out takes a held key, not a tap', (tester) async {
+      await pumpPlay(tester);
+      // A tap is not enough: these arm or cost something.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyO);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyO);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(sentTypes(), isNot(contains('sit_out')));
+
+      // Held until the cap has filled, it goes through.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyO);
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyO);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(sentTypes(), contains('sit_out'));
+    });
+
+    testWidgets('showing a card is one press', (tester) async {
+      await pumpPlay(tester);
+      final snap = jsonDecode(
+        File('../docs/protocol/fixtures/snapshot.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final payload = snap['payload'] as Map<String, dynamic>;
+      final you = payload['you'] as Map<String, dynamic>;
+      you['can_show_cards'] = true;
+      you.remove('options');
+      transport.controller.add(
+        jsonEncode({'type': 'snapshot', 'payload': payload}),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyS);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyS);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(sentTypes(), contains('show_cards'));
+      // Both cards: the payload names no single card.
+      final sent = transport.sent.lastWhere((e) => e['type'] == 'show_cards');
+      expect((sent['payload'] as Map<String, dynamic>)['cards'], isNull);
+
+      // The left card on its own.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pump(const Duration(milliseconds: 50));
+      final first = transport.sent.lastWhere((e) => e['type'] == 'show_cards');
+      expect((first['payload'] as Map<String, dynamic>)['cards'], 'first');
+    });
   });
 
   group('the standing of a finished round', () {

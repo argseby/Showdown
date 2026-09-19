@@ -48,6 +48,18 @@ class ReplayReducer {
           int.parse(entry.key): entry.value.net,
   };
 
+  /// The best five per seat from the hand's results. A hand turned over
+  /// during a run-out was evaluated against the board as it stood then, so
+  /// only the results know what it finally made; taken over once the pot
+  /// is awarded, exactly as the live table does.
+  late final Map<int, List<String>> _finalBest = {
+    for (final e in events)
+      if (e.kind == 'hand_ended')
+        for (final entry in (e.results?.seats ?? const {}).entries)
+          if (entry.value.best?.isNotEmpty ?? false)
+            int.parse(entry.key): entry.value.best!,
+  };
+
   /// State after applying events[0..step) — step 0 is before the deal.
   ReplayFrame frame(int step) {
     final seats = <int, ReplaySeat>{};
@@ -152,6 +164,9 @@ class ReplayReducer {
             if (r.best != null) best[r.seat] = r.best!;
           }
         case 'pot_awarded':
+          // The board is complete now: every revealed hand is framed by
+          // what it finally made, not by the board it was shown on.
+          best.addAll(_finalBest);
           if (p != null) p.stack += e.amount ?? 0;
           final pi = e.potIndex ?? 0;
           if (pi != potIndex) {

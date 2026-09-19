@@ -302,15 +302,21 @@ class SeatWidget extends ConsumerWidget {
                 : null,
           ),
           child: video != null
-              ? ClipOval(
-                  child: SizedBox(
-                    width: avatarSize,
-                    height: avatarSize,
-                    child: HtmlElementView(
-                      key: ValueKey(video),
-                      viewType: video,
+              // The camera tile wears the hat too: it stands in for the
+              // avatar, so it keeps what the player put on.
+              ? withHat(
+                  ClipOval(
+                    child: SizedBox(
+                      width: avatarSize,
+                      height: avatarSize,
+                      child: HtmlElementView(
+                        key: ValueKey(video),
+                        viewType: video,
+                      ),
                     ),
                   ),
+                  size: avatarSize,
+                  hat: showHats ? p.hat : null,
                 )
               : PlayerAvatar(
                   index: p.avatar,

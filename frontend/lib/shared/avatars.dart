@@ -75,21 +75,28 @@ class PlayerAvatar extends StatelessWidget {
         color: const Color(0xFFFFFFFF),
       ),
     );
-    if (!wearsHat(hat)) return disc;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        disc,
-        Positioned(
-          left: size * (1 - hatWidth) / 2,
-          top: -size * hatOverflow,
-          child: IgnorePointer(
-            child: PlayerHat(hat: hat!, width: size * hatWidth),
-          ),
-        ),
-      ],
-    );
+    return withHat(disc, size: size, hat: hat);
   }
+}
+
+/// Puts [hat] on a round face of [size] — an avatar disc or a camera tile,
+/// which wears the same hats. The hat overflows upwards without changing
+/// the widget's own size; without a hat the face is returned untouched.
+Widget withHat(Widget face, {required double size, String? hat}) {
+  if (!wearsHat(hat)) return face;
+  return Stack(
+    clipBehavior: Clip.none,
+    children: [
+      face,
+      Positioned(
+        left: size * (1 - hatWidth) / 2,
+        top: -size * hatOverflow,
+        child: IgnorePointer(
+          child: PlayerHat(hat: hat!, width: size * hatWidth),
+        ),
+      ),
+    ],
+  );
 }
 
 /// A grid of the twenty avatars with the selected one outlined.

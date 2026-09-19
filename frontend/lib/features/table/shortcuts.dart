@@ -9,6 +9,14 @@ enum ShortcutAction {
   fold,
   checkCall,
   openRaise,
+  showFirst,
+  showSecond,
+  showBoth,
+  rabbitHunt,
+  preCheckFold,
+  preCallAny,
+  sitOut,
+  rebuy,
   focusAmount,
   selectAllIn,
   preset1,
@@ -28,6 +36,11 @@ enum ShortcutAction {
   showHelp,
 }
 
+/// How long a hold shortcut must be pressed before it fires. Its key cap
+/// fills up over the same time, so the wait is visible rather than a key
+/// that seems not to work.
+const shortcutHoldDuration = Duration(milliseconds: 600);
+
 /// A binding: the key plus whether Shift must be held.
 class ShortcutBinding {
   const ShortcutBinding(
@@ -35,11 +48,17 @@ class ShortcutBinding {
     this.key, {
     this.shift = false,
     this.label,
+    this.hold = false,
   });
 
   final ShortcutAction action;
   final LogicalKeyboardKey key;
   final bool shift;
+
+  /// The key must be held down for [shortcutHoldDuration]: these arm or
+  /// undo something for the whole hand and must not go off by a brush of
+  /// the keyboard.
+  final bool hold;
 
   /// Display label; defaults to the key label.
   final String? label;
@@ -67,6 +86,51 @@ const List<ShortcutBinding> shortcutBindings = [
     ShortcutAction.focusAmount,
     LogicalKeyboardKey.keyN,
     label: 'N',
+  ),
+  // The hand is over for the viewer: show a card (left or right, as they
+  // lie), show both, or look at the rest of the board.
+  ShortcutBinding(
+    ShortcutAction.showFirst,
+    LogicalKeyboardKey.arrowLeft,
+    label: 'Left',
+  ),
+  ShortcutBinding(
+    ShortcutAction.showSecond,
+    LogicalKeyboardKey.arrowRight,
+    label: 'Right',
+  ),
+  ShortcutBinding(ShortcutAction.showBoth, LogicalKeyboardKey.keyS, label: 'S'),
+  ShortcutBinding(
+    ShortcutAction.rabbitHunt,
+    LogicalKeyboardKey.keyH,
+    label: 'H',
+  ),
+  // Held, not tapped: these stand for the rest of the hand (or cost chips).
+  ShortcutBinding(
+    ShortcutAction.preCheckFold,
+    LogicalKeyboardKey.keyF,
+    shift: true,
+    label: 'F',
+    hold: true,
+  ),
+  ShortcutBinding(
+    ShortcutAction.preCallAny,
+    LogicalKeyboardKey.keyC,
+    shift: true,
+    label: 'C',
+    hold: true,
+  ),
+  ShortcutBinding(
+    ShortcutAction.sitOut,
+    LogicalKeyboardKey.keyO,
+    label: 'O',
+    hold: true,
+  ),
+  ShortcutBinding(
+    ShortcutAction.rebuy,
+    LogicalKeyboardKey.keyU,
+    label: 'U',
+    hold: true,
   ),
   ShortcutBinding(
     ShortcutAction.selectAllIn,
@@ -155,6 +219,10 @@ const List<ShortcutBinding> shortcutBindings = [
 /// The primary label for an action (for kbd hints on buttons).
 String shortcutLabel(ShortcutAction action) =>
     shortcutBindings.firstWhere((b) => b.action == action).displayLabel;
+
+/// Whether the action's key has to be held down (see [shortcutHoldDuration]).
+bool shortcutHolds(ShortcutAction action) =>
+    shortcutBindings.any((b) => b.action == action && b.hold);
 
 /// The controller mapping (standard layout). A and LB/RB double up: A
 /// confirms while the raise control is open and checks or calls otherwise;

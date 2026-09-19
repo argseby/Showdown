@@ -33,6 +33,44 @@ void main() {
     expect(padLabel(ShortcutAction.focusChat), isNull);
   });
 
+  test('the result and arming shortcuts resolve', () {
+    expect(
+      shortcutFor(down(LogicalKeyboardKey.arrowLeft), textFieldFocused: false),
+      ShortcutAction.showFirst,
+    );
+    expect(
+      shortcutFor(down(LogicalKeyboardKey.arrowRight), textFieldFocused: false),
+      ShortcutAction.showSecond,
+    );
+    expect(
+      shortcutFor(down(LogicalKeyboardKey.keyS), textFieldFocused: false),
+      ShortcutAction.showBoth,
+    );
+    expect(
+      shortcutFor(down(LogicalKeyboardKey.keyH), textFieldFocused: false),
+      ShortcutAction.rabbitHunt,
+    );
+    // Arming and rebuy are held, not tapped; showing a card is not.
+    for (final a in [
+      ShortcutAction.preCheckFold,
+      ShortcutAction.preCallAny,
+      ShortcutAction.sitOut,
+      ShortcutAction.rebuy,
+    ]) {
+      expect(shortcutHolds(a), isTrue, reason: a.name);
+    }
+    for (final a in [
+      ShortcutAction.fold,
+      ShortcutAction.checkCall,
+      ShortcutAction.showBoth,
+      ShortcutAction.rabbitHunt,
+    ]) {
+      expect(shortcutHolds(a), isFalse, reason: a.name);
+    }
+    expect(shortcutLabel(ShortcutAction.preCheckFold), 'Shift+F');
+    expect(shortcutLabel(ShortcutAction.sitOut), 'O');
+  });
+
   test('keys map to actions and key-up events are ignored', () {
     expect(
       shortcutFor(down(LogicalKeyboardKey.keyF), textFieldFocused: false),

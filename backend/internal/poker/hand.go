@@ -984,13 +984,32 @@ func (h *Hand) revealAll(events []Event) []Event {
 }
 
 func (h *Hand) reveal(p *player) Reveal {
-	r := Reveal{Seat: p.seat, Cards: []Card{p.hole[0], p.hole[1]}, Shown: [2]bool{true, true}}
-	if len(h.board) >= 3 {
-		v := Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...))
-		r.Description = v.Describe()
-		r.Best = append([]Card(nil), v.Best[:]...)
+	return Reveal{
+		Seat: p.seat, Cards: []Card{p.hole[0], p.hole[1]}, Shown: [2]bool{true, true},
+		Description: h.Description(p.seat), Best: h.shownBest(p),
 	}
-	return r
+}
+
+// shownBest is the hand a revealed seat shows: the best five from the flop
+// on, and before it the two hole cards themselves — they are the whole hand
+// then, so a hand shown after everyone folded is framed as what it was
+// rather than as its high card alone.
+func (h *Hand) shownBest(p *player) []Card {
+	if len(h.board) < 3 {
+		return []Card{p.hole[0], p.hole[1]}
+	}
+	v := Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...))
+	return append([]Card(nil), v.Best[:]...)
+}
+
+// ShownBest is [shownBest] for a seat, so snapshots frame a revealed hand
+// exactly as its reveal event described it.
+func (h *Hand) ShownBest(seat int) []Card {
+	p, ok := h.bySeat[seat]
+	if !ok {
+		return nil
+	}
+	return h.shownBest(p)
 }
 
 // clockwiseFromButton orders seats starting left of the button.
@@ -1290,7 +1309,7 @@ func (h *Hand) ShowCards(seat int, first, second bool) ([]Event, error) {
 		p.revealed = true
 		r := h.reveal(p)
 		sr := h.results.Seats[seat]
-		sr.Revealed, sr.Cards, sr.Description = true, r.Cards, r.Description
+		sr.Revealed, sr.Cards, sr.Description, sr.Best = true, r.Cards, r.Description, r.Best
 		h.results.Seats[seat] = sr
 		return h.emit(nil, Event{Kind: EvHandsRevealed, Seat: -1, Reveals: []Reveal{r}}), nil
 	}
