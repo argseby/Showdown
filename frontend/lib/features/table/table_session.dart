@@ -34,7 +34,7 @@ class TableSessionState {
     this.chat = const [],
     this.unreadChat = 0,
     this.log = const [],
-    this.ended,
+    this.showingResult = false,
     this.kicked,
     this.serverRestarting = false,
     this.revealed = const {},
@@ -57,7 +57,12 @@ class TableSessionState {
   final List<ChatMessage> chat;
   final int unreadChat;
   final List<LogEntry> log;
-  final TableEnded? ended;
+
+  /// The standing of the finished round is on screen. Set when this client
+  /// sees the table end (or attaches to an ended one) and cleared only by
+  /// the player — or when a new round deals them in. A new round must never
+  /// pull the result away while they are still reading it.
+  final bool showingResult;
   final Kicked? kicked;
   final bool serverRestarting;
 
@@ -113,7 +118,7 @@ class TableSessionState {
     List<ChatMessage>? chat,
     int? unreadChat,
     List<LogEntry>? log,
-    TableEnded? ended,
+    bool? showingResult,
     Kicked? kicked,
     bool? serverRestarting,
     Set<int>? revealed,
@@ -138,7 +143,7 @@ class TableSessionState {
     chat: chat ?? this.chat,
     unreadChat: unreadChat ?? this.unreadChat,
     log: log ?? this.log,
-    ended: ended ?? this.ended,
+    showingResult: showingResult ?? this.showingResult,
     kicked: kicked ?? this.kicked,
     serverRestarting: serverRestarting ?? this.serverRestarting,
     revealed: revealed ?? this.revealed,
@@ -235,6 +240,7 @@ const systemChatKinds = {
   'table_paused',
   'table_resumed',
   'table_ended',
+  'table_restarted',
   'chips_adjusted',
 };
 
@@ -325,14 +331,17 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         state = state.copyWith(
           identity: payload.you,
           snapshot: payload.snapshot,
-          ended: null,
+          showingResult: _resultOnScreen(payload.snapshot, false),
           kicked: null,
           serverRestarting: false,
         );
         if (state.log.isEmpty) _loadHistory();
       case SnapshotMessage(:final payload):
         ref.read(timeSyncProvider.notifier).update(payload.serverTs);
-        state = state.copyWith(snapshot: payload);
+        state = state.copyWith(
+          snapshot: payload,
+          showingResult: _resultOnScreen(payload, state.showingResult),
+        );
       case EventsMessage(:final payload):
         _applyEvents(payload);
       case ChatServerMessage(:final payload):
@@ -352,8 +361,10 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
         );
       case KickedMessage(:final payload):
         state = state.copyWith(kicked: payload);
-      case TableEndedMessage(:final payload):
-        state = state.copyWith(ended: payload);
+      case TableEndedMessage():
+        // The standing itself rides on the snapshot (last_round), which
+        // outlives the next round's reset.
+        state = state.copyWith(showingResult: true);
       case ServerRestartingMessage():
         state = state.copyWith(serverRestarting: true);
       case PongMessage(:final payload):
@@ -451,6 +462,34 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
       });
     }
   }
+
+  /// Whether the standing of the finished round belongs on screen after
+  /// [snap]. It goes up when the table is ended (including a reload into an
+  /// ended table) and stays up through a new round until the player closes
+  /// it — the one exception being a hand dealt to them, which must not be
+  /// played behind a card. A reload into a round already running does not
+  /// bring it back; the side panel keeps it.
+  bool _resultOnScreen(Snapshot snap, bool showing) {
+    if (snap.lastRound == null) return false;
+    if (snap.table.state == 'ended') return true;
+    if (!showing) return false;
+    return !_dealtIn(snap);
+  }
+
+  /// The viewer holds cards in the hand currently being played.
+  bool _dealtIn(Snapshot snap) {
+    if (snap.hand == null) return false;
+    final seat = snap.you.seat;
+    if (seat == null) return false;
+    for (final sv in snap.seats) {
+      if (sv.seat == seat) return sv.player?.inHand ?? false;
+    }
+    return false;
+  }
+
+  /// The player closes the standing of the finished round and goes back to
+  /// the table; the side panel still has it.
+  void dismissResult() => state = state.copyWith(showingResult: false);
 
   /// Rebuilds the hand log from the recorded hands after a (re)load, so a
   /// refresh does not wipe the history.

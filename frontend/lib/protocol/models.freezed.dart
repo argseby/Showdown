@@ -6374,7 +6374,10 @@ $SnapshotCopyWith<$Res> get snapshot {
 /// @nodoc
 mixin _$Snapshot {
 
- int get serverTs; TableInfo get table; List<SeatView> get seats; HandView? get hand; You get you; List<LeaderboardEntry> get leaderboard; int get spectators;@JsonKey(includeIfNull: false) List<String>? get spectatorNames;
+ int get serverTs; TableInfo get table; List<SeatView> get seats; HandView? get hand; You get you; List<LeaderboardEntry> get leaderboard; int get spectators;@JsonKey(includeIfNull: false) List<String>? get spectatorNames;/// The standing of the round that finished before this one. It outlives
+/// the new round's reset and is the only record of how the last round
+/// went once the stacks are back at the start money.
+@JsonKey(includeIfNull: false) RoundResult? get lastRound;
 /// Create a copy of Snapshot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6388,20 +6391,20 @@ $SnapshotCopyWith<Snapshot> get copyWith => _$SnapshotCopyWithImpl<Snapshot>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Snapshot;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Snapshot&&(identical(other.serverTs, _this.serverTs) || other.serverTs == _this.serverTs)&&(identical(other.table, _this.table) || other.table == _this.table)&&const DeepCollectionEquality().equals(other.seats, _this.seats)&&(identical(other.hand, _this.hand) || other.hand == _this.hand)&&(identical(other.you, _this.you) || other.you == _this.you)&&const DeepCollectionEquality().equals(other.leaderboard, _this.leaderboard)&&(identical(other.spectators, _this.spectators) || other.spectators == _this.spectators)&&const DeepCollectionEquality().equals(other.spectatorNames, _this.spectatorNames));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Snapshot&&(identical(other.serverTs, _this.serverTs) || other.serverTs == _this.serverTs)&&(identical(other.table, _this.table) || other.table == _this.table)&&const DeepCollectionEquality().equals(other.seats, _this.seats)&&(identical(other.hand, _this.hand) || other.hand == _this.hand)&&(identical(other.you, _this.you) || other.you == _this.you)&&const DeepCollectionEquality().equals(other.leaderboard, _this.leaderboard)&&(identical(other.spectators, _this.spectators) || other.spectators == _this.spectators)&&const DeepCollectionEquality().equals(other.spectatorNames, _this.spectatorNames)&&(identical(other.lastRound, _this.lastRound) || other.lastRound == _this.lastRound));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Snapshot;
-  return Object.hash(runtimeType,_this.serverTs,_this.table,const DeepCollectionEquality().hash(_this.seats),_this.hand,_this.you,const DeepCollectionEquality().hash(_this.leaderboard),_this.spectators,const DeepCollectionEquality().hash(_this.spectatorNames));
+  return Object.hash(runtimeType,_this.serverTs,_this.table,const DeepCollectionEquality().hash(_this.seats),_this.hand,_this.you,const DeepCollectionEquality().hash(_this.leaderboard),_this.spectators,const DeepCollectionEquality().hash(_this.spectatorNames),_this.lastRound);
 }
 
 @override
 String toString() {
   final _this = this as Snapshot;
-  return 'Snapshot(serverTs: ${_this.serverTs}, table: ${_this.table}, seats: ${_this.seats}, hand: ${_this.hand}, you: ${_this.you}, leaderboard: ${_this.leaderboard}, spectators: ${_this.spectators}, spectatorNames: ${_this.spectatorNames})';
+  return 'Snapshot(serverTs: ${_this.serverTs}, table: ${_this.table}, seats: ${_this.seats}, hand: ${_this.hand}, you: ${_this.you}, leaderboard: ${_this.leaderboard}, spectators: ${_this.spectators}, spectatorNames: ${_this.spectatorNames}, lastRound: ${_this.lastRound})';
 }
 
 
@@ -6412,11 +6415,11 @@ abstract mixin class $SnapshotCopyWith<$Res>  {
   factory $SnapshotCopyWith(Snapshot value, $Res Function(Snapshot) _then) = _$SnapshotCopyWithImpl;
 @useResult
 $Res call({
- int serverTs, TableInfo table, List<SeatView> seats, HandView? hand, You you, List<LeaderboardEntry> leaderboard, int spectators,@JsonKey(includeIfNull: false) List<String>? spectatorNames
+ int serverTs, TableInfo table, List<SeatView> seats, HandView? hand, You you, List<LeaderboardEntry> leaderboard, int spectators,@JsonKey(includeIfNull: false) List<String>? spectatorNames,@JsonKey(includeIfNull: false) RoundResult? lastRound
 });
 
 
-$TableInfoCopyWith<$Res> get table;$HandViewCopyWith<$Res>? get hand;$YouCopyWith<$Res> get you;
+$TableInfoCopyWith<$Res> get table;$HandViewCopyWith<$Res>? get hand;$YouCopyWith<$Res> get you;$RoundResultCopyWith<$Res>? get lastRound;
 
 }
 /// @nodoc
@@ -6429,7 +6432,7 @@ class _$SnapshotCopyWithImpl<$Res>
 
 /// Create a copy of Snapshot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? serverTs = null,Object? table = null,Object? seats = null,Object? hand = freezed,Object? you = null,Object? leaderboard = null,Object? spectators = null,Object? spectatorNames = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? serverTs = null,Object? table = null,Object? seats = null,Object? hand = freezed,Object? you = null,Object? leaderboard = null,Object? spectators = null,Object? spectatorNames = freezed,Object? lastRound = freezed,}) {
   return _then(Snapshot(
 serverTs: null == serverTs ? _self.serverTs : serverTs // ignore: cast_nullable_to_non_nullable
 as int,table: null == table ? _self.table : table // ignore: cast_nullable_to_non_nullable
@@ -6439,7 +6442,8 @@ as HandView?,you: null == you ? _self.you : you // ignore: cast_nullable_to_non_
 as You,leaderboard: null == leaderboard ? _self.leaderboard : leaderboard // ignore: cast_nullable_to_non_nullable
 as List<LeaderboardEntry>,spectators: null == spectators ? _self.spectators : spectators // ignore: cast_nullable_to_non_nullable
 as int,spectatorNames: freezed == spectatorNames ? _self.spectatorNames : spectatorNames // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,lastRound: freezed == lastRound ? _self.lastRound : lastRound // ignore: cast_nullable_to_non_nullable
+as RoundResult?,
   ));
 }
 /// Create a copy of Snapshot
@@ -6471,6 +6475,18 @@ $YouCopyWith<$Res> get you {
   
   return $YouCopyWith<$Res>(_self.you, (value) {
     return _then(_self.copyWith(you: value));
+  });
+}/// Create a copy of Snapshot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RoundResultCopyWith<$Res>? get lastRound {
+    if (_self.lastRound == null) {
+    return null;
+  }
+
+  return $RoundResultCopyWith<$Res>(_self.lastRound!, (value) {
+    return _then(_self.copyWith(lastRound: value));
   });
 }
 }
@@ -6554,10 +6570,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames, @JsonKey(includeIfNull: false)  RoundResult? lastRound)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Snapshot() when $default != null:
-return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames);case _:
+return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames,_that.lastRound);case _:
   return orElse();
 
 }
@@ -6575,10 +6591,10 @@ return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames, @JsonKey(includeIfNull: false)  RoundResult? lastRound)  $default,) {final _that = this;
 switch (_that) {
 case _Snapshot():
-return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames);case _:
+return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames,_that.lastRound);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -6595,10 +6611,10 @@ return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int serverTs,  TableInfo table,  List<SeatView> seats,  HandView? hand,  You you,  List<LeaderboardEntry> leaderboard,  int spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames, @JsonKey(includeIfNull: false)  RoundResult? lastRound)?  $default,) {final _that = this;
 switch (_that) {
 case _Snapshot() when $default != null:
-return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames);case _:
+return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_that.leaderboard,_that.spectators,_that.spectatorNames,_that.lastRound);case _:
   return null;
 
 }
@@ -6610,7 +6626,7 @@ return $default(_that.serverTs,_that.table,_that.seats,_that.hand,_that.you,_tha
 @JsonSerializable()
 
 class _Snapshot implements Snapshot {
-  const _Snapshot({required this.serverTs, required this.table, required  List<SeatView> seats, required this.hand, required this.you, required  List<LeaderboardEntry> leaderboard, required this.spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames}): _seats = seats,_leaderboard = leaderboard,_spectatorNames = spectatorNames;
+  const _Snapshot({required this.serverTs, required this.table, required  List<SeatView> seats, required this.hand, required this.you, required  List<LeaderboardEntry> leaderboard, required this.spectators, @JsonKey(includeIfNull: false)  List<String>? spectatorNames, @JsonKey(includeIfNull: false) this.lastRound}): _seats = seats,_leaderboard = leaderboard,_spectatorNames = spectatorNames;
   factory _Snapshot.fromJson(Map<String, dynamic> json) => _$SnapshotFromJson(json);
 
 @override final  int serverTs;
@@ -6641,6 +6657,10 @@ class _Snapshot implements Snapshot {
   return EqualUnmodifiableListView(value);
 }
 
+/// The standing of the round that finished before this one. It outlives
+/// the new round's reset and is the only record of how the last round
+/// went once the stacks are back at the start money.
+@override@JsonKey(includeIfNull: false) final  RoundResult? lastRound;
 
 /// Create a copy of Snapshot
 /// with the given fields replaced by the non-null parameter values.
@@ -6655,18 +6675,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Snapshot&&(identical(other.serverTs, serverTs) || other.serverTs == serverTs)&&(identical(other.table, table) || other.table == table)&&const DeepCollectionEquality().equals(other.seats, _seats)&&(identical(other.hand, hand) || other.hand == hand)&&(identical(other.you, you) || other.you == you)&&const DeepCollectionEquality().equals(other.leaderboard, _leaderboard)&&(identical(other.spectators, spectators) || other.spectators == spectators)&&const DeepCollectionEquality().equals(other.spectatorNames, _spectatorNames));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Snapshot&&(identical(other.serverTs, serverTs) || other.serverTs == serverTs)&&(identical(other.table, table) || other.table == table)&&const DeepCollectionEquality().equals(other.seats, _seats)&&(identical(other.hand, hand) || other.hand == hand)&&(identical(other.you, you) || other.you == you)&&const DeepCollectionEquality().equals(other.leaderboard, _leaderboard)&&(identical(other.spectators, spectators) || other.spectators == spectators)&&const DeepCollectionEquality().equals(other.spectatorNames, _spectatorNames)&&(identical(other.lastRound, lastRound) || other.lastRound == lastRound));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,serverTs,table,const DeepCollectionEquality().hash(_seats),hand,you,const DeepCollectionEquality().hash(_leaderboard),spectators,const DeepCollectionEquality().hash(_spectatorNames));
+    return Object.hash(runtimeType,serverTs,table,const DeepCollectionEquality().hash(_seats),hand,you,const DeepCollectionEquality().hash(_leaderboard),spectators,const DeepCollectionEquality().hash(_spectatorNames),lastRound);
 }
 
 @override
 String toString() {
-    return 'Snapshot(serverTs: $serverTs, table: $table, seats: $seats, hand: $hand, you: $you, leaderboard: $leaderboard, spectators: $spectators, spectatorNames: $spectatorNames)';
+    return 'Snapshot(serverTs: $serverTs, table: $table, seats: $seats, hand: $hand, you: $you, leaderboard: $leaderboard, spectators: $spectators, spectatorNames: $spectatorNames, lastRound: $lastRound)';
 }
 
 
@@ -6677,11 +6697,11 @@ abstract mixin class _$SnapshotCopyWith<$Res> implements $SnapshotCopyWith<$Res>
   factory _$SnapshotCopyWith(_Snapshot value, $Res Function(_Snapshot) _then) = __$SnapshotCopyWithImpl;
 @override @useResult
 $Res call({
- int serverTs, TableInfo table, List<SeatView> seats, HandView? hand, You you, List<LeaderboardEntry> leaderboard, int spectators,@JsonKey(includeIfNull: false) List<String>? spectatorNames
+ int serverTs, TableInfo table, List<SeatView> seats, HandView? hand, You you, List<LeaderboardEntry> leaderboard, int spectators,@JsonKey(includeIfNull: false) List<String>? spectatorNames,@JsonKey(includeIfNull: false) RoundResult? lastRound
 });
 
 
-@override $TableInfoCopyWith<$Res> get table;@override $HandViewCopyWith<$Res>? get hand;@override $YouCopyWith<$Res> get you;
+@override $TableInfoCopyWith<$Res> get table;@override $HandViewCopyWith<$Res>? get hand;@override $YouCopyWith<$Res> get you;@override $RoundResultCopyWith<$Res>? get lastRound;
 
 }
 /// @nodoc
@@ -6694,7 +6714,7 @@ class __$SnapshotCopyWithImpl<$Res>
 
 /// Create a copy of Snapshot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? serverTs = null,Object? table = null,Object? seats = null,Object? hand = freezed,Object? you = null,Object? leaderboard = null,Object? spectators = null,Object? spectatorNames = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? serverTs = null,Object? table = null,Object? seats = null,Object? hand = freezed,Object? you = null,Object? leaderboard = null,Object? spectators = null,Object? spectatorNames = freezed,Object? lastRound = freezed,}) {
   return _then(_Snapshot(
 serverTs: null == serverTs ? _self.serverTs : serverTs // ignore: cast_nullable_to_non_nullable
 as int,table: null == table ? _self.table : table // ignore: cast_nullable_to_non_nullable
@@ -6704,7 +6724,8 @@ as HandView?,you: null == you ? _self.you : you // ignore: cast_nullable_to_non_
 as You,leaderboard: null == leaderboard ? _self._leaderboard : leaderboard // ignore: cast_nullable_to_non_nullable
 as List<LeaderboardEntry>,spectators: null == spectators ? _self.spectators : spectators // ignore: cast_nullable_to_non_nullable
 as int,spectatorNames: freezed == spectatorNames ? _self._spectatorNames : spectatorNames // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,lastRound: freezed == lastRound ? _self.lastRound : lastRound // ignore: cast_nullable_to_non_nullable
+as RoundResult?,
   ));
 }
 
@@ -6737,6 +6758,18 @@ $YouCopyWith<$Res> get you {
   
   return $YouCopyWith<$Res>(_self.you, (value) {
     return _then(_self.copyWith(you: value));
+  });
+}/// Create a copy of Snapshot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RoundResultCopyWith<$Res>? get lastRound {
+    if (_self.lastRound == null) {
+    return null;
+  }
+
+  return $RoundResultCopyWith<$Res>(_self.lastRound!, (value) {
+    return _then(_self.copyWith(lastRound: value));
   });
 }
 }
@@ -10184,6 +10217,288 @@ as int?,showdowns: freezed == showdowns ? _self.showdowns : showdowns // ignore:
 as int?,showdownsWon: freezed == showdownsWon ? _self.showdownsWon : showdownsWon // ignore: cast_nullable_to_non_nullable
 as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
 as int?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$RoundResult {
+
+ int get endedAt; int get hands; List<LeaderboardEntry> get standings;
+/// Create a copy of RoundResult
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RoundResultCopyWith<RoundResult> get copyWith => _$RoundResultCopyWithImpl<RoundResult>(this as RoundResult, _$identity);
+
+  /// Serializes this RoundResult to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as RoundResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoundResult&&(identical(other.endedAt, _this.endedAt) || other.endedAt == _this.endedAt)&&(identical(other.hands, _this.hands) || other.hands == _this.hands)&&const DeepCollectionEquality().equals(other.standings, _this.standings));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as RoundResult;
+  return Object.hash(runtimeType,_this.endedAt,_this.hands,const DeepCollectionEquality().hash(_this.standings));
+}
+
+@override
+String toString() {
+  final _this = this as RoundResult;
+  return 'RoundResult(endedAt: ${_this.endedAt}, hands: ${_this.hands}, standings: ${_this.standings})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RoundResultCopyWith<$Res>  {
+  factory $RoundResultCopyWith(RoundResult value, $Res Function(RoundResult) _then) = _$RoundResultCopyWithImpl;
+@useResult
+$Res call({
+ int endedAt, int hands, List<LeaderboardEntry> standings
+});
+
+
+
+
+}
+/// @nodoc
+class _$RoundResultCopyWithImpl<$Res>
+    implements $RoundResultCopyWith<$Res> {
+  _$RoundResultCopyWithImpl(this._self, this._then);
+
+  final RoundResult _self;
+  final $Res Function(RoundResult) _then;
+
+/// Create a copy of RoundResult
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? endedAt = null,Object? hands = null,Object? standings = null,}) {
+  return _then(RoundResult(
+endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as int,hands: null == hands ? _self.hands : hands // ignore: cast_nullable_to_non_nullable
+as int,standings: null == standings ? _self.standings : standings // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardEntry>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RoundResult].
+extension RoundResultPatterns on RoundResult {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RoundResult value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RoundResult() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RoundResult value)  $default,){
+final _that = this;
+switch (_that) {
+case _RoundResult():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RoundResult value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RoundResult() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int endedAt,  int hands,  List<LeaderboardEntry> standings)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RoundResult() when $default != null:
+return $default(_that.endedAt,_that.hands,_that.standings);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int endedAt,  int hands,  List<LeaderboardEntry> standings)  $default,) {final _that = this;
+switch (_that) {
+case _RoundResult():
+return $default(_that.endedAt,_that.hands,_that.standings);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int endedAt,  int hands,  List<LeaderboardEntry> standings)?  $default,) {final _that = this;
+switch (_that) {
+case _RoundResult() when $default != null:
+return $default(_that.endedAt,_that.hands,_that.standings);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RoundResult implements RoundResult {
+  const _RoundResult({required this.endedAt, required this.hands, required  List<LeaderboardEntry> standings}): _standings = standings;
+  factory _RoundResult.fromJson(Map<String, dynamic> json) => _$RoundResultFromJson(json);
+
+@override final  int endedAt;
+@override final  int hands;
+ final  List<LeaderboardEntry> _standings;
+@override List<LeaderboardEntry> get standings {
+  if (_standings is EqualUnmodifiableListView) return _standings;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_standings);
+}
+
+
+/// Create a copy of RoundResult
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RoundResultCopyWith<_RoundResult> get copyWith => __$RoundResultCopyWithImpl<_RoundResult>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RoundResultToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoundResult&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.hands, hands) || other.hands == hands)&&const DeepCollectionEquality().equals(other.standings, _standings));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,endedAt,hands,const DeepCollectionEquality().hash(_standings));
+}
+
+@override
+String toString() {
+    return 'RoundResult(endedAt: $endedAt, hands: $hands, standings: $standings)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RoundResultCopyWith<$Res> implements $RoundResultCopyWith<$Res> {
+  factory _$RoundResultCopyWith(_RoundResult value, $Res Function(_RoundResult) _then) = __$RoundResultCopyWithImpl;
+@override @useResult
+$Res call({
+ int endedAt, int hands, List<LeaderboardEntry> standings
+});
+
+
+
+
+}
+/// @nodoc
+class __$RoundResultCopyWithImpl<$Res>
+    implements _$RoundResultCopyWith<$Res> {
+  __$RoundResultCopyWithImpl(this._self, this._then);
+
+  final _RoundResult _self;
+  final $Res Function(_RoundResult) _then;
+
+/// Create a copy of RoundResult
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? endedAt = null,Object? hands = null,Object? standings = null,}) {
+  return _then(_RoundResult(
+endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as int,hands: null == hands ? _self.hands : hands // ignore: cast_nullable_to_non_nullable
+as int,standings: null == standings ? _self._standings : standings // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardEntry>,
   ));
 }
 

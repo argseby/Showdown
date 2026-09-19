@@ -913,6 +913,111 @@ void main() {
     expect(find.text('+300'), findsOneWidget);
     expect(find.text('+900'), findsNothing);
   });
+
+  group('the standing of a finished round', () {
+    /// A snapshot of this table in [state], carrying the standing of the
+    /// round that ended (and no hand unless [dealtIn]).
+    void pushSnapshot(
+      ScriptedTransport transport, {
+      required String state,
+      bool dealtIn = false,
+    }) {
+      final snap = jsonDecode(
+        File('../docs/protocol/fixtures/snapshot.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final payload = snap['payload'] as Map<String, dynamic>;
+      (payload['table'] as Map<String, dynamic>)['state'] = state;
+      if (!dealtIn) {
+        payload['hand'] = null;
+        for (final sv in payload['seats'] as List<dynamic>) {
+          final p = (sv as Map<String, dynamic>)['player'];
+          if (p != null) (p as Map<String, dynamic>)['in_hand'] = false;
+        }
+      }
+      payload['last_round'] = {
+        'ended_at': 1789000000000,
+        'hands': 12,
+        'standings': [
+          {
+            'name': 'Bob',
+            'stack': 30000,
+            'net': 20000,
+            'hands_won': 9,
+            'biggest_pot': 4000,
+            'place': 1,
+          },
+          {
+            'name': 'Alice',
+            'stack': 0,
+            'net': -10000,
+            'hands_won': 3,
+            'biggest_pot': 2200,
+            'place': 2,
+          },
+        ],
+      };
+      transport.controller.add(
+        jsonEncode({'type': 'snapshot', 'payload': payload}),
+      );
+    }
+
+    testWidgets('stays on screen when the host opens a new round', (
+      tester,
+    ) async {
+      transport.admin = true;
+      await pumpPlay(
+        tester,
+        extra: [adminTokenProvider('k7m2p9xq4w').overrideWith(_AdminToken.new)],
+      );
+
+      pushSnapshot(transport, state: 'ended');
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Table ended'), findsOneWidget);
+      expect(find.text('Bob'), findsOneWidget);
+      // The host is offered the new round right where the standings are.
+      expect(find.byKey(const Key('result-new-round')), findsOneWidget);
+
+      // The new round must not pull the result away: the card stays until
+      // the player closes it, only the heading and the button change.
+      pushSnapshot(transport, state: 'waiting');
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('New round started'), findsOneWidget);
+      expect(find.text('Table ended'), findsNothing);
+      expect(find.text('Bob'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('result-back-to-table')));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('New round started'), findsNothing);
+      // The card was the whole body; the table and its panel are back.
+      expect(find.byKey(const Key('tab-settings')), findsOneWidget);
+    });
+
+    testWidgets('gives way to a hand dealt to the player', (tester) async {
+      await pumpPlay(tester);
+      pushSnapshot(transport, state: 'ended');
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Table ended'), findsOneWidget);
+
+      pushSnapshot(transport, state: 'running', dealtIn: true);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Table ended'), findsNothing);
+      expect(find.byKey(const Key('tab-settings')), findsOneWidget);
+    });
+
+    testWidgets('is kept in the leaderboard tab of the new round', (
+      tester,
+    ) async {
+      await pumpPlay(tester);
+      pushSnapshot(transport, state: 'waiting');
+      await tester.pump(const Duration(milliseconds: 50));
+      // No card (this client did not see the end), but the result is there.
+      expect(find.text('New round started'), findsNothing);
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.textContaining('Last round'), findsOneWidget);
+      expect(find.text('This round'), findsOneWidget);
+    });
+  });
 }
 
 void _pushEvents(ScriptedTransport transport) {

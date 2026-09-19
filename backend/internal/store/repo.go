@@ -41,9 +41,11 @@ func (s *Store) CreateTable(ctx context.Context, t TableRow, st SettingsRow) err
 	}
 	defer func() { _ = tx.Rollback() }()
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO tables (id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		t.ID, t.Name, t.State, t.CreatedAt, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash); err != nil {
+		INSERT INTO tables (id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash,
+			round_start_hand, last_round)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		t.ID, t.Name, t.State, t.CreatedAt, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash,
+		t.RoundStartHand, t.LastRound); err != nil {
 		return fmt.Errorf("insert table: %w", err)
 	}
 	st.TableID = t.ID
@@ -63,8 +65,9 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 			turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 			spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
 			allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice,
-			time_bank_refill_seconds, variant, allow_drawing, tournament)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			time_bank_refill_seconds, variant, allow_drawing, tournament,
+			start_small_blind, start_big_blind, start_ante)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(table_id) DO UPDATE SET
 			password_hash = excluded.password_hash, max_players = excluded.max_players,
 			start_money = excluded.start_money, small_blind = excluded.small_blind,
@@ -79,12 +82,15 @@ func upsertSettings(ctx context.Context, ex execer, st SettingsRow) error {
 			blinds_up_percent = excluded.blinds_up_percent, time_bank_seconds = excluded.time_bank_seconds,
 			allow_straddle = excluded.allow_straddle, run_it_twice = excluded.run_it_twice,
 			time_bank_refill_seconds = excluded.time_bank_refill_seconds, variant = excluded.variant,
-			allow_drawing = excluded.allow_drawing, tournament = excluded.tournament`,
+			allow_drawing = excluded.allow_drawing, tournament = excluded.tournament,
+			start_small_blind = excluded.start_small_blind, start_big_blind = excluded.start_big_blind,
+			start_ante = excluded.start_ante`,
 		st.TableID, st.PasswordHash, st.MaxPlayers, st.StartMoney, st.SmallBlind, st.BigBlind, st.Ante,
 		st.TurnTime, st.DisconnectedTurnTime, st.SitOutAfterMissedTurns, st.JoinPolicy, b2i(st.AllowSpectators),
 		b2i(st.SpectatorChat), b2i(st.ChatEnabled), b2i(st.AllowRebuy), st.ShowdownReveal, b2i(st.AutoStart), st.HandDelayMs,
 		b2i(st.AllowRabbitHunt), st.BlindsUpMinutes, st.BlindsUpPercent, st.TimeBankSeconds, b2i(st.AllowStraddle), b2i(st.RunItTwice),
-		st.TimeBankRefillSeconds, st.Variant, b2i(st.AllowDrawing), b2i(st.Tournament))
+		st.TimeBankRefillSeconds, st.Variant, b2i(st.AllowDrawing), b2i(st.Tournament),
+		st.StartSmallBlind, st.StartBigBlind, st.StartAnte)
 	if err != nil {
 		return fmt.Errorf("upsert settings: %w", err)
 	}
@@ -99,8 +105,10 @@ func (s *Store) SaveSettings(ctx context.Context, st SettingsRow) error {
 // UpdateTable writes the mutable table columns.
 func (s *Store) UpdateTable(ctx context.Context, t TableRow) error {
 	res, err := s.db.ExecContext(ctx, `
-		UPDATE tables SET name = ?, state = ?, ended_at = ?, hand_number = ?, button_seat = ?, admin_token_hash = ? WHERE id = ?`,
-		t.Name, t.State, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash, t.ID)
+		UPDATE tables SET name = ?, state = ?, ended_at = ?, hand_number = ?, button_seat = ?, admin_token_hash = ?,
+			round_start_hand = ?, last_round = ? WHERE id = ?`,
+		t.Name, t.State, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash,
+		t.RoundStartHand, t.LastRound, t.ID)
 	if err != nil {
 		return fmt.Errorf("update table: %w", err)
 	}
@@ -110,12 +118,14 @@ func (s *Store) UpdateTable(ctx context.Context, t TableRow) error {
 	return nil
 }
 
-const tableCols = `id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash`
+const tableCols = `id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash,
+	round_start_hand, last_round`
 
 func scanTable(row interface{ Scan(...any) error }) (TableRow, error) {
 	var t TableRow
 	var ended sql.NullInt64
-	err := row.Scan(&t.ID, &t.Name, &t.State, &t.CreatedAt, &ended, &t.HandNumber, &t.ButtonSeat, &t.AdminTokenHash)
+	err := row.Scan(&t.ID, &t.Name, &t.State, &t.CreatedAt, &ended, &t.HandNumber, &t.ButtonSeat, &t.AdminTokenHash,
+		&t.RoundStartHand, &t.LastRound)
 	t.EndedAt = scanNullInt(ended)
 	return t, err
 }
@@ -137,7 +147,8 @@ const settingsCols = `table_id, password_hash, max_players, start_money, small_b
 	turn_time, disconnected_turn_time, sit_out_after_missed_turns, join_policy, allow_spectators,
 	spectator_chat, chat_enabled, allow_rebuy, showdown_reveal, auto_start, hand_delay_ms,
 	allow_rabbit_hunt, blinds_up_minutes, blinds_up_percent, time_bank_seconds, allow_straddle, run_it_twice,
-	time_bank_refill_seconds, variant, allow_drawing, tournament`
+	time_bank_refill_seconds, variant, allow_drawing, tournament,
+	start_small_blind, start_big_blind, start_ante`
 
 func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error) {
 	var st SettingsRow
@@ -146,7 +157,8 @@ func (s *Store) getSettings(ctx context.Context, id string) (SettingsRow, error)
 		&st.TableID, &st.PasswordHash, &st.MaxPlayers, &st.StartMoney, &st.SmallBlind, &st.BigBlind, &st.Ante,
 		&st.TurnTime, &st.DisconnectedTurnTime, &st.SitOutAfterMissedTurns, &st.JoinPolicy, &allowSpec,
 		&specChat, &chat, &rebuy, &st.ShowdownReveal, &auto, &st.HandDelayMs, &rabbit, &st.BlindsUpMinutes, &st.BlindsUpPercent,
-		&st.TimeBankSeconds, &straddle, &rit, &st.TimeBankRefillSeconds, &st.Variant, &drawing, &tourney)
+		&st.TimeBankSeconds, &straddle, &rit, &st.TimeBankRefillSeconds, &st.Variant, &drawing, &tourney,
+		&st.StartSmallBlind, &st.StartBigBlind, &st.StartAnte)
 	if errors.Is(err, sql.ErrNoRows) {
 		return SettingsRow{}, ErrNotFound
 	}

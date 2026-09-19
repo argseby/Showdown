@@ -71,6 +71,7 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 		},
 		Seats:       make([]protocol.SeatView, 0, t.settings.MaxPlayers),
 		Leaderboard: t.leaderboard(),
+		LastRound:   t.lastRound,
 		Spectators:  t.spectatorCount(),
 	}
 	for c := range t.clients {

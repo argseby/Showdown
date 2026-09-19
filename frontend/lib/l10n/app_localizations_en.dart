@@ -221,6 +221,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToJoin => 'Back to the table page';
 
   @override
+  String get newRoundTitle => 'New round started';
+
+  @override
+  String get newRoundBody =>
+      'The host opened a new round on this table. Your seat is still yours.';
+
+  @override
+  String get backToTable => 'Back to the table';
+
+  @override
+  String get lastRoundTitle => 'Last round';
+
+  @override
+  String lastRoundHands(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hands',
+      one: '1 hand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get thisRound => 'This round';
+
+  @override
   String get serverRestarting =>
       'The server is restarting, reconnecting shortly...';
 
@@ -830,6 +857,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logRestarted => 'Server restarted';
 
   @override
+  String get logNewRound => 'New round started';
+
+  @override
   String get adminTitle => 'Admin';
 
   @override
@@ -922,6 +952,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminEndNow => 'Now, void the hand';
+
+  @override
+  String get adminNewRound => 'New round';
+
+  @override
+  String get adminNewRoundTitle => 'Start a new round?';
+
+  @override
+  String get adminNewRoundBody =>
+      'Everyone keeps their seat and the table keeps its link. Stacks go back to the start money, the statistics start over and the blinds return to the level you set. The standings of this round stay readable.';
+
+  @override
+  String get adminNewRoundStart => 'Start a new round';
+
+  @override
+  String get adminNewRoundDone => 'New round opened';
 
   @override
   String get adminDeleteTitle => 'Delete this table?';

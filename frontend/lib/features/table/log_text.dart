@@ -128,6 +128,8 @@ String? logLineText(
       return l.logResumed;
     case 'table_ended':
       return l.logEnded;
+    case 'table_restarted':
+      return l.logNewRound;
   }
   return null;
 }

@@ -16,9 +16,13 @@ plays in the browser.
   have fixed places so everyone sees the same table; a preference rotates you to the
   bottom instead.
 - Tournament mode: no chip adjustments, and once a hand is dealt the money settings and
-  the seats are locked, for the host too.
-- Host controls at the table: settings, start/pause/end, kick, chips, mute, chat
-  moderation, switching off a player's microphone or camera, hand history.
+  the seats are locked, for the host too. A new round unlocks them again.
+- When a table ends, the host can open a new round on it: same link, same seats,
+  everyone keeps their place without joining again, stacks and blinds start over. The
+  standings of the finished round stay on screen until each player closes them, and in
+  the leaderboard after that.
+- Host controls at the table: settings, start/pause/end, new round, kick, chips, mute,
+  chat moderation, switching off a player's microphone or camera, hand history.
 - A menu on every player: volume, mute, hide their video, hat, win streak, stickers or
   drawings, just for you.
 - Voice chat and a small video tile per player, browser to browser (WebRTC). The server

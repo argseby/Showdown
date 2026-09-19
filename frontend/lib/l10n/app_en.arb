@@ -134,6 +134,19 @@
   "tableEndedTitle": "Table ended",
   "finalStandings": "Final standings",
   "backToJoin": "Back to the table page",
+  "newRoundTitle": "New round started",
+  "newRoundBody": "The host opened a new round on this table. Your seat is still yours.",
+  "backToTable": "Back to the table",
+  "lastRoundTitle": "Last round",
+  "lastRoundHands": "{count, plural, =1{1 hand} other{{count} hands}}",
+  "@lastRoundHands": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thisRound": "This round",
   "serverRestarting": "The server is restarting, reconnecting shortly...",
   "leave": "Leave",
   "leaveConfirmTitle": "Leave the table?",
@@ -670,6 +683,7 @@
   "logResumed": "Table resumed",
   "logEnded": "Table ended",
   "logRestarted": "Server restarted",
+  "logNewRound": "New round started",
   "adminTitle": "Admin",
   "adminNewTable": "New table",
   "adminCreate": "Create",
@@ -726,6 +740,11 @@
   "adminEndBody": "Choose whether the running hand should finish first.",
   "adminEndAfterHand": "After this hand",
   "adminEndNow": "Now, void the hand",
+  "adminNewRound": "New round",
+  "adminNewRoundTitle": "Start a new round?",
+  "adminNewRoundBody": "Everyone keeps their seat and the table keeps its link. Stacks go back to the start money, the statistics start over and the blinds return to the level you set. The standings of this round stay readable.",
+  "adminNewRoundStart": "Start a new round",
+  "adminNewRoundDone": "New round opened",
   "adminDeleteTitle": "Delete this table?",
   "adminDeleteBody": "All hands, chat and standings of this table are removed.",
   "adminDeleteRunning": "A running table cannot be deleted. Pause or end it first.",

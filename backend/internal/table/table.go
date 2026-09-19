@@ -3,6 +3,7 @@ package table
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"log/slog"
 	"slices"
 	"sort"
@@ -263,6 +264,12 @@ type Table struct {
 	settings   Settings
 	handNumber int
 	buttonSeat int
+	// roundStartHand is handNumber when the current round began; a new round
+	// on the same table moves it up, which releases the tournament lock.
+	roundStartHand int
+	// lastRound is the standing of the round that ended last, taken before
+	// a new round resets the stacks (nil until a round has ended).
+	lastRound *protocol.RoundResult
 
 	seats          [maxSeats]*Player
 	players        map[string]*Player // seated players by id
@@ -636,11 +643,11 @@ func (t *Table) HasPlayer(playerID string) bool {
 // Attach registers a connection. Players replace an older connection with
 // the same identity (closed with 4004). The welcome and chat history are
 // sent directly; everybody else learns about it through the next snapshot.
+// An ended table still accepts connections: it is inert (every command
+// refuses it) but its standings stay readable, and the host can open a new
+// round on it, which everyone attached sees straight away.
 func (t *Table) Attach(c *Client) error {
 	return t.callErr(func() error {
-		if t.state == StateEnded {
-			return ErrTableEnded
-		}
 		switch c.Role {
 		case RolePlayer:
 			p, ok := t.players[c.PlayerID]
@@ -1397,6 +1404,11 @@ type AdminDetail struct {
 	Spectators  int           `json:"spectators"`
 	Connections int           `json:"connections"`
 	JoinURL     string        `json:"join_url"`
+	// TournamentLocked reports whether the money and information settings
+	// are frozen right now (a tournament that has dealt this round).
+	TournamentLocked bool `json:"tournament_locked"`
+	// RoundStartHand is the hand number the current round started at.
+	RoundStartHand int `json:"round_start_hand,omitempty"`
 }
 
 // AdminDetail returns everything the admin panel shows.
@@ -1407,6 +1419,7 @@ func (t *Table) AdminDetail() AdminDetail {
 			ID: t.ID, Name: t.name, State: t.state, HandNumber: t.handNumber, CreatedAt: t.createdAt,
 			EndedAt: t.endedAt, Settings: t.settings.Admin(), Spectators: t.spectatorCount(),
 			Connections: len(t.clients), JoinURL: "/t/" + t.ID, Players: []PlayerAdmin{},
+			TournamentLocked: t.tournamentLocked(), RoundStartHand: t.roundStartHand,
 		}
 		for _, p := range t.seats[:t.settings.MaxPlayers] {
 			if p == nil {
@@ -1468,10 +1481,11 @@ func (t *Table) UpdateSettings(p SettingsPatch, passwordHash string) (changed, n
 	return changed, next, err
 }
 
-// tournamentLocked: a tournament that has dealt a hand (or is running)
-// refuses everything that could move chips or change what players know.
+// tournamentLocked: a tournament that has dealt a hand in the current round
+// (or is running) refuses everything that could move chips or change what
+// players know. A new round unlocks it again until its first deal.
 func (t *Table) tournamentLocked() bool {
-	return t.settings.Tournament && (t.state != StateWaiting || t.handNumber > 0)
+	return t.settings.Tournament && (t.state != StateWaiting || t.handNumber > t.roundStartHand)
 }
 
 // Start moves waiting -> running.
@@ -1541,6 +1555,61 @@ func (t *Table) End(immediate bool) error {
 			t.voidHand("ended_by_admin")
 		}
 		t.endTable()
+		return nil
+	})
+}
+
+// Restart opens a new round on the same table: everyone keeps their seat,
+// their session and the link, stacks go back to the start money and the
+// statistics start over. The standings of the finished round are kept (see
+// lastRound) so the clients can still show them. The table lands in
+// "waiting", so the host starts the new round like the first one.
+func (t *Table) Restart() error {
+	return t.callErr(func() error {
+		if t.state != StateEnded {
+			return ErrInvalidState
+		}
+		t.audit("restart", "", map[string]any{"hand_number": t.handNumber})
+		// Hand numbering runs on across rounds: hands are unique per table
+		// and number, and the hand log keeps both rounds. Where the round
+		// began is what the tournament lock goes by.
+		t.roundStartHand = t.handNumber
+		t.endedAt = 0
+		t.endAfterHand = false
+		t.buttonSeat = -1
+		t.rabbitCards = nil
+		t.pendingChips = nil
+		t.sitOutPending = map[string]bool{}
+		// The blind schedule starts over at the level the host configured,
+		// not where the last round had climbed to.
+		t.settings.SmallBlind = t.settings.StartSmallBlind
+		t.settings.BigBlind = t.settings.StartBigBlind
+		t.settings.Ante = t.settings.StartAnte
+		t.blindsUpAt, t.blindsPausedMs = 0, 0
+		t.persistSettings()
+		for _, p := range t.seats[:maxSeats] {
+			if p == nil {
+				continue
+			}
+			p.Stack = t.settings.StartMoney
+			p.BuyInTotal = t.settings.StartMoney
+			p.Status = StatusActive
+			p.Place = 0
+			p.MissedTurns = 0
+			p.HandsPlayed, p.HandsWon, p.BiggestPot = 0, 0, 0
+			p.VPIPHands, p.Showdowns, p.ShowdownsWon = 0, 0, 0
+			p.WinStreak = 0
+			p.TimeBank = t.settings.TimeBankSeconds
+			p.inHand, p.vpipThisHand, p.usedTimeBank = false, false, false
+			p.preAction = ""
+			p.straddleNext = false
+			p.leaving = false
+			p.pendingSeat, p.owesDeadBlind, p.lastSeatChangeHand = -1, false, 0
+			t.persistPlayer(p)
+		}
+		t.postChat("system", "system", fmt.Sprintf("New round: everyone starts with %d again.", t.settings.StartMoney))
+		t.setState(StateWaiting, "table_restarted")
+		t.touch()
 		return nil
 	})
 }
@@ -1637,6 +1706,7 @@ func (t *Table) persistTable() {
 	row := store.TableRow{
 		ID: t.ID, Name: t.name, State: t.state, CreatedAt: t.createdAt, EndedAt: t.endedAt,
 		HandNumber: t.handNumber, ButtonSeat: t.buttonSeat, AdminTokenHash: t.adminTokenHash,
+		RoundStartHand: t.roundStartHand, LastRound: string(marshalJSON(t.lastRound)),
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpdateTable(ctx, row)

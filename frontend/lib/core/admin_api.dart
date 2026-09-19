@@ -216,6 +216,8 @@ class AdminTableDetail {
     required this.spectators,
     required this.connections,
     required this.joinUrl,
+    this.tournamentLocked = false,
+    this.roundStartHand = 0,
   });
 
   factory AdminTableDetail.fromJson(Map<String, dynamic> json) =>
@@ -236,6 +238,8 @@ class AdminTableDetail {
         spectators: json['spectators'] as int,
         connections: json['connections'] as int,
         joinUrl: json['join_url'] as String,
+        tournamentLocked: json['tournament_locked'] as bool? ?? false,
+        roundStartHand: json['round_start_hand'] as int? ?? 0,
       );
 
   final String id;
@@ -249,6 +253,13 @@ class AdminTableDetail {
   final int spectators;
   final int connections;
   final String joinUrl;
+
+  /// A tournament that has dealt in the current round freezes its money and
+  /// information settings; the server decides, the form only renders it.
+  final bool tournamentLocked;
+
+  /// The hand number the current round started at (0 in the first round).
+  final int roundStartHand;
 }
 
 /// Result of a settings PATCH.

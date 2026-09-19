@@ -302,7 +302,11 @@ type Snapshot struct {
 	Hand        *HandView          `json:"hand"`
 	You         You                `json:"you"`
 	Leaderboard []LeaderboardEntry `json:"leaderboard"`
-	Spectators  int                `json:"spectators"`
+	// LastRound is the standing of the round that finished before this one,
+	// kept so the clients can still show it after a new round was opened on
+	// the same table (nil until a round has ended).
+	LastRound  *RoundResult `json:"last_round,omitempty"`
+	Spectators int          `json:"spectators"`
 	// SpectatorNames lists the connected spectators (for the invite dialog).
 	SpectatorNames []string `json:"spectator_names,omitempty"`
 }
@@ -629,6 +633,15 @@ type Kicked struct {
 // TableEnded carries the final standings.
 type TableEnded struct {
 	FinalLeaderboard []LeaderboardEntry `json:"final_leaderboard"`
+}
+
+// RoundResult is the final standing of a finished round. It outlives the
+// round itself: a new round on the same table resets every stack and
+// statistic, so this is the only place the result is still readable.
+type RoundResult struct {
+	EndedAt   int64              `json:"ended_at"`
+	Hands     int                `json:"hands"`
+	Standings []LeaderboardEntry `json:"standings"`
 }
 
 // Pong answers a ping.

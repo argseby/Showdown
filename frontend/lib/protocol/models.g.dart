@@ -247,6 +247,9 @@ _Snapshot _$SnapshotFromJson(Map<String, dynamic> json) => _Snapshot(
   spectatorNames: (json['spectator_names'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
+  lastRound: json['last_round'] == null
+      ? null
+      : RoundResult.fromJson(json['last_round'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$SnapshotToJson(_Snapshot instance) => <String, dynamic>{
@@ -258,6 +261,7 @@ Map<String, dynamic> _$SnapshotToJson(_Snapshot instance) => <String, dynamic>{
   'leaderboard': instance.leaderboard.map((e) => e.toJson()).toList(),
   'spectators': instance.spectators,
   'spectator_names': ?instance.spectatorNames,
+  'last_round': ?instance.lastRound?.toJson(),
 };
 
 _TableInfo _$TableInfoFromJson(Map<String, dynamic> json) => _TableInfo(
@@ -568,6 +572,21 @@ Map<String, dynamic> _$LeaderboardEntryToJson(_LeaderboardEntry instance) =>
       'showdowns': ?instance.showdowns,
       'showdowns_won': ?instance.showdownsWon,
       'place': ?instance.place,
+    };
+
+_RoundResult _$RoundResultFromJson(Map<String, dynamic> json) => _RoundResult(
+  endedAt: (json['ended_at'] as num).toInt(),
+  hands: (json['hands'] as num).toInt(),
+  standings: (json['standings'] as List<dynamic>)
+      .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
+
+Map<String, dynamic> _$RoundResultToJson(_RoundResult instance) =>
+    <String, dynamic>{
+      'ended_at': instance.endedAt,
+      'hands': instance.hands,
+      'standings': instance.standings.map((e) => e.toJson()).toList(),
     };
 
 _EventsPayload _$EventsPayloadFromJson(Map<String, dynamic> json) =>

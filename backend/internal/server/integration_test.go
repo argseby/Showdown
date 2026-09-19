@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -308,16 +307,45 @@ func TestIntegrationBotsPlayHands(t *testing.T) {
 	if sum, _ := h.netSum(token, tableID); sum != 0 {
 		t.Fatalf("chips not conserved: net sum %d", sum)
 	}
+	// Nobody is thrown off an ended table: the standings stay on screen and
+	// the host can open a new round on the same id.
 	for _, b := range bs.all() {
-		waitUntil(t, 10*time.Second, b.Name()+" closed", func() bool {
-			_, ok := bs.errs.Load(b.Name())
-			return ok
+		waitUntil(t, 10*time.Second, b.Name()+" sees the ended table", func() bool {
+			s := b.Snapshot()
+			return s != nil && s.Table.State == "ended"
 		})
-		if v, _ := bs.errs.Load(b.Name()); !errors.Is(v.(error), botclient.ErrTerminal) || b.CloseCode() != protocol.CloseTableGone {
-			t.Errorf("%s ended with %v (close %d)", b.Name(), v, b.CloseCode())
+		if _, done := bs.errs.Load(b.Name()); done {
+			v, _ := bs.errs.Load(b.Name())
+			t.Errorf("%s was disconnected when the table ended: %v (close %d)", b.Name(), v, b.CloseCode())
+		}
+		if s := b.Snapshot(); s.LastRound == nil || len(s.LastRound.Standings) == 0 {
+			t.Errorf("%s: no standing of the finished round", b.Name())
 		}
 		if v := b.Violations(); len(v) > 0 {
 			t.Errorf("%s: hole card leaks: %v", b.Name(), v)
+		}
+	}
+
+	// A new round on the same table: same id, same seats, same sessions.
+	if status, out := h.request(http.MethodPost, "/api/admin/tables/"+tableID+"/restart", token, nil); status != http.StatusOK || out["state"] != "waiting" {
+		t.Fatalf("restart: %d %v", status, out)
+	}
+	for _, b := range bs.players {
+		name := b.Name()
+		waitUntil(t, 10*time.Second, name+" is back at the table", func() bool {
+			s := b.Snapshot()
+			if s == nil || s.Table.State != "waiting" {
+				return false
+			}
+			for _, sv := range s.Seats {
+				if sv.Player != nil && sv.Player.Name == name {
+					return sv.Player.Stack == 3000 && sv.Player.Status == "active"
+				}
+			}
+			return false
+		})
+		if s := b.Snapshot(); s.LastRound == nil {
+			t.Errorf("%s: the finished round's standing was dropped by the restart", name)
 		}
 	}
 	cancel()

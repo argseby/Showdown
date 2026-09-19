@@ -271,6 +271,11 @@ abstract class Snapshot with _$Snapshot {
     required List<LeaderboardEntry> leaderboard,
     required int spectators,
     @JsonKey(includeIfNull: false) List<String>? spectatorNames,
+
+    /// The standing of the round that finished before this one. It outlives
+    /// the new round's reset and is the only record of how the last round
+    /// went once the stacks are back at the start money.
+    @JsonKey(includeIfNull: false) RoundResult? lastRound,
   }) = _Snapshot;
   factory Snapshot.fromJson(Map<String, dynamic> json) =>
       _$SnapshotFromJson(json);
@@ -473,6 +478,18 @@ abstract class LeaderboardEntry with _$LeaderboardEntry {
   }) = _LeaderboardEntry;
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) =>
       _$LeaderboardEntryFromJson(json);
+}
+
+/// The final standing of a finished round (see [Snapshot.lastRound]).
+@freezed
+abstract class RoundResult with _$RoundResult {
+  const factory RoundResult({
+    required int endedAt,
+    required int hands,
+    required List<LeaderboardEntry> standings,
+  }) = _RoundResult;
+  factory RoundResult.fromJson(Map<String, dynamic> json) =>
+      _$RoundResultFromJson(json);
 }
 
 @freezed

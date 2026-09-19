@@ -482,6 +482,42 @@ abstract class AppLocalizations {
   /// **'Back to the table page'**
   String get backToJoin;
 
+  /// No description provided for @newRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New round started'**
+  String get newRoundTitle;
+
+  /// No description provided for @newRoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The host opened a new round on this table. Your seat is still yours.'**
+  String get newRoundBody;
+
+  /// No description provided for @backToTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the table'**
+  String get backToTable;
+
+  /// No description provided for @lastRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last round'**
+  String get lastRoundTitle;
+
+  /// No description provided for @lastRoundHands.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hand} other{{count} hands}}'**
+  String lastRoundHands(int count);
+
+  /// No description provided for @thisRound.
+  ///
+  /// In en, this message translates to:
+  /// **'This round'**
+  String get thisRound;
+
   /// No description provided for @serverRestarting.
   ///
   /// In en, this message translates to:
@@ -1496,6 +1532,12 @@ abstract class AppLocalizations {
   /// **'Server restarted'**
   String get logRestarted;
 
+  /// No description provided for @logNewRound.
+  ///
+  /// In en, this message translates to:
+  /// **'New round started'**
+  String get logNewRound;
+
   /// No description provided for @adminTitle.
   ///
   /// In en, this message translates to:
@@ -1669,6 +1711,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Now, void the hand'**
   String get adminEndNow;
+
+  /// No description provided for @adminNewRound.
+  ///
+  /// In en, this message translates to:
+  /// **'New round'**
+  String get adminNewRound;
+
+  /// No description provided for @adminNewRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new round?'**
+  String get adminNewRoundTitle;
+
+  /// No description provided for @adminNewRoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone keeps their seat and the table keeps its link. Stacks go back to the start money, the statistics start over and the blinds return to the level you set. The standings of this round stay readable.'**
+  String get adminNewRoundBody;
+
+  /// No description provided for @adminNewRoundStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new round'**
+  String get adminNewRoundStart;
+
+  /// No description provided for @adminNewRoundDone.
+  ///
+  /// In en, this message translates to:
+  /// **'New round opened'**
+  String get adminNewRoundDone;
 
   /// No description provided for @adminDeleteTitle.
   ///

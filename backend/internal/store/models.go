@@ -11,18 +11,28 @@ type TableRow struct {
 	ButtonSeat int // -1 when no hand has been dealt yet
 	// AdminTokenHash is the SHA-256 of the creator's admin token.
 	AdminTokenHash string
+	// RoundStartHand is HandNumber when the current round began (0 for the
+	// first round); a new round on the same table moves it up.
+	RoundStartHand int
+	// LastRound is the JSON standing of the last finished round, "" = none.
+	LastRound string
 }
 
 // SettingsRow mirrors table_settings. PasswordHash is empty when the table
 // has no password.
 type SettingsRow struct {
-	TableID                string
-	PasswordHash           string
-	MaxPlayers             int
-	StartMoney             int64
-	SmallBlind             int64
-	BigBlind               int64
-	Ante                   int64
+	TableID      string
+	PasswordHash string
+	MaxPlayers   int
+	StartMoney   int64
+	SmallBlind   int64
+	BigBlind     int64
+	Ante         int64
+	// The blind level the host configured: what a new round starts at, kept
+	// apart from the live level the blind schedule raises.
+	StartSmallBlind        int64
+	StartBigBlind          int64
+	StartAnte              int64
 	TurnTime               int
 	DisconnectedTurnTime   int
 	SitOutAfterMissedTurns int

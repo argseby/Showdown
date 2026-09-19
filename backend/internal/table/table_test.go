@@ -514,9 +514,11 @@ func TestLifecycleAndVoid(t *testing.T) {
 			t.Fatalf("seat %d stack %d, want %d", seat, stacks[seat], st)
 		}
 	}
-	waitFor(t, "clients closed", func() bool { closed, _ := ca.isClosed(); return closed })
-	if _, code := ca.isClosed(); code != protocol.CloseTableGone || ca.count(protocol.TypeTableEnded) != 1 {
-		t.Fatalf("close code %d, table_ended msgs %d", code, ca.count(protocol.TypeTableEnded))
+	waitFor(t, "table_ended", func() bool { return ca.count(protocol.TypeTableEnded) == 1 })
+	// The connections stay: the standings must remain readable, and a new
+	// round on this table has to reach everyone who is still here.
+	if closed, code := ca.isClosed(); closed {
+		t.Fatalf("client closed (%d) when the table ended", code)
 	}
 	voided := false
 	for _, e := range spec.events(t) {
@@ -533,7 +535,9 @@ func TestLifecycleAndVoid(t *testing.T) {
 	if _, err := tbl.Join("Zed", -1, -1, ""); !errors.Is(err, ErrTableEnded) {
 		t.Fatalf("join ended: %v", err)
 	}
-	if err := tbl.Attach(&Client{Conn: &fakeConn{}, Role: RolePlayer, PlayerID: a.PlayerID}); !errors.Is(err, ErrTableEnded) {
+	// An ended table is inert but not gone: a player who reloads gets back
+	// in and sees the standings (this replaces ca, closed with 4004).
+	if err := tbl.Attach(&Client{Conn: &fakeConn{}, Role: RolePlayer, PlayerID: a.PlayerID}); err != nil {
 		t.Fatalf("attach ended: %v", err)
 	}
 }

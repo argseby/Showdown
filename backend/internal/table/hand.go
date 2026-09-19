@@ -611,8 +611,10 @@ func (t *Table) voidHand(reason string) {
 	}
 }
 
-// endTable is terminal: stacks are frozen and recorded, clients told and
-// disconnected.
+// endTable ends the round: stacks are frozen, the standings are recorded and
+// every client is told. Connections stay open — the table is inert from here
+// (every command refuses an ended table) but the standings remain readable
+// and the host can open a new round on the same table id.
 func (t *Table) endTable() {
 	t.cancelTimer()
 	t.hand = nil
@@ -629,9 +631,13 @@ func (t *Table) endTable() {
 		p.inHand = false
 		t.persistPlayer(p)
 	}
+	// Taken before a new round resets every stack and statistic: from here
+	// on this is the only readable record of how the round went.
+	standings := t.leaderboard()
+	t.lastRound = &protocol.RoundResult{EndedAt: t.endedAt, Hands: t.handNumber - t.roundStartHand, Standings: standings}
 	t.persistTable()
-	t.broadcastMsg(protocol.MustEncode(protocol.TypeTableEnded, "", protocol.TableEnded{FinalLeaderboard: t.leaderboard()}))
-	t.closeAfterFlush = &closeRequest{code: protocol.CloseTableGone, reason: "table_ended"}
+	t.touch()
+	t.broadcastMsg(protocol.MustEncode(protocol.TypeTableEnded, "", protocol.TableEnded{FinalLeaderboard: standings}))
 }
 
 // assignPlaces gives every seated player without a placement one, by net

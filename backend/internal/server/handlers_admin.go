@@ -123,6 +123,8 @@ func (s *Server) lifecycle(op string) http.HandlerFunc {
 				return
 			}
 			err = t.End(req.Immediate)
+		case "restart":
+			err = t.Restart()
 		}
 		if err != nil {
 			writeErr(w, err)

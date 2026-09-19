@@ -146,10 +146,9 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    // A running tournament locks the money and information settings.
-    final locked =
-        detail.settings.tournament &&
-        (detail.state != 'waiting' || detail.handNumber > 0);
+    // A tournament that has dealt in this round locks the money and
+    // information settings; a new round unlocks them until its first deal.
+    final locked = detail.tournamentLocked;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

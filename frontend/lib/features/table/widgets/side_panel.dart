@@ -776,6 +776,7 @@ class TableLeaderboard extends ConsumerWidget {
     final chipDisplay = ref.watch(chipDisplayProvider);
     final bigBlind = snapshot?.table.settings.bigBlind ?? 0;
     final entries = snapshot?.leaderboard ?? const <LeaderboardEntry>[];
+    final last = snapshot?.lastRound;
     final avatars = {
       for (final sv in snapshot?.seats ?? const <SeatView>[])
         if (sv.player != null) sv.player!.name: sv.player!.avatar,
@@ -788,125 +789,182 @@ class TableLeaderboard extends ConsumerWidget {
     );
     return ListView(
       children: [
+        // The round that finished before this one: the stacks and statistics
+        // below were reset when the new round opened, so this is the only
+        // place the result is still readable.
+        if (last != null) ...[
+          _LeaderboardSection(
+            label:
+                '${l10n.lastRoundTitle} · ${l10n.lastRoundHands(last.hands)}',
+          ),
+          for (var i = 0; i < last.standings.length; i++)
+            _LeaderboardRow(
+              index: i,
+              e: last.standings[i],
+              avatars: avatars,
+              amount: amount,
+              muted: muted,
+            ),
+          const Gap(6),
+          const Divider(),
+          _LeaderboardSection(label: l10n.thisRound),
+        ],
         for (var i = 0; i < entries.length; i++)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(
+          _LeaderboardRow(
+            index: i,
+            e: entries[i],
+            avatars: avatars,
+            amount: amount,
+            muted: muted,
+          ),
+      ],
+    );
+  }
+}
+
+/// A heading inside the leaderboard (last round / this round).
+class _LeaderboardSection extends StatelessWidget {
+  const _LeaderboardSection({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 4, bottom: 2),
+    child: Text(label).muted().small().semiBold(),
+  );
+}
+
+/// One player's line in the leaderboard.
+class _LeaderboardRow extends StatelessWidget {
+  const _LeaderboardRow({
+    required this.index,
+    required this.e,
+    required this.avatars,
+    required this.amount,
+    required this.muted,
+  });
+
+  final int index;
+  final LeaderboardEntry e;
+  final Map<String, int> avatars;
+  final String Function(int) amount;
+  final TextStyle muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 22,
+            child: Text(
+              (e.place ?? 0) > 0 ? l10n.placeLabel(e.place!) : '${index + 1}.',
+              style: (e.place ?? 0) > 0
+                  ? muted.copyWith(fontWeight: FontWeight.w700)
+                  : muted,
+            ),
+          ),
+          PlayerAvatar(index: avatars[e.name] ?? 0, size: 28),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 22,
-                  child: Text(
-                    (entries[i].place ?? 0) > 0
-                        ? l10n.placeLabel(entries[i].place!)
-                        : '${i + 1}.',
-                    style: (entries[i].place ?? 0) > 0
-                        ? muted.copyWith(fontWeight: FontWeight.w700)
-                        : muted,
-                  ),
+                Text(
+                  e.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                PlayerAvatar(index: avatars[entries[i].name] ?? 0, size: 28),
-                const Gap(8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entries[i].name,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    Tooltip(
+                      tooltip: TooltipContainer(child: Text(l10n.lbHandsWon))
+                          .call,
+                      child: Icon(
+                        LucideIcons.trophy,
+                        size: 11,
+                        color: theme.colorScheme.mutedForeground,
                       ),
-                      Row(
-                        children: [
-                          Tooltip(
-                            tooltip: TooltipContainer(
-                              child: Text(l10n.lbHandsWon),
-                            ).call,
-                            child: Icon(
-                              LucideIcons.trophy,
-                              size: 11,
-                              color: theme.colorScheme.mutedForeground,
-                            ),
-                          ),
-                          const Gap(3),
-                          Text('${entries[i].handsWon}', style: muted),
-                          const Gap(10),
-                          Tooltip(
-                            tooltip: TooltipContainer(
-                              child: Text(l10n.lbBiggestPot),
-                            ).call,
-                            child: Icon(
-                              LucideIcons.coins,
-                              size: 11,
-                              color: theme.colorScheme.mutedForeground,
-                            ),
-                          ),
-                          const Gap(3),
-                          Text(amount(entries[i].biggestPot), style: muted),
-                          if ((entries[i].handsPlayed ?? 0) > 0) ...[
-                            const Gap(10),
-                            Tooltip(
-                              tooltip: TooltipContainer(
-                                child: Text(l10n.lbVpip),
-                              ).call,
-                              child: Icon(
-                                LucideIcons.flame,
-                                size: 11,
-                                color: theme.colorScheme.mutedForeground,
-                              ),
-                            ),
-                            const Gap(3),
-                            Text(
-                              '${(100 * (entries[i].vpipHands ?? 0) / entries[i].handsPlayed!).round()}%',
-                              style: muted,
-                            ),
-                            const Gap(10),
-                            Tooltip(
-                              tooltip: TooltipContainer(
-                                child: Text(l10n.lbShowdowns),
-                              ).call,
-                              child: Icon(
-                                LucideIcons.swords,
-                                size: 11,
-                                color: theme.colorScheme.mutedForeground,
-                              ),
-                            ),
-                            const Gap(3),
-                            Text(
-                              '${entries[i].showdownsWon ?? 0}/${entries[i].showdowns ?? 0}',
-                              style: muted,
-                            ),
-                          ],
-                        ],
+                    ),
+                    const Gap(3),
+                    Text('${e.handsWon}', style: muted),
+                    const Gap(10),
+                    Tooltip(
+                      tooltip: TooltipContainer(child: Text(l10n.lbBiggestPot))
+                          .call,
+                      child: Icon(
+                        LucideIcons.coins,
+                        size: 11,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                    ),
+                    const Gap(3),
+                    Text(amount(e.biggestPot), style: muted),
+                    if ((e.handsPlayed ?? 0) > 0) ...[
+                      const Gap(10),
+                      Tooltip(
+                        tooltip: TooltipContainer(child: Text(l10n.lbVpip))
+                            .call,
+                        child: Icon(
+                          LucideIcons.flame,
+                          size: 11,
+                          color: theme.colorScheme.mutedForeground,
+                        ),
+                      ),
+                      const Gap(3),
+                      Text(
+                        '${(100 * (e.vpipHands ?? 0) / e.handsPlayed!).round()}%',
+                        style: muted,
+                      ),
+                      const Gap(10),
+                      Tooltip(
+                        tooltip: TooltipContainer(child: Text(l10n.lbShowdowns))
+                            .call,
+                        child: Icon(
+                          LucideIcons.swords,
+                          size: 11,
+                          color: theme.colorScheme.mutedForeground,
+                        ),
+                      ),
+                      const Gap(3),
+                      Text(
+                        '${e.showdownsWon ?? 0}/${e.showdowns ?? 0}',
+                        style: muted,
                       ),
                     ],
-                  ),
-                ),
-                const Gap(8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      amount(entries[i].stack),
-                      style: const TextStyle(fontFamily: 'GeistMono'),
-                    ),
-                    Text(
-                      (entries[i].net > 0 ? '+' : '') + amount(entries[i].net),
-                      style: TextStyle(
-                        fontFamily: 'GeistMono',
-                        fontSize: 11,
-                        color: entries[i].net > 0
-                            ? const Color(0xFF43A047)
-                            : (entries[i].net < 0
-                                  ? theme.colorScheme.destructive
-                                  : theme.colorScheme.mutedForeground),
-                      ),
-                    ),
                   ],
                 ),
               ],
             ),
           ),
-      ],
+          const Gap(8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amount(e.stack),
+                style: const TextStyle(fontFamily: 'GeistMono'),
+              ),
+              Text(
+                (e.net > 0 ? '+' : '') + amount(e.net),
+                style: TextStyle(
+                  fontFamily: 'GeistMono',
+                  fontSize: 11,
+                  color: e.net > 0
+                      ? const Color(0xFF43A047)
+                      : (e.net < 0
+                            ? theme.colorScheme.destructive
+                            : theme.colorScheme.mutedForeground),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

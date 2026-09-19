@@ -160,11 +160,13 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 > - **Tournament mode (2026-09-18).** Setting `tournament` (default false, public as
 >   `settings.tournament`, also in the `info` response). The admin chip adjustment is
 >   refused with `tournament_locked` (409) for the life of such a table. Once it has dealt
->   a hand (or is running), changes to `tournament, start_money, small_blind, big_blind,
+>   a hand **in the current round** (or is running), changes to `tournament, start_money, small_blind, big_blind,
 >   ante, max_players, variant, allow_rebuy, showdown_reveal, blinds_up_minutes,
 >   blinds_up_percent` and `change_seat` are refused the same way; `you.can_change_seat`
 >   is false. Time settings, chat, drawings, kicks and the
->   manual blinds-up (equal for everyone, logged) stay available.
+>   manual blinds-up (equal for everyone, logged) stay available. A new round unlocks
+>   them again until its first deal; `tournament_locked` in the admin detail reports the
+>   current state rather than leaving clients to derive it.
 > - **Pencil drawings (2026-09-18).** Setting `allow_drawing` (default true)
 >   enables the `draw` / `draw_erase` / `draw_clear` messages and the `drawing`,
 >   `drawings_removed`, `drawing_history` pushes (§8.2, §8.3).
@@ -177,8 +179,21 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   `equity` is the share of the pot the hand would win against `opponents` random hands over
 >   the cards to come (2000 samples), `tier` one of `monster, strong, good, marginal, weak`
 >   relative to an even share. Rate limited like `info`.
+> - **New round on the same table (2026-09-19).** `POST /api/admin/tables/{id}/restart`
+>   (table admin, only from `ended` → `{state: "waiting"}`, `invalid_state` otherwise)
+>   opens a new round on the same table id: everyone keeps their seat, their session and
+>   the link, stacks and statistics start over, placements are cleared and the blinds go
+>   back to the level the host configured (the schedule's raises are dropped). Hand
+>   numbering runs on — hands are unique per table and number — and `round_start_hand`
+>   (admin detail) marks where the round began. Ending a table therefore no longer closes
+>   the connections: an ended table is inert (every command answers `table_ended`) but
+>   stays readable and attachable, so the standings survive a reload and a new round
+>   reaches everyone at once. `snapshot.last_round {ended_at, hands, standings}` carries
+>   the standing of the finished round and outlives the reset, which is the only record
+>   left once the stacks are back at the start money. Event: `table_restarted`. A server
+>   restart restores ended tables for 7 days so a new round is still possible.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
->   `4002` version, `4003` table not found / ended / deleted, `4004` replaced, `4005`
+>   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,
 >   spectators disabled), `1000` after a voluntary `leave`, `1001` server shutdown
 >   (after `server_restarting`).
@@ -225,8 +240,8 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 | `ping` | `{}` | client keepalive; server answers `pong` |
 
 Close codes from the server: `4001` bad token, `4002` unsupported protocol version,
-`4003` table not found or ended, `4004` replaced by a newer connection, `4005` kicked,
-`1008` policy (rate limit / oversize).
+`4003` table not found or deleted, `4004` replaced by a newer connection, `4005` kicked,
+`1008` policy (rate limit / oversize). An ended table does **not** close connections.
 
 ### 8.3 Server → client
 
@@ -241,7 +256,7 @@ Close codes from the server: `4001` bad token, `4002` unsupported protocol versi
 | `ack` | `{id}` |
 | `error` | `{id?, code, message}` — codes include `not_your_turn`, `illegal_action`, `amount_out_of_range`, `chat_disabled`, `muted`, `rate_limited`, `rebuy_not_allowed`, `not_between_hands` |
 | `kicked` | `{reason}` then close 4005 |
-| `table_ended` | `{final_leaderboard}` |
+| `table_ended` | `{final_leaderboard}` — the connection stays open (§ new round) |
 | `server_restarting` | `{}` |
 | `pong` | `{server_ts}` |
 | `phrase` | `{seat, name, phrase?, sticker?, ts}` — a quick phrase or a sticker to show next to the seat for a few seconds |
@@ -261,7 +276,8 @@ copy), `action {seat, kind, amount, all_in}`, `timeout {seat, resolved_as}`,
 plus table events `player_joined`, `player_left`, `player_kicked`, `player_sat_out`,
 `player_sat_in`, `player_busted`, `player_rebought`, `chips_adjusted {seat, delta}`,
 `settings_changed {fields}`, `table_started`, `table_paused`, `table_resumed`,
-`table_ended`. The hand log and system chat lines are rendered from these on the client.
+`table_ended`, `table_restarted`. The hand log and system chat lines are rendered from
+these on the client.
 
 ### 8.5 Snapshot
 
@@ -290,6 +306,8 @@ plus table events `player_joined`, `player_left`, `player_kicked`, `player_sat_o
            "options": { "fold": true, "check": false, "call": 300, "raise": { "min": 600, "max": 8450 }, "all_in": 8450 },
            "hand_description": "Pair of Aces", "can_rebuy": false, "can_show_cards": false },
   "leaderboard": [ { "name": "Alice", "stack": 8450, "net": -1550, "hands_won": 3, "biggest_pot": 2200 } ],
+  "last_round": { "ended_at": 1788999000000, "hands": 34,
+                  "standings": [ { "name": "Bob", "stack": 30000, "net": 20000, "place": 1 } ] },
   "spectators": 2
 }
 ```

@@ -2,6 +2,7 @@ package table
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -14,6 +15,11 @@ import (
 
 // ErrTooManyTables is returned when MAX_TABLES non-ended tables exist.
 var ErrTooManyTables = errors.New("too many tables")
+
+// RematchWindow is how long after the end a table is still restored on a
+// server restart, so the host can open a new round on it. Older ended
+// tables stay in the database but no longer occupy an actor.
+const RematchWindow = 7 * 24 * time.Hour
 
 // Registry owns every live table actor.
 type Registry struct {
@@ -164,20 +170,26 @@ func (r *Registry) Shutdown(ctx context.Context) {
 	}
 }
 
-// LoadAll restores every non-ended table from the store (restart recovery):
-// players and settings are reloaded, sessions stay valid, and a hand that
-// was in progress is voided with a system chat line.
+// LoadAll restores every table from the store (restart recovery): players
+// and settings are reloaded, sessions stay valid, and a hand that was in
+// progress is voided with a system chat line. Ended tables come back too,
+// inert: their standings stay readable and the host can still open a new
+// round on them.
 func (r *Registry) LoadAll(ctx context.Context) error {
 	if r.deps.Store == nil {
 		return nil
 	}
 	st := r.deps.Store
-	rows, err := st.ListTables(ctx, false)
+	rows, err := st.ListTables(ctx, true)
 	if err != nil {
 		return err
 	}
 	now := time.Now().UnixMilli()
+	oldest := now - RematchWindow.Milliseconds()
 	for _, row := range rows {
+		if row.State == StateEnded && row.EndedAt < oldest {
+			continue
+		}
 		_, settings, err := st.GetTable(ctx, row.ID)
 		if err != nil {
 			return fmt.Errorf("load table %s: %w", row.ID, err)
@@ -186,6 +198,15 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 		t.name, t.state, t.createdAt, t.endedAt = row.Name, row.State, row.CreatedAt, row.EndedAt
 		t.adminTokenHash = row.AdminTokenHash
 		t.handNumber, t.buttonSeat = row.HandNumber, row.ButtonSeat
+		t.roundStartHand = row.RoundStartHand
+		if row.LastRound != "" {
+			var lr protocol.RoundResult
+			if err := json.Unmarshal([]byte(row.LastRound), &lr); err != nil {
+				r.deps.Log.Warn("last round standing unreadable", "table", row.ID, "err", err)
+			} else {
+				t.lastRound = &lr
+			}
+		}
 		t.settings = SettingsFromRow(settings)
 
 		players, err := st.ListPlayers(ctx, row.ID)
@@ -243,7 +264,9 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 				t.postChat("system", "system", fmt.Sprintf("Server restarted: hand #%d was voided and stacks restored.", num))
 			})
 		}
-		t.call(func() { t.scheduleStart() })
+		if row.State != StateEnded {
+			t.call(func() { t.scheduleStart() })
+		}
 		r.mu.Lock()
 		r.tables[row.ID] = t
 		r.mu.Unlock()

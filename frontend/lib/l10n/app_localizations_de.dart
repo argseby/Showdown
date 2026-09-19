@@ -224,6 +224,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backToJoin => 'Zurück zur Tischseite';
 
   @override
+  String get newRoundTitle => 'Neue Runde gestartet';
+
+  @override
+  String get newRoundBody =>
+      'Der Host hat an diesem Tisch eine neue Runde eröffnet. Dein Platz bleibt deiner.';
+
+  @override
+  String get backToTable => 'Zurück zum Tisch';
+
+  @override
+  String get lastRoundTitle => 'Letzte Runde';
+
+  @override
+  String lastRoundHands(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Hände',
+      one: '1 Hand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get thisRound => 'Diese Runde';
+
+  @override
   String get serverRestarting =>
       'Der Server startet neu, gleich geht es weiter...';
 
@@ -834,6 +861,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get logRestarted => 'Server neu gestartet';
 
   @override
+  String get logNewRound => 'Neue Runde gestartet';
+
+  @override
   String get adminTitle => 'Admin';
 
   @override
@@ -926,6 +956,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adminEndNow => 'Sofort, Hand annullieren';
+
+  @override
+  String get adminNewRound => 'Neue Runde';
+
+  @override
+  String get adminNewRoundTitle => 'Neue Runde starten?';
+
+  @override
+  String get adminNewRoundBody =>
+      'Alle behalten ihren Platz, der Tisch behält seinen Link. Die Stacks stehen wieder auf dem Startgeld, die Statistik beginnt von vorn und die Blinds gehen auf die eingestellte Höhe zurück. Der Endstand dieser Runde bleibt lesbar.';
+
+  @override
+  String get adminNewRoundStart => 'Neue Runde starten';
+
+  @override
+  String get adminNewRoundDone => 'Neue Runde eröffnet';
 
   @override
   String get adminDeleteTitle => 'Diesen Tisch löschen?';

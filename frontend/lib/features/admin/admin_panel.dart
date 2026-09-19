@@ -167,6 +167,20 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
     await _lifecycle('end', immediate: choice == 'now');
   }
 
+  /// Opens a new round on this table: same id, same seats, same link.
+  Future<void> _newRound() async {
+    final l10n = context.l10n;
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.adminNewRoundTitle,
+      body: l10n.adminNewRoundBody,
+      confirmLabel: l10n.adminNewRoundStart,
+      cancelLabel: l10n.cancel,
+    );
+    if (!ok || !mounted) return;
+    await _lifecycle('restart');
+  }
+
   Future<void> _delete() async {
     final l10n = context.l10n;
     if (_detail?.state == 'running') {
@@ -310,6 +324,14 @@ class _AdminPanelState extends ConsumerState<AdminPanel> {
             onPressed: () => _lifecycle('resume'),
             leading: const Icon(LucideIcons.play),
             child: Text(l10n.adminResume),
+          ),
+        if (detail.state == 'ended')
+          PrimaryButton(
+            key: const Key('admin-new-round'),
+            size: ButtonSize.small,
+            onPressed: _newRound,
+            leading: const Icon(LucideIcons.rotateCw),
+            child: Text(l10n.adminNewRound),
           ),
         if (detail.state != 'ended')
           DestructiveButton(

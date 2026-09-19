@@ -26,6 +26,7 @@ import '../../shared/confirm_dialog.dart';
 import '../../shared/connection_banner.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_player_actions.dart';
+import '../admin/admin_session.dart';
 import '../admin/admin_widgets.dart';
 import 'drawing.dart';
 import 'focus_utils.dart';
@@ -806,6 +807,32 @@ class _PlayPageState extends ConsumerState<PlayPage>
     if (mounted) context.go('/t/${widget.tableId}');
   }
 
+  /// Host: open a new round on this table (same id, same seats, same link).
+  Future<void> _newRound() async {
+    final l10n = context.l10n;
+    final token = ref.read(adminTokenProvider(widget.tableId)).value;
+    if (token == null) return;
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.adminNewRoundTitle,
+      body: l10n.adminNewRoundBody,
+      confirmLabel: l10n.adminNewRoundStart,
+      cancelLabel: l10n.cancel,
+    );
+    if (!ok || !mounted) return;
+    final state = await guardAdmin(
+      ref,
+      context,
+      widget.tableId,
+      () => ref
+          .read(adminApiProvider)
+          .lifecycle(token, widget.tableId, 'restart'),
+    );
+    if (state != null && mounted) {
+      showAdminToast(context, l10n.adminNewRoundDone);
+    }
+  }
+
   Future<void> _clearAndGoToJoin() async {
     await ref.read(sessionProvider(widget.tableId).notifier).clear();
     if (mounted) context.go('/t/${widget.tableId}');
@@ -1485,8 +1512,20 @@ class _PlayPageState extends ConsumerState<PlayPage>
           )
         : table;
 
-    if (session.ended != null) {
-      body = _EndedOverlay(ended: session.ended!, onBack: _clearAndGoToJoin);
+    if (session.showingResult && snap?.lastRound != null) {
+      final newRound = snap!.table.state != 'ended';
+      body = _RoundResultOverlay(
+        result: snap.lastRound!,
+        newRound: newRound,
+        // The host is offered the new round right where the standings are.
+        onNewRound: !newRound && adminToken != null ? _newRound : null,
+        onDismiss: newRound
+            ? ref
+                  .read(tableSessionProvider(widget.tableId).notifier)
+                  .dismissResult
+            : null,
+        onBack: _clearAndGoToJoin,
+      );
     } else if (session.kicked != null) {
       body = _Notice(
         title: l10n.kickedTitle,
@@ -1581,10 +1620,34 @@ class _Notice extends StatelessWidget {
   }
 }
 
-class _EndedOverlay extends StatelessWidget {
-  const _EndedOverlay({required this.ended, required this.onBack});
-  final TableEnded ended;
+/// The standing of a finished round. It is the whole screen while the table
+/// is ended; once the host opens a new round it stays exactly where it is —
+/// same standings, same scroll position — and only the heading and the
+/// button change, so nobody has the result pulled away mid-read. It goes
+/// when the player says so (or when a hand is dealt to them, handled in
+/// TableSessionNotifier).
+class _RoundResultOverlay extends StatelessWidget {
+  const _RoundResultOverlay({
+    required this.result,
+    required this.newRound,
+    required this.onBack,
+    this.onNewRound,
+    this.onDismiss,
+  });
+
+  final RoundResult result;
+
+  /// A new round is already running on this table.
+  final bool newRound;
+
+  /// Leaves the table page (only offer while the table is still ended).
   final VoidCallback onBack;
+
+  /// Host only, while the table is ended: open a new round here.
+  final VoidCallback? onNewRound;
+
+  /// Closes the card and goes back to the table of the new round.
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -1600,11 +1663,16 @@ class _EndedOverlay extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(l10n.tableEndedTitle).h3(),
+                Text(newRound ? l10n.newRoundTitle : l10n.tableEndedTitle).h3(),
                 const Gap(4),
-                Text(l10n.finalStandings).muted(),
+                Text(newRound ? l10n.newRoundBody : l10n.finalStandings)
+                    .muted(),
                 const Gap(12),
-                for (final (i, e) in ended.finalLeaderboard.indexed)
+                if (newRound) ...[
+                  Text(l10n.lastRoundTitle).semiBold().small(),
+                  const Gap(4),
+                ],
+                for (final (i, e) in result.standings.indexed)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3),
                     child: Row(
@@ -1644,7 +1712,31 @@ class _EndedOverlay extends StatelessWidget {
                     ),
                   ),
                 const Gap(16),
-                PrimaryButton(onPressed: onBack, child: Text(l10n.backToJoin)),
+                if (newRound)
+                  PrimaryButton(
+                    key: const Key('result-back-to-table'),
+                    onPressed: onDismiss,
+                    child: Text(l10n.backToTable),
+                  )
+                else ...[
+                  if (onNewRound != null) ...[
+                    PrimaryButton(
+                      key: const Key('result-new-round'),
+                      leading: const Icon(LucideIcons.rotateCw),
+                      onPressed: onNewRound,
+                      child: Text(l10n.adminNewRound),
+                    ),
+                    const Gap(8),
+                    OutlineButton(
+                      onPressed: onBack,
+                      child: Text(l10n.backToJoin),
+                    ),
+                  ] else
+                    PrimaryButton(
+                      onPressed: onBack,
+                      child: Text(l10n.backToJoin),
+                    ),
+                ],
               ],
             ),
           ),

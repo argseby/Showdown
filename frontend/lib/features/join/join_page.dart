@@ -8,11 +8,13 @@ import '../../core/providers.dart';
 import '../../core/rest_client.dart';
 import '../../core/session_store.dart';
 import '../../shared/avatars.dart';
+import '../../shared/confirm_dialog.dart';
 import '../../shared/display_size_picker.dart';
 import '../../shared/hats.dart';
 import '../../shared/look_dialog.dart';
 import '../../shared/top_bar.dart';
 import '../admin/admin_session.dart';
+import '../admin/admin_widgets.dart';
 import 'name_rules.dart';
 
 /// Join page (`/t/:tableId`): table facts, name and password, Join / Spectate.
@@ -88,6 +90,34 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// The host opens a new round on a table that has ended, straight from
+  /// the link — no seat needed to get the table going again.
+  Future<void> _newRound() async {
+    final l10n = context.l10n;
+    final token = ref.read(adminTokenProvider(widget.tableId)).value;
+    if (token == null) return;
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.adminNewRoundTitle,
+      body: l10n.adminNewRoundBody,
+      confirmLabel: l10n.adminNewRoundStart,
+      cancelLabel: l10n.cancel,
+    );
+    if (!ok || !mounted) return;
+    setState(() => _busy = true);
+    final state = await guardAdmin(
+      ref,
+      context,
+      widget.tableId,
+      () => ref
+          .read(adminApiProvider)
+          .lifecycle(token, widget.tableId, 'restart'),
+    );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (state != null) await _load();
   }
 
   /// The host on another device enters the admin key; it is checked against
@@ -468,6 +498,15 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                       if (ended) ...[
                         const Gap(12),
                         Text(l10n.joinTableEnded).muted(),
+                        if (isHost) ...[
+                          const Gap(8),
+                          PrimaryButton(
+                            key: const Key('join-new-round'),
+                            onPressed: _busy ? null : _newRound,
+                            leading: const Icon(LucideIcons.rotateCw),
+                            child: Text(l10n.adminNewRound),
+                          ),
+                        ],
                       ],
                       if (!ended && joinsClosed) ...[
                         const Gap(12),

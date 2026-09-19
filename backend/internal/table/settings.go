@@ -40,12 +40,18 @@ const (
 // Settings are the live table settings (docs §5.2). PasswordHash is the
 // bcrypt hash or "" when no password is required.
 type Settings struct {
-	PasswordHash           string
-	MaxPlayers             int
-	StartMoney             int64
-	SmallBlind             int64
-	BigBlind               int64
-	Ante                   int64
+	PasswordHash string
+	MaxPlayers   int
+	StartMoney   int64
+	SmallBlind   int64
+	BigBlind     int64
+	Ante         int64
+	// StartSmallBlind, StartBigBlind and StartAnte are the level the host
+	// configured: the blind schedule raises the live values, these stay put
+	// so a new round on the same table starts where the first one did.
+	StartSmallBlind        int64
+	StartBigBlind          int64
+	StartAnte              int64
 	TurnTime               int
 	DisconnectedTurnTime   int
 	SitOutAfterMissedTurns int
@@ -87,6 +93,7 @@ type Settings struct {
 func DefaultSettings() Settings {
 	return Settings{
 		MaxPlayers: 9, StartMoney: 10000, SmallBlind: 50, BigBlind: 100, Ante: 0,
+		StartSmallBlind: 50, StartBigBlind: 100, StartAnte: 0,
 		TurnTime: 30, DisconnectedTurnTime: 10, SitOutAfterMissedTurns: 2,
 		JoinPolicy: JoinAlways, AllowSpectators: true, SpectatorChat: true, ChatEnabled: true,
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
@@ -122,6 +129,7 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 	return store.SettingsRow{
 		TableID: tableID, PasswordHash: s.PasswordHash, MaxPlayers: s.MaxPlayers, StartMoney: s.StartMoney,
 		SmallBlind: s.SmallBlind, BigBlind: s.BigBlind, Ante: s.Ante, TurnTime: s.TurnTime,
+		StartSmallBlind: s.StartSmallBlind, StartBigBlind: s.StartBigBlind, StartAnte: s.StartAnte,
 		DisconnectedTurnTime: s.DisconnectedTurnTime, SitOutAfterMissedTurns: s.SitOutAfterMissedTurns,
 		JoinPolicy: s.JoinPolicy, AllowSpectators: s.AllowSpectators, SpectatorChat: s.SpectatorChat,
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
@@ -139,9 +147,16 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 	if variant == "" {
 		variant = VariantHoldem
 	}
+	// Rows written before the starting level was stored: the live level is
+	// the best guess for where the host started.
+	startSB, startBB, startAnte := r.StartSmallBlind, r.StartBigBlind, r.StartAnte
+	if startBB == 0 {
+		startSB, startBB, startAnte = r.SmallBlind, r.BigBlind, r.Ante
+	}
 	return Settings{
 		PasswordHash: r.PasswordHash, MaxPlayers: r.MaxPlayers, StartMoney: r.StartMoney,
 		SmallBlind: r.SmallBlind, BigBlind: r.BigBlind, Ante: r.Ante, TurnTime: r.TurnTime,
+		StartSmallBlind: startSB, StartBigBlind: startBB, StartAnte: startAnte,
 		DisconnectedTurnTime: r.DisconnectedTurnTime, SitOutAfterMissedTurns: r.SitOutAfterMissedTurns,
 		JoinPolicy: r.JoinPolicy, AllowSpectators: r.AllowSpectators, SpectatorChat: r.SpectatorChat,
 		ChatEnabled: r.ChatEnabled, AllowRebuy: r.AllowRebuy, ShowdownReveal: r.ShowdownReveal,
@@ -283,16 +298,18 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 		out.StartMoney = *p.StartMoney
 		set("start_money")
 	}
+	// A blind the host sets by hand is the new starting level; only the
+	// blind schedule (raiseBlinds) moves the live value on its own.
 	if p.SmallBlind != nil {
-		out.SmallBlind = *p.SmallBlind
+		out.SmallBlind, out.StartSmallBlind = *p.SmallBlind, *p.SmallBlind
 		set("small_blind")
 	}
 	if p.BigBlind != nil {
-		out.BigBlind = *p.BigBlind
+		out.BigBlind, out.StartBigBlind = *p.BigBlind, *p.BigBlind
 		set("big_blind")
 	}
 	if p.Ante != nil {
-		out.Ante = *p.Ante
+		out.Ante, out.StartAnte = *p.Ante, *p.Ante
 		set("ante")
 	}
 	if p.TurnTime != nil {
