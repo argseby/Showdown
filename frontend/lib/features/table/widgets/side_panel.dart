@@ -9,6 +9,7 @@ import '../../../app/preferences.dart';
 import '../../../core/account.dart';
 import '../../../core/file_saver.dart';
 import '../../../core/formatting.dart';
+import '../../../core/friends.dart';
 import '../../../core/gamepad/gamepad.dart';
 import '../../../core/gamepad/pad_section.dart';
 import '../../../core/providers.dart';
@@ -22,6 +23,7 @@ import '../../account/account_sheet.dart';
 import '../../account/stats_dialog.dart';
 import '../../admin/admin_panel.dart';
 import '../../admin/table_rules_section.dart';
+import '../../friends/friends_dialog.dart';
 import '../log_text.dart';
 import '../replay/replay_dialog.dart';
 import '../table_session.dart';
@@ -1110,6 +1112,49 @@ class _SettingsMenu extends ConsumerWidget {
                           account == null
                               ? l10n.accountGuestHint
                               : l10n.accountMenuHint,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Friends: who is asking, who is playing, who to invite.
+            Builder(
+              builder: (context) {
+                if (ref.watch(accountProvider).value == null) {
+                  return const SizedBox.shrink();
+                }
+                final waiting = ref.watch(friendsProvider).value?.waiting ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: OutlineButton(
+                    key: const Key('settings-friends'),
+                    onPressed: () => showFriendsDialog(context),
+                    alignment: Alignment.centerLeft,
+                    leading: Icon(
+                      LucideIcons.users,
+                      size: 18,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    trailing: waiting == 0
+                        ? Icon(
+                            LucideIcons.chevronRight,
+                            size: 16,
+                            color: theme.colorScheme.mutedForeground,
+                          )
+                        : Text('$waiting').xSmall().semiBold(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.friendsOpen),
+                        Text(
+                          l10n.friendsMenuHint,
                           style: TextStyle(
                             fontSize: 11,
                             color: theme.colorScheme.mutedForeground,

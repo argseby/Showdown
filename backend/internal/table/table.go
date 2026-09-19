@@ -543,6 +543,38 @@ func (t *Table) Info() Info {
 	return info
 }
 
+// Seated is one player at the table under a profile, for the friends list
+// on the home screen. Guests are not in it: a seat with no profile belongs
+// to nobody in particular.
+type Seated struct {
+	AccountID string
+	Handle    string
+	Name      string
+	Connected bool
+}
+
+// Profiles lists the signed-in players at the table, and how many seats
+// are free for someone else to take.
+func (t *Table) Profiles() (seated []Seated, free int) {
+	t.call(func() {
+		for i := 0; i < t.settings.MaxPlayers; i++ {
+			p := t.seats[i]
+			if p == nil {
+				free++
+				continue
+			}
+			if p.AccountID == "" {
+				continue
+			}
+			seated = append(seated, Seated{
+				AccountID: p.AccountID, Handle: p.AccountHandle,
+				Name: p.Name, Connected: p.Connected,
+			})
+		}
+	})
+	return seated, free
+}
+
 // State returns the table state.
 func (t *Table) State() string {
 	var s string

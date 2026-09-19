@@ -1175,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @visBody.
   ///
   /// In en, this message translates to:
-  /// **'Your profile is private until you say otherwise. Sharing with friends only comes when friends do.'**
+  /// **'Your profile is private until you say otherwise. Each section can be kept private, shared with your friends, or made public.'**
   String get visBody;
 
   /// No description provided for @visOpen.
@@ -1273,6 +1273,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save that.'**
   String get visSaveFailed;
+
+  /// No description provided for @friendsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsTitle;
+
+  /// No description provided for @friendsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsOpen;
+
+  /// No description provided for @friendsMenuHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friends, requests and invitations'**
+  String get friendsMenuHint;
+
+  /// No description provided for @friendsTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friendsTabAll;
+
+  /// No description provided for @friendsTabRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get friendsTabRequests;
+
+  /// No description provided for @friendsTabFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find'**
+  String get friendsTabFind;
+
+  /// No description provided for @friendsTabBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get friendsTabBlocked;
+
+  /// No description provided for @friendsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends yet — find someone by their name.'**
+  String get friendsNone;
+
+  /// No description provided for @friendsFindPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or handle'**
+  String get friendsFindPlaceholder;
+
+  /// No description provided for @friendsFindNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody by that name.'**
+  String get friendsFindNothing;
+
+  /// No description provided for @friendsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friend'**
+  String get friendsAdd;
+
+  /// No description provided for @friendsAsked.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked'**
+  String get friendsAsked;
+
+  /// No description provided for @friendsAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get friendsAccept;
+
+  /// No description provided for @friendsDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get friendsDecline;
+
+  /// No description provided for @friendsBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get friendsBlock;
+
+  /// No description provided for @friendsUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get friendsUnblock;
+
+  /// No description provided for @friendsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove friend'**
+  String get friendsRemove;
+
+  /// No description provided for @friendsRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your friends? They are not told.'**
+  String friendsRemoveConfirm(String name);
+
+  /// No description provided for @friendsBlockConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}? They lose your friendship, cannot ask again, and stop seeing what you share with friends.'**
+  String friendsBlockConfirm(String name);
+
+  /// No description provided for @friendsIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Wants to be friends'**
+  String get friendsIncoming;
+
+  /// No description provided for @friendsOutgoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for an answer'**
+  String get friendsOutgoing;
+
+  /// No description provided for @friendsNoRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting for an answer.'**
+  String get friendsNoRequests;
+
+  /// No description provided for @friendsBlockedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is blocked.'**
+  String get friendsBlockedNone;
+
+  /// No description provided for @friendsBlockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A blocked player cannot ask you again and sees nothing you share with friends.'**
+  String get friendsBlockedHint;
+
+  /// No description provided for @friendsInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get friendsInvites;
+
+  /// No description provided for @friendsInviteFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} asked you to {table}'**
+  String friendsInviteFrom(String name, String table);
+
+  /// No description provided for @friendsJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get friendsJoin;
+
+  /// No description provided for @friendsDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get friendsDismiss;
+
+  /// No description provided for @friendsSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends since {date}'**
+  String friendsSince(String date);
+
+  /// No description provided for @friendsPlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends playing now'**
+  String get friendsPlayingTitle;
+
+  /// No description provided for @friendsPlayingSeats.
+  ///
+  /// In en, this message translates to:
+  /// **'{free} of {max} seats free'**
+  String friendsPlayingSeats(String free, String max);
+
+  /// No description provided for @friendsPlayingFull.
+  ///
+  /// In en, this message translates to:
+  /// **'No free seat'**
+  String get friendsPlayingFull;
+
+  /// No description provided for @friendsPlayingWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get friendsPlayingWatch;
+
+  /// No description provided for @friendsPlayingLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a password'**
+  String get friendsPlayingLocked;
+
+  /// No description provided for @friendsInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a friend'**
+  String get friendsInvite;
+
+  /// No description provided for @friendsInviteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friends get a notification with a way in.'**
+  String get friendsInviteHint;
+
+  /// No description provided for @friendsInviteSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent to {name}.'**
+  String friendsInviteSent(String name);
+
+  /// No description provided for @friendsInviteNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends to invite yet.'**
+  String get friendsInviteNone;
+
+  /// No description provided for @friendsInviteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already here'**
+  String get friendsInviteHere;
+
+  /// No description provided for @notifFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to be friends'**
+  String notifFriendRequest(String name);
+
+  /// No description provided for @notifFriendAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now your friend'**
+  String notifFriendAccepted(String name);
+
+  /// No description provided for @notifInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} invites you to {table}'**
+  String notifInvite(String name, String table);
+
+  /// No description provided for @notifOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get notifOk;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profilePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile is private.'**
+  String get profilePrivate;
+
+  /// No description provided for @profileNothingShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is shared here yet.'**
+  String get profileNothingShared;
+
+  /// No description provided for @profileSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing since {date}'**
+  String profileSince(String date);
+
+  /// No description provided for @profileWinnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Winnings'**
+  String get profileWinnings;
+
+  /// No description provided for @profileCountedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted hands only.'**
+  String get profileCountedOnly;
+
+  /// No description provided for @profileBestHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Best hands'**
+  String get profileBestHands;
+
+  /// No description provided for @profileAwards.
+  ///
+  /// In en, this message translates to:
+  /// **'Awards'**
+  String get profileAwards;
+
+  /// No description provided for @profileActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get profileActivity;
+
+  /// No description provided for @profileLastHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Last hand'**
+  String get profileLastHand;
+
+  /// No description provided for @profilePlayingNow.
+  ///
+  /// In en, this message translates to:
+  /// **'At a table right now'**
+  String get profilePlayingNow;
+
+  /// No description provided for @profileOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get profileOpen;
+
+  /// No description provided for @visFriendsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get visFriendsOnly;
 
   /// No description provided for @handRoyalFlush.
   ///

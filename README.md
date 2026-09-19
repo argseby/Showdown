@@ -38,8 +38,12 @@ always play.
 - Optional player profiles (`ACCOUNTS=true`): a name, a password and a recovery
   code — no mail server, no third party. A profile marks your seat and keeps your
   record: hands, winnings, the hands you made and the milestones you reached. Every
-  section is private until you make it public, and playing as a guest stays possible
-  everywhere.
+  section is private until you share it — with your friends or with everyone — and
+  playing as a guest stays possible everywhere.
+- Friends: find someone by name or from their seat, and see where your friends are
+  playing with the free seats and a way in. A friend at a table can call you over;
+  requests and invitations reach you wherever you are in the app. Anyone can be
+  declined quietly or blocked for good.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install

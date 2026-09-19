@@ -2,9 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../../app/l10n.dart';
+import '../../../core/account.dart';
+import '../../../core/friends.dart';
 import '../../../core/peer_prefs.dart';
+import '../../../core/providers.dart';
+import '../../../core/rest_client.dart';
 import '../../../protocol/protocol.dart';
 import '../../admin/admin_player_actions.dart';
+import '../../friends/profile_dialog.dart';
 import '../table_session.dart';
 
 /// The menu on another player's seat, for every viewer: their voice volume
@@ -120,6 +125,14 @@ class _PlayerMenu extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // A player with a profile can be looked up and befriended;
+            // a guest is just the name on the seat.
+            if (handle != null && handle.isNotEmpty) ...[
+              _ProfileActions(handle: handle),
+              const Gap(12),
+              const Divider(),
+              const Gap(8),
+            ],
             Text(l10n.playerMenuLocal.toUpperCase())
                 .muted()
                 .xSmall()
@@ -307,6 +320,81 @@ class _PlayerMenu extends ConsumerWidget {
           onPressed: () => closeOverlay<void>(dialog),
           child: Text(l10n.close),
         ),
+      ],
+    );
+  }
+}
+
+/// What one player can do about another's profile: look at it, and ask to
+/// be friends. Nothing at all for a viewer who is not signed in.
+class _ProfileActions extends ConsumerStatefulWidget {
+  const _ProfileActions({required this.handle});
+
+  final String handle;
+
+  @override
+  ConsumerState<_ProfileActions> createState() => _ProfileActionsState();
+}
+
+class _ProfileActionsState extends ConsumerState<_ProfileActions> {
+  bool _busy = false;
+  String? _sent;
+
+  Future<void> _ask() async {
+    final token = ref.read(accountProvider.notifier).token;
+    if (token == null) return;
+    setState(() => _busy = true);
+    try {
+      final state = await ref
+          .read(friendsApiProvider)
+          .request(token, widget.handle);
+      ref.invalidate(friendsProvider);
+      if (mounted) setState(() => _sent = state);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _sent = e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    if (ref.watch(accountsEnabledProvider).value != true) {
+      return const SizedBox.shrink();
+    }
+    final me = ref.watch(accountProvider).value;
+    if (me == null || me.handle == widget.handle) {
+      return const SizedBox.shrink();
+    }
+    final friends = ref.watch(friendsProvider).value;
+    final already =
+        friends?.friends.any((f) => f.handle == widget.handle) ?? false;
+    final asked =
+        friends?.outgoing.any((f) => f.handle == widget.handle) ?? false;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlineButton(
+            key: const Key('player-profile'),
+            onPressed: () => showProfileDialog(context, widget.handle),
+            leading: const Icon(LucideIcons.idCard, size: 14),
+            child: Text(l10n.profileOpen),
+          ),
+        ),
+        const Gap(6),
+        if (!already)
+          Expanded(
+            child: OutlineButton(
+              key: const Key('player-add-friend'),
+              enabled: !_busy && !asked && _sent == null,
+              onPressed: _ask,
+              leading: const Icon(LucideIcons.userPlus, size: 14),
+              child: Text(
+                asked || _sent != null ? l10n.friendsAsked : l10n.friendsAdd,
+              ),
+            ),
+          ),
       ],
     );
   }

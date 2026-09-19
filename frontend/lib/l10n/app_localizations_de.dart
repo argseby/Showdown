@@ -605,7 +605,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get visBody =>
-      'Dein Profil ist privat, bis du es änderst. Nur für Freunde teilen geht, sobald es Freunde gibt.';
+      'Dein Profil ist privat, bis du es änderst. Jeder Bereich kann privat bleiben, nur für Freunde sichtbar sein oder öffentlich.';
 
   @override
   String get visOpen => 'Wer was sieht';
@@ -655,6 +655,197 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get visSaveFailed => 'Konnte nicht gespeichert werden.';
+
+  @override
+  String get friendsTitle => 'Freunde';
+
+  @override
+  String get friendsOpen => 'Freunde';
+
+  @override
+  String get friendsMenuHint => 'Deine Freunde, Anfragen und Einladungen';
+
+  @override
+  String get friendsTabAll => 'Freunde';
+
+  @override
+  String get friendsTabRequests => 'Anfragen';
+
+  @override
+  String get friendsTabFind => 'Suchen';
+
+  @override
+  String get friendsTabBlocked => 'Blockiert';
+
+  @override
+  String get friendsNone =>
+      'Noch keine Freunde — such jemanden über den Namen.';
+
+  @override
+  String get friendsFindPlaceholder => 'Name oder Kürzel';
+
+  @override
+  String get friendsFindNothing => 'Niemand mit diesem Namen.';
+
+  @override
+  String get friendsAdd => 'Freund hinzufügen';
+
+  @override
+  String get friendsAsked => 'Angefragt';
+
+  @override
+  String get friendsAccept => 'Annehmen';
+
+  @override
+  String get friendsDecline => 'Ablehnen';
+
+  @override
+  String get friendsBlock => 'Blockieren';
+
+  @override
+  String get friendsUnblock => 'Entsperren';
+
+  @override
+  String get friendsRemove => 'Freund entfernen';
+
+  @override
+  String friendsRemoveConfirm(String name) {
+    return '$name aus deinen Freunden entfernen? Die Person erfährt es nicht.';
+  }
+
+  @override
+  String friendsBlockConfirm(String name) {
+    return '$name blockieren? Die Freundschaft endet, neue Anfragen sind nicht möglich und was du mit Freunden teilst, ist nicht mehr sichtbar.';
+  }
+
+  @override
+  String get friendsIncoming => 'Möchte befreundet sein';
+
+  @override
+  String get friendsOutgoing => 'Wartet auf Antwort';
+
+  @override
+  String get friendsNoRequests => 'Nichts wartet auf eine Antwort.';
+
+  @override
+  String get friendsBlockedNone => 'Niemand ist blockiert.';
+
+  @override
+  String get friendsBlockedHint =>
+      'Blockierte Spieler können dich nicht erneut anfragen und sehen nichts, was du mit Freunden teilst.';
+
+  @override
+  String get friendsInvites => 'Einladungen';
+
+  @override
+  String friendsInviteFrom(String name, String table) {
+    return '$name lädt dich an $table ein';
+  }
+
+  @override
+  String get friendsJoin => 'Beitreten';
+
+  @override
+  String get friendsDismiss => 'Verwerfen';
+
+  @override
+  String friendsSince(String date) {
+    return 'Befreundet seit $date';
+  }
+
+  @override
+  String get friendsPlayingTitle => 'Freunde spielen gerade';
+
+  @override
+  String friendsPlayingSeats(String free, String max) {
+    return '$free von $max Plätzen frei';
+  }
+
+  @override
+  String get friendsPlayingFull => 'Kein freier Platz';
+
+  @override
+  String get friendsPlayingWatch => 'Zuschauen';
+
+  @override
+  String get friendsPlayingLocked => 'Passwort nötig';
+
+  @override
+  String get friendsInvite => 'Freund einladen';
+
+  @override
+  String get friendsInviteHint =>
+      'Deine Freunde bekommen eine Benachrichtigung mit dem Weg hierher.';
+
+  @override
+  String friendsInviteSent(String name) {
+    return 'Einladung an $name verschickt.';
+  }
+
+  @override
+  String get friendsInviteNone => 'Noch keine Freunde zum Einladen.';
+
+  @override
+  String get friendsInviteHere => 'Schon hier';
+
+  @override
+  String notifFriendRequest(String name) {
+    return '$name möchte befreundet sein';
+  }
+
+  @override
+  String notifFriendAccepted(String name) {
+    return '$name ist jetzt dein Freund';
+  }
+
+  @override
+  String notifInvite(String name, String table) {
+    return '$name lädt dich an $table ein';
+  }
+
+  @override
+  String get notifOk => 'Alles klar';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get profilePrivate => 'Dieses Profil ist privat.';
+
+  @override
+  String get profileNothingShared => 'Hier wird noch nichts geteilt.';
+
+  @override
+  String profileSince(String date) {
+    return 'Spielt seit $date';
+  }
+
+  @override
+  String get profileWinnings => 'Gewinne';
+
+  @override
+  String get profileCountedOnly => 'Nur gewertete Hände.';
+
+  @override
+  String get profileBestHands => 'Beste Hände';
+
+  @override
+  String get profileAwards => 'Auszeichnungen';
+
+  @override
+  String get profileActivity => 'Aktivität';
+
+  @override
+  String get profileLastHand => 'Letzte Hand';
+
+  @override
+  String get profilePlayingNow => 'Sitzt gerade an einem Tisch';
+
+  @override
+  String get profileOpen => 'Profil ansehen';
+
+  @override
+  String get visFriendsOnly => 'Freunde';
 
   @override
   String get handRoyalFlush => 'Royal Flush';

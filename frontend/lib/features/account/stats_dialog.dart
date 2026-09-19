@@ -88,8 +88,7 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
     final l10n = context.l10n;
     final stats = ref.watch(accountStatsProvider);
     final highlights =
-        ref.watch(accountHighlightsProvider).value ??
-        const ProfileHighlights();
+        ref.watch(accountHighlightsProvider).value ?? const ProfileHighlights();
 
     Widget body;
     switch (stats) {
@@ -196,9 +195,7 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
       children: [
         Icon(icon, size: 13),
         const Gap(5),
-        Flexible(
-          child: Text(label, overflow: TextOverflow.ellipsis).small(),
-        ),
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis).small()),
       ],
     ),
   );
@@ -316,9 +313,7 @@ class _Meter extends StatelessWidget {
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor: fraction.clamp(0, 1),
-                child: Container(
-                  color: color ?? theme.colorScheme.primary,
-                ),
+                child: Container(color: color ?? theme.colorScheme.primary),
               ),
             ),
           ),
@@ -371,9 +366,9 @@ class _Overview extends StatelessWidget {
                 ),
               ),
               const Gap(2),
-              Text(
-                l10n.statsOverHands('${s.hands}', '${s.tables}'),
-              ).muted().small(),
+              Text(l10n.statsOverHands('${s.hands}', '${s.tables}'))
+                  .muted()
+                  .small(),
             ],
           ),
         ),
@@ -390,9 +385,9 @@ class _Overview extends StatelessWidget {
               _Row(l10n.statsFirstHand, formatDate(s.firstHand, locale)),
           ],
         ),
-        Text(
-          l10n.statsCountedNote('${s.countedHands}', '${s.hands}'),
-        ).muted().xSmall(),
+        Text(l10n.statsCountedNote('${s.countedHands}', '${s.hands}'))
+            .muted()
+            .xSmall(),
       ],
     );
   }
@@ -566,9 +561,7 @@ class _Hands extends StatelessWidget {
           _Group(
             icon: LucideIcons.crown,
             title: l10n.statsBestHands,
-            rows: [
-              for (final h in highlights.bestHands.take(5)) _HandCard(h),
-            ],
+            rows: [for (final h in highlights.bestHands.take(5)) _HandCard(h)],
           ),
         if (highlights.biggestWins.isNotEmpty)
           _Group(
@@ -610,7 +603,12 @@ class _HandCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Flexible(child: Text(name, overflow: TextOverflow.ellipsis).small()),
+                    Flexible(
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                      ).small(),
+                    ),
                     const Gap(6),
                     Text(
                       h.shown ? l10n.statsShownAtTable : l10n.statsMucked,
@@ -730,9 +728,9 @@ class _AwardRow extends StatelessWidget {
           if (earned)
             Text(formatDate(a.earnedAt, locale)).muted().xSmall()
           else if (a.goal > 0)
-            Text(
-              l10n.statsProgressOf('${a.progress}', '${a.goal}'),
-            ).muted().xSmall(),
+            Text(l10n.statsProgressOf('${a.progress}', '${a.goal}'))
+                .muted()
+                .xSmall(),
         ],
       ),
     );

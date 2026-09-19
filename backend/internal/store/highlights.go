@@ -67,6 +67,21 @@ func (s *Store) BestHands(ctx context.Context, accountID string, limit int) ([]H
 	return scanHighlights(rows)
 }
 
+// PublicBestHands is BestHands as somebody else may see it: only hands the
+// table actually saw, and only from rounds that count. A hand nobody was
+// shown stays the player's own business.
+func (s *Store) PublicBestHands(ctx context.Context, accountID string, limit int) ([]HandHighlight, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT `+highlightColumns+`
+		FROM hand_results
+		WHERE account_id = ? AND category >= 0 AND shown = 1 AND counted = 1
+		ORDER BY royal DESC, category DESC, won DESC, ended_at DESC LIMIT ?`, accountID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("public best hands: %w", err)
+	}
+	return scanHighlights(rows)
+}
+
 // BiggestWins returns the largest pots a profile won, in big blinds.
 func (s *Store) BiggestWins(ctx context.Context, accountID string, limit int) ([]HandHighlight, error) {
 	rows, err := s.db.QueryContext(ctx, `

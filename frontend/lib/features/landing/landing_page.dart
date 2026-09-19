@@ -10,6 +10,7 @@ import '../../shared/logo.dart';
 import '../../shared/top_bar.dart';
 import '../account/account_dialog.dart';
 import '../admin/new_table_dialog.dart';
+import '../friends/friends_playing_card.dart';
 import 'table_code.dart';
 
 /// The project's public page, linked from the footer.
@@ -153,6 +154,8 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                   ),
                 ),
                 const Gap(24),
+                // Where your friends are playing, when any are.
+                const FriendsPlayingCard(),
                 // Profiles, when this instance offers them at all.
                 const _AccountCard(),
                 const _LandingFooter(),

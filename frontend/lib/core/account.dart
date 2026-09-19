@@ -144,10 +144,14 @@ class ProfileHighlights {
   final List<HandHighlight> biggestWins;
   final List<Achievement> achievements;
 
-  List<Achievement> get earned =>
-      [for (final a in achievements) if (a.earned) a];
-  List<Achievement> get ahead =>
-      [for (final a in achievements) if (!a.earned) a];
+  List<Achievement> get earned => [
+    for (final a in achievements)
+      if (a.earned) a,
+  ];
+  List<Achievement> get ahead => [
+    for (final a in achievements)
+      if (!a.earned) a,
+  ];
 }
 
 class HandClassCount {

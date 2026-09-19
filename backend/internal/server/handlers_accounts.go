@@ -358,9 +358,8 @@ type profileRequest struct {
 }
 
 // handleAccountUpdate changes the display name and who may see which part
-// of the profile. Only "private" and "public" are accepted: the column
-// also holds "friends", but there are no friends yet and a switch that
-// silently does nothing is worse than one that is not offered.
+// of the profile: private, friends or public, section by section. What the
+// values mean lives in canSee, which is the only thing that reads them.
 func (s *Server) handleAccountUpdate(w http.ResponseWriter, r *http.Request) {
 	a, ok := s.requireAccount(w, r)
 	if !ok {
@@ -385,8 +384,9 @@ func (s *Server) handleAccountUpdate(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "unknown section "+section)
 			return
 		}
-		if value != visPrivate && value != visPublic {
-			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "visibility must be private or public")
+		if value != visPrivate && value != visFriends && value != visPublic {
+			writeError(w, http.StatusBadRequest, protocol.ErrValidation,
+				"visibility must be private, friends or public")
 			return
 		}
 		*field = value

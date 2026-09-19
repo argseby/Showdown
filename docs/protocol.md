@@ -227,6 +227,43 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   and a switch that would silently do nothing is not offered. Nothing reads
 >   the fields yet; the public profile will, and `profile: private` must hide
 >   the page itself rather than return an empty one.
+> - **Friends (2026-09-20).** A friendship is stored both ways, an ask is one
+>   row that answering removes, and a block is one-way and silent. `GET
+>   /api/friends` answers the whole screen (`friends`, `incoming`, `outgoing`,
+>   `blocked`, `invites`); `GET /api/friends/search?q=` finds profiles by the
+>   start of a handle or display name and says how each already stands to the
+>   searcher (`none`, `friend`, `pending_out`, `pending_in`). `POST
+>   /api/friends/requests` asks — two profiles that have each asked the other
+>   are friends at once — and `POST /api/friends/requests/{handle}/{accept |
+>   decline | block}` answers. Only an accepted ask is announced: a decline and
+>   an unanswered ask look the same from the outside, and a block is never
+>   mentioned to the blocked, who simply cannot ask again and gets a 404 for
+>   anything of the blocker's. `DELETE /api/friends/{handle}` ends a
+>   friendship, `DELETE /api/friends/blocks/{handle}` lifts a block without
+>   restoring it.
+> - **The user socket (2026-09-20).** `GET /ws/me` is one connection per device
+>   for the signed-in profile (up to four; the oldest goes when a fifth
+>   arrives). Hello carries the profile token, the only push is `user_event`
+>   (`friend_request`, `friend_accepted`, `friends_changed`, `table_invite`,
+>   `friends_playing`) and the only accepted command is `ping` — anything else
+>   closes the connection with 1008. Nothing is only delivered here: a device
+>   that was away finds the same things over REST.
+> - **Table invitations and who is playing (2026-09-20).** `POST
+>   /api/tables/{id}/invites` asks a friend to a table, and only a friend, and
+>   only from somebody sitting at it; the invitation is stored (two hours) as
+>   well as pushed, and `DELETE /api/friends/invites/{id}` spends it. `GET
+>   /api/friends/playing` lists the live tables friends are seated at with the
+>   stakes, the free seats and whether the door is open. A friend sitting down
+>   pushes `friends_playing` to their friends; nobody is told when one gets up,
+>   so the home screen also looks again every 30 s.
+> - **Public profiles (2026-09-20).** `GET /api/profiles/{handle}` answers the
+>   sections their owner shares with this viewer, by `canSee`: your own always,
+>   `public` to anyone (a guest included), `friends` to a friend, and nothing
+>   either way once one has blocked the other. A profile whose `profile`
+>   section is not visible answers 404 — the same as a handle nobody took — so
+>   the route cannot be used to find out who exists or who blocked you. Public
+>   winnings are the counted hands only, and public best hands only the ones
+>   the table was actually shown.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,

@@ -310,7 +310,7 @@
   "achTournamentWinTitle": "Tournament winner",
   "achTournamentWinBody": "Won a tournament.",
   "visTitle": "Who can see",
-  "visBody": "Your profile is private until you say otherwise. Sharing with friends only comes when friends do.",
+  "visBody": "Your profile is private until you say otherwise. Each section can be kept private, shared with your friends, or made public.",
   "visOpen": "Who can see",
   "visMenuHint": "What a public profile would show",
   "visPublic": "Public",
@@ -327,6 +327,141 @@
   "visActivityHint": "when you last played",
   "visAllPrivate": "Nothing is public yet.",
   "visSaveFailed": "Could not save that.",
+  "friendsTitle": "Friends",
+  "friendsOpen": "Friends",
+  "friendsMenuHint": "Your friends, requests and invitations",
+  "friendsTabAll": "Friends",
+  "friendsTabRequests": "Requests",
+  "friendsTabFind": "Find",
+  "friendsTabBlocked": "Blocked",
+  "friendsNone": "No friends yet — find someone by their name.",
+  "friendsFindPlaceholder": "Name or handle",
+  "friendsFindNothing": "Nobody by that name.",
+  "friendsAdd": "Add friend",
+  "friendsAsked": "Asked",
+  "friendsAccept": "Accept",
+  "friendsDecline": "Decline",
+  "friendsBlock": "Block",
+  "friendsUnblock": "Unblock",
+  "friendsRemove": "Remove friend",
+  "friendsRemoveConfirm": "Remove {name} from your friends? They are not told.",
+  "@friendsRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsBlockConfirm": "Block {name}? They lose your friendship, cannot ask again, and stop seeing what you share with friends.",
+  "@friendsBlockConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsIncoming": "Wants to be friends",
+  "friendsOutgoing": "Waiting for an answer",
+  "friendsNoRequests": "Nothing waiting for an answer.",
+  "friendsBlockedNone": "Nobody is blocked.",
+  "friendsBlockedHint": "A blocked player cannot ask you again and sees nothing you share with friends.",
+  "friendsInvites": "Invitations",
+  "friendsInviteFrom": "{name} asked you to {table}",
+  "@friendsInviteFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsJoin": "Join",
+  "friendsDismiss": "Dismiss",
+  "friendsSince": "Friends since {date}",
+  "@friendsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsPlayingTitle": "Friends playing now",
+  "friendsPlayingSeats": "{free} of {max} seats free",
+  "@friendsPlayingSeats": {
+    "placeholders": {
+      "free": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsPlayingFull": "No free seat",
+  "friendsPlayingWatch": "Watch",
+  "friendsPlayingLocked": "Needs a password",
+  "friendsInvite": "Invite a friend",
+  "friendsInviteHint": "Your friends get a notification with a way in.",
+  "friendsInviteSent": "Invitation sent to {name}.",
+  "@friendsInviteSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsInviteNone": "No friends to invite yet.",
+  "friendsInviteHere": "Already here",
+  "notifFriendRequest": "{name} wants to be friends",
+  "@notifFriendRequest": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifFriendAccepted": "{name} is now your friend",
+  "@notifFriendAccepted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifInvite": "{name} invites you to {table}",
+  "@notifInvite": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOk": "Got it",
+  "profileTitle": "Profile",
+  "profilePrivate": "This profile is private.",
+  "profileNothingShared": "Nothing is shared here yet.",
+  "profileSince": "Playing since {date}",
+  "@profileSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWinnings": "Winnings",
+  "profileCountedOnly": "Counted hands only.",
+  "profileBestHands": "Best hands",
+  "profileAwards": "Awards",
+  "profileActivity": "Activity",
+  "profileLastHand": "Last hand",
+  "profilePlayingNow": "At a table right now",
+  "profileOpen": "View profile",
+  "visFriendsOnly": "Friends",
   "handRoyalFlush": "Royal flush",
   "handStraightFlush": "Straight flush",
   "handFourOfAKind": "Four of a kind",

@@ -7,7 +7,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../core/account.dart';
 import '../../core/formatting.dart';
+import '../../core/friends.dart';
 import '../../core/rest_client.dart';
+import '../friends/friends_dialog.dart';
 import 'stats_dialog.dart';
 import 'visibility_dialog.dart';
 
@@ -210,6 +212,21 @@ class _AccountSheetState extends ConsumerState<AccountSheet> {
             onPressed: () => showStatsDialog(context),
             leading: const Icon(LucideIcons.chartNoAxesColumn, size: 14),
             child: Text(l10n.statsOpen),
+          ),
+          const Gap(6),
+          Consumer(
+            builder: (context, ref, _) {
+              final waiting = ref.watch(friendsProvider).value?.waiting ?? 0;
+              return OutlineButton(
+                key: const Key('account-friends'),
+                onPressed: () => showFriendsDialog(context),
+                leading: const Icon(LucideIcons.users, size: 14),
+                trailing: waiting == 0
+                    ? null
+                    : Text('$waiting').xSmall().semiBold(),
+                child: Text(l10n.friendsOpen),
+              );
+            },
           ),
           const Gap(6),
           OutlineButton(

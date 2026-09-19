@@ -87,6 +87,10 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	// A friend sitting down is news on everybody else's home screen.
+	if profile.ID != "" {
+		s.friendsChanged(profile.ID)
+	}
 	token, err := s.createSession(r.Context(), table.RolePlayer, t.ID, res.PlayerID, res.Name)
 	if err != nil {
 		s.log.Error("create session", "err", err)

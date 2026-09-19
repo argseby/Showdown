@@ -62,12 +62,7 @@ const _highlights = {
     },
   ],
   'achievements': [
-    {
-      'id': 'royal_flush',
-      'earned_at': 1788000000000,
-      'progress': 0,
-      'goal': 0,
-    },
+    {'id': 'royal_flush', 'earned_at': 1788000000000, 'progress': 0, 'goal': 0},
     {'id': 'hands_1000', 'earned_at': 0, 'progress': 120, 'goal': 1000},
   ],
 };
@@ -99,105 +94,105 @@ void main() {
     };
     return MockClient((req) async {
       final path = req.url.path;
-    if (path == '/api/accounts' && req.method == 'POST') {
-      if (registerStatus != 201) {
+      if (path == '/api/accounts' && req.method == 'POST') {
+        if (registerStatus != 201) {
+          return http.Response(
+            jsonEncode({
+              'error': {'code': registerCode, 'message': 'no'},
+            }),
+            registerStatus,
+          );
+        }
         return http.Response(
           jsonEncode({
-            'error': {'code': registerCode, 'message': 'no'},
+            'token': 'tok-new',
+            'account': {
+              'id': 'u1',
+              'handle': handle,
+              'display_name': handle,
+              'visibility': {'profile': 'private'},
+            },
+            'recovery_code': 'ABCD-EFGH-IJKL',
           }),
-          registerStatus,
+          201,
         );
       }
-      return http.Response(
-        jsonEncode({
-          'token': 'tok-new',
-          'account': {
-            'id': 'u1',
-            'handle': handle,
-            'display_name': handle,
-            'visibility': {'profile': 'private'},
-          },
-          'recovery_code': 'ABCD-EFGH-IJKL',
-        }),
-        201,
-      );
-    }
-    if (path == '/api/accounts/session' && req.method == 'POST') {
-      final body = jsonDecode(req.body) as Map<String, dynamic>;
-      if (body['password'] != 'hunter22') {
+      if (path == '/api/accounts/session' && req.method == 'POST') {
+        final body = jsonDecode(req.body) as Map<String, dynamic>;
+        if (body['password'] != 'hunter22') {
+          return http.Response(
+            jsonEncode({
+              'error': {'code': 'bad_credentials', 'message': 'no'},
+            }),
+            401,
+          );
+        }
         return http.Response(
           jsonEncode({
-            'error': {'code': 'bad_credentials', 'message': 'no'},
+            'token': 'tok-in',
+            'account': {'id': 'u1', 'handle': handle, 'display_name': handle},
           }),
-          401,
+          200,
         );
       }
-      return http.Response(
-        jsonEncode({
-          'token': 'tok-in',
-          'account': {'id': 'u1', 'handle': handle, 'display_name': handle},
-        }),
-        200,
-      );
-    }
-    if (path == '/api/accounts/me/stats' && req.method == 'GET') {
-      return http.Response(
-        jsonEncode({
-          'hands': 120,
-          'tables': 3,
-          'rounds': 2,
-          'first_hand': 1788000000000,
-          'last_hand': 1789000000000,
-          'net': 4200,
-          'net_bb': 42.0,
-          'bb_per_100': 35.0,
-          'counted_hands': 90,
-          'counted_net': 3000,
-          'counted_net_bb': 30.0,
-          'biggest_pot': 2600,
-          'biggest_win': 1800,
-          'best_round': 2500,
-          'hands_won': 31,
-          'rounds_won': 1,
-          'podiums': 2,
-          'tournaments': 1,
-          'vpip': 48,
-          'showdowns': 20,
-          'showdowns_won': 12,
-          'won_without_showdown': 19,
-          'folded': 72,
-          'all_ins': 4,
-          'hand_classes': [
-            {'category': 8, 'royal': true, 'made': 1, 'shown': 1},
-            {'category': 7, 'royal': false, 'made': 2, 'shown': 1},
-            {'category': 1, 'royal': false, 'made': 40, 'shown': 9},
-          ],
-        }),
-        200,
-      );
-    }
-    if (path == '/api/accounts/me' && req.method == 'GET') {
-      if (req.headers['Authorization'] != 'Bearer tok-kept') {
+      if (path == '/api/accounts/me/stats' && req.method == 'GET') {
         return http.Response(
           jsonEncode({
-            'error': {'code': 'unauthorized', 'message': 'no'},
+            'hands': 120,
+            'tables': 3,
+            'rounds': 2,
+            'first_hand': 1788000000000,
+            'last_hand': 1789000000000,
+            'net': 4200,
+            'net_bb': 42.0,
+            'bb_per_100': 35.0,
+            'counted_hands': 90,
+            'counted_net': 3000,
+            'counted_net_bb': 30.0,
+            'biggest_pot': 2600,
+            'biggest_win': 1800,
+            'best_round': 2500,
+            'hands_won': 31,
+            'rounds_won': 1,
+            'podiums': 2,
+            'tournaments': 1,
+            'vpip': 48,
+            'showdowns': 20,
+            'showdowns_won': 12,
+            'won_without_showdown': 19,
+            'folded': 72,
+            'all_ins': 4,
+            'hand_classes': [
+              {'category': 8, 'royal': true, 'made': 1, 'shown': 1},
+              {'category': 7, 'royal': false, 'made': 2, 'shown': 1},
+              {'category': 1, 'royal': false, 'made': 40, 'shown': 9},
+            ],
           }),
-          401,
+          200,
         );
       }
-      return http.Response(jsonEncode({'account': account()}), 200);
-    }
-    if (path == '/api/accounts/me' && req.method == 'PATCH') {
-      final body = jsonDecode(req.body) as Map<String, dynamic>;
-      final wanted = body['visibility'] as Map<String, dynamic>? ?? const {};
-      wanted.forEach((k, v) => visibility[k] = v as String);
-      patched.add(wanted.keys.join(','));
-      return http.Response(jsonEncode({'account': account()}), 200);
-    }
-    if (path == '/api/accounts/me/highlights' && req.method == 'GET') {
-      return http.Response(jsonEncode(_highlights), 200);
-    }
-    return http.Response('{}', 404);
+      if (path == '/api/accounts/me' && req.method == 'GET') {
+        if (req.headers['Authorization'] != 'Bearer tok-kept') {
+          return http.Response(
+            jsonEncode({
+              'error': {'code': 'unauthorized', 'message': 'no'},
+            }),
+            401,
+          );
+        }
+        return http.Response(jsonEncode({'account': account()}), 200);
+      }
+      if (path == '/api/accounts/me' && req.method == 'PATCH') {
+        final body = jsonDecode(req.body) as Map<String, dynamic>;
+        final wanted = body['visibility'] as Map<String, dynamic>? ?? const {};
+        wanted.forEach((k, v) => visibility[k] = v as String);
+        patched.add(wanted.keys.join(','));
+        return http.Response(jsonEncode({'account': account()}), 200);
+      }
+      if (path == '/api/accounts/me/highlights' && req.method == 'GET') {
+        return http.Response(jsonEncode(_highlights), 200);
+      }
+      return http.Response('{}', 404);
     });
   }
 
@@ -448,11 +443,23 @@ void main() {
     expect(find.text('Nothing is public yet.'), findsOneWidget);
     expect(find.text('Private'), findsNWidgets(5));
 
-    await tester.tap(find.byKey(const Key('vis-winnings')));
+    // Each section is private, friends-only or public.
+    expect(find.byKey(const Key('vis-winnings-friends')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('vis-winnings-public')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vis-winnings-public')));
     await tester.pumpAndSettle();
     expect(patched, ['winnings']);
-    // The switch follows the server's answer, not the tap.
-    expect(find.text('Public'), findsOneWidget);
+    // The control follows the server's answer, not the tap: the fake API
+    // stored it, so public is now the chosen one for winnings.
+    expect(
+      tester.widget(find.byKey(const Key('vis-winnings-public'))),
+      isA<PrimaryButton>(),
+    );
+    expect(
+      tester.widget(find.byKey(const Key('vis-profile-private'))),
+      isA<PrimaryButton>(),
+    );
     expect(find.text('Nothing is public yet.'), findsNothing);
   });
 

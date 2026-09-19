@@ -33,6 +33,10 @@ type Server struct {
 	// slow to guess one (bcrypt costs the guesser ~50 ms on top).
 	limAccount *limiter
 
+	// users holds the open user sockets (/ws/me), one profile to many
+	// devices; nil is fine and simply means nobody is reachable.
+	users *userHub
+
 	connMu    sync.Mutex
 	connsByIP map[string]int
 }
@@ -46,6 +50,7 @@ func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logg
 		limWS:      newLimiter(30, 30),
 		limCreate:  newLimiter(5, 5),
 		limAccount: newLimiter(30, 15),
+		users:      newUserHub(),
 		connsByIP:  map[string]int{},
 	}
 	s.routes()
@@ -84,6 +89,17 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/accounts/me/stats", s.rateLimited(s.limInfo, s.handleAccountStats))
 	s.mux.HandleFunc("GET /api/accounts/me/highlights", s.rateLimited(s.limInfo, s.handleAccountHighlights))
 	s.mux.HandleFunc("PATCH /api/accounts/me", s.rateLimited(s.limAccount, s.handleAccountUpdate))
+	s.mux.HandleFunc("GET /api/friends", s.rateLimited(s.limInfo, s.handleFriends))
+	s.mux.HandleFunc("GET /api/friends/search", s.rateLimited(s.limInfo, s.handleFriendSearch))
+	s.mux.HandleFunc("POST /api/friends/requests", s.rateLimited(s.limAccount, s.handleFriendRequest))
+	s.mux.HandleFunc("POST /api/friends/requests/{handle}/{answer}", s.rateLimited(s.limAccount, s.handleFriendAnswer))
+	s.mux.HandleFunc("DELETE /api/friends/{handle}", s.rateLimited(s.limAccount, s.handleUnfriend))
+	s.mux.HandleFunc("DELETE /api/friends/blocks/{handle}", s.rateLimited(s.limAccount, s.handleUnblock))
+	s.mux.HandleFunc("GET /api/profiles/{handle}", s.rateLimited(s.limInfo, s.handleProfile))
+	s.mux.HandleFunc("GET /api/friends/playing", s.rateLimited(s.limInfo, s.handleFriendsPlaying))
+	s.mux.HandleFunc("POST /api/tables/{id}/invites", s.rateLimited(s.limAccount, s.handleInvite))
+	s.mux.HandleFunc("DELETE /api/friends/invites/{id}", s.rateLimited(s.limAccount, s.handleInviteDismiss))
+	s.mux.HandleFunc("GET /ws/me", s.handleUserWS)
 	s.mux.HandleFunc("POST /api/accounts/password", s.rateLimited(s.limAccount, s.handleAccountPassword))
 
 	// Table admin: every route is guarded by the table's own admin token.

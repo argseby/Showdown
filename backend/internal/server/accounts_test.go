@@ -345,11 +345,18 @@ func TestVisibilityIsTheOwnersToSet(t *testing.T) {
 		t.Errorf("after a reload: %v", me)
 	}
 
-	// Friends are not a thing yet: a switch that would do nothing is refused.
-	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
+	// Friends-only is a third state, and it sticks.
+	status, out = h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
 		"visibility": map[string]string{"winnings": "friends"},
+	})
+	if status != http.StatusOK ||
+		out["account"].(map[string]any)["visibility"].(map[string]any)["winnings"] != "friends" {
+		t.Errorf("friends visibility: %d %v", status, out)
+	}
+	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
+		"visibility": map[string]string{"winnings": "everyone"},
 	}); status != http.StatusBadRequest {
-		t.Errorf("friends visibility: %d, want 400", status)
+		t.Errorf("an invented visibility: %d, want 400", status)
 	}
 	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
 		"visibility": map[string]string{"salary": "public"},

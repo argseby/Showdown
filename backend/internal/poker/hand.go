@@ -147,12 +147,12 @@ type PotAward struct {
 
 // SeatResult is a player's outcome for the hand.
 type SeatResult struct {
-	Seat        int
-	StartStack  int64
-	EndStack    int64
-	Net         int64
-	Won         int64
-	Folded      bool
+	Seat       int
+	StartStack int64
+	EndStack   int64
+	Net        int64
+	Won        int64
+	Folded     bool
 	// AllIn is true when the player had their whole stack in the middle
 	// at some point in the hand — winning one leaves chips, so the end
 	// stack does not tell.

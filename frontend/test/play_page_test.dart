@@ -374,11 +374,7 @@ void main() {
       if (req.url.path == '/api/accounts/me') {
         return http.Response(
           jsonEncode({
-            'account': {
-              'id': 'u1',
-              'handle': 'alice',
-              'display_name': 'Alice',
-            },
+            'account': {'id': 'u1', 'handle': 'alice', 'display_name': 'Alice'},
           }),
           200,
         );
