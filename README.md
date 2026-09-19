@@ -179,8 +179,8 @@ login.
 ## Development
 
 ```
-make dev-api          # Go API on :8080 with CORS for the dev web server
-make dev-web          # flutter run in Chrome on :3000
+make dev-api          # Go API on :8081 with CORS for the dev web server
+make dev-web          # flutter run in Chrome on :3000, talking to :8081
 make lint test check-gen
 make bots TABLE=<id>  # scripted players
 ```

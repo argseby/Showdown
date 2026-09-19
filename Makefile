@@ -8,7 +8,11 @@ export
 
 GO_DIR  := backend
 WEB_DIR := frontend
-DEV_API_BASE ?= http://localhost:8080
+# The dev API gets its own port: the compose stack publishes the web
+# container on WEB_PORT (8080 by default), and the two used to fight over
+# it — a port held by Docker looks unowned in `ss` unless you are root.
+API_PORT ?= 8081
+DEV_API_BASE ?= http://localhost:$(API_PORT)
 DEV_WEB_ORIGIN ?= http://localhost:3000
 
 GEN_FILES := find $(WEB_DIR)/lib \( -name '*.g.dart' -o -name '*.freezed.dart' -o -path '*/l10n/app_localizations*.dart' \) -type f | sort
@@ -18,8 +22,16 @@ GEN_FILES := find $(WEB_DIR)/lib \( -name '*.g.dart' -o -name '*.freezed.dart' -
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
 
-dev-api: ## run the Go API locally
-	cd $(GO_DIR) && DATA_DIR=$${DATA_DIR:-./data} DEV_CORS_ORIGIN=$(DEV_WEB_ORIGIN) LOG_FORMAT=text LOG_LEVEL=$${LOG_LEVEL:-debug} go run ./cmd/server
+dev-api: ## run the Go API locally (API_PORT=8081 by default)
+	@if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -qE ':$(API_PORT)[[:space:]]'; then \
+		echo "port $(API_PORT) is already in use."; \
+		echo "A container counts too, and holds the port invisibly unless you look as root:"; \
+		echo "  docker ps --format '{{.Names}}\t{{.Ports}}'   # what is published"; \
+		echo "  make down                                     # stop this project's stack"; \
+		echo "  make dev-api API_PORT=8082                    # or just use another port"; \
+		exit 1; \
+	fi
+	cd $(GO_DIR) && LISTEN_ADDR=:$(API_PORT) DATA_DIR=$${DATA_DIR:-./data} DEV_CORS_ORIGIN=$(DEV_WEB_ORIGIN) LOG_FORMAT=text LOG_LEVEL=$${LOG_LEVEL:-debug} go run ./cmd/server
 
 dev-web: ## run the Flutter web app in Chrome against the local API
 	cd $(WEB_DIR) && flutter run -d chrome --web-port 3000 --dart-define=API_BASE=$(DEV_API_BASE)
