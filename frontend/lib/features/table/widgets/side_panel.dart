@@ -776,7 +776,9 @@ class TableLeaderboard extends ConsumerWidget {
     final chipDisplay = ref.watch(chipDisplayProvider);
     final bigBlind = snapshot?.table.settings.bigBlind ?? 0;
     final entries = snapshot?.leaderboard ?? const <LeaderboardEntry>[];
-    final last = snapshot?.lastRound;
+    // While the table sits ended the live list is that round's standing;
+    // the section only earns its place once a new round has started.
+    final last = snapshot?.table.state == 'ended' ? null : snapshot?.lastRound;
     final avatars = {
       for (final sv in snapshot?.seats ?? const <SeatView>[])
         if (sv.player != null) sv.player!.name: sv.player!.avatar,

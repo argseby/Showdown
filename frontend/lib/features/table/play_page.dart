@@ -212,11 +212,14 @@ class _PlayPageState extends ConsumerState<PlayPage>
       }
       return _PhaseInfo(
         kind: _PhaseKind.idle,
-        name: snap.table.state == 'paused'
-            ? l10n.tablePaused
-            : snap.table.state == 'waiting'
-            ? l10n.tableWaiting
-            : l10n.waitingForPlayers,
+        name: switch (snap.table.state) {
+          'paused' => l10n.tablePaused,
+          'waiting' => l10n.tableWaiting,
+          // An ended table can be looked at (and restarted): say what it is
+          // rather than leaving it looking like a table about to deal.
+          'ended' => l10n.tableEndedTitle,
+          _ => l10n.waitingForPlayers,
+        },
       );
     }
     if (hand.phase == 'showdown' || hand.phase == 'result') {
@@ -1513,18 +1516,18 @@ class _PlayPageState extends ConsumerState<PlayPage>
         : table;
 
     if (session.showingResult && snap?.lastRound != null) {
-      final newRound = snap!.table.state != 'ended';
       body = _RoundResultOverlay(
-        result: snap.lastRound!,
-        newRound: newRound,
+        result: snap!.lastRound!,
+        newRound: snap.table.state != 'ended',
         // The host is offered the new round right where the standings are.
-        onNewRound: !newRound && adminToken != null ? _newRound : null,
-        onDismiss: newRound
-            ? ref
-                  .read(tableSessionProvider(widget.tableId).notifier)
-                  .dismissResult
+        onNewRound: snap.table.state == 'ended' && adminToken != null
+            ? _newRound
             : null,
-        onBack: _clearAndGoToJoin,
+        // Closing the standings keeps the seat and the session: whoever is
+        // here now plays the next round without joining again.
+        onDismiss: ref
+            .read(tableSessionProvider(widget.tableId).notifier)
+            .dismissResult,
       );
     } else if (session.kicked != null) {
       body = _Notice(
@@ -1630,9 +1633,8 @@ class _RoundResultOverlay extends StatelessWidget {
   const _RoundResultOverlay({
     required this.result,
     required this.newRound,
-    required this.onBack,
+    required this.onDismiss,
     this.onNewRound,
-    this.onDismiss,
   });
 
   final RoundResult result;
@@ -1640,14 +1642,12 @@ class _RoundResultOverlay extends StatelessWidget {
   /// A new round is already running on this table.
   final bool newRound;
 
-  /// Leaves the table page (only offer while the table is still ended).
-  final VoidCallback onBack;
-
   /// Host only, while the table is ended: open a new round here.
   final VoidCallback? onNewRound;
 
-  /// Closes the card and goes back to the table of the new round.
-  final VoidCallback? onDismiss;
+  /// Closes the card and goes back to the table. It never touches the seat
+  /// or the session — the player is in the next round either way.
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -1718,25 +1718,25 @@ class _RoundResultOverlay extends StatelessWidget {
                     onPressed: onDismiss,
                     child: Text(l10n.backToTable),
                   )
-                else ...[
-                  if (onNewRound != null) ...[
-                    PrimaryButton(
-                      key: const Key('result-new-round'),
-                      leading: const Icon(LucideIcons.rotateCw),
-                      onPressed: onNewRound,
-                      child: Text(l10n.adminNewRound),
-                    ),
-                    const Gap(8),
-                    OutlineButton(
-                      onPressed: onBack,
-                      child: Text(l10n.backToJoin),
-                    ),
-                  ] else
-                    PrimaryButton(
-                      onPressed: onBack,
-                      child: Text(l10n.backToJoin),
-                    ),
-                ],
+                else if (onNewRound != null) ...[
+                  PrimaryButton(
+                    key: const Key('result-new-round'),
+                    leading: const Icon(LucideIcons.rotateCw),
+                    onPressed: onNewRound,
+                    child: Text(l10n.adminNewRound),
+                  ),
+                  const Gap(8),
+                  OutlineButton(
+                    key: const Key('result-close'),
+                    onPressed: onDismiss,
+                    child: Text(l10n.close),
+                  ),
+                ] else
+                  PrimaryButton(
+                    key: const Key('result-close'),
+                    onPressed: onDismiss,
+                    child: Text(l10n.close),
+                  ),
               ],
             ),
           ),

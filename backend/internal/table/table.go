@@ -1204,12 +1204,14 @@ func (t *Table) Rebuy(playerID string) error {
 }
 
 // Leave removes the player: immediately between hands, otherwise after
-// folding them and finishing the hand.
+// folding them and finishing the hand. It works on an ended table too —
+// the client forgets its session when the player says goodbye, so the seat
+// has to go with it or a new round would deal to a ghost.
 func (t *Table) Leave(playerID string) error {
 	return t.callErr(func() error {
-		p, err := t.seatedPlayer(playerID)
-		if err != nil {
-			return err
+		p, ok := t.players[playerID]
+		if !ok {
+			return ErrNotSeated
 		}
 		t.removePlayer(p, false)
 		return nil

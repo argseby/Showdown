@@ -98,6 +98,33 @@ func TestRestartOpensANewRoundOnTheSameTable(t *testing.T) {
 	}
 }
 
+func TestLeaveAnEndedTableFreesTheSeat(t *testing.T) {
+	t.Parallel()
+	tbl := newTestTable(t, testSettings())
+	a, _ := join(t, tbl, "Alice")
+	join(t, tbl, "Bob")
+	waitFor(t, "a hand", func() bool { return handNumber(tbl) >= 1 })
+	playToEnd(t, tbl)
+	endNow(t, tbl)
+
+	// Saying goodbye at an ended table has to take the seat with it: the
+	// client forgets its session, so a new round must not deal to a ghost.
+	if err := tbl.Leave(a.PlayerID); err != nil {
+		t.Fatalf("Leave: %v", err)
+	}
+	if err := tbl.Restart(); err != nil {
+		t.Fatalf("Restart: %v", err)
+	}
+	tbl.call(func() {
+		if _, ok := tbl.players[a.PlayerID]; ok {
+			t.Error("Alice still holds a seat in the new round")
+		}
+		if tbl.seatedCount() != 1 {
+			t.Errorf("seated = %d, want 1", tbl.seatedCount())
+		}
+	})
+}
+
 func TestRestartBringsBustedPlayersBack(t *testing.T) {
 	t.Parallel()
 	s := testSettings()

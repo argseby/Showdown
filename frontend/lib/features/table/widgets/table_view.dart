@@ -392,11 +392,12 @@ class TableView extends ConsumerWidget {
                     ),
                   ] else
                     Text(
-                      snap.table.state == 'paused'
-                          ? l10n.tablePaused
-                          : snap.table.state == 'waiting'
-                          ? l10n.tableWaiting
-                          : l10n.waitingForPlayers,
+                      switch (snap.table.state) {
+                        'paused' => l10n.tablePaused,
+                        'waiting' => l10n.tableWaiting,
+                        'ended' => l10n.tableEndedTitle,
+                        _ => l10n.waitingForPlayers,
+                      },
                       style: TextStyle(
                         color: theme.colorScheme.mutedForeground,
                       ),

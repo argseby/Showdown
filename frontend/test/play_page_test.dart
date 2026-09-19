@@ -139,12 +139,18 @@ Map<String, dynamic> _bobVoice(String voice) {
 class _MemorySessionStore extends SessionStore {
   _MemorySessionStore(this.session);
   final StoredSession? session;
+
+  /// Set when the seat was given up; closing the standings must not.
+  bool cleared = false;
   @override
   Future<StoredSession?> load(String tableId) async => session;
   @override
   Future<void> save(String tableId, StoredSession session) async {}
   @override
-  Future<void> clear(String tableId) async {}
+  Future<void> clear(String tableId) async {
+    cleared = true;
+  }
+
   @override
   Future<String?> loadAdminToken(String tableId) async => null;
   @override
@@ -168,10 +174,20 @@ void main() {
     TableSessionNotifier.urlOverride = null;
   });
 
+  late _MemorySessionStore store;
+
   Future<void> pumpPlay(
     WidgetTester tester, {
     List<Override> extra = const [],
   }) async {
+    store = _MemorySessionStore(
+      const StoredSession(
+        token: 'tok',
+        role: 'player',
+        name: 'Alice',
+        playerId: 'p1',
+      ),
+    );
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -193,16 +209,7 @@ void main() {
           ),
         ],
         overrides: [
-          sessionStoreProvider.overrideWithValue(
-            _MemorySessionStore(
-              const StoredSession(
-                token: 'tok',
-                role: 'player',
-                name: 'Alice',
-                playerId: 'p1',
-              ),
-            ),
-          ),
+          sessionStoreProvider.overrideWithValue(store),
           ...extra,
           // The REST API answers nothing: the table needs only the socket.
           restClientProvider.overrideWithValue(
@@ -990,6 +997,28 @@ void main() {
       expect(find.text('New round started'), findsNothing);
       // The card was the whole body; the table and its panel are back.
       expect(find.byKey(const Key('tab-settings')), findsOneWidget);
+    });
+
+    testWidgets('closes without costing the player their seat', (tester) async {
+      await pumpPlay(tester);
+      pushSnapshot(transport, state: 'ended');
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Table ended'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('result-close')));
+      await tester.pump(const Duration(milliseconds: 50));
+      // Closing the standings is not leaving: the stored session survives,
+      // so the next round finds the player in their seat instead of at the
+      // join page asking for a name.
+      expect(store.cleared, isFalse);
+      expect(find.text('JOIN PAGE'), findsNothing);
+      expect(find.byKey(const Key('tab-settings')), findsOneWidget);
+      expect(find.byKey(const Key('result-close')), findsNothing);
+
+      // Another snapshot of the same ended table does not bring it back.
+      pushSnapshot(transport, state: 'ended');
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byKey(const Key('result-close')), findsNothing);
     });
 
     testWidgets('gives way to a hand dealt to the player', (tester) async {

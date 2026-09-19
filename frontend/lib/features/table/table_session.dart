@@ -35,6 +35,7 @@ class TableSessionState {
     this.unreadChat = 0,
     this.log = const [],
     this.showingResult = false,
+    this.dismissedResultAt,
     this.kicked,
     this.serverRestarting = false,
     this.revealed = const {},
@@ -63,6 +64,10 @@ class TableSessionState {
   /// the player — or when a new round deals them in. A new round must never
   /// pull the result away while they are still reading it.
   final bool showingResult;
+
+  /// `endedAt` of the round whose standing the player closed, so it stays
+  /// closed while the table sits ended; the next round's result shows again.
+  final int? dismissedResultAt;
   final Kicked? kicked;
   final bool serverRestarting;
 
@@ -119,6 +124,7 @@ class TableSessionState {
     int? unreadChat,
     List<LogEntry>? log,
     bool? showingResult,
+    int? dismissedResultAt,
     Kicked? kicked,
     bool? serverRestarting,
     Set<int>? revealed,
@@ -144,6 +150,7 @@ class TableSessionState {
     unreadChat: unreadChat ?? this.unreadChat,
     log: log ?? this.log,
     showingResult: showingResult ?? this.showingResult,
+    dismissedResultAt: dismissedResultAt ?? this.dismissedResultAt,
     kicked: kicked ?? this.kicked,
     serverRestarting: serverRestarting ?? this.serverRestarting,
     revealed: revealed ?? this.revealed,
@@ -470,7 +477,9 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
   /// played behind a card. A reload into a round already running does not
   /// bring it back; the side panel keeps it.
   bool _resultOnScreen(Snapshot snap, bool showing) {
-    if (snap.lastRound == null) return false;
+    final last = snap.lastRound;
+    if (last == null) return false;
+    if (last.endedAt == state.dismissedResultAt) return false;
     if (snap.table.state == 'ended') return true;
     if (!showing) return false;
     return !_dealtIn(snap);
@@ -488,8 +497,13 @@ class TableSessionNotifier extends Notifier<TableSessionState> {
   }
 
   /// The player closes the standing of the finished round and goes back to
-  /// the table; the side panel still has it.
-  void dismissResult() => state = state.copyWith(showingResult: false);
+  /// the table; the side panel still has it. The seat and the session are
+  /// untouched — closing this card must never cost anyone their place in
+  /// the next round.
+  void dismissResult() => state = state.copyWith(
+    showingResult: false,
+    dismissedResultAt: state.snapshot?.lastRound?.endedAt,
+  );
 
   /// Rebuilds the hand log from the recorded hands after a (re)load, so a
   /// refresh does not wipe the history.
