@@ -44,7 +44,7 @@ func (t *Table) recordHandResults() {
 			AccountID: p.AccountID, TableID: t.ID, TableName: t.name,
 			HandNumber: t.handNumber, EndedAt: ended, BigBlind: t.settings.BigBlind,
 			Net: sr.Net, Won: sr.Won, DealtIn: true, Folded: sr.Folded,
-			VPIP: p.vpipThisHand, AllIn: sr.EndStack == 0 && !sr.Folded,
+			VPIP: p.vpipThisHand, AllIn: sr.AllIn,
 			Category: -1, Counted: counted, Profiles: profiles,
 		}
 		// At the showdown when the hand was still live and contested.

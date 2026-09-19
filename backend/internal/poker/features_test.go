@@ -277,3 +277,33 @@ func TestIsRoyalFlush(t *testing.T) {
 		t.Errorf("%s counted as royal", lower.Describe())
 	}
 }
+
+// Winning an all-in leaves chips on the table, so the end stack cannot
+// say who was all in. The result carries it.
+func TestSeatResultRemembersWhoWasAllIn(t *testing.T) {
+	t.Parallel()
+	// The short stack shoves with aces and doubles through.
+	seats := []Seat{{0, 200}, {1, 1000}}
+	h, _ := newTestHand(t, cfgWith(0), seats,
+		map[int]string{0: "As Ad", 1: "Ks Kd"}, "2c 7h 9s Jd 3c")
+	act(t, h, 0, AllIn, 0)
+	act(t, h, 1, Call, 0)
+	for h.Phase() != PhaseResult {
+		advance(t, h)
+	}
+	res := h.Results()
+	if res == nil {
+		t.Fatal("no results")
+	}
+	winner, loser := res.Seats[0], res.Seats[1]
+	if !winner.AllIn {
+		t.Errorf("the player who shoved and won: %+v", winner)
+	}
+	if winner.EndStack != 400 || winner.Won != 400 {
+		t.Errorf("the double-up: %+v", winner)
+	}
+	// The caller covered the shove and was never all in.
+	if loser.AllIn {
+		t.Errorf("the covering caller: %+v", loser)
+	}
+}

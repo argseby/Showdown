@@ -36,8 +36,10 @@ always play.
 - Keyboard shortcuts for every action (press `?` at the table), and a game controller
   works too: X folds, A checks or calls, Y raises, the D-pad moves through the menus.
 - Optional player profiles (`ACCOUNTS=true`): a name, a password and a recovery
-  code — no mail server, no third party. A profile marks your seat and will carry
-  your statistics; playing as a guest stays possible everywhere.
+  code — no mail server, no third party. A profile marks your seat and keeps your
+  record: hands, winnings, the hands you made and the milestones you reached. Every
+  section is private until you make it public, and playing as a guest stays possible
+  everywhere.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install

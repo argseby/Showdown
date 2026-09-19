@@ -153,6 +153,10 @@ type SeatResult struct {
 	Net         int64
 	Won         int64
 	Folded      bool
+	// AllIn is true when the player had their whole stack in the middle
+	// at some point in the hand — winning one leaves chips, so the end
+	// stack does not tell.
+	AllIn       bool
 	Revealed    bool
 	Cards       []Card // only when revealed
 	Description string // only when revealed and evaluable
@@ -1298,7 +1302,8 @@ func (h *Hand) finish(events []Event, res *Results, pots []Pot) []Event {
 		p.committed = 0
 		sr := SeatResult{
 			Seat: p.seat, StartStack: p.startStack, EndStack: p.stack,
-			Net: p.stack - p.startStack, Won: p.won, Folded: p.folded, Revealed: p.revealed,
+			Net: p.stack - p.startStack, Won: p.won, Folded: p.folded,
+			AllIn: p.allIn, Revealed: p.revealed,
 		}
 		if p.revealed {
 			r := h.reveal(p)

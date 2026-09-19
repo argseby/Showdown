@@ -206,10 +206,27 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   returns a fresh token and code. The profile token is a bearer token like the
 >   others and lives 90 days. `POST /api/tables/{id}/join` accepts it too: the
 >   seat then carries the profile, and `snapshot.seats[].player.account` names the
->   handle (absent for a guest, who may always join without one). The visibility
->   fields (`profile, winnings, best_hands, achievements, activity`) are stored
->   with every profile as `private | friends | public` and default to private;
->   nothing reads them yet.
+>   handle (absent for a guest, who may always join without one).
+> - **A profile's own record (2026-09-20).** Every hand a signed-in player is
+>   dealt writes one `hand_results` row and every finished round one
+>   `round_results` row; a guest writes nothing. A row is `counted` only when
+>   three or more profiles were dealt in and nobody was handed chips that round,
+>   so the rule is fixed when the hand is played and cannot be applied after the
+>   fact. `GET /api/accounts/me/stats` aggregates them (chips first, big blinds
+>   as the rate); `GET /api/accounts/me/highlights` → `{best_hands,
+>   biggest_wins, achievements}`, the hands with their five cards, where they
+>   happened and whether the table saw them, and the milestones as
+>   `{id, earned_at, progress, goal}` with `earned_at` the moment they were
+>   reached (0 while still ahead). Both are private: they need the profile's own
+>   bearer token.
+> - **Visibility (2026-09-20).** The five sections (`profile, winnings,
+>   best_hands, achievements, activity`) are stored with every profile as
+>   `private | friends | public` and default to private. `PATCH
+>   /api/accounts/me` takes `{display_name?, visibility?}` and accepts only
+>   `private` and `public` — the column keeps `friends` for the friends feature,
+>   and a switch that would silently do nothing is not offered. Nothing reads
+>   the fields yet; the public profile will, and `profile: private` must hide
+>   the page itself rather than return an empty one.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,

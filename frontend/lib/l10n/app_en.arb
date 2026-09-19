@@ -256,6 +256,77 @@
       }
     }
   },
+  "statsTabAwards": "Awards",
+  "statsBestHands": "Best hands",
+  "statsBiggestPots": "Biggest pots",
+  "statsHandAt": "{table} · hand {number}",
+  "@statsHandAt": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "statsMucked": "mucked",
+  "statsShownAtTable": "shown",
+  "statsAwardsAhead": "Still ahead",
+  "statsProgressOf": "{progress} of {goal}",
+  "@statsProgressOf": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "statsNoAwardsYet": "Nothing earned yet — every milestone below is still open.",
+  "achRoyalFlushTitle": "Royal flush",
+  "achRoyalFlushBody": "Made the best hand in poker.",
+  "achStraightFlushTitle": "Straight flush",
+  "achStraightFlushBody": "Five in a row, all of one suit.",
+  "achQuadsTitle": "Four of a kind",
+  "achQuadsBody": "All four cards of a rank.",
+  "achFullHouseTitle": "Full house",
+  "achFullHouseBody": "Three of a kind and a pair.",
+  "achBigPotTitle": "Big pot",
+  "achBigPotBody": "Won a pot of 100 big blinds or more.",
+  "achAllInWinTitle": "Survived the shove",
+  "achAllInWinBody": "Won a hand with your whole stack in the middle.",
+  "achHands100Title": "Regular",
+  "achHands100Body": "Played 100 hands.",
+  "achHands1000Title": "Veteran",
+  "achHands1000Body": "Played 1,000 hands.",
+  "achBluffs25Title": "No cards needed",
+  "achBluffs25Body": "Won 25 hands without a showdown.",
+  "achRoundWinTitle": "Last one standing",
+  "achRoundWinBody": "Won a round.",
+  "achPodium3Title": "Podium",
+  "achPodium3Body": "Finished in the top three of three rounds.",
+  "achTournamentWinTitle": "Tournament winner",
+  "achTournamentWinBody": "Won a tournament.",
+  "visTitle": "Who can see",
+  "visBody": "Your profile is private until you say otherwise. Sharing with friends only comes when friends do.",
+  "visOpen": "Who can see",
+  "visMenuHint": "What a public profile would show",
+  "visPublic": "Public",
+  "visPrivate": "Private",
+  "visProfile": "Profile",
+  "visProfileHint": "your name and when you started playing",
+  "visWinnings": "Winnings",
+  "visWinningsHint": "hands, tables and what you are up",
+  "visBestHands": "Best hands",
+  "visBestHandsHint": "the hands you made, as the table saw them",
+  "visAchievements": "Awards",
+  "visAchievementsHint": "the milestones you reached",
+  "visActivity": "Activity",
+  "visActivityHint": "when you last played",
+  "visAllPrivate": "Nothing is public yet.",
+  "visSaveFailed": "Could not save that.",
   "handRoyalFlush": "Royal flush",
   "handStraightFlush": "Straight flush",
   "handFourOfAKind": "Four of a kind",

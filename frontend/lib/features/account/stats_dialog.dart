@@ -34,10 +34,44 @@ String handClassName(
   };
 }
 
-/// The four pages of the record. Money first: everything a player asked
+/// The name of a milestone, by the id the server sends.
+String achievementTitle(AppLocalizations l10n, String id) => switch (id) {
+  'royal_flush' => l10n.achRoyalFlushTitle,
+  'straight_flush' => l10n.achStraightFlushTitle,
+  'quads' => l10n.achQuadsTitle,
+  'full_house' => l10n.achFullHouseTitle,
+  'big_pot' => l10n.achBigPotTitle,
+  'all_in_win' => l10n.achAllInWinTitle,
+  'hands_100' => l10n.achHands100Title,
+  'hands_1000' => l10n.achHands1000Title,
+  'bluffs_25' => l10n.achBluffs25Title,
+  'round_win' => l10n.achRoundWinTitle,
+  'podium_3' => l10n.achPodium3Title,
+  'tournament_win' => l10n.achTournamentWinTitle,
+  _ => id,
+};
+
+/// What it takes to earn it.
+String achievementBody(AppLocalizations l10n, String id) => switch (id) {
+  'royal_flush' => l10n.achRoyalFlushBody,
+  'straight_flush' => l10n.achStraightFlushBody,
+  'quads' => l10n.achQuadsBody,
+  'full_house' => l10n.achFullHouseBody,
+  'big_pot' => l10n.achBigPotBody,
+  'all_in_win' => l10n.achAllInWinBody,
+  'hands_100' => l10n.achHands100Body,
+  'hands_1000' => l10n.achHands1000Body,
+  'bluffs_25' => l10n.achBluffs25Body,
+  'round_win' => l10n.achRoundWinBody,
+  'podium_3' => l10n.achPodium3Body,
+  'tournament_win' => l10n.achTournamentWinBody,
+  _ => '',
+};
+
+/// The pages of the record. Money first: everything a player asked
 /// for in chips is in chips, and the big-blind figures sit next to their
 /// explanation instead of leading the page.
-enum StatsTab { overview, results, style, hands }
+enum StatsTab { overview, results, style, hands, awards }
 
 class StatsDialog extends ConsumerStatefulWidget {
   const StatsDialog({super.key});
@@ -53,6 +87,9 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final stats = ref.watch(accountStatsProvider);
+    final highlights =
+        ref.watch(accountHighlightsProvider).value ??
+        const ProfileHighlights();
 
     Widget body;
     switch (stats) {
@@ -113,6 +150,11 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
                   LucideIcons.spade,
                   l10n.statsTabHands,
                 ),
+                _tabItem(
+                  const Key('stats-tab-awards'),
+                  LucideIcons.award,
+                  l10n.statsTabAwards,
+                ),
               ],
             ),
             const Gap(14),
@@ -125,7 +167,8 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
                   StatsTab.overview => _Overview(s),
                   StatsTab.results => _Results(s),
                   StatsTab.style => _Style(s),
-                  StatsTab.hands => _Hands(s),
+                  StatsTab.hands => _Hands(s, highlights),
+                  StatsTab.awards => _Awards(highlights),
                 },
               ),
             ),
@@ -135,7 +178,7 @@ class _StatsDialogState extends ConsumerState<StatsDialog> {
 
     return AlertDialog(
       title: Text(l10n.statsTitle),
-      content: SizedBox(width: 420, child: body),
+      content: SizedBox(width: 470, child: body),
       actions: [
         PrimaryButton(
           key: const Key('stats-close'),
@@ -485,9 +528,10 @@ class _Style extends StatelessWidget {
 /// The hands the profile made, most valuable first, with the ones the
 /// table got to see.
 class _Hands extends StatelessWidget {
-  const _Hands(this.s);
+  const _Hands(this.s, this.highlights);
 
   final ProfileStats s;
+  final ProfileHighlights highlights;
 
   @override
   Widget build(BuildContext context) {
@@ -499,20 +543,198 @@ class _Hands extends StatelessWidget {
     for (final c in s.handClasses) {
       if (c.made > most) most = c.made;
     }
-    return _Group(
-      icon: LucideIcons.spade,
-      title: l10n.statsHandClasses,
-      rows: [
-        for (final c in s.handClasses)
-          _Meter(
-            handClassName(l10n, c.category, royal: c.royal),
-            c.shown > 0
-                ? '${c.made}  (${l10n.statsShownOf('${c.shown}')})'
-                : '${c.made}',
-            c.made / most,
-            color: c.royal || c.category >= 5 ? potGold : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _Group(
+          icon: LucideIcons.spade,
+          title: l10n.statsHandClasses,
+          rows: [
+            for (final c in s.handClasses)
+              _Meter(
+                handClassName(l10n, c.category, royal: c.royal),
+                c.shown > 0
+                    ? '${c.made}  (${l10n.statsShownOf('${c.shown}')})'
+                    : '${c.made}',
+                c.made / most,
+                color: c.royal || c.category >= 5 ? potGold : null,
+              ),
+          ],
+        ),
+        if (highlights.bestHands.isNotEmpty)
+          _Group(
+            icon: LucideIcons.crown,
+            title: l10n.statsBestHands,
+            rows: [
+              for (final h in highlights.bestHands.take(5)) _HandCard(h),
+            ],
+          ),
+        if (highlights.biggestWins.isNotEmpty)
+          _Group(
+            icon: LucideIcons.coins,
+            title: l10n.statsBiggestPots,
+            rows: [
+              for (final h in highlights.biggestWins.take(5)) _HandCard(h),
+            ],
           ),
       ],
+    );
+  }
+}
+
+/// One kept hand: what it was, the five cards, where it happened and what
+/// it paid.
+class _HandCard extends StatelessWidget {
+  const _HandCard(this.h);
+
+  final HandHighlight h;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final theme = Theme.of(context);
+    final name = h.description.isNotEmpty
+        ? h.description
+        : handClassName(l10n, h.category, royal: h.royal);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(child: Text(name, overflow: TextOverflow.ellipsis).small()),
+                    const Gap(6),
+                    Text(
+                      h.shown ? l10n.statsShownAtTable : l10n.statsMucked,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  prettyCards(h.cards),
+                  style: const TextStyle(fontFamily: 'GeistMono', fontSize: 12),
+                ),
+                Text(
+                  '${l10n.statsHandAt(h.tableName, '${h.handNumber}')} · '
+                  '${formatDate(h.endedAt, locale)}',
+                ).muted().xSmall(),
+              ],
+            ),
+          ),
+          const Gap(8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _signed(context, h.net),
+                style: TextStyle(
+                  fontFamily: 'GeistMono',
+                  color: _moneyColor(context, h.net),
+                ),
+              ),
+              if (h.won > 0)
+                Text('${h.wonBB.toStringAsFixed(1)} bb').muted().xSmall(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The milestones: what has been earned, and what is still ahead.
+class _Awards extends StatelessWidget {
+  const _Awards(this.highlights);
+
+  final ProfileHighlights highlights;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final earned = highlights.earned;
+    final ahead = highlights.ahead;
+    if (earned.isEmpty && ahead.isEmpty) {
+      return Text(l10n.statsEmpty).muted().small();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (earned.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(l10n.statsNoAwardsYet).muted().small(),
+          )
+        else
+          _Group(
+            icon: LucideIcons.award,
+            title: l10n.statsTabAwards,
+            rows: [for (final a in earned) _AwardRow(a, earned: true)],
+          ),
+        if (ahead.isNotEmpty)
+          _Group(
+            icon: LucideIcons.target,
+            title: l10n.statsAwardsAhead,
+            rows: [for (final a in ahead) _AwardRow(a, earned: false)],
+          ),
+      ],
+    );
+  }
+}
+
+class _AwardRow extends StatelessWidget {
+  const _AwardRow(this.a, {required this.earned});
+
+  final Achievement a;
+  final bool earned;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            earned ? LucideIcons.badgeCheck : LucideIcons.lock,
+            size: 15,
+            color: earned ? potGold : theme.colorScheme.mutedForeground,
+          ),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(achievementTitle(l10n, a.id)).small(),
+                Text(achievementBody(l10n, a.id)).muted().xSmall(),
+              ],
+            ),
+          ),
+          const Gap(8),
+          if (earned)
+            Text(formatDate(a.earnedAt, locale)).muted().xSmall()
+          else if (a.goal > 0)
+            Text(
+              l10n.statsProgressOf('${a.progress}', '${a.goal}'),
+            ).muted().xSmall(),
+        ],
+      ),
     );
   }
 }

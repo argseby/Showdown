@@ -9,6 +9,7 @@ import '../../core/account.dart';
 import '../../core/formatting.dart';
 import '../../core/rest_client.dart';
 import 'stats_dialog.dart';
+import 'visibility_dialog.dart';
 
 /// The profile behind the person in the app bar: who you are signed in as,
 /// a new password when you want one, and the way out.
@@ -209,6 +210,13 @@ class _AccountSheetState extends ConsumerState<AccountSheet> {
             onPressed: () => showStatsDialog(context),
             leading: const Icon(LucideIcons.chartNoAxesColumn, size: 14),
             child: Text(l10n.statsOpen),
+          ),
+          const Gap(6),
+          OutlineButton(
+            key: const Key('account-visibility'),
+            onPressed: () => showVisibilityDialog(context),
+            leading: const Icon(LucideIcons.eye, size: 14),
+            child: Text(l10n.visOpen),
           ),
           const Gap(6),
           OutlineButton(

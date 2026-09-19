@@ -37,6 +37,119 @@ class Account {
 /// How often one kind of hand was made, and how much of that the table got
 /// to see. [category] is the server's poker category (0 high card .. 8
 /// straight flush); [royal] marks the ace-high straight flush.
+/// One hand worth keeping: what it was, what it paid and where.
+class HandHighlight {
+  const HandHighlight({
+    required this.category,
+    required this.royal,
+    required this.description,
+    required this.cards,
+    required this.net,
+    required this.won,
+    required this.wonBB,
+    required this.bigBlind,
+    required this.tableName,
+    required this.handNumber,
+    required this.endedAt,
+    required this.shown,
+    required this.counted,
+  });
+
+  factory HandHighlight.fromJson(Map<String, dynamic> json) => HandHighlight(
+    category: json['category'] as int? ?? -1,
+    royal: json['royal'] as bool? ?? false,
+    description: json['description'] as String? ?? '',
+    cards: [
+      for (final c in json['cards'] as List<dynamic>? ?? const []) c as String,
+    ],
+    net: (json['net'] as num?)?.toInt() ?? 0,
+    won: (json['won'] as num?)?.toInt() ?? 0,
+    wonBB: (json['won_bb'] as num?)?.toDouble() ?? 0,
+    bigBlind: (json['big_blind'] as num?)?.toInt() ?? 0,
+    tableName: json['table_name'] as String? ?? '',
+    handNumber: json['hand_number'] as int? ?? 0,
+    endedAt: (json['ended_at'] as num?)?.toInt() ?? 0,
+    shown: json['shown'] as bool? ?? false,
+    counted: json['counted'] as bool? ?? false,
+  );
+
+  final int category;
+  final bool royal;
+  final String description;
+
+  /// The five cards that made the hand.
+  final List<String> cards;
+  final int net;
+  final int won;
+  final double wonBB;
+  final int bigBlind;
+  final String tableName;
+  final int handNumber;
+  final int endedAt;
+
+  /// Whether the table saw it; a mucked hand is only ever on your own page.
+  final bool shown;
+  final bool counted;
+}
+
+/// A milestone. [earnedAt] is 0 while it is still ahead, and the counted
+/// ones carry how far along the profile is.
+class Achievement {
+  const Achievement({
+    required this.id,
+    required this.earnedAt,
+    required this.progress,
+    required this.goal,
+  });
+
+  factory Achievement.fromJson(Map<String, dynamic> json) => Achievement(
+    id: json['id'] as String,
+    earnedAt: (json['earned_at'] as num?)?.toInt() ?? 0,
+    progress: json['progress'] as int? ?? 0,
+    goal: json['goal'] as int? ?? 0,
+  );
+
+  final String id;
+  final int earnedAt;
+  final int progress;
+  final int goal;
+
+  bool get earned => earnedAt > 0;
+}
+
+/// The hands and milestones behind the totals.
+class ProfileHighlights {
+  const ProfileHighlights({
+    this.bestHands = const [],
+    this.biggestWins = const [],
+    this.achievements = const [],
+  });
+
+  factory ProfileHighlights.fromJson(Map<String, dynamic> json) {
+    List<HandHighlight> hands(String key) => [
+      for (final h in json[key] as List<dynamic>? ?? const [])
+        HandHighlight.fromJson(h as Map<String, dynamic>),
+    ];
+    return ProfileHighlights(
+      bestHands: hands('best_hands'),
+      biggestWins: hands('biggest_wins'),
+      achievements: [
+        for (final a in json['achievements'] as List<dynamic>? ?? const [])
+          Achievement.fromJson(a as Map<String, dynamic>),
+      ],
+    );
+  }
+
+  final List<HandHighlight> bestHands;
+  final List<HandHighlight> biggestWins;
+  final List<Achievement> achievements;
+
+  List<Achievement> get earned =>
+      [for (final a in achievements) if (a.earned) a];
+  List<Achievement> get ahead =>
+      [for (final a in achievements) if (!a.earned) a];
+}
+
 class HandClassCount {
   const HandClassCount({
     required this.category,
@@ -234,6 +347,25 @@ class AccountApi {
     await _rest.getJson('/api/accounts/me/stats', token: token),
   );
 
+  /// The hands and milestones behind the record.
+  Future<ProfileHighlights> highlights(String token) async =>
+      ProfileHighlights.fromJson(
+        await _rest.getJson('/api/accounts/me/highlights', token: token),
+      );
+
+  /// Changes the display name, the visibility of a section, or both.
+  Future<Account> updateProfile({
+    required String token,
+    String? displayName,
+    Map<String, String>? visibility,
+  }) async {
+    final json = await _rest.patchJson('/api/accounts/me', {
+      'display_name': ?displayName,
+      'visibility': ?visibility,
+    }, token: token);
+    return Account.fromJson(json['account'] as Map<String, dynamic>);
+  }
+
   Future<Account> me(String token) async {
     final json = await _rest.getJson('/api/accounts/me', token: token);
     return Account.fromJson(json['account'] as Map<String, dynamic>);
@@ -341,6 +473,17 @@ class AccountNotifier extends AsyncNotifier<Account?> {
     return res.recoveryCode;
   }
 
+  /// Shows or hides one section of the profile. The switch belongs to the
+  /// owner, so the new state comes back from the server, not from here.
+  Future<void> setVisibility(String section, String value) async {
+    final token = _token;
+    if (token == null) throw StateError('not signed in');
+    final account = await ref
+        .read(accountApiProvider)
+        .updateProfile(token: token, visibility: {section: value});
+    state = AsyncData(account);
+  }
+
   Future<void> signOut() async {
     final token = _token;
     _token = null;
@@ -366,4 +509,14 @@ final accountStatsProvider = FutureProvider<ProfileStats?>((ref) async {
   final token = ref.read(accountProvider.notifier).token;
   if (account == null || token == null) return null;
   return ref.read(accountApiProvider).stats(token);
+});
+
+/// The hands and milestones behind the record; null while signed out.
+final accountHighlightsProvider = FutureProvider<ProfileHighlights?>((
+  ref,
+) async {
+  final account = await ref.watch(accountProvider.future);
+  final token = ref.read(accountProvider.notifier).token;
+  if (account == null || token == null) return null;
+  return ref.read(accountApiProvider).highlights(token);
 });

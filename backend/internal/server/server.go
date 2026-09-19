@@ -82,6 +82,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("DELETE /api/accounts/session", s.rateLimited(s.limInfo, s.handleLogout))
 	s.mux.HandleFunc("GET /api/accounts/me", s.rateLimited(s.limInfo, s.handleAccountMe))
 	s.mux.HandleFunc("GET /api/accounts/me/stats", s.rateLimited(s.limInfo, s.handleAccountStats))
+	s.mux.HandleFunc("GET /api/accounts/me/highlights", s.rateLimited(s.limInfo, s.handleAccountHighlights))
+	s.mux.HandleFunc("PATCH /api/accounts/me", s.rateLimited(s.limAccount, s.handleAccountUpdate))
 	s.mux.HandleFunc("POST /api/accounts/password", s.rateLimited(s.limAccount, s.handleAccountPassword))
 
 	// Table admin: every route is guarded by the table's own admin token.

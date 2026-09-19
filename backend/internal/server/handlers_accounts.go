@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"showdown/internal/account"
 	"showdown/internal/protocol"
 	"showdown/internal/store"
+	"showdown/internal/table"
 )
 
 // accountSessionLifetime is how long a profile stays signed in on a device.
@@ -277,6 +279,124 @@ func (s *Server) handleAccountStats(w http.ResponseWriter, r *http.Request) {
 		"won_without_showdown": st.WonWithoutShowdown, "folded": st.Folded,
 		"all_ins": st.AllIns, "hand_classes": classes,
 	})
+}
+
+// highlightCount is how many hands of each kind the page keeps. Enough to
+// tell a story, few enough that nobody reads their whole history here.
+const highlightCount = 8
+
+func highlightView(h store.HandHighlight) map[string]any {
+	return map[string]any{
+		"category": h.Category, "royal": h.Royal, "description": h.Description,
+		"cards": strings.Fields(h.BestCards), "net": h.Net, "won": h.Won,
+		"won_bb": h.WonBB(), "big_blind": h.BigBlind, "table_name": h.TableName,
+		"hand_number": h.HandNumber, "ended_at": h.EndedAt,
+		"shown": h.Shown, "counted": h.Counted,
+	}
+}
+
+// handleAccountHighlights answers the best hands, the biggest pots and the
+// milestones of the signed-in profile. Private, like the statistics: the
+// public profile reads the same rows through the visibility rules.
+func (s *Server) handleAccountHighlights(w http.ResponseWriter, r *http.Request) {
+	a, ok := s.requireAccount(w, r)
+	if !ok {
+		return
+	}
+	best, err := s.store.BestHands(r.Context(), a.ID, highlightCount)
+	if err != nil {
+		s.log.Error("best hands", "err", err)
+		writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not read the hands")
+		return
+	}
+	biggest, err := s.store.BiggestWins(r.Context(), a.ID, highlightCount)
+	if err != nil {
+		s.log.Error("biggest wins", "err", err)
+		writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not read the hands")
+		return
+	}
+	earned, err := s.store.AccountAchievements(r.Context(), a.ID)
+	if err != nil {
+		s.log.Error("achievements", "err", err)
+		writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not read the achievements")
+		return
+	}
+	bestOut := make([]map[string]any, 0, len(best))
+	for _, h := range best {
+		bestOut = append(bestOut, highlightView(h))
+	}
+	biggestOut := make([]map[string]any, 0, len(biggest))
+	for _, h := range biggest {
+		biggestOut = append(biggestOut, highlightView(h))
+	}
+	achOut := make([]map[string]any, 0, len(earned))
+	for _, a := range earned {
+		achOut = append(achOut, map[string]any{
+			"id": a.ID, "earned_at": a.EarnedAt, "progress": a.Progress, "goal": a.Goal,
+		})
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"best_hands": bestOut, "biggest_wins": biggestOut, "achievements": achOut,
+	})
+}
+
+// visSections are the parts of a profile that can be shown or hidden, and
+// the column each one writes to.
+func visSections(a *store.AccountRow) map[string]*string {
+	return map[string]*string{
+		"profile":      &a.VisProfile,
+		"winnings":     &a.VisWinnings,
+		"best_hands":   &a.VisBestHands,
+		"achievements": &a.VisAchievements,
+		"activity":     &a.VisActivity,
+	}
+}
+
+type profileRequest struct {
+	DisplayName *string           `json:"display_name"`
+	Visibility  map[string]string `json:"visibility"`
+}
+
+// handleAccountUpdate changes the display name and who may see which part
+// of the profile. Only "private" and "public" are accepted: the column
+// also holds "friends", but there are no friends yet and a switch that
+// silently does nothing is worse than one that is not offered.
+func (s *Server) handleAccountUpdate(w http.ResponseWriter, r *http.Request) {
+	a, ok := s.requireAccount(w, r)
+	if !ok {
+		return
+	}
+	var req profileRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	if req.DisplayName != nil {
+		name, err := table.NormalizeName(*req.DisplayName)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "invalid display name")
+			return
+		}
+		a.DisplayName = name
+	}
+	fields := visSections(&a)
+	for section, value := range req.Visibility {
+		field, ok := fields[section]
+		if !ok {
+			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "unknown section "+section)
+			return
+		}
+		if value != visPrivate && value != visPublic {
+			writeError(w, http.StatusBadRequest, protocol.ErrValidation, "visibility must be private or public")
+			return
+		}
+		*field = value
+	}
+	if err := s.store.UpdateAccountProfile(r.Context(), a); err != nil {
+		s.log.Error("update account profile", "err", err)
+		writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not save")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"account": viewOf(a)})
 }
 
 // createAccountSession issues a profile token for a device.

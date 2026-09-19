@@ -968,6 +968,312 @@ abstract class AppLocalizations {
   /// **'Counted: {counted} of {hands} hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.'**
   String statsCountedNote(String counted, String hands);
 
+  /// No description provided for @statsTabAwards.
+  ///
+  /// In en, this message translates to:
+  /// **'Awards'**
+  String get statsTabAwards;
+
+  /// No description provided for @statsBestHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Best hands'**
+  String get statsBestHands;
+
+  /// No description provided for @statsBiggestPots.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest pots'**
+  String get statsBiggestPots;
+
+  /// No description provided for @statsHandAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{table} · hand {number}'**
+  String statsHandAt(String table, String number);
+
+  /// No description provided for @statsMucked.
+  ///
+  /// In en, this message translates to:
+  /// **'mucked'**
+  String get statsMucked;
+
+  /// No description provided for @statsShownAtTable.
+  ///
+  /// In en, this message translates to:
+  /// **'shown'**
+  String get statsShownAtTable;
+
+  /// No description provided for @statsAwardsAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Still ahead'**
+  String get statsAwardsAhead;
+
+  /// No description provided for @statsProgressOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{progress} of {goal}'**
+  String statsProgressOf(String progress, String goal);
+
+  /// No description provided for @statsNoAwardsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing earned yet — every milestone below is still open.'**
+  String get statsNoAwardsYet;
+
+  /// No description provided for @achRoyalFlushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal flush'**
+  String get achRoyalFlushTitle;
+
+  /// No description provided for @achRoyalFlushBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Made the best hand in poker.'**
+  String get achRoyalFlushBody;
+
+  /// No description provided for @achStraightFlushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight flush'**
+  String get achStraightFlushTitle;
+
+  /// No description provided for @achStraightFlushBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row, all of one suit.'**
+  String get achStraightFlushBody;
+
+  /// No description provided for @achQuadsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Four of a kind'**
+  String get achQuadsTitle;
+
+  /// No description provided for @achQuadsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All four cards of a rank.'**
+  String get achQuadsBody;
+
+  /// No description provided for @achFullHouseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full house'**
+  String get achFullHouseTitle;
+
+  /// No description provided for @achFullHouseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Three of a kind and a pair.'**
+  String get achFullHouseBody;
+
+  /// No description provided for @achBigPotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Big pot'**
+  String get achBigPotTitle;
+
+  /// No description provided for @achBigPotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Won a pot of 100 big blinds or more.'**
+  String get achBigPotBody;
+
+  /// No description provided for @achAllInWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Survived the shove'**
+  String get achAllInWinTitle;
+
+  /// No description provided for @achAllInWinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Won a hand with your whole stack in the middle.'**
+  String get achAllInWinBody;
+
+  /// No description provided for @achHands100Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get achHands100Title;
+
+  /// No description provided for @achHands100Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Played 100 hands.'**
+  String get achHands100Body;
+
+  /// No description provided for @achHands1000Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Veteran'**
+  String get achHands1000Title;
+
+  /// No description provided for @achHands1000Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Played 1,000 hands.'**
+  String get achHands1000Body;
+
+  /// No description provided for @achBluffs25Title.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards needed'**
+  String get achBluffs25Title;
+
+  /// No description provided for @achBluffs25Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Won 25 hands without a showdown.'**
+  String get achBluffs25Body;
+
+  /// No description provided for @achRoundWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last one standing'**
+  String get achRoundWinTitle;
+
+  /// No description provided for @achRoundWinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Won a round.'**
+  String get achRoundWinBody;
+
+  /// No description provided for @achPodium3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Podium'**
+  String get achPodium3Title;
+
+  /// No description provided for @achPodium3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished in the top three of three rounds.'**
+  String get achPodium3Body;
+
+  /// No description provided for @achTournamentWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament winner'**
+  String get achTournamentWinTitle;
+
+  /// No description provided for @achTournamentWinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Won a tournament.'**
+  String get achTournamentWinBody;
+
+  /// No description provided for @visTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see'**
+  String get visTitle;
+
+  /// No description provided for @visBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is private until you say otherwise. Sharing with friends only comes when friends do.'**
+  String get visBody;
+
+  /// No description provided for @visOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see'**
+  String get visOpen;
+
+  /// No description provided for @visMenuHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What a public profile would show'**
+  String get visMenuHint;
+
+  /// No description provided for @visPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get visPublic;
+
+  /// No description provided for @visPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get visPrivate;
+
+  /// No description provided for @visProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get visProfile;
+
+  /// No description provided for @visProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'your name and when you started playing'**
+  String get visProfileHint;
+
+  /// No description provided for @visWinnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Winnings'**
+  String get visWinnings;
+
+  /// No description provided for @visWinningsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'hands, tables and what you are up'**
+  String get visWinningsHint;
+
+  /// No description provided for @visBestHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Best hands'**
+  String get visBestHands;
+
+  /// No description provided for @visBestHandsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'the hands you made, as the table saw them'**
+  String get visBestHandsHint;
+
+  /// No description provided for @visAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Awards'**
+  String get visAchievements;
+
+  /// No description provided for @visAchievementsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'the milestones you reached'**
+  String get visAchievementsHint;
+
+  /// No description provided for @visActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get visActivity;
+
+  /// No description provided for @visActivityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'when you last played'**
+  String get visActivityHint;
+
+  /// No description provided for @visAllPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is public yet.'**
+  String get visAllPrivate;
+
+  /// No description provided for @visSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save that.'**
+  String get visSaveFailed;
+
   /// No description provided for @handRoyalFlush.
   ///
   /// In en, this message translates to:

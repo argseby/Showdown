@@ -490,6 +490,166 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statsTabAwards => 'Awards';
+
+  @override
+  String get statsBestHands => 'Best hands';
+
+  @override
+  String get statsBiggestPots => 'Biggest pots';
+
+  @override
+  String statsHandAt(String table, String number) {
+    return '$table · hand $number';
+  }
+
+  @override
+  String get statsMucked => 'mucked';
+
+  @override
+  String get statsShownAtTable => 'shown';
+
+  @override
+  String get statsAwardsAhead => 'Still ahead';
+
+  @override
+  String statsProgressOf(String progress, String goal) {
+    return '$progress of $goal';
+  }
+
+  @override
+  String get statsNoAwardsYet =>
+      'Nothing earned yet — every milestone below is still open.';
+
+  @override
+  String get achRoyalFlushTitle => 'Royal flush';
+
+  @override
+  String get achRoyalFlushBody => 'Made the best hand in poker.';
+
+  @override
+  String get achStraightFlushTitle => 'Straight flush';
+
+  @override
+  String get achStraightFlushBody => 'Five in a row, all of one suit.';
+
+  @override
+  String get achQuadsTitle => 'Four of a kind';
+
+  @override
+  String get achQuadsBody => 'All four cards of a rank.';
+
+  @override
+  String get achFullHouseTitle => 'Full house';
+
+  @override
+  String get achFullHouseBody => 'Three of a kind and a pair.';
+
+  @override
+  String get achBigPotTitle => 'Big pot';
+
+  @override
+  String get achBigPotBody => 'Won a pot of 100 big blinds or more.';
+
+  @override
+  String get achAllInWinTitle => 'Survived the shove';
+
+  @override
+  String get achAllInWinBody =>
+      'Won a hand with your whole stack in the middle.';
+
+  @override
+  String get achHands100Title => 'Regular';
+
+  @override
+  String get achHands100Body => 'Played 100 hands.';
+
+  @override
+  String get achHands1000Title => 'Veteran';
+
+  @override
+  String get achHands1000Body => 'Played 1,000 hands.';
+
+  @override
+  String get achBluffs25Title => 'No cards needed';
+
+  @override
+  String get achBluffs25Body => 'Won 25 hands without a showdown.';
+
+  @override
+  String get achRoundWinTitle => 'Last one standing';
+
+  @override
+  String get achRoundWinBody => 'Won a round.';
+
+  @override
+  String get achPodium3Title => 'Podium';
+
+  @override
+  String get achPodium3Body => 'Finished in the top three of three rounds.';
+
+  @override
+  String get achTournamentWinTitle => 'Tournament winner';
+
+  @override
+  String get achTournamentWinBody => 'Won a tournament.';
+
+  @override
+  String get visTitle => 'Who can see';
+
+  @override
+  String get visBody =>
+      'Your profile is private until you say otherwise. Sharing with friends only comes when friends do.';
+
+  @override
+  String get visOpen => 'Who can see';
+
+  @override
+  String get visMenuHint => 'What a public profile would show';
+
+  @override
+  String get visPublic => 'Public';
+
+  @override
+  String get visPrivate => 'Private';
+
+  @override
+  String get visProfile => 'Profile';
+
+  @override
+  String get visProfileHint => 'your name and when you started playing';
+
+  @override
+  String get visWinnings => 'Winnings';
+
+  @override
+  String get visWinningsHint => 'hands, tables and what you are up';
+
+  @override
+  String get visBestHands => 'Best hands';
+
+  @override
+  String get visBestHandsHint => 'the hands you made, as the table saw them';
+
+  @override
+  String get visAchievements => 'Awards';
+
+  @override
+  String get visAchievementsHint => 'the milestones you reached';
+
+  @override
+  String get visActivity => 'Activity';
+
+  @override
+  String get visActivityHint => 'when you last played';
+
+  @override
+  String get visAllPrivate => 'Nothing is public yet.';
+
+  @override
+  String get visSaveFailed => 'Could not save that.';
+
+  @override
   String get handRoyalFlush => 'Royal flush';
 
   @override

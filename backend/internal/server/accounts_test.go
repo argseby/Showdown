@@ -251,6 +251,17 @@ func TestProfileStatsFromRealHands(t *testing.T) {
 		t.Errorf("no voluntary pot entry over %v hands", num(stats["hands"]))
 	}
 
+	// The hands themselves are kept, not just the totals.
+	_, hl := h.request(http.MethodGet, "/api/accounts/me/highlights", tokens["ann"], nil)
+	best := hl["best_hands"].([]any)
+	if len(best) == 0 {
+		t.Fatalf("no best hand after real play: %v", hl)
+	}
+	first := best[0].(map[string]any)
+	if first["description"] == "" || len(first["cards"].([]any)) != 5 {
+		t.Errorf("a best hand names itself and its five cards: %v", first)
+	}
+
 	// Ending the table writes the round, with places.
 	if status, _ := h.request(http.MethodPost, "/api/admin/tables/"+tableID+"/end", adminToken,
 		map[string]bool{"immediate": true}); status != http.StatusOK {
@@ -289,6 +300,96 @@ func TestGuestsLeaveNoRecord(t *testing.T) {
 	}
 	if stats["bb_per_100"] != float64(0) {
 		t.Errorf("bb/100 without hands: %v", stats["bb_per_100"])
+	}
+}
+
+// The owner decides who sees what. Everything starts private, only
+// private and public can be set, and the sections are named.
+func TestVisibilityIsTheOwnersToSet(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", on)
+	defer h.stop()
+	_, out := h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+		"handle": "erin", "password": "hunter22",
+	})
+	token := out["token"].(string)
+	acc := out["account"].(map[string]any)
+	vis := acc["visibility"].(map[string]any)
+	for section, v := range vis {
+		if v != "private" {
+			t.Errorf("%s starts as %v, want private", section, v)
+		}
+	}
+
+	status, out := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
+		"display_name": "Erin the Bold",
+		"visibility":   map[string]string{"winnings": "public", "best_hands": "public"},
+	})
+	if status != http.StatusOK {
+		t.Fatalf("patch: %d %v", status, out)
+	}
+	acc = out["account"].(map[string]any)
+	vis = acc["visibility"].(map[string]any)
+	if vis["winnings"] != "public" || vis["best_hands"] != "public" {
+		t.Errorf("what was made public: %v", vis)
+	}
+	if vis["profile"] != "private" || vis["achievements"] != "private" {
+		t.Errorf("the rest stays private: %v", vis)
+	}
+	if acc["display_name"] != "Erin the Bold" {
+		t.Errorf("display name: %v", acc["display_name"])
+	}
+	// It survives the round trip, so a reload shows the same switches.
+	_, me := h.request(http.MethodGet, "/api/accounts/me", token, nil)
+	if me["account"].(map[string]any)["visibility"].(map[string]any)["winnings"] != "public" {
+		t.Errorf("after a reload: %v", me)
+	}
+
+	// Friends are not a thing yet: a switch that would do nothing is refused.
+	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
+		"visibility": map[string]string{"winnings": "friends"},
+	}); status != http.StatusBadRequest {
+		t.Errorf("friends visibility: %d, want 400", status)
+	}
+	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", token, map[string]any{
+		"visibility": map[string]string{"salary": "public"},
+	}); status != http.StatusBadRequest {
+		t.Errorf("unknown section: %d, want 400", status)
+	}
+	// And a guest changes nothing.
+	if status, _ := h.request(http.MethodPatch, "/api/accounts/me", "", map[string]any{
+		"visibility": map[string]string{"winnings": "public"},
+	}); status != http.StatusUnauthorized {
+		t.Errorf("a guest patching a profile: %d, want 401", status)
+	}
+}
+
+// The highlights page of a profile that has never played: empty lists and
+// every milestone still ahead of it.
+func TestHighlightsStartEmpty(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", on)
+	defer h.stop()
+	_, out := h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+		"handle": "fred", "password": "hunter22",
+	})
+	token := out["token"].(string)
+	status, hl := h.request(http.MethodGet, "/api/accounts/me/highlights", token, nil)
+	if status != http.StatusOK {
+		t.Fatalf("highlights: %d %v", status, hl)
+	}
+	if len(hl["best_hands"].([]any)) != 0 || len(hl["biggest_wins"].([]any)) != 0 {
+		t.Errorf("a fresh profile has no hands: %v", hl)
+	}
+	achievements := hl["achievements"].([]any)
+	if len(achievements) == 0 {
+		t.Fatal("the milestones are listed even before the first hand")
+	}
+	for _, a := range achievements {
+		m := a.(map[string]any)
+		if num(m["earned_at"]) != 0 {
+			t.Errorf("earned already: %v", m)
+		}
 	}
 }
 
