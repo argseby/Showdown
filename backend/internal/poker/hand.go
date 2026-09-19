@@ -1002,6 +1002,32 @@ func (h *Hand) shownBest(p *player) []Card {
 	return append([]Card(nil), v.Best[:]...)
 }
 
+// MadeHand is the hand a seat ended up with: the best five it could make on
+// the board it played to. It answers for every seat that did not fold —
+// shown or mucked — so the server can keep a record of what people actually
+// hit; it is never put into an event, or a mucked hand would be public.
+// Run twice, the better of the two boards counts, and before the flop there
+// is no hand to speak of (ok is false).
+func (h *Hand) MadeHand(seat int) (HandValue, bool) {
+	p, ok := h.bySeat[seat]
+	if !ok || p.folded || len(h.board) < 3 {
+		return HandValue{}, false
+	}
+	best := Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...))
+	if h.runTwice && len(h.board2) >= 3 {
+		if v := Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board2...)); v.Compare(best) > 0 {
+			best = v
+		}
+	}
+	return best, true
+}
+
+// IsRoyalFlush reports the top straight flush, which the evaluator does not
+// rank apart but every player counts separately.
+func IsRoyalFlush(v HandValue) bool {
+	return v.Category == StraightFlush && v.Best[0].Rank() == Ace
+}
+
 // ShownBest is [shownBest] for a seat, so snapshots frame a revealed hand
 // exactly as its reveal event described it.
 func (h *Hand) ShownBest(seat int) []Card {

@@ -192,6 +192,24 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   the standing of the finished round and outlives the reset, which is the only record
 >   left once the stacks are back at the start money. Event: `table_restarted`. A server
 >   restart restores ended tables for 7 days so a new round is still possible.
+> - **Player profiles (2026-09-19).** Optional and off unless `ACCOUNTS=true`;
+>   `GET /api/config` reports `accounts`, and with it false every profile route
+>   answers 404 `accounts_disabled`. A profile is a handle (3–20 of `a-z 0-9 _`,
+>   unique on a folded form that treats `1`, `l` and `i`, `0` and `o`, `5` and `s`
+>   as the same stroke and drops `_`), a display name, a bcrypt password (8–64)
+>   and one recovery code, shown once at sign-up and the only way back in — the
+>   server sends no mail. `POST /api/accounts` → `{token, account, recovery_code}`
+>   (201); `POST /api/accounts/session` → `{token, account}`; `DELETE` the same
+>   path signs this device out; `GET /api/accounts/me` → `{account}`;
+>   `POST /api/accounts/password` takes `current_password` (bearer) or
+>   `recovery_code` with the handle in `X-Handle`, signs every device out and
+>   returns a fresh token and code. The profile token is a bearer token like the
+>   others and lives 90 days. `POST /api/tables/{id}/join` accepts it too: the
+>   seat then carries the profile, and `snapshot.seats[].player.account` names the
+>   handle (absent for a guest, who may always join without one). The visibility
+>   fields (`profile, winnings, best_hands, achievements, activity`) are stored
+>   with every profile as `private | friends | public` and default to private;
+>   nothing reads them yet.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,

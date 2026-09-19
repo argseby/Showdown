@@ -152,6 +152,130 @@
   "leaveConfirmTitle": "Leave the table?",
   "leaveConfirmBody": "Your seat will be freed. If a hand is running you fold.",
   "cancel": "Cancel",
+  "accountSignInTitle": "Sign in",
+  "accountSignInBody": "Your profile keeps your statistics across tables. You can always play as a guest instead.",
+  "accountCreateTitle": "Create a profile",
+  "accountCreateBody": "Pick a name and a password. No email, nothing to confirm — you get one recovery code instead.",
+  "accountHandle": "Name (a–z, 0–9, _)",
+  "accountPassword": "Password (at least 8 characters)",
+  "accountSignIn": "Sign in",
+  "accountCreate": "Create profile",
+  "accountNeedOne": "No profile yet? Create one",
+  "accountHaveOne": "Already have a profile? Sign in",
+  "accountMissingFields": "Please fill in both fields.",
+  "accountHandleTaken": "That name is taken.",
+  "accountBadCredentials": "Wrong name or password.",
+  "accountsOff": "This instance has no player profiles.",
+  "accountRecoveryTitle": "Write this down",
+  "accountRecoveryBody": "This code is the only way back into your profile if you forget your password. It is shown once and never again — no email is sent.",
+  "accountRecoveryDone": "I wrote it down",
+  "accountRecoveryCopy": "Copy code",
+  "accountSignOut": "Sign out",
+  "accountHandleLabel": "Name",
+  "accountDisplayName": "Shown as",
+  "accountStatsSoon": "Your profile marks your seat. Statistics, best hands and achievements follow.",
+  "accountChangePassword": "Change password",
+  "accountCurrentPassword": "Current password",
+  "accountNewPassword": "New password",
+  "accountSavePassword": "Save",
+  "accountPasswordHint": "A new password signs your other devices out and gives you a new recovery code.",
+  "accountMenu": "Profile",
+  "accountMenuHint": "Your profile, password and sign out",
+  "statsTitle": "Your statistics",
+  "statsEmpty": "Nothing yet — play a hand while signed in and it lands here.",
+  "statsOpen": "Statistics",
+  "statsSince": "Playing since {date}",
+  "@statsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statsVolume": "Played",
+  "statsHands": "Hands",
+  "statsMenuHint": "Your hands, results and the way you play",
+  "statsTabOverview": "Overview",
+  "statsTabHands": "Hands",
+  "statsOverHands": "over {hands} hands at {tables} tables",
+  "@statsOverHands": {
+    "placeholders": {
+      "hands": {
+        "type": "String"
+      },
+      "tables": {
+        "type": "String"
+      }
+    }
+  },
+  "statsFirstHand": "First hand",
+  "statsBest": "Best",
+  "statsBiggestPotHint": "the whole pot, your own chips included",
+  "statsBestRoundHint": "what you were up when a table ended",
+  "statsRate": "Win rate",
+  "statsPer100Chips": "Per 100 hands",
+  "statsBbHint": "A big blind is the table's big forced bet. Counting in big blinds is how tables that play for different amounts compare.",
+  "statsShowdownGroup": "Showdowns",
+  "statsNoHandsYet": "No hand of yours has reached the end yet.",
+  "statsTables": "Tables",
+  "statsRounds": "Rounds",
+  "statsMoney": "Results",
+  "statsNet": "Net",
+  "statsNetBB": "In big blinds",
+  "statsPer100": "Per 100 hands in bb",
+  "statsBiggestPot": "Biggest pot won",
+  "statsBiggestWin": "Biggest hand",
+  "statsBestRound": "Best round",
+  "statsHandsWon": "Hands won",
+  "statsRoundsWon": "Rounds won",
+  "statsPodiums": "Top three",
+  "statsTournaments": "Tournaments",
+  "statsStyle": "Style",
+  "statsVpip": "Played the hand",
+  "statsShowdowns": "Showdowns won",
+  "statsNoShowdown": "Won without showdown",
+  "statsFolded": "Folded",
+  "statsAllIns": "All-ins",
+  "statsHandClasses": "Hands made",
+  "statsShownOf": "{shown} shown",
+  "@statsShownOf": {
+    "placeholders": {
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "statsCountedNote": "Counted: {counted} of {hands} hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.",
+  "@statsCountedNote": {
+    "placeholders": {
+      "counted": {
+        "type": "String"
+      },
+      "hands": {
+        "type": "String"
+      }
+    }
+  },
+  "handRoyalFlush": "Royal flush",
+  "handStraightFlush": "Straight flush",
+  "handFourOfAKind": "Four of a kind",
+  "handFullHouse": "Full house",
+  "handFlush": "Flush",
+  "handStraight": "Straight",
+  "handThreeOfAKind": "Three of a kind",
+  "handTwoPair": "Two pair",
+  "handPair": "Pair",
+  "handHighCard": "High card",
+  "accountSignedInAs": "Signed in as {handle}",
+  "@accountSignedInAs": {
+    "placeholders": {
+      "handle": {
+        "type": "String"
+      }
+    }
+  },
+  "accountGuestHint": "Playing as a guest",
+  "accountPlayAsGuest": "Play as guest",
   "confirm": "Confirm",
   "close": "Close",
   "fold": "Fold",

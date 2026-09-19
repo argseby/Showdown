@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // ErrNotFound is returned when a row does not exist.
@@ -232,8 +233,8 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO players (id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
 			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
-			vpip_hands, showdowns, showdowns_won, time_bank, place)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			name = excluded.name, seat = excluded.seat, stack = excluded.stack, status = excluded.status,
 			muted = excluded.muted, missed_turns = excluded.missed_turns, buy_in_total = excluded.buy_in_total,
@@ -241,10 +242,11 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 			joined_at = excluded.joined_at, left_at = excluded.left_at, avatar = excluded.avatar, hat = excluded.hat,
 			win_streak = excluded.win_streak,
 			vpip_hands = excluded.vpip_hands, showdowns = excluded.showdowns, showdowns_won = excluded.showdowns_won,
-			time_bank = excluded.time_bank, place = excluded.place`,
+			time_bank = excluded.time_bank, place = excluded.place, account_id = excluded.account_id,
+			account_handle = excluded.account_handle`,
 		p.ID, p.TableID, p.Name, p.Seat, p.Stack, p.Status, b2i(p.Muted), p.MissedTurns, p.BuyInTotal,
 		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar, p.Hat, p.WinStreak,
-		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place)
+		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place, p.AccountID, p.AccountHandle)
 	if err != nil {
 		return fmt.Errorf("upsert player: %w", err)
 	}
@@ -256,7 +258,7 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
 			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
-			vpip_hands, showdowns, showdowns_won, time_bank, place
+			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle
 		FROM players WHERE table_id = ? ORDER BY seat, joined_at`, tableID)
 	if err != nil {
 		return nil, fmt.Errorf("list players: %w", err)
@@ -269,7 +271,8 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 		var left sql.NullInt64
 		if err := rows.Scan(&p.ID, &p.TableID, &p.Name, &p.Seat, &p.Stack, &p.Status, &muted, &p.MissedTurns,
 			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar, &p.Hat, &p.WinStreak,
-			&p.VPIPHands, &p.Showdowns, &p.ShowdownsWon, &p.TimeBank, &p.Place); err != nil {
+			&p.VPIPHands, &p.Showdowns, &p.ShowdownsWon, &p.TimeBank, &p.Place, &p.AccountID,
+			&p.AccountHandle); err != nil {
 			return nil, err
 		}
 		p.Muted = muted == 1
@@ -277,6 +280,195 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 		out = append(out, p)
 	}
 	return out, rows.Err()
+}
+
+// ---- accounts -------------------------------------------------------------------
+
+const accountCols = `id, handle, handle_key, display_name, password_hash, recovery_hash, created_at,
+	vis_profile, vis_winnings, vis_best_hands, vis_achievements, vis_activity`
+
+func scanAccount(row interface{ Scan(...any) error }) (AccountRow, error) {
+	var a AccountRow
+	err := row.Scan(&a.ID, &a.Handle, &a.HandleKey, &a.DisplayName, &a.PasswordHash, &a.RecoveryHash,
+		&a.CreatedAt, &a.VisProfile, &a.VisWinnings, &a.VisBestHands, &a.VisAchievements, &a.VisActivity)
+	return a, err
+}
+
+// ErrHandleTaken is returned when the folded handle already exists.
+var ErrHandleTaken = errors.New("store: handle taken")
+
+// CreateAccount inserts a profile; a handle that folds onto an existing one
+// is refused with ErrHandleTaken.
+func (s *Store) CreateAccount(ctx context.Context, a AccountRow) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO accounts (`+accountCols+`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		a.ID, a.Handle, a.HandleKey, a.DisplayName, a.PasswordHash, a.RecoveryHash, a.CreatedAt,
+		a.VisProfile, a.VisWinnings, a.VisBestHands, a.VisAchievements, a.VisActivity)
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			return ErrHandleTaken
+		}
+		return fmt.Errorf("create account: %w", err)
+	}
+	return nil
+}
+
+// GetAccount loads a profile by id.
+func (s *Store) GetAccount(ctx context.Context, id string) (AccountRow, error) {
+	a, err := scanAccount(s.db.QueryRowContext(ctx, `SELECT `+accountCols+` FROM accounts WHERE id = ?`, id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return AccountRow{}, ErrNotFound
+	}
+	if err != nil {
+		return AccountRow{}, fmt.Errorf("get account: %w", err)
+	}
+	return a, nil
+}
+
+// GetAccountByHandle loads a profile by the folded form of its handle.
+func (s *Store) GetAccountByHandle(ctx context.Context, handleKey string) (AccountRow, error) {
+	a, err := scanAccount(s.db.QueryRowContext(ctx, `SELECT `+accountCols+` FROM accounts WHERE handle_key = ?`, handleKey))
+	if errors.Is(err, sql.ErrNoRows) {
+		return AccountRow{}, ErrNotFound
+	}
+	if err != nil {
+		return AccountRow{}, fmt.Errorf("get account by handle: %w", err)
+	}
+	return a, nil
+}
+
+// UpdateAccountSecrets writes a new password and recovery hash.
+func (s *Store) UpdateAccountSecrets(ctx context.Context, id, passwordHash, recoveryHash string) error {
+	res, err := s.db.ExecContext(ctx,
+		`UPDATE accounts SET password_hash = ?, recovery_hash = ? WHERE id = ?`, passwordHash, recoveryHash, id)
+	if err != nil {
+		return fmt.Errorf("update account secrets: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// UpdateAccountProfile writes the display name and the visibility choices.
+func (s *Store) UpdateAccountProfile(ctx context.Context, a AccountRow) error {
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE accounts SET display_name = ?, vis_profile = ?, vis_winnings = ?, vis_best_hands = ?,
+			vis_achievements = ?, vis_activity = ? WHERE id = ?`,
+		a.DisplayName, a.VisProfile, a.VisWinnings, a.VisBestHands, a.VisAchievements, a.VisActivity, a.ID)
+	if err != nil {
+		return fmt.Errorf("update account profile: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// CreateAccountSession stores a profile login.
+func (s *Store) CreateAccountSession(ctx context.Context, r AccountSessionRow) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO account_sessions (token_hash, account_id, created_at, expires_at) VALUES (?, ?, ?, ?)`,
+		r.TokenHash, r.AccountID, r.CreatedAt, r.ExpiresAt)
+	if err != nil {
+		return fmt.Errorf("create account session: %w", err)
+	}
+	return nil
+}
+
+// AccountForSession resolves a profile token; expired sessions are gone.
+func (s *Store) AccountForSession(ctx context.Context, tokenHash string, now int64) (AccountRow, error) {
+	a, err := scanAccount(s.db.QueryRowContext(ctx, `
+		SELECT `+prefixed(accountCols, "a.")+` FROM account_sessions s
+		JOIN accounts a ON a.id = s.account_id
+		WHERE s.token_hash = ? AND s.expires_at > ?`, tokenHash, now))
+	if errors.Is(err, sql.ErrNoRows) {
+		return AccountRow{}, ErrNotFound
+	}
+	if err != nil {
+		return AccountRow{}, fmt.Errorf("account for session: %w", err)
+	}
+	return a, nil
+}
+
+// DeleteAccountSession logs one device out.
+func (s *Store) DeleteAccountSession(ctx context.Context, tokenHash string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM account_sessions WHERE token_hash = ?`, tokenHash)
+	if err != nil {
+		return fmt.Errorf("delete account session: %w", err)
+	}
+	return nil
+}
+
+// DeleteAccountSessions logs a profile out everywhere (after a password or
+// recovery-code change).
+func (s *Store) DeleteAccountSessions(ctx context.Context, accountID string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM account_sessions WHERE account_id = ?`, accountID)
+	if err != nil {
+		return fmt.Errorf("delete account sessions: %w", err)
+	}
+	return nil
+}
+
+// prefixed qualifies a column list for a join.
+func prefixed(cols, prefix string) string {
+	parts := strings.Split(cols, ",")
+	for i, c := range parts {
+		parts[i] = prefix + strings.TrimSpace(c)
+	}
+	return strings.Join(parts, ", ")
+}
+
+// ---- results --------------------------------------------------------------------
+
+// InsertHandResults records what every signed-in player did in one hand.
+func (s *Store) InsertHandResults(ctx context.Context, rows []HandResultRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	for _, r := range rows {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO hand_results (account_id, table_id, table_name, hand_number, ended_at, big_blind,
+				net, won, dealt_in, folded, vpip, showdown, showdown_won, all_in,
+				category, royal, shown, description, best_cards, counted, profiles)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			r.AccountID, r.TableID, r.TableName, r.HandNumber, r.EndedAt, r.BigBlind,
+			r.Net, r.Won, b2i(r.DealtIn), b2i(r.Folded), b2i(r.VPIP), b2i(r.Showdown),
+			b2i(r.ShowdownWon), b2i(r.AllIn), r.Category, b2i(r.Royal), b2i(r.Shown),
+			r.Description, r.BestCards, b2i(r.Counted), r.Profiles); err != nil {
+			return fmt.Errorf("insert hand result: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
+// InsertRoundResults records the end of a round for every signed-in player.
+func (s *Store) InsertRoundResults(ctx context.Context, rows []RoundResultRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	for _, r := range rows {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO round_results (account_id, table_id, table_name, round_start, ended_at,
+				big_blind, net, place, players, tournament, counted)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			r.AccountID, r.TableID, r.TableName, r.RoundStart, r.EndedAt, r.BigBlind,
+			r.Net, r.Place, r.Players, b2i(r.Tournament), b2i(r.Counted)); err != nil {
+			return fmt.Errorf("insert round result: %w", err)
+		}
+	}
+	return tx.Commit()
 }
 
 // ---- sessions -------------------------------------------------------------------

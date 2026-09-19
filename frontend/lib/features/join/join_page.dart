@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../core/account.dart';
 import '../../core/formatting.dart';
 import '../../core/providers.dart';
 import '../../core/rest_client.dart';
@@ -13,6 +14,7 @@ import '../../shared/display_size_picker.dart';
 import '../../shared/hats.dart';
 import '../../shared/look_dialog.dart';
 import '../../shared/top_bar.dart';
+import '../account/account_dialog.dart';
 import '../admin/admin_session.dart';
 import '../admin/admin_widgets.dart';
 import 'name_rules.dart';
@@ -30,6 +32,9 @@ class JoinPage extends ConsumerStatefulWidget {
 
 class _JoinPageState extends ConsumerState<JoinPage> {
   final _name = TextEditingController();
+
+  /// The profile name is offered once; after that the field is the player's.
+  bool _namePrefilled = false;
   final _password = TextEditingController();
   final _adminKey = TextEditingController();
   int? _seat; // null = any free seat
@@ -196,6 +201,9 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           seat: _seat,
           avatar: _avatar,
           hat: _hat,
+          // Signed in: the seat belongs to that profile. A guest sends
+          // nothing and joins exactly as before.
+          accountToken: ref.read(accountProvider.notifier).token,
         );
         session = StoredSession(
           token: r.token,
@@ -253,6 +261,14 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     final locale = Localizations.localeOf(context).toString();
     final stored = ref.watch(sessionProvider(widget.tableId));
     final isHost = ref.watch(adminTokenProvider(widget.tableId)).value != null;
+    final accountsOn = ref.watch(accountsEnabledProvider).value ?? false;
+    final account = ref.watch(accountProvider).value;
+    // A signed-in player sits down under their profile name unless they
+    // type something else.
+    if (account != null && !_namePrefilled) {
+      _namePrefilled = true;
+      if (_name.text.isEmpty) _name.text = account.displayName;
+    }
     if (stored.value != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go('/t/${widget.tableId}/play');
@@ -353,6 +369,38 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(l10n.joinNameLabel).semiBold(),
+                      // Who is sitting down: a profile, or a guest. Either
+                      // is fine; the profile only means the seat is yours.
+                      if (accountsOn) ...[
+                        const Gap(4),
+                        Row(
+                          children: [
+                            Icon(
+                              account == null
+                                  ? LucideIcons.user
+                                  : LucideIcons.userCheck,
+                              size: 13,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                            const Gap(6),
+                            Expanded(
+                              child: Text(
+                                account == null
+                                    ? l10n.accountGuestHint
+                                    : l10n.accountSignedInAs(account.handle),
+                                key: const Key('join-account'),
+                              ).muted().small(),
+                            ),
+                            if (account == null)
+                              GhostButton(
+                                key: const Key('join-sign-in'),
+                                size: ButtonSize.small,
+                                onPressed: () => showAccountDialog(context),
+                                child: Text(l10n.accountSignIn).small(),
+                              ),
+                          ],
+                        ),
+                      ],
                       // A hat reaches above the disc: leave room for it.
                       Gap(_hat == null ? 6 : 6 + 40 * hatOverflow),
                       Row(

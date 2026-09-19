@@ -29,6 +29,9 @@ type Server struct {
 	limInfo   *limiter
 	limWS     *limiter
 	limCreate *limiter
+	// Sign-up and sign-in: fast enough for a mistyped password, far too
+	// slow to guess one (bcrypt costs the guesser ~50 ms on top).
+	limAccount *limiter
 
 	connMu    sync.Mutex
 	connsByIP map[string]int
@@ -38,11 +41,12 @@ type Server struct {
 func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logger) *Server {
 	s := &Server{
 		cfg: cfg, store: st, registry: reg, log: log, mux: http.NewServeMux(), now: time.Now,
-		limJoin:   newLimiter(10, 10),
-		limInfo:   newLimiter(60, 60),
-		limWS:     newLimiter(30, 30),
-		limCreate: newLimiter(5, 5),
-		connsByIP: map[string]int{},
+		limJoin:    newLimiter(10, 10),
+		limInfo:    newLimiter(60, 60),
+		limWS:      newLimiter(30, 30),
+		limCreate:  newLimiter(5, 5),
+		limAccount: newLimiter(30, 15),
+		connsByIP:  map[string]int{},
 	}
 	s.routes()
 	return s
@@ -71,6 +75,14 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/tables", s.rateLimited(s.limCreate, s.handleCreateTable))
 	s.mux.HandleFunc("GET /api/tables/{id}/hands", s.rateLimited(s.limInfo, s.handleSessionHands))
 	s.mux.HandleFunc("GET /ws/table/{id}", s.handleWS)
+
+	// Player profiles (optional; every route answers 404 with ACCOUNTS off).
+	s.mux.HandleFunc("POST /api/accounts", s.rateLimited(s.limAccount, s.handleRegister))
+	s.mux.HandleFunc("POST /api/accounts/session", s.rateLimited(s.limAccount, s.handleLogin))
+	s.mux.HandleFunc("DELETE /api/accounts/session", s.rateLimited(s.limInfo, s.handleLogout))
+	s.mux.HandleFunc("GET /api/accounts/me", s.rateLimited(s.limInfo, s.handleAccountMe))
+	s.mux.HandleFunc("GET /api/accounts/me/stats", s.rateLimited(s.limInfo, s.handleAccountStats))
+	s.mux.HandleFunc("POST /api/accounts/password", s.rateLimited(s.limAccount, s.handleAccountPassword))
 
 	// Table admin: every route is guarded by the table's own admin token.
 	s.mux.HandleFunc("GET /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminGetTable))
@@ -147,6 +159,9 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 		"ice_servers": ice,
 		// The build this instance runs, shown on the client's start screen.
 		"version": buildinfo.Version(),
+		// Whether this instance offers player profiles at all; with it off
+		// the client shows no sign-in anywhere.
+		"accounts": s.cfg.Accounts,
 	})
 }
 

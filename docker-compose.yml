@@ -19,6 +19,8 @@ services:
     environment:
       TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
       MAX_TABLES: ${MAX_TABLES:-100}
+      # Optional player profiles; off unless set (see .env.example).
+      ACCOUNTS: ${ACCOUNTS:-false}
       # WEBRTC_STUN_URLS was called VOICE_STUN_URLS in the first releases; both work.
       WEBRTC_STUN_URLS: ${WEBRTC_STUN_URLS:-${VOICE_STUN_URLS:-}}
       WEBRTC_TURN_URLS: ${WEBRTC_TURN_URLS:-}

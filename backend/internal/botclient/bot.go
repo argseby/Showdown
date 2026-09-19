@@ -49,11 +49,14 @@ type Config struct {
 	Avatar   int    // 0-19, the seat icon
 	Hat      string // one of protocol.Hats, "" = none
 	Password string
-	Role     string   // player (default), spectator or admin
-	Token    string   // existing token (admin token, or a stored session)
-	Strategy Strategy // players only
-	Seed     uint64
-	Log      *slog.Logger
+	Role     string // player (default), spectator or admin
+	Token    string // existing token (admin token, or a stored session)
+	// AccountToken signs the bot in with a player profile when it joins,
+	// the way the app does; empty joins as a guest.
+	AccountToken string
+	Strategy     Strategy // players only
+	Seed         uint64
+	Log          *slog.Logger
 	// ActDelay is the pause before acting (simulates thinking).
 	ActDelay time.Duration
 	// Header is added to every REST request and WebSocket upgrade (for
@@ -128,6 +131,9 @@ func (b *Bot) postJSON(ctx context.Context, path string, body any, out any) erro
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if b.cfg.AccountToken != "" {
+		req.Header.Set("Authorization", "Bearer "+b.cfg.AccountToken)
+	}
 	for k, v := range b.cfg.Header {
 		req.Header[k] = v
 	}

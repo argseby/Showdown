@@ -7717,7 +7717,8 @@ mixin _$PlayerView {
  String get id; String get name; int get avatar;/// The hat worn on the avatar (a hat id); absent without one.
 @JsonKey(includeIfNull: false) String? get hat;/// Running hot: 1..3 for two, three, four or more hands won in a row;
 /// absent otherwise.
-@JsonKey(includeIfNull: false) int? get heat; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked;@JsonKey(includeIfNull: false) bool? get camera;@JsonKey(includeIfNull: false) double? get equity;@JsonKey(includeIfNull: false) int? get timeBank;@JsonKey(includeIfNull: false) int? get place; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;/// A fully revealed hand described against the current board (follows
+@JsonKey(includeIfNull: false) int? get heat; String get voice;@JsonKey(includeIfNull: false) bool? get muted;@JsonKey(includeIfNull: false) bool? get mucked;@JsonKey(includeIfNull: false) bool? get camera;@JsonKey(includeIfNull: false) double? get equity;@JsonKey(includeIfNull: false) int? get timeBank;@JsonKey(includeIfNull: false) int? get place;/// The handle of the profile this seat belongs to; absent for a guest.
+@JsonKey(includeIfNull: false) String? get account; int get stack; String get status; bool get connected; bool get inHand; bool get folded; bool get allIn; int get betThisStreet; int get totalBet;@JsonKey(includeIfNull: false) List<String>? get holeCards; LastAction? get lastAction;/// A fully revealed hand described against the current board (follows
 /// every run-out street); absent for hidden hands.
 @JsonKey(includeIfNull: false) String? get handDescription;@JsonKey(includeIfNull: false) List<String>? get bestCards;
 /// Create a copy of PlayerView
@@ -7733,20 +7734,20 @@ $PlayerViewCopyWith<PlayerView> get copyWith => _$PlayerViewCopyWithImpl<PlayerV
 @override
 bool operator ==(Object other) {
   final _this = this as PlayerView;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.hat, _this.hat) || other.hat == _this.hat)&&(identical(other.heat, _this.heat) || other.heat == _this.heat)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.camera, _this.camera) || other.camera == _this.camera)&&(identical(other.equity, _this.equity) || other.equity == _this.equity)&&(identical(other.timeBank, _this.timeBank) || other.timeBank == _this.timeBank)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction)&&(identical(other.handDescription, _this.handDescription) || other.handDescription == _this.handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _this.bestCards));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerView&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.hat, _this.hat) || other.hat == _this.hat)&&(identical(other.heat, _this.heat) || other.heat == _this.heat)&&(identical(other.voice, _this.voice) || other.voice == _this.voice)&&(identical(other.muted, _this.muted) || other.muted == _this.muted)&&(identical(other.mucked, _this.mucked) || other.mucked == _this.mucked)&&(identical(other.camera, _this.camera) || other.camera == _this.camera)&&(identical(other.equity, _this.equity) || other.equity == _this.equity)&&(identical(other.timeBank, _this.timeBank) || other.timeBank == _this.timeBank)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.account, _this.account) || other.account == _this.account)&&(identical(other.stack, _this.stack) || other.stack == _this.stack)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.connected, _this.connected) || other.connected == _this.connected)&&(identical(other.inHand, _this.inHand) || other.inHand == _this.inHand)&&(identical(other.folded, _this.folded) || other.folded == _this.folded)&&(identical(other.allIn, _this.allIn) || other.allIn == _this.allIn)&&(identical(other.betThisStreet, _this.betThisStreet) || other.betThisStreet == _this.betThisStreet)&&(identical(other.totalBet, _this.totalBet) || other.totalBet == _this.totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _this.holeCards)&&(identical(other.lastAction, _this.lastAction) || other.lastAction == _this.lastAction)&&(identical(other.handDescription, _this.handDescription) || other.handDescription == _this.handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _this.bestCards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlayerView;
-  return Object.hashAll([runtimeType,_this.id,_this.name,_this.avatar,_this.hat,_this.heat,_this.voice,_this.muted,_this.mucked,_this.camera,_this.equity,_this.timeBank,_this.place,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction,_this.handDescription,const DeepCollectionEquality().hash(_this.bestCards)]);
+  return Object.hashAll([runtimeType,_this.id,_this.name,_this.avatar,_this.hat,_this.heat,_this.voice,_this.muted,_this.mucked,_this.camera,_this.equity,_this.timeBank,_this.place,_this.account,_this.stack,_this.status,_this.connected,_this.inHand,_this.folded,_this.allIn,_this.betThisStreet,_this.totalBet,const DeepCollectionEquality().hash(_this.holeCards),_this.lastAction,_this.handDescription,const DeepCollectionEquality().hash(_this.bestCards)]);
 }
 
 @override
 String toString() {
   final _this = this as PlayerView;
-  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, hat: ${_this.hat}, heat: ${_this.heat}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, camera: ${_this.camera}, equity: ${_this.equity}, timeBank: ${_this.timeBank}, place: ${_this.place}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction}, handDescription: ${_this.handDescription}, bestCards: ${_this.bestCards})';
+  return 'PlayerView(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, hat: ${_this.hat}, heat: ${_this.heat}, voice: ${_this.voice}, muted: ${_this.muted}, mucked: ${_this.mucked}, camera: ${_this.camera}, equity: ${_this.equity}, timeBank: ${_this.timeBank}, place: ${_this.place}, account: ${_this.account}, stack: ${_this.stack}, status: ${_this.status}, connected: ${_this.connected}, inHand: ${_this.inHand}, folded: ${_this.folded}, allIn: ${_this.allIn}, betThisStreet: ${_this.betThisStreet}, totalBet: ${_this.totalBet}, holeCards: ${_this.holeCards}, lastAction: ${_this.lastAction}, handDescription: ${_this.handDescription}, bestCards: ${_this.bestCards})';
 }
 
 
@@ -7757,7 +7758,7 @@ abstract mixin class $PlayerViewCopyWith<$Res>  {
   factory $PlayerViewCopyWith(PlayerView value, $Res Function(PlayerView) _then) = _$PlayerViewCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, int avatar,@JsonKey(includeIfNull: false) String? hat,@JsonKey(includeIfNull: false) int? heat, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
+ String id, String name, int avatar,@JsonKey(includeIfNull: false) String? hat,@JsonKey(includeIfNull: false) int? heat, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place,@JsonKey(includeIfNull: false) String? account, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
 });
 
 
@@ -7774,7 +7775,7 @@ class _$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? hat = freezed,Object? heat = freezed,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? hat = freezed,Object? heat = freezed,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? account = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
   return _then(PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -7788,7 +7789,8 @@ as bool?,camera: freezed == camera ? _self.camera : camera // ignore: cast_nulla
 as bool?,equity: freezed == equity ? _self.equity : equity // ignore: cast_nullable_to_non_nullable
 as double?,timeBank: freezed == timeBank ? _self.timeBank : timeBank // ignore: cast_nullable_to_non_nullable
 as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
-as int?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
+as int?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as String?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,connected: null == connected ? _self.connected : connected // ignore: cast_nullable_to_non_nullable
 as bool,inHand: null == inHand ? _self.inHand : inHand // ignore: cast_nullable_to_non_nullable
@@ -7897,10 +7899,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place, @JsonKey(includeIfNull: false)  String? account,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.account,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   return orElse();
 
 }
@@ -7918,10 +7920,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voic
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place, @JsonKey(includeIfNull: false)  String? account,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView():
-return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.account,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -7938,10 +7940,10 @@ return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voic
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  int avatar, @JsonKey(includeIfNull: false)  String? hat, @JsonKey(includeIfNull: false)  int? heat,  String voice, @JsonKey(includeIfNull: false)  bool? muted, @JsonKey(includeIfNull: false)  bool? mucked, @JsonKey(includeIfNull: false)  bool? camera, @JsonKey(includeIfNull: false)  double? equity, @JsonKey(includeIfNull: false)  int? timeBank, @JsonKey(includeIfNull: false)  int? place, @JsonKey(includeIfNull: false)  String? account,  int stack,  String status,  bool connected,  bool inHand,  bool folded,  bool allIn,  int betThisStreet,  int totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards,  LastAction? lastAction, @JsonKey(includeIfNull: false)  String? handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerView() when $default != null:
-return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
+return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voice,_that.muted,_that.mucked,_that.camera,_that.equity,_that.timeBank,_that.place,_that.account,_that.stack,_that.status,_that.connected,_that.inHand,_that.folded,_that.allIn,_that.betThisStreet,_that.totalBet,_that.holeCards,_that.lastAction,_that.handDescription,_that.bestCards);case _:
   return null;
 
 }
@@ -7953,7 +7955,7 @@ return $default(_that.id,_that.name,_that.avatar,_that.hat,_that.heat,_that.voic
 @JsonSerializable()
 
 class _PlayerView implements PlayerView {
-  const _PlayerView({required this.id, required this.name, required this.avatar, @JsonKey(includeIfNull: false) this.hat, @JsonKey(includeIfNull: false) this.heat, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, @JsonKey(includeIfNull: false) this.camera, @JsonKey(includeIfNull: false) this.equity, @JsonKey(includeIfNull: false) this.timeBank, @JsonKey(includeIfNull: false) this.place, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction, @JsonKey(includeIfNull: false) this.handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards}): _holeCards = holeCards,_bestCards = bestCards;
+  const _PlayerView({required this.id, required this.name, required this.avatar, @JsonKey(includeIfNull: false) this.hat, @JsonKey(includeIfNull: false) this.heat, this.voice = 'off', @JsonKey(includeIfNull: false) this.muted, @JsonKey(includeIfNull: false) this.mucked, @JsonKey(includeIfNull: false) this.camera, @JsonKey(includeIfNull: false) this.equity, @JsonKey(includeIfNull: false) this.timeBank, @JsonKey(includeIfNull: false) this.place, @JsonKey(includeIfNull: false) this.account, required this.stack, required this.status, required this.connected, required this.inHand, required this.folded, required this.allIn, required this.betThisStreet, required this.totalBet, @JsonKey(includeIfNull: false)  List<String>? holeCards, required this.lastAction, @JsonKey(includeIfNull: false) this.handDescription, @JsonKey(includeIfNull: false)  List<String>? bestCards}): _holeCards = holeCards,_bestCards = bestCards;
   factory _PlayerView.fromJson(Map<String, dynamic> json) => _$PlayerViewFromJson(json);
 
 @override final  String id;
@@ -7971,6 +7973,8 @@ class _PlayerView implements PlayerView {
 @override@JsonKey(includeIfNull: false) final  double? equity;
 @override@JsonKey(includeIfNull: false) final  int? timeBank;
 @override@JsonKey(includeIfNull: false) final  int? place;
+/// The handle of the profile this seat belongs to; absent for a guest.
+@override@JsonKey(includeIfNull: false) final  String? account;
 @override final  int stack;
 @override final  String status;
 @override final  bool connected;
@@ -8015,18 +8019,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.hat, hat) || other.hat == hat)&&(identical(other.heat, heat) || other.heat == heat)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.camera, camera) || other.camera == camera)&&(identical(other.equity, equity) || other.equity == equity)&&(identical(other.timeBank, timeBank) || other.timeBank == timeBank)&&(identical(other.place, place) || other.place == place)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction)&&(identical(other.handDescription, handDescription) || other.handDescription == handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _bestCards));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerView&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.hat, hat) || other.hat == hat)&&(identical(other.heat, heat) || other.heat == heat)&&(identical(other.voice, voice) || other.voice == voice)&&(identical(other.muted, muted) || other.muted == muted)&&(identical(other.mucked, mucked) || other.mucked == mucked)&&(identical(other.camera, camera) || other.camera == camera)&&(identical(other.equity, equity) || other.equity == equity)&&(identical(other.timeBank, timeBank) || other.timeBank == timeBank)&&(identical(other.place, place) || other.place == place)&&(identical(other.account, account) || other.account == account)&&(identical(other.stack, stack) || other.stack == stack)&&(identical(other.status, status) || other.status == status)&&(identical(other.connected, connected) || other.connected == connected)&&(identical(other.inHand, inHand) || other.inHand == inHand)&&(identical(other.folded, folded) || other.folded == folded)&&(identical(other.allIn, allIn) || other.allIn == allIn)&&(identical(other.betThisStreet, betThisStreet) || other.betThisStreet == betThisStreet)&&(identical(other.totalBet, totalBet) || other.totalBet == totalBet)&&const DeepCollectionEquality().equals(other.holeCards, _holeCards)&&(identical(other.lastAction, lastAction) || other.lastAction == lastAction)&&(identical(other.handDescription, handDescription) || other.handDescription == handDescription)&&const DeepCollectionEquality().equals(other.bestCards, _bestCards));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,id,name,avatar,hat,heat,voice,muted,mucked,camera,equity,timeBank,place,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction,handDescription,const DeepCollectionEquality().hash(_bestCards)]);
+    return Object.hashAll([runtimeType,id,name,avatar,hat,heat,voice,muted,mucked,camera,equity,timeBank,place,account,stack,status,connected,inHand,folded,allIn,betThisStreet,totalBet,const DeepCollectionEquality().hash(_holeCards),lastAction,handDescription,const DeepCollectionEquality().hash(_bestCards)]);
 }
 
 @override
 String toString() {
-    return 'PlayerView(id: $id, name: $name, avatar: $avatar, hat: $hat, heat: $heat, voice: $voice, muted: $muted, mucked: $mucked, camera: $camera, equity: $equity, timeBank: $timeBank, place: $place, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction, handDescription: $handDescription, bestCards: $bestCards)';
+    return 'PlayerView(id: $id, name: $name, avatar: $avatar, hat: $hat, heat: $heat, voice: $voice, muted: $muted, mucked: $mucked, camera: $camera, equity: $equity, timeBank: $timeBank, place: $place, account: $account, stack: $stack, status: $status, connected: $connected, inHand: $inHand, folded: $folded, allIn: $allIn, betThisStreet: $betThisStreet, totalBet: $totalBet, holeCards: $holeCards, lastAction: $lastAction, handDescription: $handDescription, bestCards: $bestCards)';
 }
 
 
@@ -8037,7 +8041,7 @@ abstract mixin class _$PlayerViewCopyWith<$Res> implements $PlayerViewCopyWith<$
   factory _$PlayerViewCopyWith(_PlayerView value, $Res Function(_PlayerView) _then) = __$PlayerViewCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, int avatar,@JsonKey(includeIfNull: false) String? hat,@JsonKey(includeIfNull: false) int? heat, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
+ String id, String name, int avatar,@JsonKey(includeIfNull: false) String? hat,@JsonKey(includeIfNull: false) int? heat, String voice,@JsonKey(includeIfNull: false) bool? muted,@JsonKey(includeIfNull: false) bool? mucked,@JsonKey(includeIfNull: false) bool? camera,@JsonKey(includeIfNull: false) double? equity,@JsonKey(includeIfNull: false) int? timeBank,@JsonKey(includeIfNull: false) int? place,@JsonKey(includeIfNull: false) String? account, int stack, String status, bool connected, bool inHand, bool folded, bool allIn, int betThisStreet, int totalBet,@JsonKey(includeIfNull: false) List<String>? holeCards, LastAction? lastAction,@JsonKey(includeIfNull: false) String? handDescription,@JsonKey(includeIfNull: false) List<String>? bestCards
 });
 
 
@@ -8054,7 +8058,7 @@ class __$PlayerViewCopyWithImpl<$Res>
 
 /// Create a copy of PlayerView
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? hat = freezed,Object? heat = freezed,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? hat = freezed,Object? heat = freezed,Object? voice = null,Object? muted = freezed,Object? mucked = freezed,Object? camera = freezed,Object? equity = freezed,Object? timeBank = freezed,Object? place = freezed,Object? account = freezed,Object? stack = null,Object? status = null,Object? connected = null,Object? inHand = null,Object? folded = null,Object? allIn = null,Object? betThisStreet = null,Object? totalBet = null,Object? holeCards = freezed,Object? lastAction = freezed,Object? handDescription = freezed,Object? bestCards = freezed,}) {
   return _then(_PlayerView(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -8068,7 +8072,8 @@ as bool?,camera: freezed == camera ? _self.camera : camera // ignore: cast_nulla
 as bool?,equity: freezed == equity ? _self.equity : equity // ignore: cast_nullable_to_non_nullable
 as double?,timeBank: freezed == timeBank ? _self.timeBank : timeBank // ignore: cast_nullable_to_non_nullable
 as int?,place: freezed == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
-as int?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
+as int?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as String?,stack: null == stack ? _self.stack : stack // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,connected: null == connected ? _self.connected : connected // ignore: cast_nullable_to_non_nullable
 as bool,inHand: null == inHand ? _self.inHand : inHand // ignore: cast_nullable_to_non_nullable

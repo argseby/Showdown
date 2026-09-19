@@ -5,6 +5,7 @@ import '../../../app/l10n.dart';
 import '../../../core/voice/voice_controller.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
+import '../../../shared/handle_badge.dart';
 import '../../../shared/hats.dart';
 import '../../../shared/look_dialog.dart';
 import '../table_session.dart';
@@ -78,7 +79,14 @@ class _SelfMenu extends ConsumerWidget {
               child: PlayerAvatar(index: me.avatar, size: 36, hat: me.hat),
             ),
           const Gap(12),
-          Text(me?.name ?? l10n.selfMenuTitle),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(me?.name ?? l10n.selfMenuTitle),
+              HandleBadge(me?.account),
+            ],
+          ),
         ],
       ),
       content: SizedBox(

@@ -129,6 +129,10 @@ type Player struct {
 	Place int
 	// Camera: the player's video is on (browser to browser like the voice).
 	Camera bool
+	// AccountID and AccountHandle name the profile this seat belongs to;
+	// both empty for a guest, which is always allowed.
+	AccountID     string
+	AccountHandle string
 
 	inHand       bool
 	vpipThisHand bool
@@ -267,6 +271,9 @@ type Table struct {
 	// roundStartHand is handNumber when the current round began; a new round
 	// on the same table moves it up, which releases the tournament lock.
 	roundStartHand int
+	// chipsAdjustedThisRound: the host gave or took chips since the round
+	// began, so its results are casual and stand in no public total.
+	chipsAdjustedThisRound bool
 	// lastRound is the standing of the round that ended last, taken before
 	// a new round resets the stacks (nil until a round has ended).
 	lastRound *protocol.RoundResult
@@ -543,6 +550,13 @@ func (t *Table) State() string {
 	return s
 }
 
+// Profile is the player's account when they joined signed in; the zero
+// value is a guest.
+type Profile struct {
+	ID     string
+	Handle string
+}
+
 // JoinResult is returned by Join.
 type JoinResult struct {
 	PlayerID string
@@ -553,7 +567,7 @@ type JoinResult struct {
 // Join seats a new player (password already verified by the caller). seat
 // is the wanted seat or -1 for the lowest free one; avatar is 0..19; hat is
 // one of protocol.Hats (anything else: no hat).
-func (t *Table) Join(rawName string, seat, avatar int, hat string) (JoinResult, error) {
+func (t *Table) Join(rawName string, seat, avatar int, hat string, profile Profile) (JoinResult, error) {
 	var res JoinResult
 	err := t.callErr(func() error {
 		if t.state == StateEnded {
@@ -594,7 +608,8 @@ func (t *Table) Join(rawName string, seat, avatar int, hat string) (JoinResult, 
 		p := &Player{
 			ID: newPlayerID(), Name: name, Seat: seat, Stack: t.settings.StartMoney, Status: StatusActive,
 			BuyInTotal: t.settings.StartMoney, JoinedAt: t.nowMs(), Avatar: avatar, Hat: hat, pendingSeat: -1,
-			TimeBank: t.settings.TimeBankSeconds,
+			TimeBank:  t.settings.TimeBankSeconds,
+			AccountID: profile.ID, AccountHandle: profile.Handle,
 		}
 		t.seats[seat] = p
 		t.players[p.ID] = p
@@ -1576,6 +1591,7 @@ func (t *Table) Restart() error {
 		// and number, and the hand log keeps both rounds. Where the round
 		// began is what the tournament lock goes by.
 		t.roundStartHand = t.handNumber
+		t.chipsAdjustedThisRound = false
 		t.endedAt = 0
 		t.endAfterHand = false
 		t.buttonSeat = -1
@@ -1667,6 +1683,7 @@ func (t *Table) applyChips(p *Player, delta int64, note string) error {
 	if delta > 0 {
 		p.BuyInTotal += delta
 	}
+	t.chipsAdjustedThisRound = true
 	switch {
 	case p.Stack == 0 && p.Status == StatusActive:
 		p.Status = StatusBusted
@@ -1746,7 +1763,7 @@ func (t *Table) persistPlayer(p *Player) {
 		MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed, HandsWon: p.HandsWon,
 		BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, LeftAt: p.LeftAt, Avatar: p.Avatar, Hat: p.Hat,
 		WinStreak: p.WinStreak, VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon,
-		TimeBank: p.TimeBank, Place: p.Place,
+		TimeBank: p.TimeBank, Place: p.Place, AccountID: p.AccountID, AccountHandle: p.AccountHandle,
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpsertPlayer(ctx, row)

@@ -32,10 +32,20 @@ type harness struct {
 	reg  *table.Registry
 	srv  *httptest.Server
 	base string
+	// extraHeaders is set for one request by requestWith.
+	extraHeaders map[string]string
 }
 
-func newHarness(t *testing.T, dir, addr string) *harness {
+// newHarness boots the server; env overrides single configuration values
+// (for example ACCOUNTS) for the test.
+func newHarness(t *testing.T, dir, addr string, env ...map[string]string) *harness {
 	t.Helper()
+	settings := map[string]string{"TRUST_PROXY": "false", "LOG_FORMAT": "text"}
+	for _, m := range env {
+		for k, v := range m {
+			settings[k] = v
+		}
+	}
 	// Warnings and errors of the server under test are kept in memory and
 	// printed only when the test fails; SHOWDOWN_TEST_LOG streams everything.
 	var logBuf syncBuffer
@@ -58,15 +68,7 @@ func newHarness(t *testing.T, dir, addr string) *harness {
 	if err := reg.LoadAll(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	cfg, err := config.Load(func(k string) string {
-		switch k {
-		case "TRUST_PROXY":
-			return "false"
-		case "LOG_FORMAT":
-			return "text"
-		}
-		return ""
-	})
+	cfg, err := config.Load(func(k string) string { return settings[k] })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,6 +105,14 @@ func (h *harness) stop() {
 	_ = h.st.Close()
 }
 
+// requestWith is request with extra headers.
+func (h *harness) requestWith(method, path, token string, headers map[string]string, body any) (int, map[string]any) {
+	h.t.Helper()
+	h.extraHeaders = headers
+	defer func() { h.extraHeaders = nil }()
+	return h.request(method, path, token, body)
+}
+
 func (h *harness) request(method, path, token string, body any) (int, map[string]any) {
 	h.t.Helper()
 	var rd io.Reader
@@ -119,6 +129,9 @@ func (h *harness) request(method, path, token string, body any) (int, map[string
 	}
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	for k, v := range h.extraHeaders {
+		req.Header.Set(k, v)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

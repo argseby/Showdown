@@ -462,6 +462,9 @@ func (t *Table) finishHand() {
 			t.setState(StatePaused, "table_paused")
 		}
 	}
+	// Before the per-hand flags are cleared and a leaving player's seat is
+	// freed: the profile rows need the hand exactly as it was played.
+	t.recordHandResults()
 	var leaving []*Player
 	for _, p := range t.seats[:maxSeats] {
 		if p == nil || !p.inHand {
@@ -631,6 +634,7 @@ func (t *Table) endTable() {
 		p.inHand = false
 		t.persistPlayer(p)
 	}
+	t.recordRoundResults()
 	// Taken before a new round resets every stack and statistic: from here
 	// on this is the only readable record of how the round went.
 	standings := t.leaderboard()

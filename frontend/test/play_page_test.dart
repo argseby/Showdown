@@ -11,6 +11,7 @@ import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showdown/app/preferences.dart';
+import 'package:showdown/core/account.dart';
 import 'package:showdown/core/gamepad/gamepad.dart';
 import 'package:showdown/core/gamepad/pad_section.dart';
 import 'package:showdown/core/providers.dart';
@@ -27,6 +28,18 @@ import 'package:showdown/features/table/widgets/table_rules_dialog.dart';
 import 'package:showdown/shared/playing_card.dart';
 
 import 'test_helpers.dart';
+
+/// A profile token store that always hands back the same token.
+class _FixedToken extends AccountTokenStore {
+  _FixedToken(this.token);
+  String? token;
+  @override
+  Future<String?> load() async => token;
+  @override
+  Future<void> save(String t) async => token = t;
+  @override
+  Future<void> clear() async => token = null;
+}
 
 /// A transport that answers hello with the snapshot fixture as welcome and
 /// records what the client sends.
@@ -179,6 +192,7 @@ void main() {
   Future<void> pumpPlay(
     WidgetTester tester, {
     List<Override> extra = const [],
+    MockClient? api,
   }) async {
     store = _MemorySessionStore(
       const StoredSession(
@@ -211,16 +225,19 @@ void main() {
         overrides: [
           sessionStoreProvider.overrideWithValue(store),
           ...extra,
-          // The REST API answers nothing: the table needs only the socket.
+          // The REST API answers nothing unless the test speaks for it:
+          // the table itself needs only the socket.
           restClientProvider.overrideWithValue(
             RestClient(
               baseUrl: 'http://test',
-              client: MockClient(
-                (req) async => http.Response(
-                  '{"error":{"code":"not_found","message":"no"}}',
-                  404,
-                ),
-              ),
+              client:
+                  api ??
+                  MockClient(
+                    (req) async => http.Response(
+                      '{"error":{"code":"not_found","message":"no"}}',
+                      404,
+                    ),
+                  ),
             ),
           ),
         ],
@@ -347,6 +364,58 @@ void main() {
     expect(find.byKey(const Key('menu-other-table')), findsOneWidget);
     // A seated player is not offered "take a seat".
     expect(find.byKey(const Key('menu-take-seat')), findsNothing);
+  });
+
+  testWidgets('the settings tab carries the profile and its record', (
+    tester,
+  ) async {
+    // An instance with profiles, and a player signed in on this device.
+    final api = MockClient((req) async {
+      if (req.url.path == '/api/accounts/me') {
+        return http.Response(
+          jsonEncode({
+            'account': {
+              'id': 'u1',
+              'handle': 'alice',
+              'display_name': 'Alice',
+            },
+          }),
+          200,
+        );
+      }
+      if (req.url.path == '/api/accounts/me/stats') {
+        return http.Response(
+          jsonEncode({'hands': 12, 'net': 900, 'net_bb': 9.0, 'tables': 1}),
+          200,
+        );
+      }
+      return http.Response('{"error":{"code":"not_found"}}', 404);
+    });
+    await pumpPlay(
+      tester,
+      api: api,
+      extra: [
+        accountsEnabledProvider.overrideWith((ref) async => true),
+        accountTokenStoreProvider.overrideWithValue(_FixedToken('tok')),
+      ],
+    );
+    await tester.ensureVisible(find.byKey(const Key('tab-settings')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('tab-settings')));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    // The profile group: who you are, and — its own entry — your record.
+    expect(find.byKey(const Key('settings-account')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('settings-stats')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('settings-stats')));
+    // The felt keeps animating, so settle by hand.
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.text('Your statistics'), findsOneWidget);
+    // Money, not big blinds, is what the page leads with.
+    expect(find.text('+900'), findsOneWidget);
   });
 
   testWidgets('the settings tab changes the hat and sends the pick', (

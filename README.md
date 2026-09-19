@@ -1,8 +1,9 @@
 # Showdown
 
-Self-hosted No-Limit Texas Hold'em for friends. One `docker compose up`, no accounts,
+Self-hosted No-Limit Texas Hold'em for friends. One `docker compose up`, no sign-up,
 no external requests. Anyone on your instance creates a table, shares the link, and
-plays in the browser.
+plays in the browser. Player profiles are optional and off by default; guests can
+always play.
 
 ![A full table in Showdown: eight players, community cards and the pot](promo.png)
 
@@ -34,6 +35,9 @@ plays in the browser.
   notifications, English and German.
 - Keyboard shortcuts for every action (press `?` at the table), and a game controller
   works too: X folds, A checks or calls, Y raises, the D-pad moves through the menus.
+- Optional player profiles (`ACCOUNTS=true`): a name, a password and a recovery
+  code — no mail server, no third party. A profile marks your seat and will carry
+  your statistics; playing as a guest stays possible everywhere.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install

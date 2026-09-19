@@ -11,6 +11,12 @@ final serverVersionProvider = FutureProvider<String?>(
   (ref) => ref.read(restClientProvider).serverVersion(),
 );
 
+/// Whether this instance offers player profiles. False everywhere by
+/// default, and then nothing about sign-in is shown.
+final accountsEnabledProvider = FutureProvider<bool>(
+  (ref) => ref.read(restClientProvider).accountsEnabled(),
+);
+
 /// Opens external links (the project page in the footer) in a new tab.
 final linkOpenerProvider = Provider<LinkOpener>((ref) => LinkOpener.create());
 

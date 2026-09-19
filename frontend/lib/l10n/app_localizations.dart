@@ -548,6 +548,504 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
+  /// No description provided for @accountSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountSignInTitle;
+
+  /// No description provided for @accountSignInBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile keeps your statistics across tables. You can always play as a guest instead.'**
+  String get accountSignInBody;
+
+  /// No description provided for @accountCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a profile'**
+  String get accountCreateTitle;
+
+  /// No description provided for @accountCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a name and a password. No email, nothing to confirm — you get one recovery code instead.'**
+  String get accountCreateBody;
+
+  /// No description provided for @accountHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (a–z, 0–9, _)'**
+  String get accountHandle;
+
+  /// No description provided for @accountPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (at least 8 characters)'**
+  String get accountPassword;
+
+  /// No description provided for @accountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountSignIn;
+
+  /// No description provided for @accountCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create profile'**
+  String get accountCreate;
+
+  /// No description provided for @accountNeedOne.
+  ///
+  /// In en, this message translates to:
+  /// **'No profile yet? Create one'**
+  String get accountNeedOne;
+
+  /// No description provided for @accountHaveOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have a profile? Sign in'**
+  String get accountHaveOne;
+
+  /// No description provided for @accountMissingFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in both fields.'**
+  String get accountMissingFields;
+
+  /// No description provided for @accountHandleTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is taken.'**
+  String get accountHandleTaken;
+
+  /// No description provided for @accountBadCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong name or password.'**
+  String get accountBadCredentials;
+
+  /// No description provided for @accountsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'This instance has no player profiles.'**
+  String get accountsOff;
+
+  /// No description provided for @accountRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this down'**
+  String get accountRecoveryTitle;
+
+  /// No description provided for @accountRecoveryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This code is the only way back into your profile if you forget your password. It is shown once and never again — no email is sent.'**
+  String get accountRecoveryBody;
+
+  /// No description provided for @accountRecoveryDone.
+  ///
+  /// In en, this message translates to:
+  /// **'I wrote it down'**
+  String get accountRecoveryDone;
+
+  /// No description provided for @accountRecoveryCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get accountRecoveryCopy;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountHandleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get accountHandleLabel;
+
+  /// No description provided for @accountDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown as'**
+  String get accountDisplayName;
+
+  /// No description provided for @accountStatsSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile marks your seat. Statistics, best hands and achievements follow.'**
+  String get accountStatsSoon;
+
+  /// No description provided for @accountChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get accountChangePassword;
+
+  /// No description provided for @accountCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get accountCurrentPassword;
+
+  /// No description provided for @accountNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get accountNewPassword;
+
+  /// No description provided for @accountSavePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get accountSavePassword;
+
+  /// No description provided for @accountPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A new password signs your other devices out and gives you a new recovery code.'**
+  String get accountPasswordHint;
+
+  /// No description provided for @accountMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get accountMenu;
+
+  /// No description provided for @accountMenuHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile, password and sign out'**
+  String get accountMenuHint;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your statistics'**
+  String get statsTitle;
+
+  /// No description provided for @statsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet — play a hand while signed in and it lands here.'**
+  String get statsEmpty;
+
+  /// No description provided for @statsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get statsOpen;
+
+  /// No description provided for @statsSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing since {date}'**
+  String statsSince(String date);
+
+  /// No description provided for @statsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Played'**
+  String get statsVolume;
+
+  /// No description provided for @statsHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands'**
+  String get statsHands;
+
+  /// No description provided for @statsMenuHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your hands, results and the way you play'**
+  String get statsMenuHint;
+
+  /// No description provided for @statsTabOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get statsTabOverview;
+
+  /// No description provided for @statsTabHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands'**
+  String get statsTabHands;
+
+  /// No description provided for @statsOverHands.
+  ///
+  /// In en, this message translates to:
+  /// **'over {hands} hands at {tables} tables'**
+  String statsOverHands(String hands, String tables);
+
+  /// No description provided for @statsFirstHand.
+  ///
+  /// In en, this message translates to:
+  /// **'First hand'**
+  String get statsFirstHand;
+
+  /// No description provided for @statsBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get statsBest;
+
+  /// No description provided for @statsBiggestPotHint.
+  ///
+  /// In en, this message translates to:
+  /// **'the whole pot, your own chips included'**
+  String get statsBiggestPotHint;
+
+  /// No description provided for @statsBestRoundHint.
+  ///
+  /// In en, this message translates to:
+  /// **'what you were up when a table ended'**
+  String get statsBestRoundHint;
+
+  /// No description provided for @statsRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Win rate'**
+  String get statsRate;
+
+  /// No description provided for @statsPer100Chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 100 hands'**
+  String get statsPer100Chips;
+
+  /// No description provided for @statsBbHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A big blind is the table\'s big forced bet. Counting in big blinds is how tables that play for different amounts compare.'**
+  String get statsBbHint;
+
+  /// No description provided for @statsShowdownGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdowns'**
+  String get statsShowdownGroup;
+
+  /// No description provided for @statsNoHandsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No hand of yours has reached the end yet.'**
+  String get statsNoHandsYet;
+
+  /// No description provided for @statsTables.
+  ///
+  /// In en, this message translates to:
+  /// **'Tables'**
+  String get statsTables;
+
+  /// No description provided for @statsRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds'**
+  String get statsRounds;
+
+  /// No description provided for @statsMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get statsMoney;
+
+  /// No description provided for @statsNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get statsNet;
+
+  /// No description provided for @statsNetBB.
+  ///
+  /// In en, this message translates to:
+  /// **'In big blinds'**
+  String get statsNetBB;
+
+  /// No description provided for @statsPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 100 hands in bb'**
+  String get statsPer100;
+
+  /// No description provided for @statsBiggestPot.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest pot won'**
+  String get statsBiggestPot;
+
+  /// No description provided for @statsBiggestWin.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest hand'**
+  String get statsBiggestWin;
+
+  /// No description provided for @statsBestRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Best round'**
+  String get statsBestRound;
+
+  /// No description provided for @statsHandsWon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands won'**
+  String get statsHandsWon;
+
+  /// No description provided for @statsRoundsWon.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds won'**
+  String get statsRoundsWon;
+
+  /// No description provided for @statsPodiums.
+  ///
+  /// In en, this message translates to:
+  /// **'Top three'**
+  String get statsPodiums;
+
+  /// No description provided for @statsTournaments.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournaments'**
+  String get statsTournaments;
+
+  /// No description provided for @statsStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get statsStyle;
+
+  /// No description provided for @statsVpip.
+  ///
+  /// In en, this message translates to:
+  /// **'Played the hand'**
+  String get statsVpip;
+
+  /// No description provided for @statsShowdowns.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdowns won'**
+  String get statsShowdowns;
+
+  /// No description provided for @statsNoShowdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Won without showdown'**
+  String get statsNoShowdown;
+
+  /// No description provided for @statsFolded.
+  ///
+  /// In en, this message translates to:
+  /// **'Folded'**
+  String get statsFolded;
+
+  /// No description provided for @statsAllIns.
+  ///
+  /// In en, this message translates to:
+  /// **'All-ins'**
+  String get statsAllIns;
+
+  /// No description provided for @statsHandClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands made'**
+  String get statsHandClasses;
+
+  /// No description provided for @statsShownOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} shown'**
+  String statsShownOf(String shown);
+
+  /// No description provided for @statsCountedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted: {counted} of {hands} hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.'**
+  String statsCountedNote(String counted, String hands);
+
+  /// No description provided for @handRoyalFlush.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal flush'**
+  String get handRoyalFlush;
+
+  /// No description provided for @handStraightFlush.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight flush'**
+  String get handStraightFlush;
+
+  /// No description provided for @handFourOfAKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Four of a kind'**
+  String get handFourOfAKind;
+
+  /// No description provided for @handFullHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Full house'**
+  String get handFullHouse;
+
+  /// No description provided for @handFlush.
+  ///
+  /// In en, this message translates to:
+  /// **'Flush'**
+  String get handFlush;
+
+  /// No description provided for @handStraight.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight'**
+  String get handStraight;
+
+  /// No description provided for @handThreeOfAKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Three of a kind'**
+  String get handThreeOfAKind;
+
+  /// No description provided for @handTwoPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Two pair'**
+  String get handTwoPair;
+
+  /// No description provided for @handPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair'**
+  String get handPair;
+
+  /// No description provided for @handHighCard.
+  ///
+  /// In en, this message translates to:
+  /// **'High card'**
+  String get handHighCard;
+
+  /// No description provided for @accountSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {handle}'**
+  String accountSignedInAs(String handle);
+
+  /// No description provided for @accountGuestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing as a guest'**
+  String get accountGuestHint;
+
+  /// No description provided for @accountPlayAsGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Play as guest'**
+  String get accountPlayAsGuest;
+
   /// No description provided for @confirm.
   ///
   /// In en, this message translates to:

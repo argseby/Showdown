@@ -227,3 +227,53 @@ func TestShowCardsBeforeTheFlopDescribesTheHand(t *testing.T) {
 		t.Errorf("Description = %q", got)
 	}
 }
+
+// The record of what a player made: everyone still in the hand, shown or
+// mucked, and nothing for a hand that was folded.
+func TestMadeHandCoversMuckedHands(t *testing.T) {
+	t.Parallel()
+	seats := []Seat{{0, 1000}, {1, 1000}, {2, 1000}}
+	holes := map[int]string{0: "As Ad", 1: "9c 9h", 2: "2h 7d"}
+	h, _ := newTestHand(t, cfgWith(0), seats, holes, "9s Kh 7c 4d Jc")
+	if _, ok := h.MadeHand(0); ok {
+		t.Error("before the flop there is no hand to speak of")
+	}
+	// Seat 2 folds preflop; the others check it down to the river.
+	for h.Phase() != PhaseResult {
+		if seat, ok := h.ToAct(); ok {
+			o := h.Options(seat)
+			switch {
+			case seat == 2 && o.Fold:
+				act(t, h, seat, Fold, 0)
+			case o.Check:
+				act(t, h, seat, Check, 0)
+			default:
+				act(t, h, seat, Call, 0)
+			}
+			continue
+		}
+		advance(t, h)
+	}
+	if v, ok := h.MadeHand(1); !ok || v.Category != ThreeOfAKind {
+		t.Errorf("seat 1 made %v (%v), want trips", v.Category, ok)
+	}
+	// Mucked or not, a hand that went the distance is on the record.
+	if v, ok := h.MadeHand(0); !ok || v.Category != OnePair {
+		t.Errorf("seat 0 made %v (%v), want a pair", v.Category, ok)
+	}
+	if _, ok := h.MadeHand(2); ok {
+		t.Error("a folded hand is not a hand")
+	}
+}
+
+func TestIsRoyalFlush(t *testing.T) {
+	t.Parallel()
+	royal := Evaluate(MustParseCards("As Ks Qs Js Ts 2c 3d"))
+	if !IsRoyalFlush(royal) {
+		t.Errorf("royal flush not recognised: %s", royal.Describe())
+	}
+	lower := Evaluate(MustParseCards("9s 8s 7s 6s 5s 2c 3d"))
+	if IsRoyalFlush(lower) {
+		t.Errorf("%s counted as royal", lower.Describe())
+	}
+}

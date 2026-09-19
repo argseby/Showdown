@@ -3,6 +3,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../app/l10n.dart';
 import '../app/theme.dart';
+import '../core/account.dart';
+import '../core/providers.dart';
+import '../features/account/account_dialog.dart';
+import '../features/account/account_sheet.dart';
 
 /// Application bar with the theme and language toggles that every screen
 /// shares. Screens add their own [trailing] controls in front of them.
@@ -67,7 +71,12 @@ class TopBar extends ConsumerWidget {
       return AppBar(
         title: title,
         leading: leading,
-        trailing: [...trailing, languageButton, themeButton],
+        trailing: [
+          const AccountButton(),
+          ...trailing,
+          languageButton,
+          themeButton,
+        ],
       );
     }
     return AppBar(
@@ -75,6 +84,7 @@ class TopBar extends ConsumerWidget {
       subtitle: subtitle,
       leading: leading,
       trailing: [
+        const AccountButton(),
         ...trailing,
         Tooltip(
           tooltip: TooltipContainer(child: Text(l10n.languageToggle)).call,
@@ -99,6 +109,48 @@ class TopBar extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The profile in the app bar: "Sign in" while signed out, the handle once
+/// signed in, so nobody has to guess what the button does or whether they
+/// are signed in. Nothing at all on an
+/// instance without profiles, which is the default.
+class AccountButton extends ConsumerWidget {
+  const AccountButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    if (ref.watch(accountsEnabledProvider).value != true) {
+      return const SizedBox.shrink();
+    }
+    final account = ref.watch(accountProvider).value;
+    return Tooltip(
+      tooltip: TooltipContainer(
+        child: Text(
+          account == null
+              ? l10n.accountSignInTitle
+              : l10n.accountSignedInAs(account.handle),
+        ),
+      ).call,
+      child: GhostButton(
+        key: const Key('account-button'),
+        size: ButtonSize.small,
+        onPressed: () => account == null
+            ? showAccountDialog(context)
+            : showAccountSheet(context),
+        leading: Icon(
+          account == null ? LucideIcons.user : LucideIcons.userCheck,
+          size: 16,
+        ),
+        // "Sign in" says what the button does; once signed in the handle
+        // says who you are.
+        child: Text(
+          account == null ? l10n.accountSignIn : '@${account.handle}',
+        ),
+      ),
     );
   }
 }

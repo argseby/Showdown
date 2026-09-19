@@ -225,6 +225,7 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 				WinStreak: pr.WinStreak,
 				VPIPHands: pr.VPIPHands, Showdowns: pr.Showdowns, ShowdownsWon: pr.ShowdownsWon,
 				TimeBank: pr.TimeBank, Place: pr.Place,
+				AccountID: pr.AccountID, AccountHandle: pr.AccountHandle,
 				pendingSeat: -1,
 			}
 			if pr.Seat >= 0 && pr.Seat < maxSeats {

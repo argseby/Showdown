@@ -90,8 +90,30 @@ class _PlayerMenu extends ConsumerWidget {
         row(icon, label, Switch(key: key, value: value, onChanged: onChanged));
 
     final admin = this.admin;
+    final handle = player.account;
     return AlertDialog(
-      title: Text(player.name),
+      // A signed-in player carries their profile name under the one they
+      // sat down with; a guest shows nothing extra.
+      title: handle == null || handle.isEmpty
+          ? Text(player.name)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(player.name),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.userCheck, size: 12),
+                    const Gap(4),
+                    Text(
+                      '@$handle',
+                      key: const Key('player-handle'),
+                    ).muted().small(),
+                  ],
+                ),
+              ],
+            ),
       content: SizedBox(
         width: 320,
         child: Column(

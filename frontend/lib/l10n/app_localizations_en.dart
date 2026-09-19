@@ -265,6 +265,272 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String get accountSignInTitle => 'Sign in';
+
+  @override
+  String get accountSignInBody =>
+      'Your profile keeps your statistics across tables. You can always play as a guest instead.';
+
+  @override
+  String get accountCreateTitle => 'Create a profile';
+
+  @override
+  String get accountCreateBody =>
+      'Pick a name and a password. No email, nothing to confirm — you get one recovery code instead.';
+
+  @override
+  String get accountHandle => 'Name (a–z, 0–9, _)';
+
+  @override
+  String get accountPassword => 'Password (at least 8 characters)';
+
+  @override
+  String get accountSignIn => 'Sign in';
+
+  @override
+  String get accountCreate => 'Create profile';
+
+  @override
+  String get accountNeedOne => 'No profile yet? Create one';
+
+  @override
+  String get accountHaveOne => 'Already have a profile? Sign in';
+
+  @override
+  String get accountMissingFields => 'Please fill in both fields.';
+
+  @override
+  String get accountHandleTaken => 'That name is taken.';
+
+  @override
+  String get accountBadCredentials => 'Wrong name or password.';
+
+  @override
+  String get accountsOff => 'This instance has no player profiles.';
+
+  @override
+  String get accountRecoveryTitle => 'Write this down';
+
+  @override
+  String get accountRecoveryBody =>
+      'This code is the only way back into your profile if you forget your password. It is shown once and never again — no email is sent.';
+
+  @override
+  String get accountRecoveryDone => 'I wrote it down';
+
+  @override
+  String get accountRecoveryCopy => 'Copy code';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountHandleLabel => 'Name';
+
+  @override
+  String get accountDisplayName => 'Shown as';
+
+  @override
+  String get accountStatsSoon =>
+      'Your profile marks your seat. Statistics, best hands and achievements follow.';
+
+  @override
+  String get accountChangePassword => 'Change password';
+
+  @override
+  String get accountCurrentPassword => 'Current password';
+
+  @override
+  String get accountNewPassword => 'New password';
+
+  @override
+  String get accountSavePassword => 'Save';
+
+  @override
+  String get accountPasswordHint =>
+      'A new password signs your other devices out and gives you a new recovery code.';
+
+  @override
+  String get accountMenu => 'Profile';
+
+  @override
+  String get accountMenuHint => 'Your profile, password and sign out';
+
+  @override
+  String get statsTitle => 'Your statistics';
+
+  @override
+  String get statsEmpty =>
+      'Nothing yet — play a hand while signed in and it lands here.';
+
+  @override
+  String get statsOpen => 'Statistics';
+
+  @override
+  String statsSince(String date) {
+    return 'Playing since $date';
+  }
+
+  @override
+  String get statsVolume => 'Played';
+
+  @override
+  String get statsHands => 'Hands';
+
+  @override
+  String get statsMenuHint => 'Your hands, results and the way you play';
+
+  @override
+  String get statsTabOverview => 'Overview';
+
+  @override
+  String get statsTabHands => 'Hands';
+
+  @override
+  String statsOverHands(String hands, String tables) {
+    return 'over $hands hands at $tables tables';
+  }
+
+  @override
+  String get statsFirstHand => 'First hand';
+
+  @override
+  String get statsBest => 'Best';
+
+  @override
+  String get statsBiggestPotHint => 'the whole pot, your own chips included';
+
+  @override
+  String get statsBestRoundHint => 'what you were up when a table ended';
+
+  @override
+  String get statsRate => 'Win rate';
+
+  @override
+  String get statsPer100Chips => 'Per 100 hands';
+
+  @override
+  String get statsBbHint =>
+      'A big blind is the table\'s big forced bet. Counting in big blinds is how tables that play for different amounts compare.';
+
+  @override
+  String get statsShowdownGroup => 'Showdowns';
+
+  @override
+  String get statsNoHandsYet => 'No hand of yours has reached the end yet.';
+
+  @override
+  String get statsTables => 'Tables';
+
+  @override
+  String get statsRounds => 'Rounds';
+
+  @override
+  String get statsMoney => 'Results';
+
+  @override
+  String get statsNet => 'Net';
+
+  @override
+  String get statsNetBB => 'In big blinds';
+
+  @override
+  String get statsPer100 => 'Per 100 hands in bb';
+
+  @override
+  String get statsBiggestPot => 'Biggest pot won';
+
+  @override
+  String get statsBiggestWin => 'Biggest hand';
+
+  @override
+  String get statsBestRound => 'Best round';
+
+  @override
+  String get statsHandsWon => 'Hands won';
+
+  @override
+  String get statsRoundsWon => 'Rounds won';
+
+  @override
+  String get statsPodiums => 'Top three';
+
+  @override
+  String get statsTournaments => 'Tournaments';
+
+  @override
+  String get statsStyle => 'Style';
+
+  @override
+  String get statsVpip => 'Played the hand';
+
+  @override
+  String get statsShowdowns => 'Showdowns won';
+
+  @override
+  String get statsNoShowdown => 'Won without showdown';
+
+  @override
+  String get statsFolded => 'Folded';
+
+  @override
+  String get statsAllIns => 'All-ins';
+
+  @override
+  String get statsHandClasses => 'Hands made';
+
+  @override
+  String statsShownOf(String shown) {
+    return '$shown shown';
+  }
+
+  @override
+  String statsCountedNote(String counted, String hands) {
+    return 'Counted: $counted of $hands hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.';
+  }
+
+  @override
+  String get handRoyalFlush => 'Royal flush';
+
+  @override
+  String get handStraightFlush => 'Straight flush';
+
+  @override
+  String get handFourOfAKind => 'Four of a kind';
+
+  @override
+  String get handFullHouse => 'Full house';
+
+  @override
+  String get handFlush => 'Flush';
+
+  @override
+  String get handStraight => 'Straight';
+
+  @override
+  String get handThreeOfAKind => 'Three of a kind';
+
+  @override
+  String get handTwoPair => 'Two pair';
+
+  @override
+  String get handPair => 'Pair';
+
+  @override
+  String get handHighCard => 'High card';
+
+  @override
+  String accountSignedInAs(String handle) {
+    return 'Signed in as $handle';
+  }
+
+  @override
+  String get accountGuestHint => 'Playing as a guest';
+
+  @override
+  String get accountPlayAsGuest => 'Play as guest';
+
+  @override
   String get confirm => 'Confirm';
 
   @override

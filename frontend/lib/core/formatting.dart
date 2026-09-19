@@ -76,3 +76,7 @@ double nameHue(String name) {
 
 String formatClock(int ts) =>
     DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(ts));
+
+/// A date without the time, for "playing since ..." lines.
+String formatDate(int ts, String locale) =>
+    DateFormat.yMMMd(locale).format(DateTime.fromMillisecondsSinceEpoch(ts));

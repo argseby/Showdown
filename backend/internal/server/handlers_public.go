@@ -76,7 +76,13 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 	if req.Hat != nil {
 		hat = *req.Hat
 	}
-	res, err := t.Join(req.Name, seat, avatar, hat)
+	// Signed in? The seat carries the profile; a guest passes the zero
+	// value and plays exactly as before.
+	var profile table.Profile
+	if a, ok := s.accountOf(r.Context(), r); ok {
+		profile = table.Profile{ID: a.ID, Handle: a.Handle}
+	}
+	res, err := t.Join(req.Name, seat, avatar, hat, profile)
 	if err != nil {
 		writeErr(w, err)
 		return
