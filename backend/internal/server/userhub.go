@@ -29,7 +29,8 @@ func newUserHub() *userHub { return &userHub{conns: map[string][]*wsConn{}} }
 func (h *userHub) add(accountID string, c *wsConn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	list := append(h.conns[accountID], c)
+	list := h.conns[accountID]
+	list = append(list, c)
 	// Oldest first: the ones over the limit are dropped, not refused, so a
 	// reconnecting device never finds itself locked out by its own ghost.
 	for len(list) > userSocketLimit {
@@ -67,13 +68,6 @@ func (h *userHub) send(accountID string, env protocol.Envelope) {
 	for _, c := range conns {
 		c.Send(env)
 	}
-}
-
-// online reports whether a profile has a user socket open anywhere.
-func (h *userHub) online(accountID string) bool {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	return len(h.conns[accountID]) > 0
 }
 
 // notify sends one event to a profile.

@@ -153,6 +153,7 @@ func (s *Server) handleAdminKick(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.audit(r, "kick", t.ID, r.PathValue("pid"), nil)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "kicked"})
 }
 
@@ -169,7 +170,7 @@ func (s *Server) handleAdminAddBot(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
-	s.audit(r, "add_bot", t.ID, "", map[string]any{"name": res.Name, "seat": res.Seat})
+	s.audit(r, "add_bot", t.ID, res.PlayerID, map[string]any{"name": res.Name, "seat": res.Seat})
 	writeJSON(w, http.StatusCreated, map[string]any{"player_id": res.PlayerID, "name": res.Name, "seat": res.Seat})
 }
 
@@ -190,6 +191,7 @@ func (s *Server) handleAdminChips(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.audit(r, "chips", t.ID, r.PathValue("pid"), map[string]any{"delta": req.Delta, "note": req.Note, "queued": !applied})
 	writeJSON(w, http.StatusOK, map[string]any{"applied": applied, "queued": !applied})
 }
 
@@ -208,6 +210,7 @@ func (s *Server) handleAdminMute(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.audit(r, "mute", t.ID, r.PathValue("pid"), map[string]any{"muted": req.Muted})
 	writeJSON(w, http.StatusOK, map[string]bool{"muted": req.Muted})
 }
 
@@ -222,6 +225,7 @@ func (s *Server) handleAdminMuteVoice(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.audit(r, "mute_voice", t.ID, r.PathValue("pid"), nil)
 	writeJSON(w, http.StatusOK, map[string]string{"voice": table.VoiceMuted})
 }
 
@@ -236,6 +240,7 @@ func (s *Server) handleAdminCameraOff(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.audit(r, "camera_off", t.ID, r.PathValue("pid"), nil)
 	writeJSON(w, http.StatusOK, map[string]bool{"camera": false})
 }
 
@@ -381,6 +386,8 @@ func (s *Server) handleAdminDeleteChat(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "removed"})
 }
 
+// audit writes one admin action to the log. playerID names the player the
+// action was aimed at, and is empty for the ones aimed at the table itself.
 func (s *Server) audit(r *http.Request, action, tableID, playerID string, details map[string]any) {
 	var raw []byte
 	if details != nil {
