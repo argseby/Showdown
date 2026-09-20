@@ -63,6 +63,12 @@ type Delays struct {
 	// clients present the pots one after another (side pots first, main pot
 	// last) and each one needs its moment on screen.
 	PotAward time.Duration
+	// BotThinkMin and BotThinkMax bound the pause a bot takes before it
+	// acts (see botSeat.thinkFor). Zero means no pause at all, which is
+	// what a test wants: a table of bots then plays as fast as the actor
+	// can deal, instead of spending seconds a second per decision.
+	BotThinkMin time.Duration
+	BotThinkMax time.Duration
 }
 
 // DefaultDelays are the production values.
@@ -70,7 +76,8 @@ var DefaultDelays = Delays{
 	Street: 800 * time.Millisecond, Runout: 1200 * time.Millisecond,
 	Showdown: 3500 * time.Millisecond, ShowdownPerHand: 1500 * time.Millisecond,
 	ResultExtension: 5 * time.Second, RunTwiceDecision: 8 * time.Second,
-	PotAward: 2500 * time.Millisecond,
+	PotAward:    2500 * time.Millisecond,
+	BotThinkMin: 700 * time.Millisecond, BotThinkMax: 2200 * time.Millisecond,
 }
 
 // Conn is the transport side of a connected client. Send must never block
