@@ -1004,7 +1004,8 @@ class _PlayPageState extends ConsumerState<PlayPage>
     // worth stranding a player for — connect as an ordinary one instead.
     final adminTokenAsync = ref.watch(adminTokenProvider(widget.tableId));
     final adminToken = adminTokenAsync.value;
-    if (stored != null && (adminTokenAsync.hasValue || adminTokenAsync.hasError)) {
+    if (stored != null &&
+        (adminTokenAsync.hasValue || adminTokenAsync.hasError)) {
       // Never open the socket inside build: state changes would race the
       // frame. The notifier ignores repeated calls with the same tokens.
       final token = stored.token;
