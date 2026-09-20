@@ -101,34 +101,11 @@ class _VisibilityDialogState extends ConsumerState<VisibilityDialog> {
               children: [
                 Text(l10n.visBody).muted().small(),
                 const Gap(12),
-                for (final section in visibilitySections)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(visibilityTitle(l10n, section)).small(),
-                              Text(visibilityHint(l10n, section))
-                                  .muted()
-                                  .xSmall(),
-                            ],
-                          ),
-                        ),
-                        const Gap(8),
-                        _Choice(
-                          section: section,
-                          value: visibility[section] ?? 'private',
-                          enabled: _saving == null,
-                          onPick: (v) => _set(section, v),
-                        ),
-                      ],
-                    ),
-                  ),
+                VisibilitySections(
+                  value: visibility,
+                  enabled: _saving == null,
+                  onPick: _set,
+                ),
                 if (allPrivate) ...[
                   const Gap(8),
                   Text(l10n.visAllPrivate).muted().xSmall(),
@@ -151,6 +128,58 @@ class _VisibilityDialogState extends ConsumerState<VisibilityDialog> {
           onPressed: () => closeOverlay<void>(context),
           child: Text(l10n.close),
         ),
+      ],
+    );
+  }
+}
+
+/// The five sections and their three states, as one list. The dialog
+/// saves each pick on its own; signing up collects them and sends one
+/// change at the end.
+class VisibilitySections extends StatelessWidget {
+  const VisibilitySections({
+    super.key,
+    required this.value,
+    required this.onPick,
+    this.enabled = true,
+  });
+
+  final Map<String, String> value;
+  final void Function(String section, String value) onPick;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final section in visibilitySections)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(visibilityTitle(l10n, section)).small(),
+                      Text(visibilityHint(l10n, section)).muted().xSmall(),
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                _Choice(
+                  section: section,
+                  value: value[section] ?? 'friends',
+                  enabled: enabled,
+                  onPick: (v) => onPick(section, v),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

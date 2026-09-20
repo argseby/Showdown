@@ -490,11 +490,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String statsCountedNote(String counted, String hands) {
-    return 'Gewertet: $counted von $hands Händen wurden mit drei oder mehr Profilen und ohne Chip-Anpassungen gespielt — nur die dürfen je in eine öffentliche Summe eingehen.';
-  }
-
-  @override
   String get statsTabAwards => 'Auszeichnungen';
 
   @override
@@ -612,6 +607,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get visMenuHint => 'Was ein öffentliches Profil zeigen würde';
+
+  @override
+  String get visSignUpBody =>
+      'Dein Profil steht. Entscheide, wer was sieht — nur Freunde, alle oder niemand außer dir.';
+
+  @override
+  String get visChangeLater =>
+      'Alles davon lässt sich später unter „Wer was sieht\" ändern.';
+
+  @override
+  String get visFinish => 'Losspielen';
 
   @override
   String get visPublic => 'Öffentlich';
@@ -832,10 +838,12 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get profileWinnings => 'Gewinne';
+  String profileOverHands(String hands) {
+    return 'aus $hands Händen';
+  }
 
   @override
-  String get profileCountedOnly => 'Nur gewertete Hände.';
+  String get profileWinnings => 'Gewinne';
 
   @override
   String get profileBestHands => 'Beste Hände';
@@ -1825,14 +1833,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get valPassword => 'Muss leer oder 4-64 Zeichen lang sein';
 
   @override
+  String get prefsTableSection => 'Wie der Tisch aussieht';
+
+  @override
+  String get prefsMoreSection => 'Alles Weitere';
+
+  @override
+  String get fourColorDeckAbout =>
+      'Eine Farbe je Symbol — Pik schwarz, Herz rot, Karo blau, Kreuz grün — damit ein Flush auf einen Blick auffällt.';
+
+  @override
+  String get handLineAbout =>
+      'Benennt, was du hältst — Zehnerpaar, Flush-Draw — auf dem Filz, unter dem Tisch oder gar nicht.';
+
+  @override
   String get fourColorDeck => 'Vierfarbiges Deck';
 
   @override
   String get chipStacks => 'Chipstapel auf dem Tisch';
 
   @override
-  String get fixedSeats =>
-      'Feste Plätze: der gleiche Tisch für alle (aus: du sitzt unten)';
+  String get chipStacksAbout =>
+      'Zeichnet jeden Einsatz und jeden Stack als echte Chips auf dem Filz statt als Zahl.';
+
+  @override
+  String get fixedSeatsAbout =>
+      'Alle sehen den Tisch gleich herum, dein Platz ist dort, wo du dich hingesetzt hast. Aus dreht sich der Tisch so, dass du immer unten sitzt.';
+
+  @override
+  String get showdownSpotlightAbout =>
+      'Beim Showdown bleibt die Gewinnerhand hell, während der Rest des Tisches abdunkelt — so sieht man, was gewonnen hat.';
+
+  @override
+  String get fixedSeats => 'Feste Plätze';
 
   @override
   String get landingCreateTitle => 'Eine Runde hosten';
@@ -1888,6 +1921,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setAllowDrawing => 'Zeichnen auf dem Tisch erlauben';
+
+  @override
+  String get setTableType => 'Tischart';
+
+  @override
+  String get tableTypeTournamentTitle => 'Daraus ein Turnier machen?';
+
+  @override
+  String get tableTypeTournamentConfirm =>
+      'Die Cash-Game-Einstellungen — Blinds, Startgeld, Rebuys, Platzwechsel — sind ab der ersten ausgeteilten Hand für alle gesperrt, auch für dich. Bis dahin kannst du zurückwechseln.';
+
+  @override
+  String get tableTypeLocked =>
+      'Es wurde bereits eine Hand gespielt: die Tischart steht für diese Runde fest.';
+
+  @override
+  String get tableTypeCash => 'Cash Game';
+
+  @override
+  String get tableTypeTournament => 'Turnier';
 
   @override
   String get setTournament =>
@@ -2393,6 +2446,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get peerReset => 'Zurücksetzen';
+
+  @override
+  String get botSection => 'Bots';
+
+  @override
+  String get botHint =>
+      'Niemanden zum Fragen oder fehlt einer? Setz einen Bot dazu: er spielt selbst, und du wirfst ihn raus wie jeden anderen.';
+
+  @override
+  String get botTableFull =>
+      'Alle Plätze sind besetzt. Mach einen frei für einen Bot.';
+
+  @override
+  String get botAdd => 'Bot dazusetzen';
+
+  @override
+  String botAdded(String name) {
+    return '$name hat sich gesetzt';
+  }
+
+  @override
+  String get botSeatMark => 'Bot';
+
+  @override
+  String get botSeatHint => 'Auf diesem Platz spielt ein Programm, kein Mensch';
 
   @override
   String get peerMutedMark => 'Für dich stummgeschaltet';

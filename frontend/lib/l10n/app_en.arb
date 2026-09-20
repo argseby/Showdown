@@ -245,17 +245,6 @@
       }
     }
   },
-  "statsCountedNote": "Counted: {counted} of {hands} hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.",
-  "@statsCountedNote": {
-    "placeholders": {
-      "counted": {
-        "type": "String"
-      },
-      "hands": {
-        "type": "String"
-      }
-    }
-  },
   "statsTabAwards": "Awards",
   "statsBestHands": "Best hands",
   "statsBiggestPots": "Biggest pots",
@@ -313,6 +302,9 @@
   "visBody": "Your friends can see your record. Nothing is public until you make it so, and anything can go back to private.",
   "visOpen": "Who can see",
   "visMenuHint": "What a public profile would show",
+  "visSignUpBody": "Your profile is made. Decide who sees what — friends only, everyone, or nobody but you.",
+  "visChangeLater": "You can change any of this later under Who can see.",
+  "visFinish": "Start playing",
   "visPublic": "Public",
   "visPrivate": "Private",
   "visProfile": "Profile",
@@ -463,8 +455,15 @@
       }
     }
   },
+  "profileOverHands": "over {hands} hands",
+  "@profileOverHands": {
+    "placeholders": {
+      "hands": {
+        "type": "String"
+      }
+    }
+  },
   "profileWinnings": "Winnings",
-  "profileCountedOnly": "Counted hands only.",
   "profileBestHands": "Best hands",
   "profileAwards": "Awards",
   "profileActivity": "Activity",
@@ -1207,9 +1206,16 @@
   "valBigBlind": "Must be at least the small blind",
   "valDisconnected": "Must be between 3 and the turn time",
   "valPassword": "Must be empty or 4-64 characters",
+  "prefsTableSection": "How the table looks",
+  "prefsMoreSection": "Everything else",
+  "fourColorDeckAbout": "A colour per suit — spades black, hearts red, diamonds blue, clubs green — so a flush is easier to spot at a glance.",
+  "handLineAbout": "Names what you are holding — pair of tens, flush draw — on the felt, under the table, or nowhere at all.",
   "fourColorDeck": "Four-color deck",
   "chipStacks": "Chip stacks on the table",
-  "fixedSeats": "Fixed seats: the same table for everyone (off: you sit at the bottom)",
+  "chipStacksAbout": "Draws every bet and every stack as real chips on the felt instead of a number.",
+  "fixedSeatsAbout": "Everyone sees the table the same way round, with your own seat wherever you sat down. Off, the table turns so that you are always at the bottom.",
+  "showdownSpotlightAbout": "At the showdown the winning hand stays lit while the rest of the table dims, so you can see what won.",
+  "fixedSeats": "Fixed seats",
   "landingCreateTitle": "Host a game",
   "landingCreateHint": "Whoever creates a table hosts it: an Admin tab at the table lets you change settings, manage players and end the game. No account needed.",
   "landingCreate": "Create a table",
@@ -1227,6 +1233,12 @@
   "setBlindsUpMinutes": "Blinds up every (minutes, 0 = off)",
   "setBlindsUpPercent": "Blinds up by (%)",
   "setAllowDrawing": "Allow drawing on the table",
+  "setTableType": "Table type",
+  "tableTypeTournamentTitle": "Make this a tournament?",
+  "tableTypeTournamentConfirm": "Cash game settings — blinds, start money, rebuys, seat changes — are locked for everyone, you included, from the moment the first hand is dealt. Until then you can switch back.",
+  "tableTypeLocked": "A hand has been dealt: the table type is fixed for this round.",
+  "tableTypeCash": "Cash game",
+  "tableTypeTournament": "Tournament",
   "setTournament": "Tournament mode: no chip adjustments at all, and once a hand is dealt money and information settings and seat changes are locked, for the host too",
   "tournamentBadge": "Tournament",
   "tournamentLockedNote": "Tournament running: the settings that could move chips or change what players know are locked.",
@@ -1537,6 +1549,16 @@
   "sayStickers": "Stickers",
   "landingStickers": "Stickers: Noto Emoji (CC BY 4.0)",
   "peerReset": "Reset",
+  "botSection": "Bots",
+  "botHint": "Nobody to ask, or one short of a game? Add a bot: it plays its own hands and you can kick it like anyone else.",
+  "botTableFull": "Every seat is taken. Free one to add a bot.",
+  "botAdd": "Add a bot",
+  "botAdded": "{name} sat down",
+  "@botAdded": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "botSeatMark": "Bot",
+  "botSeatHint": "This seat is played by a program, not a person",
   "peerMutedMark": "Muted for you",
   "peerQuietMark": "Turned down for you",
   "peerNoVideoMark": "Video hidden for you",

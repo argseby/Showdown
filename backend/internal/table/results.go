@@ -8,11 +8,6 @@ import (
 	"showdown/internal/store"
 )
 
-// countedProfiles is how many signed-in players must be dealt in before a
-// hand may stand in a public total: fewer than three and a table is easily
-// arranged to produce a number.
-const countedProfiles = 3
-
 // recordHandResults keeps what every signed-in player did in this hand. It
 // runs while the engine still holds the hand, so a mucked hand can be
 // counted without ever being put into an event.
@@ -27,9 +22,6 @@ func (t *Table) recordHandResults() {
 			profiles++
 		}
 	}
-	// A hand only stands in a public total when enough profiles played it
-	// and nobody was handed chips this round.
-	counted := profiles >= countedProfiles && !t.chipsAdjustedThisRound
 	ended := t.nowMs()
 	var rows []store.HandResultRow
 	for _, p := range t.seats[:maxSeats] {
@@ -45,7 +37,7 @@ func (t *Table) recordHandResults() {
 			HandNumber: t.handNumber, EndedAt: ended, BigBlind: t.settings.BigBlind,
 			Net: sr.Net, Won: sr.Won, DealtIn: true, Folded: sr.Folded,
 			VPIP: p.vpipThisHand, AllIn: sr.AllIn,
-			Category: -1, Counted: counted, Profiles: profiles,
+			Category: -1, Profiles: profiles,
 		}
 		// At the showdown when the hand was still live and contested.
 		row.Showdown = !sr.Folded && t.contested()
@@ -82,7 +74,6 @@ func (t *Table) recordRoundResults() {
 			profiles++
 		}
 	}
-	counted := profiles >= countedProfiles && !t.chipsAdjustedThisRound
 	var rows []store.RoundResultRow
 	for _, p := range t.seats[:maxSeats] {
 		if p == nil || p.AccountID == "" {
@@ -92,7 +83,7 @@ func (t *Table) recordRoundResults() {
 			AccountID: p.AccountID, TableID: t.ID, TableName: t.name,
 			RoundStart: t.roundStartHand, EndedAt: t.endedAt, BigBlind: t.settings.BigBlind,
 			Net: p.Stack - p.BuyInTotal, Place: p.Place, Players: players,
-			Tournament: t.settings.Tournament, Counted: counted,
+			Tournament: t.settings.Tournament,
 		})
 	}
 	if len(rows) == 0 {

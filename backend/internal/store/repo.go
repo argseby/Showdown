@@ -233,8 +233,8 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO players (id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
 			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
-			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle, bot)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			name = excluded.name, seat = excluded.seat, stack = excluded.stack, status = excluded.status,
 			muted = excluded.muted, missed_turns = excluded.missed_turns, buy_in_total = excluded.buy_in_total,
@@ -243,10 +243,10 @@ func (s *Store) UpsertPlayer(ctx context.Context, p PlayerRow) error {
 			win_streak = excluded.win_streak,
 			vpip_hands = excluded.vpip_hands, showdowns = excluded.showdowns, showdowns_won = excluded.showdowns_won,
 			time_bank = excluded.time_bank, place = excluded.place, account_id = excluded.account_id,
-			account_handle = excluded.account_handle`,
+			account_handle = excluded.account_handle, bot = excluded.bot`,
 		p.ID, p.TableID, p.Name, p.Seat, p.Stack, p.Status, b2i(p.Muted), p.MissedTurns, p.BuyInTotal,
 		p.HandsPlayed, p.HandsWon, p.BiggestPot, p.JoinedAt, nullInt(p.LeftAt), p.Avatar, p.Hat, p.WinStreak,
-		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place, p.AccountID, p.AccountHandle)
+		p.VPIPHands, p.Showdowns, p.ShowdownsWon, p.TimeBank, p.Place, p.AccountID, p.AccountHandle, b2i(p.Bot))
 	if err != nil {
 		return fmt.Errorf("upsert player: %w", err)
 	}
@@ -258,7 +258,7 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, table_id, name, seat, stack, status, muted, missed_turns, buy_in_total,
 			hands_played, hands_won, biggest_pot, joined_at, left_at, avatar, hat, win_streak,
-			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle
+			vpip_hands, showdowns, showdowns_won, time_bank, place, account_id, account_handle, bot
 		FROM players WHERE table_id = ? ORDER BY seat, joined_at`, tableID)
 	if err != nil {
 		return nil, fmt.Errorf("list players: %w", err)
@@ -267,15 +267,15 @@ func (s *Store) ListPlayers(ctx context.Context, tableID string) ([]PlayerRow, e
 	var out []PlayerRow
 	for rows.Next() {
 		var p PlayerRow
-		var muted int
+		var muted, bot int
 		var left sql.NullInt64
 		if err := rows.Scan(&p.ID, &p.TableID, &p.Name, &p.Seat, &p.Stack, &p.Status, &muted, &p.MissedTurns,
 			&p.BuyInTotal, &p.HandsPlayed, &p.HandsWon, &p.BiggestPot, &p.JoinedAt, &left, &p.Avatar, &p.Hat, &p.WinStreak,
 			&p.VPIPHands, &p.Showdowns, &p.ShowdownsWon, &p.TimeBank, &p.Place, &p.AccountID,
-			&p.AccountHandle); err != nil {
+			&p.AccountHandle, &bot); err != nil {
 			return nil, err
 		}
-		p.Muted = muted == 1
+		p.Muted, p.Bot = muted == 1, bot == 1
 		p.LeftAt = scanNullInt(left)
 		out = append(out, p)
 	}
@@ -436,12 +436,12 @@ func (s *Store) InsertHandResults(ctx context.Context, rows []HandResultRow) err
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO hand_results (account_id, table_id, table_name, hand_number, ended_at, big_blind,
 				net, won, dealt_in, folded, vpip, showdown, showdown_won, all_in,
-				category, royal, shown, description, best_cards, counted, profiles)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				category, royal, shown, description, best_cards, profiles)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			r.AccountID, r.TableID, r.TableName, r.HandNumber, r.EndedAt, r.BigBlind,
 			r.Net, r.Won, b2i(r.DealtIn), b2i(r.Folded), b2i(r.VPIP), b2i(r.Showdown),
 			b2i(r.ShowdownWon), b2i(r.AllIn), r.Category, b2i(r.Royal), b2i(r.Shown),
-			r.Description, r.BestCards, b2i(r.Counted), r.Profiles); err != nil {
+			r.Description, r.BestCards, r.Profiles); err != nil {
 			return fmt.Errorf("insert hand result: %w", err)
 		}
 	}
@@ -461,10 +461,10 @@ func (s *Store) InsertRoundResults(ctx context.Context, rows []RoundResultRow) e
 	for _, r := range rows {
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO round_results (account_id, table_id, table_name, round_start, ended_at,
-				big_blind, net, place, players, tournament, counted)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				big_blind, net, place, players, tournament)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			r.AccountID, r.TableID, r.TableName, r.RoundStart, r.EndedAt, r.BigBlind,
-			r.Net, r.Place, r.Players, b2i(r.Tournament), b2i(r.Counted)); err != nil {
+			r.Net, r.Place, r.Players, b2i(r.Tournament)); err != nil {
 			return fmt.Errorf("insert round result: %w", err)
 		}
 	}

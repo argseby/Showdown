@@ -22,6 +22,7 @@ import '../../account/account_dialog.dart';
 import '../../account/account_sheet.dart';
 import '../../account/stats_dialog.dart';
 import '../../admin/admin_panel.dart';
+import '../../admin/table_rules_pending.dart';
 import '../../admin/table_rules_section.dart';
 import '../../friends/friends_dialog.dart';
 import '../log_text.dart';
@@ -311,6 +312,11 @@ class SidePanelState extends ConsumerState<SidePanel> {
               ],
               const Gap(4),
               Expanded(child: Text(_pageTitle(l10n, page)).semiBold()),
+              // The rules page settles field by field; what is still typed
+              // can be settled or dropped from here, where a long form
+              // cannot scroll it out of reach.
+              if (page == SettingsPage.hostRules)
+                const TableRulesPendingActions(),
             ],
           );
     return Column(

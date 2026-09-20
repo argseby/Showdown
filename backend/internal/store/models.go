@@ -85,6 +85,9 @@ type PlayerRow struct {
 	// is that profile's handle as it was when the player sat down.
 	AccountID     string
 	AccountHandle string
+	// Bot marks a seat played by a program. The client says so when it
+	// joins; it is a label on the table, not a claim the server can check.
+	Bot bool
 }
 
 // AccountRow mirrors accounts: an optional player profile. Handle is the
@@ -130,7 +133,6 @@ type HandResultRow struct {
 	Shown       bool
 	Description string
 	BestCards   string
-	Counted     bool
 	Profiles    int
 }
 
@@ -146,7 +148,6 @@ type RoundResultRow struct {
 	Place      int
 	Players    int
 	Tournament bool
-	Counted    bool
 }
 
 // AccountSessionRow mirrors account_sessions: a profile login, which

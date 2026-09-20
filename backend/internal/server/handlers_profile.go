@@ -82,16 +82,14 @@ func (s *Server) handleProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if s.canSee(ctx, viewerID, owner, owner.VisWinnings) {
-		// Public numbers are the counted ones: hands played with three or
-		// more profiles and no chips handed out. Everything else is real
-		// but arrangeable, and so stays on the owner's own page.
+		// Every hand played counts, here as on the owner's own page.
 		var per100 float64
-		if stats.CountedHands > 0 {
-			per100 = stats.CountedNetBB / float64(stats.CountedHands) * 100
+		if stats.Hands > 0 {
+			per100 = stats.NetBB / float64(stats.Hands) * 100
 		}
 		out["winnings"] = map[string]any{
-			"hands": stats.CountedHands, "net": stats.CountedNet,
-			"net_bb": stats.CountedNetBB, "bb_per_100": per100,
+			"hands": stats.Hands, "net": stats.Net,
+			"net_bb": stats.NetBB, "bb_per_100": per100,
 			"rounds_won": stats.RoundsWon, "podiums": stats.Podiums,
 		}
 	}

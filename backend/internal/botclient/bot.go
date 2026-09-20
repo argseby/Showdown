@@ -20,6 +20,7 @@ import (
 
 	"github.com/coder/websocket"
 
+	"showdown/internal/botplay"
 	"showdown/internal/protocol"
 )
 
@@ -159,7 +160,10 @@ func (b *Bot) Join(ctx context.Context) error {
 		PlayerID string `json:"player_id"`
 		Seat     int    `json:"seat"`
 	}
-	if err := b.postJSON(ctx, "/api/tables/"+b.cfg.TableID+"/join", map[string]any{"name": b.cfg.Name, "password": b.cfg.Password, "avatar": b.cfg.Avatar, "hat": b.cfg.Hat}, &res); err != nil {
+	// Say what we are: the table marks the seat so nobody wonders whether
+	// the quiet player in seat four is a person.
+	body := map[string]any{"name": b.cfg.Name, "password": b.cfg.Password, "avatar": b.cfg.Avatar, "hat": b.cfg.Hat, "bot": true}
+	if err := b.postJSON(ctx, "/api/tables/"+b.cfg.TableID+"/join", body, &res); err != nil {
 		return err
 	}
 	b.Token, b.PlayerID, b.Seat = res.Token, res.PlayerID, res.Seat
@@ -468,7 +472,7 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 			if o.AllIn > 0 {
 				return protocol.ActionPayload{Kind: "all_in"}
 			}
-			return checkOrCall(o)
+			return botplay.CheckOrCall(o)
 		}
 		amount := o.Raise.Min
 		if o.Raise.Max > o.Raise.Min && b.rng.IntN(3) == 0 {
@@ -482,9 +486,9 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 	}
 	switch b.cfg.Strategy {
 	case StrategySolid:
-		return b.decideSolid(o, s)
+		return botplay.Decide(o, s, b.Seat, b.rng)
 	case StrategyPassive:
-		return checkOrCall(o)
+		return botplay.CheckOrCall(o)
 	case StrategyAggressive:
 		switch r := b.rng.IntN(100); {
 		case r < 10 && o.AllIn > 0:
@@ -492,7 +496,7 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 		case r < 60:
 			return raise()
 		default:
-			return checkOrCall(o)
+			return botplay.CheckOrCall(o)
 		}
 	default:
 		switch r := b.rng.IntN(100); {
@@ -503,7 +507,7 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 		case r < 45:
 			return raise()
 		default:
-			return checkOrCall(o)
+			return botplay.CheckOrCall(o)
 		}
 	}
 }

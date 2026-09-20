@@ -213,10 +213,16 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("load players %s: %w", row.ID, err)
 		}
+		var bots []string
 		for _, pr := range players {
 			t.names[NameKey(pr.Name)] = pr.Name
 			if pr.Status == StatusLeft {
 				continue
+			}
+			if pr.Bot {
+				// The seat outlived the goroutine that played it; the
+				// table gets it back below, once the actor is running.
+				bots = append(bots, pr.ID)
 			}
 			p := &Player{
 				ID: pr.ID, Name: pr.Name, Seat: pr.Seat, Stack: pr.Stack, Status: pr.Status, Muted: pr.Muted,
@@ -225,7 +231,7 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 				WinStreak: pr.WinStreak,
 				VPIPHands: pr.VPIPHands, Showdowns: pr.Showdowns, ShowdownsWon: pr.ShowdownsWon,
 				TimeBank: pr.TimeBank, Place: pr.Place,
-				AccountID: pr.AccountID, AccountHandle: pr.AccountHandle,
+				AccountID: pr.AccountID, AccountHandle: pr.AccountHandle, Bot: pr.Bot,
 				pendingSeat: -1,
 			}
 			if pr.Seat >= 0 && pr.Seat < maxSeats {
@@ -258,6 +264,9 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 			return fmt.Errorf("void hands %s: %w", row.ID, err)
 		}
 		go t.run()
+		for _, id := range bots {
+			t.startBot(id)
+		}
 		for _, h := range voided {
 			r.deps.Log.Warn("voided unfinished hand after restart", "table", row.ID, "hand", h.Number)
 			num := h.Number

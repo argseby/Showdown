@@ -16,20 +16,17 @@ type ProfileStats struct {
 	FirstHand int64
 	LastHand  int64
 
-	// Money. Chips are only comparable across tables in big blinds, so both
-	// are kept; Counted* leaves out the hands that stand in no public total.
-	Net          int64
-	NetBB        float64
-	CountedHands int
-	CountedNet   int64
-	CountedNetBB float64
-	BiggestPot   int64
-	BiggestWin   int64
-	BestRound    int64
-	HandsWon     int
-	RoundsWon    int
-	Podiums      int
-	Tournaments  int
+	// Money. Chips are only comparable across tables in big blinds, so
+	// both are kept.
+	Net         int64
+	NetBB       float64
+	BiggestPot  int64
+	BiggestWin  int64
+	BestRound   int64
+	HandsWon    int
+	RoundsWon   int
+	Podiums     int
+	Tournaments int
 
 	// Style.
 	VPIP               int
@@ -58,16 +55,13 @@ type CategoryCount struct {
 func (s *Store) AccountStats(ctx context.Context, accountID string) (ProfileStats, error) {
 	var st ProfileStats
 	var first, last sql.NullInt64
-	var netBB, countedNetBB sql.NullFloat64
+	var netBB sql.NullFloat64
 	err := s.db.QueryRowContext(ctx, `
 		SELECT COUNT(*),
 			COUNT(DISTINCT table_id),
 			MIN(ended_at), MAX(ended_at),
 			COALESCE(SUM(net), 0),
 			SUM(CAST(net AS REAL) / big_blind),
-			COALESCE(SUM(CASE WHEN counted = 1 THEN 1 ELSE 0 END), 0),
-			COALESCE(SUM(CASE WHEN counted = 1 THEN net ELSE 0 END), 0),
-			SUM(CASE WHEN counted = 1 THEN CAST(net AS REAL) / big_blind ELSE 0 END),
 			COALESCE(MAX(won), 0),
 			COALESCE(MAX(net), 0),
 			COALESCE(SUM(CASE WHEN won > 0 THEN 1 ELSE 0 END), 0),
@@ -79,7 +73,6 @@ func (s *Store) AccountStats(ctx context.Context, accountID string) (ProfileStat
 			COALESCE(SUM(all_in), 0)
 		FROM hand_results WHERE account_id = ?`, accountID).Scan(
 		&st.Hands, &st.Tables, &first, &last, &st.Net, &netBB,
-		&st.CountedHands, &st.CountedNet, &countedNetBB,
 		&st.BiggestPot, &st.BiggestWin, &st.HandsWon,
 		&st.VPIP, &st.Showdowns, &st.ShowdownsWon, &st.WonWithoutShowdown,
 		&st.Folded, &st.AllIns)
@@ -87,7 +80,7 @@ func (s *Store) AccountStats(ctx context.Context, accountID string) (ProfileStat
 		return ProfileStats{}, fmt.Errorf("account stats: %w", err)
 	}
 	st.FirstHand, st.LastHand = scanNullInt(first), scanNullInt(last)
-	st.NetBB, st.CountedNetBB = netBB.Float64, countedNetBB.Float64
+	st.NetBB = netBB.Float64
 
 	err = s.db.QueryRowContext(ctx, `
 		SELECT COUNT(*),

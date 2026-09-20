@@ -1,12 +1,17 @@
-package botclient
+package botplay
 
 import (
-	"log/slog"
 	"math"
+	"math/rand/v2"
 	"testing"
 
 	"showdown/internal/protocol"
 )
+
+// seeded is a repeatable source for the mixed frequencies and the sampler.
+func seeded(seed uint64) *rand.Rand {
+	return rand.New(rand.NewPCG(seed, seed^0x9e3779b97f4a7c15))
+}
 
 // solidSpot builds a snapshot for one turn: our seat holds `hole`, the board
 // is `board`, and `opponents` other seats are in the hand. Seat 0 is ours and
@@ -63,11 +68,9 @@ func (sp solidSpot) snapshot() protocol.Snapshot {
 // frequencies in the strategy do not make the test flaky.
 func (sp solidSpot) act(t *testing.T) protocol.ActionPayload {
 	t.Helper()
-	b := New(Config{Strategy: StrategySolid, Seed: 7, Log: slog.New(slog.DiscardHandler)})
-	b.Seat = 0
 	o := sp.options
 	o.Call = sp.call
-	return b.decideSolid(o, sp.snapshot())
+	return Decide(o, sp.snapshot(), 0, seeded(7))
 }
 
 func TestSolidPreflopRaisesPremiumsAndFoldsTrash(t *testing.T) {
@@ -125,11 +128,9 @@ func TestSolidValueBetsTheNutsAndChecksAirInPosition(t *testing.T) {
 	sp.hole = []string{"7c", "3d"}
 	checks := 0
 	for seed := uint64(1); seed <= 20; seed++ {
-		b := New(Config{Strategy: StrategySolid, Seed: seed, Log: slog.New(slog.DiscardHandler)})
-		b.Seat = 0
 		o := sp.options
 		o.Call = sp.call
-		if b.decideSolid(o, sp.snapshot()).Kind == "check" {
+		if Decide(o, sp.snapshot(), 0, seeded(seed)).Kind == "check" {
 			checks++
 		}
 	}
@@ -183,9 +184,7 @@ func TestSolidNeverFoldsWhenChecking(t *testing.T) {
 		pot: 400, button: 3,
 		options: protocol.OptionsView{Check: true, Raise: &protocol.RaiseView{Min: 100, Max: 10000}, AllIn: 10000}}
 	for seed := uint64(1); seed <= 25; seed++ {
-		b := New(Config{Strategy: StrategySolid, Seed: seed, Log: slog.New(slog.DiscardHandler)})
-		b.Seat = 0
-		if got := b.decideSolid(sp.options, sp.snapshot()); got.Kind == "fold" {
+		if got := Decide(sp.options, sp.snapshot(), 0, seeded(seed)); got.Kind == "fold" {
 			t.Fatalf("seed %d folded a free look at the pot", seed)
 		}
 	}
@@ -223,12 +222,11 @@ func TestEquityVsRandomMatchesKnownNumbers(t *testing.T) {
 			// about a percentage point on its own.
 			const runs = 6
 			for seed := uint64(1); seed <= runs; seed++ {
-				b := New(Config{Seed: seed, Log: slog.New(slog.DiscardHandler)})
 				spot, ok := readSpot(protocol.OptionsView{}, s, 0)
 				if !ok {
 					t.Fatal("could not read the spot")
 				}
-				got += equityVsRandom(spot, b.rng)
+				got += equityVsRandom(spot, seeded(seed))
 			}
 			got /= runs
 			if math.Abs(got-c.want) > 0.012 {
@@ -248,8 +246,7 @@ func TestEquityVsRandomFallsWithMoreOpponents(t *testing.T) {
 		if !ok {
 			t.Fatal("could not read the spot")
 		}
-		b := New(Config{Seed: 3, Log: slog.New(slog.DiscardHandler)})
-		got := equityVsRandom(spot, b.rng)
+		got := equityVsRandom(spot, seeded(3))
 		if got >= prev {
 			t.Errorf("%d opponents: equity %.3f did not fall below %.3f", opponents, got, prev)
 		}

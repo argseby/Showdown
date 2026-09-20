@@ -248,7 +248,7 @@ class PublicProfile {
   final String? playingAt;
 }
 
-/// The public money figures: the counted ones only.
+/// The money figures a profile shares.
 class ProfileWinnings {
   const ProfileWinnings({
     required this.hands,

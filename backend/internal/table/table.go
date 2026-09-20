@@ -133,6 +133,10 @@ type Player struct {
 	// both empty for a guest, which is always allowed.
 	AccountID     string
 	AccountHandle string
+	// Bot marks a seat played by a program. A joining client says so of its
+	// own accord — the server cannot tell a bot from a person — so this is
+	// a courtesy to the table, not a guarantee.
+	Bot bool
 
 	inHand       bool
 	vpipThisHand bool
@@ -271,9 +275,6 @@ type Table struct {
 	// roundStartHand is handNumber when the current round began; a new round
 	// on the same table moves it up, which releases the tournament lock.
 	roundStartHand int
-	// chipsAdjustedThisRound: the host gave or took chips since the round
-	// began, so its results are casual and stand in no public total.
-	chipsAdjustedThisRound bool
 	// lastRound is the standing of the round that ended last, taken before
 	// a new round resets the stacks (nil until a round has ended).
 	lastRound *protocol.RoundResult
@@ -599,7 +600,7 @@ type JoinResult struct {
 // Join seats a new player (password already verified by the caller). seat
 // is the wanted seat or -1 for the lowest free one; avatar is 0..19; hat is
 // one of protocol.Hats (anything else: no hat).
-func (t *Table) Join(rawName string, seat, avatar int, hat string, profile Profile) (JoinResult, error) {
+func (t *Table) Join(rawName string, seat, avatar int, hat string, profile Profile, bot bool) (JoinResult, error) {
 	var res JoinResult
 	err := t.callErr(func() error {
 		if t.state == StateEnded {
@@ -641,7 +642,7 @@ func (t *Table) Join(rawName string, seat, avatar int, hat string, profile Profi
 			ID: newPlayerID(), Name: name, Seat: seat, Stack: t.settings.StartMoney, Status: StatusActive,
 			BuyInTotal: t.settings.StartMoney, JoinedAt: t.nowMs(), Avatar: avatar, Hat: hat, pendingSeat: -1,
 			TimeBank:  t.settings.TimeBankSeconds,
-			AccountID: profile.ID, AccountHandle: profile.Handle,
+			AccountID: profile.ID, AccountHandle: profile.Handle, Bot: bot,
 		}
 		t.seats[seat] = p
 		t.players[p.ID] = p
@@ -1438,6 +1439,8 @@ type PlayerAdmin struct {
 	Voice       string `json:"voice"` // off | on | muted
 	Camera      bool   `json:"camera"`
 	Place       int    `json:"place"`
+	// Bot: the seat declared itself a program when it joined.
+	Bot bool `json:"bot,omitempty"`
 }
 
 // AdminDetail is the full admin view of a table.
@@ -1479,6 +1482,7 @@ func (t *Table) AdminDetail() AdminDetail {
 				Muted: p.Muted, MissedTurns: p.MissedTurns, BuyInTotal: p.BuyInTotal, HandsPlayed: p.HandsPlayed,
 				HandsWon: p.HandsWon, BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, Avatar: p.Avatar, Hat: p.Hat,
 				WinStreak: p.WinStreak, Voice: cmp.Or(p.Voice, VoiceOff), Camera: p.Camera, Place: p.Place,
+				Bot: p.Bot,
 			})
 		}
 	})
@@ -1623,7 +1627,6 @@ func (t *Table) Restart() error {
 		// and number, and the hand log keeps both rounds. Where the round
 		// began is what the tournament lock goes by.
 		t.roundStartHand = t.handNumber
-		t.chipsAdjustedThisRound = false
 		t.endedAt = 0
 		t.endAfterHand = false
 		t.buttonSeat = -1
@@ -1715,7 +1718,6 @@ func (t *Table) applyChips(p *Player, delta int64, note string) error {
 	if delta > 0 {
 		p.BuyInTotal += delta
 	}
-	t.chipsAdjustedThisRound = true
 	switch {
 	case p.Stack == 0 && p.Status == StatusActive:
 		p.Status = StatusBusted
@@ -1796,6 +1798,7 @@ func (t *Table) persistPlayer(p *Player) {
 		BiggestPot: p.BiggestPot, JoinedAt: p.JoinedAt, LeftAt: p.LeftAt, Avatar: p.Avatar, Hat: p.Hat,
 		WinStreak: p.WinStreak, VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon,
 		TimeBank: p.TimeBank, Place: p.Place, AccountID: p.AccountID, AccountHandle: p.AccountHandle,
+		Bot: p.Bot,
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpsertPlayer(ctx, row)

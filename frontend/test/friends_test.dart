@@ -11,6 +11,7 @@ import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:showdown/app/l10n.dart';
 import 'package:showdown/app/router.dart';
+import 'package:showdown/app/scroll_behavior.dart';
 import 'package:showdown/app/theme.dart';
 import 'package:showdown/core/account.dart';
 import 'package:showdown/core/providers.dart';
@@ -326,12 +327,21 @@ void main() {
 
     await tester.tap(find.byKey(const Key('friend-stats-ben')));
     await tester.pumpAndSettle();
-    // It opens even though Ben shares none of his sections, and says so
-    // for each one rather than showing a blank.
+    // The same page as your own record: the same tabs in the same order.
+    expect(find.byKey(const Key('profile-tab-overview')), findsOneWidget);
+    expect(find.byKey(const Key('profile-tab-hands')), findsOneWidget);
+    expect(find.byKey(const Key('profile-tab-awards')), findsOneWidget);
+    // Ben shares none of it, so every section says so rather than
+    // showing a blank where the figures would be.
     expect(find.text('WINNINGS'), findsOneWidget);
-    expect(find.text('BEST HANDS'), findsOneWidget);
-    expect(find.text('AWARDS'), findsOneWidget);
     expect(find.textContaining('only Ben sees this'), findsWidgets);
+    await tester.tap(find.byKey(const Key('profile-tab-hands')));
+    await tester.pumpAndSettle();
+    expect(find.text('BEST HANDS'), findsOneWidget);
+    expect(find.textContaining('only Ben sees this'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('profile-tab-awards')));
+    await tester.pumpAndSettle();
+    expect(find.text('AWARDS'), findsOneWidget);
     expect(calls, contains('GET /api/profiles/ben'));
   });
 
@@ -371,6 +381,7 @@ void main() {
         ],
         child: ShadcnApp.router(
           routerConfig: router,
+          scrollBehavior: const NoScrollbarBehavior(),
           theme: darkTheme,
           locale: const Locale('en'),
           localizationsDelegates: const [

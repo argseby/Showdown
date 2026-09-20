@@ -41,7 +41,6 @@ const _highlights = {
       'hand_number': 12,
       'ended_at': 1788000000000,
       'shown': true,
-      'counted': true,
     },
   ],
   'biggest_wins': [
@@ -58,7 +57,6 @@ const _highlights = {
       'hand_number': 44,
       'ended_at': 1788600000000,
       'shown': false,
-      'counted': true,
     },
   ],
   'achievements': [
@@ -146,9 +144,6 @@ void main() {
             'net': 4200,
             'net_bb': 42.0,
             'bb_per_100': 35.0,
-            'counted_hands': 90,
-            'counted_net': 3000,
-            'counted_net_bb': 30.0,
             'biggest_pot': 2600,
             'biggest_win': 1800,
             'best_round': 2500,
@@ -374,7 +369,6 @@ void main() {
     expect(find.text('Your statistics'), findsOneWidget);
     expect(find.text('+4,200'), findsOneWidget);
     expect(find.textContaining('over 120 hands'), findsOneWidget);
-    expect(find.textContaining('90 of 120'), findsOneWidget);
     // Big blinds are a rate on the results tab, next to their explanation.
     expect(find.text('+42.0 bb'), findsNothing);
     await tester.tap(find.byKey(const Key('stats-tab-results')));
@@ -470,6 +464,70 @@ void main() {
     // an empty record reads as such rather than as zeros everywhere.
     expect(find.byKey(const Key('account-button')), findsOneWidget);
     expect(find.text('Sign in'), findsWidgets);
+  });
+
+  testWidgets('signing up asks who may see what', (tester) async {
+    final tokens = _MemoryTokens();
+    await tester.pumpWidget(
+      wrap(
+        const AccountDialog(register: true),
+        overrides: [
+          restClientProvider.overrideWithValue(
+            RestClient(baseUrl: 'http://test', client: api()),
+          ),
+          accountTokenStoreProvider.overrideWithValue(tokens),
+        ],
+      ),
+    );
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('account-handle')), 'alice');
+    await tester.enterText(
+      find.byKey(const Key('account-password')),
+      'hunter22',
+    );
+    await tester.tap(find.byKey(const Key('account-submit')));
+    await tester.pumpAndSettle();
+
+    // The recovery code first, then the choice — before there is anything
+    // to see.
+    expect(find.byKey(const Key('account-recovery-code')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('account-recovery-done')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('account-visibility-sections')),
+      findsOneWidget,
+    );
+    expect(find.text('Winnings'), findsOneWidget);
+    // Friends is where every section starts.
+    expect(
+      tester.widget(find.byKey(const Key('vis-winnings-friends'))),
+      isA<PrimaryButton>(),
+    );
+
+    patched.clear();
+    await tester.ensureVisible(find.byKey(const Key('vis-winnings-public')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vis-winnings-public')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget(find.byKey(const Key('vis-winnings-public'))),
+      isA<PrimaryButton>(),
+    );
+    await tester.ensureVisible(find.byKey(const Key('vis-activity-private')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vis-activity-private')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget(find.byKey(const Key('vis-activity-private'))),
+      isA<PrimaryButton>(),
+    );
+    // Nothing is sent while the choices are being made.
+    expect(patched, isEmpty);
+
+    await tester.tap(find.byKey(const Key('account-visibility-done')));
+    await tester.pumpAndSettle();
+    // One change carries all five sections at once.
+    expect(patched.single.split(',').length, 5);
   });
 
   testWidgets('a taken name is named as such', (tester) async {

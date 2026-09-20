@@ -10,6 +10,7 @@ import '../../../core/voice/voice_controller.dart';
 import '../../../shared/kbd_hint.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
+import 'preference_card.dart';
 import 'self_menu.dart';
 
 /// True while the browser's notification prompt is open.
@@ -97,6 +98,10 @@ class TableSettingsTab extends ConsumerWidget {
           trailing,
         ],
       ),
+    );
+    Widget section(String title) => Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 4),
+      child: Text(title.toUpperCase()).muted().xSmall().semiBold(),
     );
     Widget toggle(
       IconData icon,
@@ -236,6 +241,67 @@ class TableSettingsTab extends ConsumerWidget {
               ],
             ],
             if (part == SettingsPart.preferences) ...[
+              // What the table looks like, each explained and shown. The
+              // rest are one-liners whose name says it all, so they sit
+              // together below rather than between the cards, where they
+              // read as leftovers.
+              section(l10n.prefsTableSection),
+              PreferenceCard(
+                icon: LucideIcons.palette,
+                title: l10n.fourColorDeck,
+                body: l10n.fourColorDeckAbout,
+                value: fourColor,
+                switchKey: const Key('drawer-deck'),
+                preview: FourColorPreview(fourColor: fourColor),
+                onChanged: (v) =>
+                    ref.read(fourColorDeckProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.layers,
+                title: l10n.chipStacks,
+                body: l10n.chipStacksAbout,
+                value: chipStacks,
+                switchKey: const Key('drawer-chip-stacks'),
+                preview: const ChipStackPreview(),
+                onChanged: (v) => ref.read(chipStacksProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.armchair,
+                title: l10n.fixedSeats,
+                body: l10n.fixedSeatsAbout,
+                value: fixedSeats,
+                switchKey: const Key('drawer-fixed-seats'),
+                preview: FixedSeatsPreview(fixed: fixedSeats),
+                onChanged: (v) => ref.read(fixedSeatsProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.sparkles,
+                title: l10n.showdownSpotlight,
+                body: l10n.showdownSpotlightAbout,
+                value: spotlight,
+                switchKey: const Key('drawer-spotlight'),
+                preview: const SpotlightPreview(),
+                onChanged: (v) =>
+                    ref.read(showdownSpotlightProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.type,
+                title: l10n.handLine,
+                body: l10n.handLineAbout,
+                value: handLine != HandLinePlacement.off,
+                preview: HandLinePreview(placement: handLine),
+                trailing: OutlineButton(
+                  key: const Key('hand-line-placement'),
+                  size: ButtonSize.small,
+                  onPressed: () => ref.read(handLineProvider.notifier).next(),
+                  child: Text(switch (handLine) {
+                    HandLinePlacement.off => l10n.handLineOff,
+                    HandLinePlacement.board => l10n.handLineBoard,
+                    HandLinePlacement.bottom => l10n.handLineBottom,
+                  }),
+                ),
+              ),
+              section(l10n.prefsMoreSection),
               toggle(
                 LucideIcons.volume2,
                 l10n.soundOn,
@@ -243,35 +309,13 @@ class TableSettingsTab extends ConsumerWidget {
                 () => ref.read(soundEnabledProvider.notifier).toggle(),
                 key: const Key('drawer-sound'),
               ),
-              toggle(
-                LucideIcons.palette,
-                l10n.fourColorDeck,
-                fourColor,
-                () => ref.read(fourColorDeckProvider.notifier).set(!fourColor),
-                key: const Key('drawer-deck'),
-              ),
-              toggle(
-                LucideIcons.layers,
-                l10n.chipStacks,
-                chipStacks,
-                () => ref.read(chipStacksProvider.notifier).set(!chipStacks),
-                key: const Key('drawer-chip-stacks'),
-              ),
-              toggle(
-                LucideIcons.armchair,
-                l10n.fixedSeats,
-                fixedSeats,
-                () => ref.read(fixedSeatsProvider.notifier).set(!fixedSeats),
-                key: const Key('drawer-fixed-seats'),
-              ),
-              // Only with a controller: the hints mean nothing without one.
-              if (padOn)
+              if (notifier.supported)
                 toggle(
-                  LucideIcons.gamepad2,
-                  l10n.padHints,
-                  padHints,
-                  () => ref.read(padHintsProvider.notifier).set(!padHints),
-                  key: const Key('drawer-pad-hints'),
+                  LucideIcons.bellRing,
+                  l10n.notifyTurn,
+                  notify,
+                  toggleNotify,
+                  key: const Key('drawer-notify'),
                 ),
               toggle(
                 LucideIcons.coins,
@@ -302,22 +346,14 @@ class TableSettingsTab extends ConsumerWidget {
                     ref.read(showDrawingsProvider.notifier).set(!showDrawings),
                 key: const Key('drawer-drawings'),
               ),
-              toggle(
-                LucideIcons.sparkles,
-                l10n.showdownSpotlight,
-                spotlight,
-                () => ref
-                    .read(showdownSpotlightProvider.notifier)
-                    .set(!spotlight),
-                key: const Key('drawer-spotlight'),
-              ),
-              if (notifier.supported)
+              // Only with a controller: the hints mean nothing without one.
+              if (padOn)
                 toggle(
-                  LucideIcons.bellRing,
-                  l10n.notifyTurn,
-                  notify,
-                  toggleNotify,
-                  key: const Key('drawer-notify'),
+                  LucideIcons.gamepad2,
+                  l10n.padHints,
+                  padHints,
+                  () => ref.read(padHintsProvider.notifier).set(!padHints),
+                  key: const Key('drawer-pad-hints'),
                 ),
               // One button like language and theme: shows the current size and
               // cycles through the options.
@@ -337,17 +373,6 @@ class TableSettingsTab extends ConsumerWidget {
                       .set(options[(i + 1) % options.length]);
                 },
                 key: const Key('display-size'),
-              ),
-              button(
-                LucideIcons.sparkles,
-                l10n.handLine,
-                switch (handLine) {
-                  HandLinePlacement.off => l10n.handLineOff,
-                  HandLinePlacement.board => l10n.handLineBoard,
-                  HandLinePlacement.bottom => l10n.handLineBottom,
-                },
-                () => ref.read(handLineProvider.notifier).next(),
-                key: const Key('hand-line-placement'),
               ),
               button(
                 LucideIcons.languages,

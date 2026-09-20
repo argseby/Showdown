@@ -17,7 +17,7 @@ DEV_WEB_ORIGIN ?= http://localhost:3000
 
 GEN_FILES := find $(WEB_DIR)/lib \( -name '*.g.dart' -o -name '*.freezed.dart' -o -path '*/l10n/app_localizations*.dart' \) -type f | sort
 
-.PHONY: help dev-api dev-web gen check-gen lint test test-engine simulate site-verification build up down logs bots loadtest
+.PHONY: help dev-api dev-web gen check-gen lint test test-engine simulate site-verification build up down logs bots bot-match loadtest
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
@@ -93,9 +93,15 @@ logs: ## follow container logs
 
 BOT_SERVER ?= http://localhost:8080
 BOT_COUNT ?= 6
-bots: ## run test bots: make bots TABLE=<id> [PASSWORD=<pw>] [BOT_COUNT=6] [BOT_SERVER=http://localhost:8080]
+# solid weighs its equity against the price it is offered and is the one worth
+# playing against; BOT_STRATEGY=random is the one that shakes rule bugs out.
+BOT_STRATEGY ?= solid
+bots: ## run bots: make bots TABLE=<id> [PASSWORD=<pw>] [BOT_COUNT=6] [BOT_STRATEGY=solid] [BOT_SERVER=http://localhost:8080]
 	@test -n "$(TABLE)" || { echo "usage: make bots TABLE=<id> [PASSWORD=<pw>]"; exit 1; }
-	cd $(GO_DIR) && go run ./cmd/bot -server $(BOT_SERVER) -table $(TABLE) -password "$(PASSWORD)" -count $(BOT_COUNT)
+	cd $(GO_DIR) && go run ./cmd/bot -server $(BOT_SERVER) -table $(TABLE) -password "$(PASSWORD)" -count $(BOT_COUNT) -strategy $(BOT_STRATEGY)
+
+bot-match: ## play the solid bot against the scripted ones and count the chips (~10 min)
+	cd $(GO_DIR) && SHOWDOWN_BOT_MATCH=1 go test ./internal/server -run TestBotMatch -v -timeout 30m
 
 LOAD_SERVER ?= http://localhost:18080
 LOAD_TABLES ?= 20

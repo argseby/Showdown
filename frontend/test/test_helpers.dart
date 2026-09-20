@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:showdown/app/l10n.dart';
+import 'package:showdown/app/scroll_behavior.dart';
 import 'package:showdown/app/theme.dart';
 import 'package:showdown/protocol/protocol.dart';
 
@@ -27,6 +28,7 @@ Widget wrap(
   return ProviderScope(
     overrides: overrides,
     child: ShadcnApp(
+      scrollBehavior: const NoScrollbarBehavior(),
       theme: darkTheme,
       locale: locale,
       localizationsDelegates: const [
@@ -53,6 +55,7 @@ Widget wrapRouter({
     overrides: overrides,
     child: ShadcnApp.router(
       routerConfig: GoRouter(routes: routes, initialLocation: initialLocation),
+      scrollBehavior: const NoScrollbarBehavior(),
       theme: darkTheme,
       locale: const Locale('en'),
       localizationsDelegates: const [

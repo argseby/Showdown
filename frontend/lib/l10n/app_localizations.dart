@@ -962,12 +962,6 @@ abstract class AppLocalizations {
   /// **'{shown} shown'**
   String statsShownOf(String shown);
 
-  /// No description provided for @statsCountedNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Counted: {counted} of {hands} hands were played with three or more profiles and no chip adjustments — only those may ever stand in a public total.'**
-  String statsCountedNote(String counted, String hands);
-
   /// No description provided for @statsTabAwards.
   ///
   /// In en, this message translates to:
@@ -1189,6 +1183,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What a public profile would show'**
   String get visMenuHint;
+
+  /// No description provided for @visSignUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is made. Decide who sees what — friends only, everyone, or nobody but you.'**
+  String get visSignUpBody;
+
+  /// No description provided for @visChangeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change any of this later under Who can see.'**
+  String get visChangeLater;
+
+  /// No description provided for @visFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Start playing'**
+  String get visFinish;
 
   /// No description provided for @visPublic.
   ///
@@ -1574,17 +1586,17 @@ abstract class AppLocalizations {
   /// **'Kept private — only {name} sees this.'**
   String profileNotSharedHint(String name);
 
+  /// No description provided for @profileOverHands.
+  ///
+  /// In en, this message translates to:
+  /// **'over {hands} hands'**
+  String profileOverHands(String hands);
+
   /// No description provided for @profileWinnings.
   ///
   /// In en, this message translates to:
   /// **'Winnings'**
   String get profileWinnings;
-
-  /// No description provided for @profileCountedOnly.
-  ///
-  /// In en, this message translates to:
-  /// **'Counted hands only.'**
-  String get profileCountedOnly;
 
   /// No description provided for @profileBestHands.
   ///
@@ -3302,6 +3314,30 @@ abstract class AppLocalizations {
   /// **'Must be empty or 4-64 characters'**
   String get valPassword;
 
+  /// No description provided for @prefsTableSection.
+  ///
+  /// In en, this message translates to:
+  /// **'How the table looks'**
+  String get prefsTableSection;
+
+  /// No description provided for @prefsMoreSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything else'**
+  String get prefsMoreSection;
+
+  /// No description provided for @fourColorDeckAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'A colour per suit — spades black, hearts red, diamonds blue, clubs green — so a flush is easier to spot at a glance.'**
+  String get fourColorDeckAbout;
+
+  /// No description provided for @handLineAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Names what you are holding — pair of tens, flush draw — on the felt, under the table, or nowhere at all.'**
+  String get handLineAbout;
+
   /// No description provided for @fourColorDeck.
   ///
   /// In en, this message translates to:
@@ -3314,10 +3350,28 @@ abstract class AppLocalizations {
   /// **'Chip stacks on the table'**
   String get chipStacks;
 
+  /// No description provided for @chipStacksAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Draws every bet and every stack as real chips on the felt instead of a number.'**
+  String get chipStacksAbout;
+
+  /// No description provided for @fixedSeatsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone sees the table the same way round, with your own seat wherever you sat down. Off, the table turns so that you are always at the bottom.'**
+  String get fixedSeatsAbout;
+
+  /// No description provided for @showdownSpotlightAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'At the showdown the winning hand stays lit while the rest of the table dims, so you can see what won.'**
+  String get showdownSpotlightAbout;
+
   /// No description provided for @fixedSeats.
   ///
   /// In en, this message translates to:
-  /// **'Fixed seats: the same table for everyone (off: you sit at the bottom)'**
+  /// **'Fixed seats'**
   String get fixedSeats;
 
   /// No description provided for @landingCreateTitle.
@@ -3421,6 +3475,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow drawing on the table'**
   String get setAllowDrawing;
+
+  /// No description provided for @setTableType.
+  ///
+  /// In en, this message translates to:
+  /// **'Table type'**
+  String get setTableType;
+
+  /// No description provided for @tableTypeTournamentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make this a tournament?'**
+  String get tableTypeTournamentTitle;
+
+  /// No description provided for @tableTypeTournamentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash game settings — blinds, start money, rebuys, seat changes — are locked for everyone, you included, from the moment the first hand is dealt. Until then you can switch back.'**
+  String get tableTypeTournamentConfirm;
+
+  /// No description provided for @tableTypeLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'A hand has been dealt: the table type is fixed for this round.'**
+  String get tableTypeLocked;
+
+  /// No description provided for @tableTypeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash game'**
+  String get tableTypeCash;
+
+  /// No description provided for @tableTypeTournament.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament'**
+  String get tableTypeTournament;
 
   /// No description provided for @setTournament.
   ///
@@ -4297,6 +4387,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset'**
   String get peerReset;
+
+  /// No description provided for @botSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Bots'**
+  String get botSection;
+
+  /// No description provided for @botHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody to ask, or one short of a game? Add a bot: it plays its own hands and you can kick it like anyone else.'**
+  String get botHint;
+
+  /// No description provided for @botTableFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Every seat is taken. Free one to add a bot.'**
+  String get botTableFull;
+
+  /// No description provided for @botAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a bot'**
+  String get botAdd;
+
+  /// No description provided for @botAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sat down'**
+  String botAdded(String name);
+
+  /// No description provided for @botSeatMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Bot'**
+  String get botSeatMark;
+
+  /// No description provided for @botSeatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This seat is played by a program, not a person'**
+  String get botSeatHint;
 
   /// No description provided for @peerMutedMark.
   ///

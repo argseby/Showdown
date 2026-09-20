@@ -283,9 +283,7 @@ func (s *Server) handleAccountStats(w http.ResponseWriter, r *http.Request) {
 		"hands": st.Hands, "tables": st.Tables, "rounds": st.Rounds,
 		"first_hand": st.FirstHand, "last_hand": st.LastHand,
 		"net": st.Net, "net_bb": st.NetBB, "bb_per_100": per100,
-		"counted_hands": st.CountedHands, "counted_net": st.CountedNet,
-		"counted_net_bb": st.CountedNetBB,
-		"biggest_pot":    st.BiggestPot, "biggest_win": st.BiggestWin,
+		"biggest_pot": st.BiggestPot, "biggest_win": st.BiggestWin,
 		"best_round": st.BestRound, "hands_won": st.HandsWon,
 		"rounds_won": st.RoundsWon, "podiums": st.Podiums, "tournaments": st.Tournaments,
 		"vpip": st.VPIP, "showdowns": st.Showdowns, "showdowns_won": st.ShowdownsWon,
@@ -304,7 +302,7 @@ func highlightView(h store.HandHighlight) map[string]any {
 		"cards": strings.Fields(h.BestCards), "net": h.Net, "won": h.Won,
 		"won_bb": h.WonBB(), "big_blind": h.BigBlind, "table_name": h.TableName,
 		"hand_number": h.HandNumber, "ended_at": h.EndedAt,
-		"shown": h.Shown, "counted": h.Counted,
+		"shown": h.Shown,
 	}
 }
 

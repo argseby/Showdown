@@ -12,7 +12,7 @@ func hand(n int, at int64, category int, royal bool, won int64) HandResultRow {
 		AccountID: "u1", TableID: "t1", TableName: "Kitchen table",
 		HandNumber: n, EndedAt: at, BigBlind: 50, Net: won - 100, Won: won,
 		DealtIn: true, Category: category, Royal: royal,
-		Description: "hand", BestCards: "As Ks Qs Js Ts", Counted: true, Profiles: 3,
+		Description: "hand", BestCards: "As Ks Qs Js Ts", Profiles: 3,
 	}
 }
 
@@ -96,7 +96,7 @@ func TestAchievementsAreEarnedWhenTheyHappened(t *testing.T) {
 	if err := s.InsertRoundResults(ctx, []RoundResultRow{{
 		AccountID: "u1", TableID: "t1", TableName: "Kitchen table",
 		EndedAt: 300_000, BigBlind: 50, Net: 4_000, Place: 1, Players: 4,
-		Tournament: true, Counted: true,
+		Tournament: true,
 	}}); err != nil {
 		t.Fatalf("InsertRoundResults: %v", err)
 	}

@@ -1,4 +1,7 @@
-package botclient
+// Package botplay decides a poker action from a table snapshot. It is the
+// brain the bots share: the network client of internal/botclient, and the
+// seats the server plays itself.
+package botplay
 
 import (
 	"math/rand/v2"
@@ -7,7 +10,7 @@ import (
 	"showdown/internal/protocol"
 )
 
-// The solid strategy. It is not a solver and does not pretend to be one: it
+// The strategy. It is not a solver and does not pretend to be one: it
 // estimates how much of the pot the hand is worth against unknown opponents,
 // compares that with the price it is being offered, and folds, calls or bets
 // accordingly. That is enough to fold trash, value-bet made hands and respect
@@ -193,8 +196,9 @@ func equityVsRandom(sp spot, rng *rand.Rand) float64 {
 	return total / equitySamples
 }
 
-// checkOrCall takes the cheapest way to stay in the hand.
-func checkOrCall(o protocol.OptionsView) protocol.ActionPayload {
+// CheckOrCall takes the cheapest way to stay in the hand. It is what a bot
+// falls back on when it cannot read the spot.
+func CheckOrCall(o protocol.OptionsView) protocol.ActionPayload {
 	if o.Check {
 		return protocol.ActionPayload{Kind: "check"}
 	}
@@ -204,12 +208,14 @@ func checkOrCall(o protocol.OptionsView) protocol.ActionPayload {
 	return protocol.ActionPayload{Kind: "fold"}
 }
 
-func (b *Bot) decideSolid(o protocol.OptionsView, s protocol.Snapshot) protocol.ActionPayload {
-	sp, ok := readSpot(o, s, b.Seat)
+// Decide picks the action for `seat`, whose turn the snapshot says it is.
+// rng carries the mixed frequencies and makes a seeded bot repeatable.
+func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Rand) protocol.ActionPayload {
+	sp, ok := readSpot(o, s, seat)
 	if !ok || sp.opponents == 0 {
-		return checkOrCall(o)
+		return CheckOrCall(o)
 	}
-	equity := equityVsRandom(sp, b.rng)
+	equity := equityVsRandom(sp, rng)
 	// Everyone holds 1/(opponents+1) of the pot on average, whatever the
 	// table size. Measuring the hand between that share and certainty puts
 	// every spot on one scale: 0 is an average holding and 1 is a lock,
@@ -231,7 +237,7 @@ func (b *Bot) decideSolid(o protocol.OptionsView, s protocol.Snapshot) protocol.
 			if o.AllIn > 0 {
 				return protocol.ActionPayload{Kind: "all_in"}
 			}
-			return checkOrCall(o)
+			return CheckOrCall(o)
 		}
 		target := sp.currentBet + int64(fraction*float64(sp.pot+sp.call))
 		if sp.bb > 0 {
@@ -265,7 +271,7 @@ func (b *Bot) decideSolid(o protocol.OptionsView, s protocol.Snapshot) protocol.
 		case edge >= 0.13:
 			return raiseTo(1)
 		case edge >= 0.055-0.020*sp.relPos && equity >= potOdds*1.25:
-			return checkOrCall(o)
+			return CheckOrCall(o)
 		default:
 			return protocol.ActionPayload{Kind: "fold"}
 		}
@@ -276,9 +282,9 @@ func (b *Bot) decideSolid(o protocol.OptionsView, s protocol.Snapshot) protocol.
 		switch {
 		case edge >= 0.35:
 			return raiseTo(0.67) // value
-		case edge >= 0.18 && b.rng.Float64() < 0.6:
+		case edge >= 0.18 && rng.Float64() < 0.6:
 			return raiseTo(0.5) // thin value, not every time
-		case sp.opponents == 1 && sp.relPos == 1 && b.rng.Float64() < 0.15:
+		case sp.opponents == 1 && sp.relPos == 1 && rng.Float64() < 0.15:
 			return raiseTo(0.5) // a bluff at a checked pot, heads-up and last
 		default:
 			return protocol.ActionPayload{Kind: "check"}

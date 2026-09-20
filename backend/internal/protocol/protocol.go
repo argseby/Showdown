@@ -438,6 +438,9 @@ type PlayerView struct {
 	// Account is the handle of the profile this seat belongs to, absent
 	// for a guest. It is the badge at the table, nothing more.
 	Account string `json:"account,omitempty"`
+	// Bot marks a seat played by a program rather than a person. The client
+	// declares it when it joins; nobody verifies it.
+	Bot bool `json:"bot,omitempty"`
 	// HandDescription and BestCards describe a revealed hand against the
 	// current board (they follow every run-out street); only set for seats
 	// whose hole cards are fully revealed.

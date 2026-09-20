@@ -211,10 +211,14 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   handle (absent for a guest, who may always join without one).
 > - **A profile's own record (2026-09-20).** Every hand a signed-in player is
 >   dealt writes one `hand_results` row and every finished round one
->   `round_results` row; a guest writes nothing. A row is `counted` only when
->   three or more profiles were dealt in and nobody was handed chips that round,
->   so the rule is fixed when the hand is played and cannot be applied after the
->   fact. `GET /api/accounts/me/stats` aggregates them (chips first, big blinds
+>   `round_results` row; a guest writes nothing. Every hand played counts —
+>   heads-up, against bots, at a table where the host handed out chips, all of
+>   it. Rows carried a `counted` flag until 0018: it kept arranged numbers out
+>   of public totals but threw away most of the poker people actually play
+>   here, and a record that leaves out most of your play is worse than one a
+>   determined person could game. `hand_results.profiles` still says how many
+>   signed-in players were dealt in; nothing gates on it.
+>   `GET /api/accounts/me/stats` aggregates them (chips first, big blinds
 >   as the rate); `GET /api/accounts/me/highlights` → `{best_hands,
 >   biggest_wins, achievements}`, the hands with their five cards, where they
 >   happened and whether the table saw them, and the milestones as
@@ -223,12 +227,14 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   bearer token.
 > - **Visibility (2026-09-20).** The five sections (`profile, winnings,
 >   best_hands, achievements, activity`) are stored with every profile as
->   `private | friends | public` and default to private. `PATCH
->   /api/accounts/me` takes `{display_name?, visibility?}` and accepts only
->   `private` and `public` — the column keeps `friends` for the friends feature,
->   and a switch that would silently do nothing is not offered. Nothing reads
->   the fields yet; the public profile will, and `profile: private` must hide
->   the page itself rather than return an empty one.
+>   `private | friends | public`. They default to `friends` (0016): seeing what
+>   a friend has been up to is most of what a friend is for here, and the
+>   public still sees nothing until the owner says so. The app asks for the
+>   five choices at the end of sign-up, right after the recovery code, and
+>   sends them as one `PATCH /api/accounts/me`, which takes
+>   `{display_name?, visibility?}`. `canSee` is the only thing that reads them
+>   (see the public profile above), and `profile` that a viewer may not see
+>   hides the page itself rather than returning an empty one.
 > - **Friends (2026-09-20).** A friendship is stored both ways, an ask is one
 >   row that answering removes, and a block is one-way and silent. `GET
 >   /api/friends` answers the whole screen (`friends`, `incoming`, `outgoing`,
@@ -267,8 +273,26 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   either way once one has blocked the other. A profile whose `profile`
 >   section is not visible answers 404 — the same as a handle nobody took — so
 >   the route cannot be used to find out who exists or who blocked you. Public
->   winnings are the counted hands only, and public best hands only the ones
->   the table was actually shown.
+>   winnings are the same figures the owner sees, and public best hands only
+>   the ones the table was actually shown.
+> - **Bots at the table (2026-09-20).** `POST /api/tables/{id}/join` accepts
+>   `bot: true`, stored with the seat and reported as
+>   `snapshot.seats[].player.bot` (absent otherwise) and in the admin detail.
+>   The client declares it of its own accord — the server cannot tell a program
+>   from a person, and nothing else changes for the seat: a bot joins, acts and
+>   is kicked exactly like anybody else. The clients that ship with Showdown
+>   (`cmd/bot`, `cmd/loadtest`) always set it, and the web app marks such a seat
+>   so the table can see who it is playing against.
+> - **Bots the server plays (2026-09-20).** `POST /api/admin/tables/{id}/bots`
+>   (table admin) seats one and starts playing it: `{player_id, name, seat}`
+>   (201), the name being the lowest free `Bot n`. `table_full` when there is no
+>   seat. The bot attaches as an ordinary client and reads the same redacted
+>   snapshots as everyone else, so it cannot see a card it has no business
+>   seeing and the rules that apply to it are the rules that apply to a person.
+>   It pauses before acting, never past a third of the turn clock, and rebuys
+>   like anybody else. There is no route to remove one: the host kicks it.
+>   Bot seats are restored after a server restart — the seat survived, so the
+>   table starts playing it again, while a person's browser reconnects itself.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,

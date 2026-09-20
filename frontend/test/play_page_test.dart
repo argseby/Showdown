@@ -868,6 +868,49 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
+  testWidgets('only the host can add a bot from the invite dialog', (
+    tester,
+  ) async {
+    // A player who does not host the table is offered nothing.
+    await pumpPlay(tester);
+    await tester.tap(find.byKey(const Key('invite')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('invite-add-bot')), findsNothing);
+    await tester.tap(find.text('Close'));
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('the host adds a bot from the invite dialog', (tester) async {
+    final calls = <String>[];
+    final api = MockClient((req) async {
+      calls.add('${req.method} ${req.url.path}');
+      if (req.url.path.endsWith('/bots')) {
+        return http.Response(
+          jsonEncode({'player_id': 'b1', 'name': 'Bot 1', 'seat': 2}),
+          201,
+        );
+      }
+      return http.Response(
+        '{"error":{"code":"not_found","message":"no"}}',
+        404,
+      );
+    });
+    transport.admin = true;
+    await pumpPlay(
+      tester,
+      api: api,
+      extra: [adminTokenProvider('k7m2p9xq4w').overrideWith(_AdminToken.new)],
+    );
+    await tester.tap(find.byKey(const Key('invite')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Bots'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('invite-add-bot')));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(calls, contains('POST /api/admin/tables/k7m2p9xq4w/bots'));
+    expect(find.text('Bot 1 sat down'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
   testWidgets('the display size is adjustable from the drawer', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await pumpPlay(tester);

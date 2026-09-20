@@ -10,11 +10,14 @@ import 'admin_session.dart';
 import 'admin_widgets.dart';
 import 'settings_form.dart';
 import 'settings_form_model.dart';
+import 'table_rules_pending.dart';
 
 /// The host's table rules (blinds, times, rebuys, ...) as a section of the
 /// Settings tab, so that everything a player can change lives in one place.
-/// Loads the table with the admin token, shows the form with an
-/// unsaved-changes bar and saves only what changed.
+///
+/// Every change settles on its own: a switch or a choice the moment it is
+/// made, a typed value on the tick beside it. There is no save button for
+/// the lot — one was there, and nobody could tell what it still held.
 class TableRulesSection extends ConsumerStatefulWidget {
   const TableRulesSection({
     super.key,
@@ -37,9 +40,23 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
   bool _saving = false;
   bool _gone = false;
 
+  /// Held from initState: a widget on its way out may not reach for ref.
+  late final TableRulesPendingNotifier _pending;
+
+  @override
+  void dispose() {
+    // The page is gone, so the title row has nothing to offer — but a
+    // provider may not be written to while the tree is being taken down,
+    // so the word goes out a beat later.
+    final pending = _pending;
+    Future.microtask(pending.clear);
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    _pending = ref.read(tableRulesPendingProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _load();
     });
@@ -49,6 +66,48 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
   Future<void> _rejected() async {
     await ref.read(adminTokenProvider(widget.tableId).notifier).clear();
     if (mounted) showAdminToast(context, context.l10n.adminKeyRejected);
+  }
+
+  /// Tells the panel's title row what is still typed, so the tick and the
+  /// cross up there can settle or drop the lot.
+  void _publish() {
+    final form = _form;
+    final pending = form == null
+        ? const <String>{}
+        : form.toPatch().keys.toSet();
+    _pending.set(
+      TableRulesPending(
+        fields: pending,
+        busy: _saving,
+        applyAll: pending.isEmpty ? null : _applyAll,
+        discardAll: pending.isEmpty ? null : _discardAll,
+      ),
+    );
+  }
+
+  /// Settles every typed field, one after the other. The first one the
+  /// server refuses stops the rest: the reason is shown under its field.
+  Future<void> _applyAll() async {
+    final form = _form;
+    if (form == null) return;
+    for (final field in form.toPatch().keys.toList()) {
+      final current = _form;
+      if (current == null || !current.toPatch().containsKey(field)) continue;
+      await _apply(current, field);
+      if (_errors.isNotEmpty || _serverErrors.isNotEmpty) return;
+    }
+  }
+
+  /// Puts every typed field back to what the server says.
+  void _discardAll() {
+    final detail = _detail;
+    if (detail == null) return;
+    setState(() {
+      _form = SettingsFormState.fromSettings(detail.settings);
+      _errors = const {};
+      _serverErrors = const {};
+    });
+    _publish();
   }
 
   Future<void> _load() async {
@@ -65,6 +124,7 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
           _form = SettingsFormState.fromSettings(detail.settings);
         }
       });
+      _publish();
     } on ApiException catch (e) {
       if (!mounted) return;
       if (e.status == 404) {
@@ -75,36 +135,46 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
     }
   }
 
-  Future<void> _save() async {
-    final form = _form;
+  /// Sends one field. The rest of the form is left alone, so a half-typed
+  /// blind next door cannot ride along with a switch.
+  Future<void> _apply(SettingsFormState next, String field) async {
     final detail = _detail;
-    if (form == null || detail == null) return;
+    if (detail == null || _saving) return;
     final l10n = context.l10n;
-    final errors = form.validate(seated: detail.players.length);
+    final errors = next.validate(seated: detail.players.length);
     setState(() {
-      _errors = errors;
+      _form = next;
+      _errors = {
+        for (final e in errors.entries)
+          if (e.key == field) e.key: e.value,
+      };
       _serverErrors = const {};
     });
-    if (errors.isNotEmpty) return;
-    final patch = form.toPatch();
-    if (patch.isEmpty) {
-      showAdminToast(context, l10n.adminNoChanges);
-      return;
-    }
+    if (_errors.isNotEmpty) return;
+    final whole = next.toPatch();
+    if (!whole.containsKey(field)) return;
+    final patch = {field: whole[field]};
     setState(() => _saving = true);
+    _publish();
     try {
       final result = await ref
           .read(adminApiProvider)
           .patchSettings(widget.token, widget.tableId, patch);
       if (!mounted) return;
-      setState(() => _form = SettingsFormState.fromSettings(result.settings));
-      showAdminToast(
-        context,
-        result.appliesNextHand.isEmpty
-            ? l10n.adminSaved
-            : l10n.adminSavedNextHand(result.appliesNextHand.join(', ')),
-      );
-      await _load();
+      // Whatever else was typed stays typed: only this field goes back to
+      // what the server now says.
+      setState(() {
+        final server = SettingsFormState.fromSettings(result.settings);
+        _form = _form?.adopt(server, field) ?? server;
+      });
+      // A change that waits for the next hand says so; one that is already
+      // in force needs no announcement, the control shows it.
+      if (result.appliesNextHand.isNotEmpty) {
+        showAdminToast(
+          context,
+          l10n.adminSavedNextHand(result.appliesNextHand.join(', ')),
+        );
+      }
     } on ApiException catch (e) {
       if (!mounted) return;
       if (e.status == 401) {
@@ -121,7 +191,10 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
         showAdminToast(context, l10n.errGeneric(e.message));
       }
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() => _saving = false);
+        _publish();
+      }
     }
   }
 
@@ -170,53 +243,6 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
               ],
             ),
           ),
-        // Unsaved changes are announced at the top, with Save right there.
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          child: form.hasChanges
-              ? Container(
-                  key: const Key('admin-unsaved'),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    border: Border.all(color: theme.colorScheme.primary),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(l10n.adminUnsavedChanges).semiBold().small(),
-                      const Gap(8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: PrimaryButton(
-                              key: const Key('admin-save'),
-                              onPressed: _saving ? null : _save,
-                              leading: const Icon(LucideIcons.save),
-                              child: Text(l10n.adminSave),
-                            ),
-                          ),
-                          const Gap(8),
-                          OutlineButton(
-                            key: const Key('admin-discard'),
-                            onPressed: () => setState(() {
-                              _form = SettingsFormState.fromSettings(
-                                detail.settings,
-                              );
-                              _errors = const {};
-                              _serverErrors = const {};
-                            }),
-                            child: Text(l10n.adminDiscard),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
         SettingsForm(
           state: form,
           errors: _errors,
@@ -224,7 +250,11 @@ class _TableRulesSectionState extends ConsumerState<TableRulesSection> {
           showPasswordKeepHint: true,
           seated: detail.players.length,
           locked: locked ? tournamentLockedFields : const {},
-          onChanged: (s) => setState(() => _form = s),
+          onChanged: (s) {
+            setState(() => _form = s);
+            _publish();
+          },
+          onApply: _apply,
         ),
       ],
     );

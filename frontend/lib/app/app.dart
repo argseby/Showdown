@@ -5,6 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../features/friends/notifications_overlay.dart';
 import 'l10n.dart';
 import 'router.dart';
+import 'scroll_behavior.dart';
 import 'theme.dart';
 
 class ShowdownApp extends ConsumerWidget {
@@ -18,6 +19,8 @@ class ShowdownApp extends ConsumerWidget {
 
     return ShadcnApp.router(
       routerConfig: router,
+      // No platform scrollbar: every surface here draws its own edge.
+      scrollBehavior: const NoScrollbarBehavior(),
       // Friend requests and invitations are about the person, so they
       // ride above whatever page they happen to be on.
       builder: (context, child) =>

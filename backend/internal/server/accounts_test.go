@@ -185,7 +185,7 @@ func TestSeatCarriesTheProfile(t *testing.T) {
 }
 
 // Three signed-in players play real hands: every hand lands on each of
-// their records, the money adds up, and the round is counted.
+// their records and the money adds up.
 func TestProfileStatsFromRealHands(t *testing.T) {
 	if testing.Short() {
 		t.Skip("plays real hands")
@@ -232,8 +232,8 @@ func TestProfileStatsFromRealHands(t *testing.T) {
 		_, stats = h.request(http.MethodGet, "/api/accounts/me/stats", tokens["ann"], nil)
 		return num(stats["hands"]) >= 5
 	})
-	if num(stats["tables"]) != 1 || num(stats["counted_hands"]) != num(stats["hands"]) {
-		t.Errorf("tables/counted: %v", stats)
+	if num(stats["tables"]) != 1 {
+		t.Errorf("tables: %v", stats)
 	}
 	// The chips are conserved across the three records, and the style
 	// counters are read off the hand as it was played: over this many
@@ -279,6 +279,71 @@ func TestProfileStatsFromRealHands(t *testing.T) {
 				t.Errorf("shown more hands than made: %v", m)
 			}
 		}
+	}
+	cancel()
+	bs.wg.Wait()
+}
+
+// Heads-up counts. The record used to leave out any hand played by fewer
+// than three profiles, which is most of the poker played here.
+func TestTwoPlayersAreAGame(t *testing.T) {
+	if testing.Short() {
+		t.Skip("plays real hands")
+	}
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", on)
+	defer h.stop()
+	tableID, adminToken := h.createTable(fastSettings())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var bs botSet
+	tokens := map[string]string{}
+	for i, name := range []string{"eve", "fay"} {
+		_, out := h.request(http.MethodPost, "/api/accounts", "", map[string]string{
+			"handle": name, "password": "hunter22", "display_name": name,
+		})
+		token, _ := out["token"].(string)
+		if token == "" {
+			t.Fatalf("register %s: %v", name, out)
+		}
+		tokens[name] = token
+		b := botclient.New(botclient.Config{
+			BaseURL: h.base, TableID: tableID, Name: name,
+			Strategy: botclient.StrategyRandom, Seed: uint64(i + 1), AccountToken: token,
+		})
+		if err := b.Join(ctx); err != nil {
+			t.Fatal(err)
+		}
+		bs.players = append(bs.players, b)
+	}
+	admin := botclient.New(botclient.Config{
+		BaseURL: h.base, TableID: tableID, Name: "admin",
+		Role: botclient.RoleAdmin, Token: adminToken,
+	})
+	bs.others = []*botclient.Bot{admin}
+	bs.start(ctx)
+
+	waitUntil(t, 90*time.Second, "three hands", func() bool { return admin.HandsEnded() >= 3 })
+
+	var stats map[string]any
+	waitUntil(t, 20*time.Second, "eve's record", func() bool {
+		_, stats = h.request(http.MethodGet, "/api/accounts/me/stats", tokens["eve"], nil)
+		return num(stats["hands"]) >= 3
+	})
+	// What the two of them won and lost adds up, and the hands they made
+	// are kept like any others.
+	var sum float64
+	for _, name := range []string{"eve", "fay"} {
+		_, s := h.request(http.MethodGet, "/api/accounts/me/stats", tokens[name], nil)
+		sum += num(s["net"])
+	}
+	if sum != 0 {
+		t.Errorf("net over both profiles = %v, want 0", sum)
+	}
+	_, hl := h.request(http.MethodGet, "/api/accounts/me/highlights", tokens["eve"], nil)
+	if len(hl["best_hands"].([]any)) == 0 {
+		t.Errorf("no hands kept from a heads-up game: %v", hl)
 	}
 	cancel()
 	bs.wg.Wait()

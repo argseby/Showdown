@@ -6,18 +6,25 @@ import '../../core/account.dart';
 import '../../core/formatting.dart';
 import '../../core/friends.dart';
 import '../../core/rest_client.dart';
-import '../../shared/pot_colors.dart';
-import '../account/stats_dialog.dart';
+import '../account/stats_parts.dart';
 
-/// Another player's profile, as far as they share it. A profile shared
-/// with nobody is not there at all — the same answer as for a name that
-/// was never taken, so this cannot be used to find out who exists.
+/// Another player's record, as far as they share it: the same page as your
+/// own statistics — the same tabs, the same figures in the same places —
+/// with the sections they keep to themselves marked as such rather than
+/// left out.
+///
+/// A profile shared with nobody is not there at all: the same answer as
+/// for a name that was never taken, so this cannot be used to find out who
+/// exists.
 Future<void> showProfileDialog(BuildContext context, String handle) =>
     showOverlay<void>(
       context,
       const DialogConfiguration(),
       builder: (context) => ProfileDialog(handle: handle),
     ).future;
+
+/// The pages of somebody else's record.
+enum ProfileTab { overview, hands, awards }
 
 class ProfileDialog extends ConsumerStatefulWidget {
   const ProfileDialog({super.key, required this.handle});
@@ -29,6 +36,7 @@ class ProfileDialog extends ConsumerStatefulWidget {
 }
 
 class _ProfileDialogState extends ConsumerState<ProfileDialog> {
+  ProfileTab _tab = ProfileTab.overview;
   bool _busy = false;
   String? _error;
 
@@ -53,14 +61,13 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final locale = Localizations.localeOf(context).toString();
     final async = ref.watch(profileProvider(widget.handle));
 
     Widget body;
     switch (async) {
       case AsyncLoading():
         body = const SizedBox(
-          height: 120,
+          height: 160,
           child: Center(child: CircularProgressIndicator()),
         );
       case AsyncError():
@@ -69,25 +76,28 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
         final p = value;
         if (p == null) {
           body = SizedBox(
-            height: 100,
+            height: 140,
             child: Center(
               child: Text(
                 l10n.profilePrivate,
                 key: const Key('profile-private'),
+                textAlign: TextAlign.center,
               ).muted(),
             ),
           );
           break;
         }
-        body = _sections(p, locale);
+        body = _record(p);
     }
 
     final profile = async.value;
     return AlertDialog(
       title: Text(profile == null ? l10n.profileTitle : profile.displayName),
-      content: SizedBox(width: 420, child: body),
+      content: SizedBox(width: 470, child: body),
       actions: [
-        if (profile != null && !profile.you && accountsFriendable(profile))
+        if (profile != null &&
+            !profile.you &&
+            profile.relation == Relation.none)
           OutlineButton(
             key: const Key('profile-add-friend'),
             enabled: !_busy,
@@ -104,15 +114,12 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
     );
   }
 
-  /// Whether the "add friend" button makes sense: not already friends and
-  /// not already asked.
-  bool accountsFriendable(PublicProfile p) => p.relation == Relation.none;
-
-  Widget _sections(PublicProfile p, String locale) {
+  Widget _record(PublicProfile p) {
     final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
@@ -121,7 +128,14 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
             Text(p.handle).muted().small(),
             const Spacer(),
             if (p.relation == Relation.friend)
-              Text(l10n.friendsTabAll).muted().xSmall(),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(LucideIcons.users, size: 12),
+                  const Gap(4),
+                  Text(l10n.friendsTabAll).muted().xSmall(),
+                ],
+              ),
           ],
         ),
         if (p.since > 0)
@@ -133,114 +147,150 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
             style: TextStyle(color: Theme.of(context).colorScheme.destructive),
           ).small(),
         ],
-        if (p.winnings == null)
-          _notShared(LucideIcons.coins, l10n.profileWinnings, p),
-        if (p.winnings case final w?) ...[
-          const Gap(14),
-          _heading(LucideIcons.coins, l10n.profileWinnings),
-          _row(l10n.statsHands, '${w.hands}'),
-          _row(
-            l10n.statsNet,
-            (w.net > 0 ? '+' : '') + formatChips(w.net, locale),
-            color: w.net == 0
-                ? null
-                : w.net > 0
-                ? potGold
-                : Theme.of(context).colorScheme.destructive,
-          ),
-          _row(
-            l10n.statsPer100,
-            '${w.bbPer100 > 0 ? '+' : ''}${w.bbPer100.toStringAsFixed(1)} bb',
-          ),
-          if (w.roundsWon > 0) _row(l10n.statsRoundsWon, '${w.roundsWon}'),
-          if (w.podiums > 0) _row(l10n.statsPodiums, '${w.podiums}'),
-          Text(l10n.profileCountedOnly).muted().xSmall(),
-        ],
-        if (p.bestHands == null)
-          _notShared(LucideIcons.crown, l10n.profileBestHands, p),
-        if (p.bestHands case final hands? when hands.isNotEmpty) ...[
-          const Gap(14),
-          _heading(LucideIcons.crown, l10n.profileBestHands),
-          for (final h in hands.take(5))
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          h.description.isNotEmpty
-                              ? h.description
-                              : handClassName(l10n, h.category, royal: h.royal),
-                          overflow: TextOverflow.ellipsis,
-                        ).small(),
-                        Text(
-                          prettyCards(h.cards),
-                          style: const TextStyle(
-                            fontFamily: 'GeistMono',
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(8),
-                  Text(formatDate(h.endedAt, locale)).muted().xSmall(),
-                ],
-              ),
+        const Gap(12),
+        Tabs(
+          index: _tab.index,
+          onChanged: (i) => setState(() => _tab = ProfileTab.values[i]),
+          expand: true,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+          children: [
+            _tabItem(
+              const Key('profile-tab-overview'),
+              LucideIcons.layoutDashboard,
+              l10n.statsTabOverview,
             ),
-        ],
-        if (p.achievements == null)
-          _notShared(LucideIcons.award, l10n.profileAwards, p),
-        if (p.achievements case final awards? when awards.isNotEmpty) ...[
-          const Gap(14),
-          _heading(LucideIcons.award, l10n.profileAwards),
-          for (final a in awards)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.badgeCheck, size: 14, color: potGold),
-                  const Gap(6),
-                  Expanded(child: Text(achievementTitle(l10n, a.id)).small()),
-                  Text(formatDate(a.earnedAt, locale)).muted().xSmall(),
-                ],
-              ),
+            _tabItem(
+              const Key('profile-tab-hands'),
+              LucideIcons.spade,
+              l10n.statsTabHands,
             ),
-        ],
-        if (p.lastHand == null)
-          _notShared(LucideIcons.activity, l10n.profileActivity, p),
-        if (p.lastHand != null) ...[
-          const Gap(14),
-          _heading(LucideIcons.activity, l10n.profileActivity),
-          if (p.lastHand! > 0)
-            _row(l10n.profileLastHand, formatDate(p.lastHand!, locale)),
-          if ((p.playingAt ?? '').isNotEmpty)
-            Text(l10n.profilePlayingNow).muted().small(),
-        ],
+            _tabItem(
+              const Key('profile-tab-awards'),
+              LucideIcons.award,
+              l10n.statsTabAwards,
+            ),
+          ],
+        ),
+        const Gap(14),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+          ),
+          child: SingleChildScrollView(
+            child: switch (_tab) {
+              ProfileTab.overview => _overview(p, locale),
+              ProfileTab.hands => _hands(p),
+              ProfileTab.awards => _awards(p),
+            },
+          ),
+        ),
       ],
     );
   }
 
-  /// A section its owner keeps to themselves. It is named rather than
-  /// left out: an empty space says nothing, and "not shared" says the
-  /// profile is fine and the section is theirs.
-  Widget _notShared(IconData icon, String title, PublicProfile p) => Padding(
-    padding: const EdgeInsets.only(top: 14),
-    child: Column(
+  Widget _overview(PublicProfile p, String locale) {
+    final l10n = context.l10n;
+    final w = p.winnings;
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _heading(icon, title),
+        if (w == null)
+          _notShared(LucideIcons.coins, l10n.profileWinnings, p)
+        else ...[
+          NetHero(net: w.net, caption: l10n.profileOverHands('${w.hands}')),
+          const Gap(14),
+          StatsGroup(
+            icon: LucideIcons.coins,
+            title: l10n.profileWinnings,
+            rows: [
+              StatsRow(l10n.statsHands, '${w.hands}'),
+              StatsRow(
+                l10n.statsNetBB,
+                bbText(w.netBB),
+                color: moneyColor(context, w.netBB),
+              ),
+              StatsRow(l10n.statsPer100, bbText(w.bbPer100)),
+              if (w.roundsWon > 0)
+                StatsRow(l10n.statsRoundsWon, '${w.roundsWon}'),
+              if (w.podiums > 0) StatsRow(l10n.statsPodiums, '${w.podiums}'),
+            ],
+          ),
+        ],
+        const Gap(14),
+        if (p.lastHand == null)
+          _notShared(LucideIcons.activity, l10n.profileActivity, p)
+        else
+          StatsGroup(
+            icon: LucideIcons.activity,
+            title: l10n.profileActivity,
+            rows: [
+              if (p.lastHand! > 0)
+                StatsRow(l10n.profileLastHand, formatDate(p.lastHand!, locale)),
+              if ((p.playingAt ?? '').isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Text(l10n.profilePlayingNow).muted().small(),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _hands(PublicProfile p) {
+    final l10n = context.l10n;
+    final hands = p.bestHands;
+    if (hands == null) {
+      return _notShared(LucideIcons.crown, l10n.profileBestHands, p);
+    }
+    if (hands.isEmpty) return Text(l10n.statsNoHandsYet).muted().small();
+    return StatsGroup(
+      icon: LucideIcons.crown,
+      title: l10n.profileBestHands,
+      rows: [for (final h in hands) HandCard(h)],
+    );
+  }
+
+  Widget _awards(PublicProfile p) {
+    final l10n = context.l10n;
+    final awards = p.achievements;
+    if (awards == null) {
+      return _notShared(LucideIcons.award, l10n.profileAwards, p);
+    }
+    if (awards.isEmpty) return Text(l10n.statsNoAwardsYet).muted().small();
+    return StatsGroup(
+      icon: LucideIcons.award,
+      title: l10n.profileAwards,
+      rows: [for (final a in awards) AwardRow(a, earned: true)],
+    );
+  }
+
+  /// A section its owner keeps to themselves. It is named rather than left
+  /// out: an empty space says nothing, and "not shared" says the profile
+  /// is fine and the section is theirs.
+  Widget _notShared(IconData icon, String title, PublicProfile p) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            children: [
+              Icon(icon, size: 12, color: theme.colorScheme.mutedForeground),
+              const Gap(6),
+              Text(title.toUpperCase()).muted().xSmall().semiBold(),
+            ],
+          ),
+        ),
         Row(
           children: [
             Icon(
               LucideIcons.lock,
               size: 11,
-              color: Theme.of(context).colorScheme.mutedForeground,
+              color: theme.colorScheme.mutedForeground,
             ),
             const Gap(6),
             Flexible(
@@ -251,34 +301,17 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
           ],
         ),
       ],
-    ),
-  );
+    );
+  }
 
-  Widget _heading(IconData icon, String title) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
+  TabItem _tabItem(Key key, IconData icon, String label) => TabItem(
+    key: key,
     child: Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 12,
-          color: Theme.of(context).colorScheme.mutedForeground,
-        ),
-        const Gap(6),
-        Text(title.toUpperCase()).muted().xSmall().semiBold(),
-      ],
-    ),
-  );
-
-  Widget _row(String label, String value, {Color? color}) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      children: [
-        Expanded(child: Text(label).muted().small()),
-        const Gap(8),
-        Text(
-          value,
-          style: TextStyle(fontFamily: 'GeistMono', color: color),
-        ),
+        Icon(icon, size: 13),
+        const Gap(5),
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis).small()),
       ],
     ),
   );

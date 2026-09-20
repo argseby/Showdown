@@ -7,6 +7,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../core/account.dart';
 import '../../core/rest_client.dart';
+import 'visibility_dialog.dart';
 
 /// Sign in, or make a profile. Profiles are optional everywhere: this
 /// dialog is only ever reached by a player who went looking for it.
@@ -36,6 +37,33 @@ class _AccountDialogState extends ConsumerState<AccountDialog> {
 
   /// Shown once after sign-up: the only way back in without the password.
   String? _recoveryCode;
+
+  /// After the code is written down: who may see which part of the new
+  /// profile. Asked here so the choice is made before there is anything
+  /// to see, rather than found in a menu later.
+  bool _choosing = false;
+  final Map<String, String> _visibility = {
+    for (final section in visibilitySections) section: 'friends',
+  };
+
+  Future<void> _finish() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(accountProvider.notifier).setVisibilityAll(_visibility);
+      if (mounted) unawaited(closeOverlay<void>(context));
+    } on ApiException catch (e) {
+      // The profile exists either way; only the choices failed to save.
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _busy = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -90,6 +118,53 @@ class _AccountDialogState extends ConsumerState<AccountDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    if (_choosing) {
+      return AlertDialog(
+        title: Text(l10n.visTitle),
+        content: SizedBox(
+          width: 400,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l10n.visSignUpBody).muted().small(),
+                  const Gap(12),
+                  VisibilitySections(
+                    key: const Key('account-visibility-sections'),
+                    value: _visibility,
+                    enabled: !_busy,
+                    onPick: (section, value) =>
+                        setState(() => _visibility[section] = value),
+                  ),
+                  if (_error != null) ...[
+                    const Gap(8),
+                    Text(
+                      _error!,
+                      style: TextStyle(color: theme.colorScheme.destructive),
+                    ).small(),
+                  ],
+                  const Gap(8),
+                  Text(l10n.visChangeLater).muted().xSmall(),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          PrimaryButton(
+            key: const Key('account-visibility-done'),
+            enabled: !_busy,
+            onPressed: _finish,
+            child: Text(l10n.visFinish),
+          ),
+        ],
+      );
+    }
     final code = _recoveryCode;
     if (code != null) {
       // Sign-up is done; this code is shown once and never again.
@@ -130,7 +205,7 @@ class _AccountDialogState extends ConsumerState<AccountDialog> {
         actions: [
           PrimaryButton(
             key: const Key('account-recovery-done'),
-            onPressed: () => closeOverlay<void>(context),
+            onPressed: () => setState(() => _choosing = true),
             child: Text(l10n.accountRecoveryDone),
           ),
         ],

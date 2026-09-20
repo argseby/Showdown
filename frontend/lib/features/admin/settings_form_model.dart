@@ -148,6 +148,37 @@ class SettingsFormState {
   SettingsFormState setFlag(String field, bool value) =>
       copyWith(flags: {...flags, field: value});
 
+  /// Takes one field from a state built off the server, and the whole of
+  /// its `original`, leaving every other field as it is being edited. This
+  /// is what settling one field does to a form somebody is still typing in.
+  SettingsFormState adopt(SettingsFormState server, String field) {
+    var next = copyWith(original: server.original);
+    if (server.numbers.containsKey(field)) {
+      next = next.setNumber(field, server.numbers[field] ?? '');
+    }
+    if (server.flags.containsKey(field)) {
+      next = next.setFlag(field, server.flags[field] ?? false);
+    }
+    switch (field) {
+      case 'join_policy':
+        next = next.copyWith(joinPolicy: server.joinPolicy);
+      case 'showdown_reveal':
+        next = next.copyWith(showdownReveal: server.showdownReveal);
+      case 'variant':
+        next = next.copyWith(variant: server.variant);
+      case 'password':
+        next = next.copyWith(password: '', clearPassword: false);
+    }
+    return next;
+  }
+
+  /// The value a numeric field had when the form was filled from the
+  /// server — what the cross beside it puts back.
+  String originalNumber(String field) {
+    final v = original.toFields()[field];
+    return v is int ? '$v' : '';
+  }
+
   int? number(String field) => int.tryParse(numbers[field]?.trim() ?? '');
 
   /// Validation mirroring §5.2 (the server re-validates).

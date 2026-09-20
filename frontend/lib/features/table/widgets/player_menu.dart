@@ -96,27 +96,45 @@ class _PlayerMenu extends ConsumerWidget {
 
     final admin = this.admin;
     final handle = player.account;
+    final hasHandle = handle != null && handle.isEmpty == false;
+    final isBot = player.bot ?? false;
     return AlertDialog(
       // A signed-in player carries their profile name under the one they
-      // sat down with; a guest shows nothing extra.
-      title: handle == null || handle.isEmpty
+      // sat down with, a bot says that it is one, and a guest shows
+      // nothing extra.
+      title: !hasHandle && !isBot
           ? Text(player.name)
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(player.name),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(LucideIcons.userCheck, size: 12),
-                    const Gap(4),
-                    Text(
-                      '@$handle',
-                      key: const Key('player-handle'),
-                    ).muted().small(),
-                  ],
-                ),
+                if (hasHandle)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.userCheck, size: 12),
+                      const Gap(4),
+                      Text(
+                        '@$handle',
+                        key: const Key('player-handle'),
+                      ).muted().small(),
+                    ],
+                  ),
+                if (isBot)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.bot, size: 12),
+                      const Gap(4),
+                      Flexible(
+                        child: Text(
+                          l10n.botSeatHint,
+                          key: const Key('player-bot'),
+                        ).muted().small(),
+                      ),
+                    ],
+                  ),
               ],
             ),
       content: SizedBox(

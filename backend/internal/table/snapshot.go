@@ -90,7 +90,7 @@ func (t *Table) snapshot(c *Client) protocol.Snapshot {
 			pv := &protocol.PlayerView{
 				ID: p.ID, Name: p.Name, Avatar: p.Avatar, Hat: p.Hat, Heat: heatOf(p.WinStreak), Stack: p.Stack, Status: p.Status, Connected: p.Connected,
 				Voice: voice, Muted: p.Muted, Camera: p.Camera, TimeBank: p.TimeBank, Place: p.Place,
-				Account: p.AccountHandle,
+				Account: p.AccountHandle, Bot: p.Bot,
 			}
 			if eq, ok := t.equity[seat]; ok && p.inHand {
 				pv.Equity = &eq

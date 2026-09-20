@@ -1,6 +1,10 @@
 // Command bot runs scripted players against a table for manual testing:
 //
 //	go run ./cmd/bot -server http://localhost:8080 -table <id> -password <pw> -count 6
+//
+// The default strategy is random, which is what shakes rule bugs out. To play
+// against opponents worth playing against, pass -strategy solid (what the
+// bots make target uses). Every bot marks its seat as a bot when it joins.
 package main
 
 import (
@@ -34,7 +38,7 @@ func run() error {
 	prefix := flag.String("prefix", "Bot", "display name prefix")
 	names := flag.String("names", "", "comma-separated display names (overrides -prefix and -count)")
 	accounts := flag.String("accounts", "", "comma-separated profile tokens, one per bot, so they play signed in")
-	strategy := flag.String("strategy", "random", "random | passive | aggressive | idle")
+	strategy := flag.String("strategy", "random", "solid | random | passive | aggressive | idle")
 	hands := flag.Int("hands", 0, "stop after this many hands (0 = run until interrupted)")
 	delay := flag.Duration("delay", 300*time.Millisecond, "thinking time before acting")
 	verbose := flag.Bool("v", false, "debug logging")

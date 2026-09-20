@@ -44,6 +44,10 @@ always play.
   playing with the free seats and a way in. A friend at a table can call you over;
   requests and invitations reach you wherever you are in the app. Anyone can be
   declined quietly or blocked for good.
+- Bots: short a player, the host adds one from the invite dialog. It reads its
+  cards, weighs its chances against the price it is being offered, and folds,
+  calls or raises accordingly — no solver, but a long way from random. Its seat
+  says it is a bot, and the host kicks it like anyone else.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install

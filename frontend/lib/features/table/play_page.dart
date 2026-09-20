@@ -944,10 +944,13 @@ class _PlayPageState extends ConsumerState<PlayPage>
   /// preferences, help and leaving.
   Future<void> _invite(BuildContext context, TableSessionState session) {
     showAdminToast(context, context.l10n.adminLinkCopied);
+    // The host, and only the host, can fill a seat with a bot from here.
+    final adminToken = ref.read(adminTokenProvider(widget.tableId)).value;
     return showInviteDialog(
       context,
       tableId: widget.tableId,
       snapshot: session.snapshot,
+      adminToken: (session.snapshot?.you.isAdmin ?? false) ? adminToken : null,
     );
   }
 

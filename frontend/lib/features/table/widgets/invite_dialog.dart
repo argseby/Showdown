@@ -10,7 +10,9 @@ import '../../../core/providers.dart';
 import '../../../core/rest_client.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
+import '../../admin/admin_session.dart';
 import '../../admin/admin_widgets.dart';
+import '../table_session.dart';
 
 /// Copies the table link and shows it with a QR code and everyone who is
 /// connected right now.
@@ -18,36 +20,53 @@ Future<void> showInviteDialog(
   BuildContext context, {
   required String tableId,
   required Snapshot? snapshot,
+  String? adminToken,
 }) {
   final link = joinLinkFor(tableId);
   Clipboard.setData(ClipboardData(text: link));
   return showOverlay<void>(
     context,
     const DialogConfiguration(),
-    builder: (context) =>
-        _InviteDialog(link: link, snapshot: snapshot, tableId: tableId),
+    builder: (context) => _InviteDialog(
+      link: link,
+      snapshot: snapshot,
+      tableId: tableId,
+      adminToken: adminToken,
+    ),
   ).future;
 }
 
-class _InviteDialog extends StatelessWidget {
+class _InviteDialog extends ConsumerWidget {
   const _InviteDialog({
     required this.link,
     required this.snapshot,
     required this.tableId,
+    this.adminToken,
   });
   final String link;
   final Snapshot? snapshot;
   final String tableId;
 
+  /// The table's admin token when the viewer hosts it; only the host fills
+  /// a seat with a bot.
+  final String? adminToken;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    // The host can seat a bot from this dialog, so the table it lists has to
+    // follow along rather than stay as it was when the dialog opened.
+    final live =
+        ref.watch(tableSessionProvider(tableId).select((s) => s.snapshot)) ??
+        snapshot;
     final players = [
-      for (final sv in snapshot?.seats ?? const <SeatView>[])
+      for (final sv in live?.seats ?? const <SeatView>[])
         if (sv.player != null) sv.player!,
     ];
-    final spectators = snapshot?.spectatorNames ?? const <String>[];
+    final spectators = live?.spectatorNames ?? const <String>[];
+    final maxPlayers = live?.table.settings.maxPlayers ?? players.length;
+    final freeSeats = (maxPlayers - players.length).clamp(0, maxPlayers);
     Widget section(String title) => Padding(
       padding: const EdgeInsets.only(top: 12, bottom: 4),
       child: Text(title).semiBold().small(),
@@ -65,7 +84,15 @@ class _InviteDialog extends StatelessWidget {
               const Gap(10),
               // A friend needs no link: they get a notification wherever
               // they are.
-              _InviteFriends(tableId: tableId, snapshot: snapshot),
+              _InviteFriends(tableId: tableId, snapshot: live),
+              // Nobody to ask, or one short of a game: the host can fill a
+              // seat from here instead.
+              if (adminToken != null)
+                _AddBot(
+                  tableId: tableId,
+                  token: adminToken!,
+                  freeSeats: freeSeats,
+                ),
               Row(
                 children: [
                   Expanded(
@@ -266,6 +293,75 @@ class _InviteFriendsState extends ConsumerState<_InviteFriends> {
         const Gap(8),
         const Divider(),
       ],
+    );
+  }
+}
+
+/// Fills a free seat with a bot the server plays. Host only: seating
+/// somebody is the host's call, the same way kicking them is. To get rid of
+/// one again, the host kicks it like any other player.
+class _AddBot extends ConsumerStatefulWidget {
+  const _AddBot({
+    required this.tableId,
+    required this.token,
+    required this.freeSeats,
+  });
+  final String tableId;
+  final String token;
+  final int freeSeats;
+
+  @override
+  ConsumerState<_AddBot> createState() => _AddBotState();
+}
+
+class _AddBotState extends ConsumerState<_AddBot> {
+  bool _busy = false;
+
+  Future<void> _add() async {
+    setState(() => _busy = true);
+    final name = await guardAdmin(
+      ref,
+      context,
+      widget.tableId,
+      () => ref.read(adminApiProvider).addBot(widget.token, widget.tableId),
+    );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (name != null) showAdminToast(context, context.l10n.botAdded(name));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final full = widget.freeSeats == 0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.bot, size: 14),
+              const Gap(6),
+              Text(l10n.botSection).semiBold().small(),
+            ],
+          ),
+          const Gap(4),
+          Text(full ? l10n.botTableFull : l10n.botHint).muted().xSmall(),
+          const Gap(6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlineButton(
+              key: const Key('invite-add-bot'),
+              size: ButtonSize.small,
+              onPressed: full || _busy ? null : _add,
+              leading: const Icon(LucideIcons.plus),
+              child: Text(l10n.botAdd),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

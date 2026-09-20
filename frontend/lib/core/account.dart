@@ -52,7 +52,6 @@ class HandHighlight {
     required this.handNumber,
     required this.endedAt,
     required this.shown,
-    required this.counted,
   });
 
   factory HandHighlight.fromJson(Map<String, dynamic> json) => HandHighlight(
@@ -70,7 +69,6 @@ class HandHighlight {
     handNumber: json['hand_number'] as int? ?? 0,
     endedAt: (json['ended_at'] as num?)?.toInt() ?? 0,
     shown: json['shown'] as bool? ?? false,
-    counted: json['counted'] as bool? ?? false,
   );
 
   final int category;
@@ -89,7 +87,6 @@ class HandHighlight {
 
   /// Whether the table saw it; a mucked hand is only ever on your own page.
   final bool shown;
-  final bool counted;
 }
 
 /// A milestone. [earnedAt] is 0 while it is still ahead, and the counted
@@ -190,9 +187,6 @@ class ProfileStats {
     this.net = 0,
     this.netBB = 0,
     this.bbPer100 = 0,
-    this.countedHands = 0,
-    this.countedNet = 0,
-    this.countedNetBB = 0,
     this.biggestPot = 0,
     this.biggestWin = 0,
     this.bestRound = 0,
@@ -221,9 +215,6 @@ class ProfileStats {
       net: i('net'),
       netBB: d('net_bb'),
       bbPer100: d('bb_per_100'),
-      countedHands: i('counted_hands'),
-      countedNet: i('counted_net'),
-      countedNetBB: d('counted_net_bb'),
       biggestPot: i('biggest_pot'),
       biggestWin: i('biggest_win'),
       bestRound: i('best_round'),
@@ -255,12 +246,6 @@ class ProfileStats {
   final int net;
   final double netBB;
   final double bbPer100;
-
-  /// The subset that may ever stand in a public total: three or more
-  /// profiles dealt in, nobody handed chips.
-  final int countedHands;
-  final int countedNet;
-  final double countedNetBB;
 
   final int biggestPot;
   final int biggestWin;
@@ -479,12 +464,17 @@ class AccountNotifier extends AsyncNotifier<Account?> {
 
   /// Shows or hides one section of the profile. The switch belongs to the
   /// owner, so the new state comes back from the server, not from here.
-  Future<void> setVisibility(String section, String value) async {
+  Future<void> setVisibility(String section, String value) =>
+      setVisibilityAll({section: value});
+
+  /// Sets several sections at once — what a new profile does with the
+  /// choices it made while signing up.
+  Future<void> setVisibilityAll(Map<String, String> sections) async {
     final token = _token;
     if (token == null) throw StateError('not signed in');
     final account = await ref
         .read(accountApiProvider)
-        .updateProfile(token: token, visibility: {section: value});
+        .updateProfile(token: token, visibility: sections);
     state = AsyncData(account);
   }
 

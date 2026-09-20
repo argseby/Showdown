@@ -112,6 +112,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/restart", s.requireTableAdmin(s.lifecycle("restart")))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/blinds-up", s.requireTableAdmin(s.handleAdminBlindsUp))
 	s.mux.HandleFunc("DELETE /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminDeleteTable))
+	s.mux.HandleFunc("POST /api/admin/tables/{id}/bots", s.requireTableAdmin(s.handleAdminAddBot))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/kick", s.requireTableAdmin(s.handleAdminKick))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/chips", s.requireTableAdmin(s.handleAdminChips))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/mute", s.requireTableAdmin(s.handleAdminMute))
