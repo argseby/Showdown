@@ -9,7 +9,8 @@ import '../features/account/account_dialog.dart';
 import '../features/account/account_sheet.dart';
 
 /// Application bar with the theme and language toggles that every screen
-/// shares. Screens add their own [trailing] controls in front of them.
+/// shares, and the profile in the far corner. Screens add their own
+/// [trailing] controls in front of them.
 class TopBar extends ConsumerWidget {
   const TopBar({
     super.key,
@@ -67,47 +68,18 @@ class TopBar extends ConsumerWidget {
         trailing: trailing,
       );
     }
-    if (compact) {
-      return AppBar(
-        title: title,
-        leading: leading,
-        trailing: [
-          const AccountButton(),
-          ...trailing,
-          languageButton,
-          themeButton,
-        ],
-      );
-    }
+    // The profile sits at the end of the bar: it is the one control that
+    // is about the person rather than the page, and the corner is where
+    // people look for it.
     return AppBar(
       title: title,
-      subtitle: subtitle,
+      subtitle: compact ? null : subtitle,
       leading: leading,
       trailing: [
-        const AccountButton(),
         ...trailing,
-        Tooltip(
-          tooltip: TooltipContainer(child: Text(l10n.languageToggle)).call,
-          child: GhostButton(
-            density: ButtonDensity.icon,
-            onPressed: () =>
-                ref.read(localePreferenceProvider.notifier).next(locale),
-            child: Text(locale.languageCode.toUpperCase()).semiBold().small(),
-          ),
-        ),
-        Tooltip(
-          tooltip: TooltipContainer(child: Text(l10n.themeToggle)).call,
-          child: GhostButton(
-            density: ButtonDensity.icon,
-            onPressed: () =>
-                ref.read(themeModeProvider.notifier).toggle(brightness),
-            child: Icon(
-              brightness == Brightness.dark
-                  ? LucideIcons.sun
-                  : LucideIcons.moon,
-            ),
-          ),
-        ),
+        languageButton,
+        themeButton,
+        const AccountButton(),
       ],
     );
   }
