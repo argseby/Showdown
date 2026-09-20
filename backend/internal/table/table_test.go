@@ -100,7 +100,7 @@ func (f *fakeConn) count(typ string) int {
 	return n
 }
 
-var testDelays = Delays{Street: 5 * time.Millisecond, Runout: 5 * time.Millisecond, Showdown: 5 * time.Millisecond, ShowdownPerHand: time.Millisecond, ResultExtension: 50 * time.Millisecond, RunTwiceDecision: 500 * time.Millisecond}
+var testDelays = Delays{Street: 5 * time.Millisecond, Runout: 5 * time.Millisecond, Showdown: 5 * time.Millisecond, ShowdownPerHand: time.Millisecond, ResultExtension: 50 * time.Millisecond, RunTwiceDecision: 500 * time.Millisecond, BotThinkMin: time.Millisecond, BotThinkMax: 5 * time.Millisecond}
 
 func testSettings() Settings {
 	s := DefaultSettings()

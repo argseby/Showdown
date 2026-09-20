@@ -11,9 +11,10 @@ import (
 	"showdown/internal/store"
 )
 
-// botSettings gives the bots a turn clock they can actually think inside: the
-// shared test settings run a one-second turn, which is the very case
-// thinkFor exists for, but a busy -race run makes the margin flaky.
+// botSettings gives the bots a turn clock they can comfortably act inside.
+// The pause itself is already out of the way — testDelays thinks for
+// milliseconds — but a busy -race run can still take its time between the
+// snapshot and the action, and a seat that misses its turn stops playing.
 func botSettings() Settings {
 	s := testSettings()
 	s.TurnTime = 5

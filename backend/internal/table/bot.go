@@ -19,12 +19,7 @@ import (
 // so a bot cannot see a card it has no business seeing, and the rules that
 // apply to it are the rules that apply to everyone.
 
-// Bot thinking time. A bot that answered the instant its turn came round
-// would feel like a machine and give its hand away by the pauses it did not
-// take, so it takes one, longer for the decisions a person would think about.
 const (
-	botThinkMin = 700 * time.Millisecond
-	botThinkMax = 2200 * time.Millisecond
 	botNameStem = "Bot"
 	// botNameTries bounds the search for a free name. A name stays reserved
 	// after its player leaves, so a host who adds and kicks bots all evening
@@ -167,11 +162,18 @@ func (b *botSeat) consider(snap protocol.Snapshot) {
 	}
 }
 
-// thinkFor is how long to pause before acting. Never long enough to run the
-// turn clock down: a table with a short clock (or a bot on its time bank)
-// gets a quick answer rather than a seat that times itself out.
+// thinkFor is how long to pause before acting. A bot that answered the
+// instant its turn came round would feel like a machine and would give its
+// hand away by the pauses it did not take, so it takes one, longer for the
+// decisions a person would think about. Never long enough to run the turn
+// clock down, though: a table with a short clock (or a bot on its time
+// bank) gets a quick answer rather than a seat that times itself out.
 func (b *botSeat) thinkFor(snap protocol.Snapshot) time.Duration {
-	think := botThinkMin + time.Duration(b.rng.Int64N(int64(botThinkMax-botThinkMin+1)))
+	d := b.table.deps.Delays
+	think := d.BotThinkMin
+	if span := d.BotThinkMax - d.BotThinkMin; span > 0 {
+		think += time.Duration(b.rng.Int64N(int64(span) + 1))
+	}
 	if snap.Hand.DeadlineTS != nil && snap.ServerTS > 0 {
 		left := time.Duration(*snap.Hand.DeadlineTS-snap.ServerTS) * time.Millisecond
 		if limit := left / 3; limit < think {
