@@ -544,21 +544,32 @@ func (s *Store) DeleteSession(ctx context.Context, tokenHash string) error {
 // InsertChat stores a message and returns its id. A positive m.ID is used
 // as the explicit id (the table actor numbers messages itself).
 func (s *Store) InsertChat(ctx context.Context, m ChatRow) (int64, error) {
-	var res sql.Result
-	var err error
-	if m.ID > 0 {
-		res, err = s.db.ExecContext(ctx, `
-			INSERT INTO chat_messages (id, table_id, author_kind, author_name, text, ts) VALUES (?, ?, ?, ?, ?, ?)`,
-			m.ID, m.TableID, m.AuthorKind, m.AuthorName, m.Text, m.TS)
-	} else {
-		res, err = s.db.ExecContext(ctx, `
-			INSERT INTO chat_messages (table_id, author_kind, author_name, text, ts) VALUES (?, ?, ?, ?, ?)`,
-			m.TableID, m.AuthorKind, m.AuthorName, m.Text, m.TS)
+	// The id is the table's own counter (see table.postChat). Two tables
+	// numbering from one is fine: the key is (table_id, id).
+	if m.ID <= 0 {
+		id, err := s.NextChatID(ctx, m.TableID)
+		if err != nil {
+			return 0, err
+		}
+		m.ID = id
 	}
-	if err != nil {
+	if _, err := s.db.ExecContext(ctx, `
+		INSERT INTO chat_messages (id, table_id, author_kind, author_name, text, ts)
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		m.ID, m.TableID, m.AuthorKind, m.AuthorName, m.Text, m.TS); err != nil {
 		return 0, fmt.Errorf("insert chat: %w", err)
 	}
-	return res.LastInsertId()
+	return m.ID, nil
+}
+
+// NextChatID is the id after the highest one this table has used.
+func (s *Store) NextChatID(ctx context.Context, tableID string) (int64, error) {
+	var max sql.NullInt64
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT MAX(id) FROM chat_messages WHERE table_id = ?`, tableID).Scan(&max); err != nil {
+		return 0, fmt.Errorf("next chat id: %w", err)
+	}
+	return max.Int64 + 1, nil
 }
 
 // RecentChat returns the newest limit messages of a table in ascending order.

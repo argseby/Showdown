@@ -81,10 +81,15 @@ func (s *userSocket) read(timeout time.Duration) protocol.Envelope {
 	return env
 }
 
+// userEventWait is how long waitFor gives one event to arrive. Every push
+// in these tests is sent while the request that causes it is still being
+// served, so this is a stuck-test deadline, not a pause.
+const userEventWait = 3 * time.Second
+
 // waitFor reads until an event of this kind turns up, ignoring the rest.
-func (s *userSocket) waitFor(kind string, timeout time.Duration) protocol.UserEvent {
+func (s *userSocket) waitFor(kind string) protocol.UserEvent {
 	s.t.Helper()
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().Add(userEventWait)
 	for time.Now().Before(deadline) {
 		env := s.read(time.Until(deadline))
 		if env.Type != protocol.TypeUserEvent {
@@ -98,7 +103,7 @@ func (s *userSocket) waitFor(kind string, timeout time.Duration) protocol.UserEv
 			return e
 		}
 	}
-	s.t.Fatalf("no %s event within %s", kind, timeout)
+	s.t.Fatalf("no %s event within %s", kind, userEventWait)
 	return protocol.UserEvent{}
 }
 
@@ -116,7 +121,7 @@ func TestFriendRequestReachesTheOtherDevice(t *testing.T) {
 		t.Fatalf("request: %d %v", status, out)
 	}
 	// It arrives where the person is, not where the table is.
-	e := bensPhone.waitFor(protocol.UserFriendRequest, 3*time.Second)
+	e := bensPhone.waitFor(protocol.UserFriendRequest)
 	if e.Handle != "ann" {
 		t.Errorf("friend request event: %+v", e)
 	}
@@ -133,7 +138,7 @@ func TestFriendRequestReachesTheOtherDevice(t *testing.T) {
 	if status != http.StatusOK || out["state"] != "friend" {
 		t.Fatalf("accept: %d %v", status, out)
 	}
-	if e := annsLaptop.waitFor(protocol.UserFriendAccepted, 3*time.Second); e.Handle != "ben" {
+	if e := annsLaptop.waitFor(protocol.UserFriendAccepted); e.Handle != "ben" {
 		t.Errorf("accepted event: %+v", e)
 	}
 	_, list = h.request(http.MethodGet, "/api/friends", ann, nil)
@@ -288,7 +293,7 @@ func TestInviteNeedsAFriendAndASeat(t *testing.T) {
 	if status != http.StatusCreated {
 		t.Fatalf("invite: %d %v", status, out)
 	}
-	e := bensPhone.waitFor(protocol.UserTableInvite, 3*time.Second)
+	e := bensPhone.waitFor(protocol.UserTableInvite)
 	if e.TableID != tableID || e.Handle != "ann" {
 		t.Errorf("invite event: %+v", e)
 	}
@@ -333,7 +338,7 @@ func TestFriendsPlayingShowsTheTable(t *testing.T) {
 		map[string]any{"name": "Ann"}); status != http.StatusCreated {
 		t.Fatal("join")
 	}
-	bensPhone.waitFor(protocol.UserFriendsPlaying, 3*time.Second)
+	bensPhone.waitFor(protocol.UserFriendsPlaying)
 
 	_, out = h.request(http.MethodGet, "/api/friends/playing", ben, nil)
 	tables := out["tables"].([]any)

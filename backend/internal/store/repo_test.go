@@ -126,6 +126,31 @@ func TestPlayersSessionsChat(t *testing.T) {
 		}
 		ids = append(ids, id)
 	}
+	// Every table numbers its messages from one of its own: the second
+	// table to ever speak used to collide with the first and lose the line.
+	if err := s.CreateTable(ctx, TableRow{
+		ID: "t2", Name: "T2", State: "waiting", CreatedAt: 1, ButtonSeat: -1,
+	}, sampleSettings("t2")); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 3; i++ {
+		if _, err := s.InsertChat(ctx, ChatRow{
+			ID: int64(i + 1), TableID: "t2", AuthorKind: "player",
+			AuthorName: "Ben", Text: "also hi", TS: int64(i),
+		}); err != nil {
+			t.Fatalf("t2 chat %d: %v", i+1, err)
+		}
+	}
+	if other, err := s.RecentChat(ctx, "t2", 10); err != nil || len(other) != 3 {
+		t.Fatalf("t2 chat: %v %v", other, err)
+	}
+	// And deleting by id stays with the table it belongs to.
+	if err := s.DeleteChat(ctx, "t2", 1); err != nil {
+		t.Fatal(err)
+	}
+	if first, _ := s.RecentChat(ctx, "t1", 10); len(first) != 5 {
+		t.Errorf("t1 lost a message to t2's delete: %v", first)
+	}
 	recent, err := s.RecentChat(ctx, "t1", 3)
 	if err != nil || len(recent) != 3 || recent[0].ID != ids[2] || recent[2].ID != ids[4] {
 		t.Fatalf("recent = %+v %v", recent, err)
