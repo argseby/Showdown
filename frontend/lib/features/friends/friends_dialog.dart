@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../app/router.dart';
 import '../../core/account.dart';
 import '../../core/formatting.dart';
 import '../../core/friends.dart';
@@ -197,6 +197,14 @@ class _FriendsDialogState extends ConsumerState<FriendsDialog> {
             subtitle: l10n.friendsSince(formatDate(f.since, locale)),
             onTap: () => showProfileDialog(context, f.handle),
             actions: [
+              // Their record, one tap from the list — it opens either way
+              // and says so when a section is not shared.
+              _IconAction(
+                key: Key('friend-stats-${f.handle}'),
+                icon: LucideIcons.chartNoAxesColumn,
+                tooltip: l10n.statsOpen,
+                onPressed: () => showProfileDialog(context, f.handle),
+              ),
               _IconAction(
                 icon: LucideIcons.userMinus,
                 tooltip: l10n.friendsRemove,
@@ -456,8 +464,9 @@ class _InviteRow extends ConsumerWidget {
             key: Key('invite-join-${invite.id}'),
             size: ButtonSize.small,
             onPressed: () {
+              final router = ref.read(routerProvider);
               closeOverlay<void>(context);
-              context.go('/t/${invite.tableId}');
+              router.go('/t/${invite.tableId}');
             },
             child: Text(l10n.friendsJoin),
           ),

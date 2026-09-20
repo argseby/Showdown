@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../app/router.dart';
 import '../../core/account.dart';
 import '../../core/friends.dart';
 import '../../core/rest_client.dart';
@@ -78,31 +78,35 @@ class _NotificationCardState extends ConsumerState<_NotificationCard> {
     }
   }
 
+  /// Taking up an invitation: go to the table first, then spend it. The
+  /// card is taken off the screen last — removing it disposes this widget,
+  /// and a disposed widget can neither navigate nor reach the API.
+  ///
+  /// The router comes from the provider, not from the context: these cards
+  /// hang above the whole app, which is one layer further out than the
+  /// router's own subtree, so context.go would find nothing there.
   Future<void> _joinTable() async {
     final n = widget.notification;
+    ref.read(routerProvider).go('/t/${n.tableId}');
+    await _spendInvite();
     _dismiss();
-    final token = ref.read(accountProvider.notifier).token;
-    if (token != null && n.inviteId.isNotEmpty) {
-      try {
-        await ref.read(friendsApiProvider).dismissInvite(token, n.inviteId);
-        ref.invalidate(friendsProvider);
-      } on ApiException {
-        // Taking up the invitation matters more than tidying it away.
-      }
-    }
-    if (mounted) context.go('/t/${n.tableId}');
   }
 
   Future<void> _dismissInvite() async {
+    await _spendInvite();
+    _dismiss();
+  }
+
+  /// Drops the invitation server-side; it expires by itself either way.
+  Future<void> _spendInvite() async {
     final n = widget.notification;
     final token = ref.read(accountProvider.notifier).token;
-    _dismiss();
     if (token == null || n.inviteId.isEmpty) return;
     try {
       await ref.read(friendsApiProvider).dismissInvite(token, n.inviteId);
       ref.invalidate(friendsProvider);
     } on ApiException {
-      // Nothing to do: it expires by itself.
+      // Taking up the invitation matters more than tidying it away.
     }
   }
 

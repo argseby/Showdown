@@ -100,9 +100,10 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		ID: account.NewID(), Handle: req.Handle, HandleKey: account.Key(req.Handle),
 		DisplayName: display, PasswordHash: pwHash, RecoveryHash: hashToken(code),
 		CreatedAt: s.now().UnixMilli(),
-		// Nothing is public until the owner says so.
-		VisProfile: visPrivate, VisWinnings: visPrivate, VisBestHands: visPrivate,
-		VisAchievements: visPrivate, VisActivity: visPrivate,
+		// Friends see your record — that is most of what a friend is for
+		// here. The public sees nothing until the owner says otherwise.
+		VisProfile: visFriends, VisWinnings: visFriends, VisBestHands: visFriends,
+		VisAchievements: visFriends, VisActivity: visFriends,
 	}
 	if err := s.store.CreateAccount(r.Context(), row); err != nil {
 		if errors.Is(err, store.ErrHandleTaken) {

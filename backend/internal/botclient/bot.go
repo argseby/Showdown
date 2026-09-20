@@ -32,6 +32,9 @@ const (
 	StrategyPassive    Strategy = "passive"    // check when possible, else call
 	StrategyAggressive Strategy = "aggressive" // raises and shoves often
 	StrategyIdle       Strategy = "idle"       // never acts (turns time out)
+	// StrategySolid weighs its equity against the price it is offered
+	// (see strategy.go); the one strategy meant to be played against.
+	StrategySolid Strategy = "solid"
 )
 
 // Role of the bot.
@@ -460,21 +463,12 @@ func deref(p *int64) int64 {
 }
 
 func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.ActionPayload {
-	checkOrCall := func() protocol.ActionPayload {
-		if o.Check {
-			return protocol.ActionPayload{Kind: "check"}
-		}
-		if o.Call > 0 {
-			return protocol.ActionPayload{Kind: "call"}
-		}
-		return protocol.ActionPayload{Kind: "fold"}
-	}
 	raise := func() protocol.ActionPayload {
 		if o.Raise == nil {
 			if o.AllIn > 0 {
 				return protocol.ActionPayload{Kind: "all_in"}
 			}
-			return checkOrCall()
+			return checkOrCall(o)
 		}
 		amount := o.Raise.Min
 		if o.Raise.Max > o.Raise.Min && b.rng.IntN(3) == 0 {
@@ -487,8 +481,10 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 		return protocol.ActionPayload{Kind: "raise", Amount: amount}
 	}
 	switch b.cfg.Strategy {
+	case StrategySolid:
+		return b.decideSolid(o, s)
 	case StrategyPassive:
-		return checkOrCall()
+		return checkOrCall(o)
 	case StrategyAggressive:
 		switch r := b.rng.IntN(100); {
 		case r < 10 && o.AllIn > 0:
@@ -496,7 +492,7 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 		case r < 60:
 			return raise()
 		default:
-			return checkOrCall()
+			return checkOrCall(o)
 		}
 	default:
 		switch r := b.rng.IntN(100); {
@@ -507,7 +503,7 @@ func (b *Bot) decide(o protocol.OptionsView, s protocol.Snapshot) protocol.Actio
 		case r < 45:
 			return raise()
 		default:
-			return checkOrCall()
+			return checkOrCall(o)
 		}
 	}
 }

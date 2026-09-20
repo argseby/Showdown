@@ -110,11 +110,6 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
 
   Widget _sections(PublicProfile p, String locale) {
     final l10n = context.l10n;
-    final shared =
-        p.winnings != null ||
-        (p.bestHands?.isNotEmpty ?? false) ||
-        (p.achievements?.isNotEmpty ?? false) ||
-        p.lastHand != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -138,10 +133,8 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
             style: TextStyle(color: Theme.of(context).colorScheme.destructive),
           ).small(),
         ],
-        if (!shared) ...[
-          const Gap(12),
-          Text(l10n.profileNothingShared).muted().small(),
-        ],
+        if (p.winnings == null)
+          _notShared(LucideIcons.coins, l10n.profileWinnings, p),
         if (p.winnings case final w?) ...[
           const Gap(14),
           _heading(LucideIcons.coins, l10n.profileWinnings),
@@ -163,6 +156,8 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
           if (w.podiums > 0) _row(l10n.statsPodiums, '${w.podiums}'),
           Text(l10n.profileCountedOnly).muted().xSmall(),
         ],
+        if (p.bestHands == null)
+          _notShared(LucideIcons.crown, l10n.profileBestHands, p),
         if (p.bestHands case final hands? when hands.isNotEmpty) ...[
           const Gap(14),
           _heading(LucideIcons.crown, l10n.profileBestHands),
@@ -198,6 +193,8 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
               ),
             ),
         ],
+        if (p.achievements == null)
+          _notShared(LucideIcons.award, l10n.profileAwards, p),
         if (p.achievements case final awards? when awards.isNotEmpty) ...[
           const Gap(14),
           _heading(LucideIcons.award, l10n.profileAwards),
@@ -214,6 +211,8 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
               ),
             ),
         ],
+        if (p.lastHand == null)
+          _notShared(LucideIcons.activity, l10n.profileActivity, p),
         if (p.lastHand != null) ...[
           const Gap(14),
           _heading(LucideIcons.activity, l10n.profileActivity),
@@ -225,6 +224,35 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
       ],
     );
   }
+
+  /// A section its owner keeps to themselves. It is named rather than
+  /// left out: an empty space says nothing, and "not shared" says the
+  /// profile is fine and the section is theirs.
+  Widget _notShared(IconData icon, String title, PublicProfile p) => Padding(
+    padding: const EdgeInsets.only(top: 14),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _heading(icon, title),
+        Row(
+          children: [
+            Icon(
+              LucideIcons.lock,
+              size: 11,
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+            const Gap(6),
+            Flexible(
+              child: Text(context.l10n.profileNotSharedHint(p.displayName))
+                  .muted()
+                  .xSmall(),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 
   Widget _heading(IconData icon, String title) => Padding(
     padding: const EdgeInsets.only(bottom: 4),

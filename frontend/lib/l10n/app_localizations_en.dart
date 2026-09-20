@@ -599,7 +599,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visBody =>
-      'Your profile is private until you say otherwise. Each section can be kept private, shared with your friends, or made public.';
+      'Your friends can see your record. Nothing is public until you make it so, and anything can go back to private.';
 
   @override
   String get visOpen => 'Who can see';
@@ -799,17 +799,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifOk => 'Got it';
 
   @override
+  String get playerIsFriend => 'One of your friends';
+
+  @override
+  String get playerFriendRecord => 'Statistics and awards';
+
+  @override
   String get profileTitle => 'Profile';
 
   @override
   String get profilePrivate => 'This profile is private.';
 
   @override
-  String get profileNothingShared => 'Nothing is shared here yet.';
-
-  @override
   String profileSince(String date) {
     return 'Playing since $date';
+  }
+
+  @override
+  String get profileNotShared => 'Not shared';
+
+  @override
+  String profileNotSharedHint(String name) {
+    return 'Kept private — only $name sees this.';
   }
 
   @override

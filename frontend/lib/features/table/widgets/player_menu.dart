@@ -372,29 +372,51 @@ class _ProfileActionsState extends ConsumerState<_ProfileActions> {
         friends?.friends.any((f) => f.handle == widget.handle) ?? false;
     final asked =
         friends?.outgoing.any((f) => f.handle == widget.handle) ?? false;
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: OutlineButton(
-            key: const Key('player-profile'),
-            onPressed: () => showProfileDialog(context, widget.handle),
-            leading: const Icon(LucideIcons.idCard, size: 14),
-            child: Text(l10n.profileOpen),
-          ),
-        ),
-        const Gap(6),
-        if (!already)
-          Expanded(
-            child: OutlineButton(
-              key: const Key('player-add-friend'),
-              enabled: !_busy && !asked && _sent == null,
-              onPressed: _ask,
-              leading: const Icon(LucideIcons.userPlus, size: 14),
-              child: Text(
-                asked || _sent != null ? l10n.friendsAsked : l10n.friendsAdd,
-              ),
+        if (already)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.users, size: 12),
+                const Gap(6),
+                Text(l10n.playerIsFriend).muted().xSmall(),
+              ],
             ),
           ),
+        Row(
+          children: [
+            Expanded(
+              child: (already ? PrimaryButton.new : OutlineButton.new)(
+                key: const Key('player-profile'),
+                onPressed: () => showProfileDialog(context, widget.handle),
+                leading: const Icon(LucideIcons.idCard, size: 14),
+                child: Text(
+                  already ? l10n.playerFriendRecord : l10n.profileOpen,
+                ),
+              ),
+            ),
+            if (!already) ...[
+              const Gap(6),
+              Expanded(
+                child: OutlineButton(
+                  key: const Key('player-add-friend'),
+                  enabled: !_busy && !asked && _sent == null,
+                  onPressed: _ask,
+                  leading: const Icon(LucideIcons.userPlus, size: 14),
+                  child: Text(
+                    asked || _sent != null
+                        ? l10n.friendsAsked
+                        : l10n.friendsAdd,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ],
     );
   }

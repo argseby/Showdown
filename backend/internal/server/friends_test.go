@@ -422,6 +422,38 @@ func TestFriendsNeedProfiles(t *testing.T) {
 	}
 }
 
+// Clicking a friend at the table and seeing what they have been up to
+// works without either of them changing a setting.
+func TestAFriendSeesTheRecordByDefault(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", on)
+	defer h.stop()
+	ann, ben := signUp(t, h, "ann"), signUp(t, h, "ben")
+	cid := signUp(t, h, "cid")
+
+	h.request(http.MethodPost, "/api/friends/requests", ann, map[string]string{"handle": "ben"})
+	h.request(http.MethodPost, "/api/friends/requests/ann/accept", ben, nil)
+
+	status, seen := h.request(http.MethodGet, "/api/profiles/ann", ben, nil)
+	if status != http.StatusOK {
+		t.Fatalf("a friend's profile: %d %v", status, seen)
+	}
+	for _, section := range []string{"winnings", "best_hands", "achievements", "activity"} {
+		if seen[section] == nil {
+			t.Errorf("a friend cannot see %s: %v", section, seen)
+		}
+	}
+	if seen["relation"] != "friend" {
+		t.Errorf("relation: %v", seen["relation"])
+	}
+	// Everyone else still finds nothing, signed in or not.
+	for _, viewer := range []string{cid, ""} {
+		if status, _ := h.request(http.MethodGet, "/api/profiles/ann", viewer, nil); status != http.StatusNotFound {
+			t.Errorf("a stranger saw a friends-only profile: %d", status)
+		}
+	}
+}
+
 // The visibility switches, read from the other side: private hides the
 // page itself, friends opens it only to a friend, public to anyone.
 func TestWhoCanSeeAProfile(t *testing.T) {
@@ -431,9 +463,9 @@ func TestWhoCanSeeAProfile(t *testing.T) {
 	ann, ben := signUp(t, h, "ann"), signUp(t, h, "ben")
 	cid := signUp(t, h, "cid")
 
-	// Everything starts private: for everyone else the page is not there.
+	// Everything starts friends-only: a stranger finds no page at all.
 	if status, _ := h.request(http.MethodGet, "/api/profiles/ann", ben, nil); status != http.StatusNotFound {
-		t.Errorf("a private profile: %d", status)
+		t.Errorf("a friends-only profile seen by a stranger: %d", status)
 	}
 	// Its owner always sees it.
 	status, mine := h.request(http.MethodGet, "/api/profiles/ann", ann, nil)
@@ -441,9 +473,10 @@ func TestWhoCanSeeAProfile(t *testing.T) {
 		t.Fatalf("own profile: %d %v", status, mine)
 	}
 
-	// Friends only: a stranger still finds nothing.
+	// Best hands are the owner's alone for this test; profile and winnings
+	// stay at their friends-only default.
 	h.request(http.MethodPatch, "/api/accounts/me", ann, map[string]any{
-		"visibility": map[string]string{"profile": "friends", "winnings": "friends"},
+		"visibility": map[string]string{"best_hands": "private", "achievements": "private"},
 	})
 	if status, _ := h.request(http.MethodGet, "/api/profiles/ann", ben, nil); status != http.StatusNotFound {
 		t.Errorf("friends-only profile before the friendship: %d", status)

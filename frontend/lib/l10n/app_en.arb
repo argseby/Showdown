@@ -310,7 +310,7 @@
   "achTournamentWinTitle": "Tournament winner",
   "achTournamentWinBody": "Won a tournament.",
   "visTitle": "Who can see",
-  "visBody": "Your profile is private until you say otherwise. Each section can be kept private, shared with your friends, or made public.",
+  "visBody": "Your friends can see your record. Nothing is public until you make it so, and anything can go back to private.",
   "visOpen": "Who can see",
   "visMenuHint": "What a public profile would show",
   "visPublic": "Public",
@@ -442,13 +442,23 @@
     }
   },
   "notifOk": "Got it",
+  "playerIsFriend": "One of your friends",
+  "playerFriendRecord": "Statistics and awards",
   "profileTitle": "Profile",
   "profilePrivate": "This profile is private.",
-  "profileNothingShared": "Nothing is shared here yet.",
   "profileSince": "Playing since {date}",
   "@profileSince": {
     "placeholders": {
       "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNotShared": "Not shared",
+  "profileNotSharedHint": "Kept private — only {name} sees this.",
+  "@profileNotSharedHint": {
+    "placeholders": {
+      "name": {
         "type": "String"
       }
     }

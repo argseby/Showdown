@@ -605,7 +605,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get visBody =>
-      'Dein Profil ist privat, bis du es änderst. Jeder Bereich kann privat bleiben, nur für Freunde sichtbar sein oder öffentlich.';
+      'Deine Freunde sehen deinen Verlauf. Öffentlich wird nichts, bis du es so setzt — und alles lässt sich wieder auf privat stellen.';
 
   @override
   String get visOpen => 'Wer was sieht';
@@ -807,17 +807,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notifOk => 'Alles klar';
 
   @override
+  String get playerIsFriend => 'Einer deiner Freunde';
+
+  @override
+  String get playerFriendRecord => 'Statistik und Auszeichnungen';
+
+  @override
   String get profileTitle => 'Profil';
 
   @override
   String get profilePrivate => 'Dieses Profil ist privat.';
 
   @override
-  String get profileNothingShared => 'Hier wird noch nichts geteilt.';
-
-  @override
   String profileSince(String date) {
     return 'Spielt seit $date';
+  }
+
+  @override
+  String get profileNotShared => 'Nicht geteilt';
+
+  @override
+  String profileNotSharedHint(String name) {
+    return 'Privat — das sieht nur $name selbst.';
   }
 
   @override

@@ -1175,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @visBody.
   ///
   /// In en, this message translates to:
-  /// **'Your profile is private until you say otherwise. Each section can be kept private, shared with your friends, or made public.'**
+  /// **'Your friends can see your record. Nothing is public until you make it so, and anything can go back to private.'**
   String get visBody;
 
   /// No description provided for @visOpen.
@@ -1532,6 +1532,18 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get notifOk;
 
+  /// No description provided for @playerIsFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'One of your friends'**
+  String get playerIsFriend;
+
+  /// No description provided for @playerFriendRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics and awards'**
+  String get playerFriendRecord;
+
   /// No description provided for @profileTitle.
   ///
   /// In en, this message translates to:
@@ -1544,17 +1556,23 @@ abstract class AppLocalizations {
   /// **'This profile is private.'**
   String get profilePrivate;
 
-  /// No description provided for @profileNothingShared.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing is shared here yet.'**
-  String get profileNothingShared;
-
   /// No description provided for @profileSince.
   ///
   /// In en, this message translates to:
   /// **'Playing since {date}'**
   String profileSince(String date);
+
+  /// No description provided for @profileNotShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared'**
+  String get profileNotShared;
+
+  /// No description provided for @profileNotSharedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept private — only {name} sees this.'**
+  String profileNotSharedHint(String name);
 
   /// No description provided for @profileWinnings.
   ///

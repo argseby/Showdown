@@ -46,8 +46,8 @@ func TestAccountSignUpAndIn(t *testing.T) {
 	if token == "" || code == "" || acct["handle"] != "Alice" {
 		t.Fatalf("register gave %v", out)
 	}
-	// Nothing is public until the owner says so.
-	if vis := acct["visibility"].(map[string]any); vis["profile"] != "private" || vis["winnings"] != "private" {
+	// Friends see the record; nothing is public until the owner says so.
+	if vis := acct["visibility"].(map[string]any); vis["profile"] != "friends" || vis["winnings"] != "friends" {
 		t.Fatalf("visibility defaults: %v", vis)
 	}
 
@@ -315,9 +315,10 @@ func TestVisibilityIsTheOwnersToSet(t *testing.T) {
 	token := out["token"].(string)
 	acc := out["account"].(map[string]any)
 	vis := acc["visibility"].(map[string]any)
+	// Friends see the record; nothing is public until its owner says so.
 	for section, v := range vis {
-		if v != "private" {
-			t.Errorf("%s starts as %v, want private", section, v)
+		if v != "friends" {
+			t.Errorf("%s starts as %v, want friends", section, v)
 		}
 	}
 
@@ -333,8 +334,8 @@ func TestVisibilityIsTheOwnersToSet(t *testing.T) {
 	if vis["winnings"] != "public" || vis["best_hands"] != "public" {
 		t.Errorf("what was made public: %v", vis)
 	}
-	if vis["profile"] != "private" || vis["achievements"] != "private" {
-		t.Errorf("the rest stays private: %v", vis)
+	if vis["profile"] != "friends" || vis["achievements"] != "friends" {
+		t.Errorf("the rest is untouched: %v", vis)
 	}
 	if acc["display_name"] != "Erin the Bold" {
 		t.Errorf("display name: %v", acc["display_name"])
