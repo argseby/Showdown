@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Showdown — self-hosted Texas Hold'em for private groups</title>
-  <meta name="description" content="Showdown is a self-hosted No-Limit Texas Hold'em table for friends. One docker compose up, no accounts, no external requests. Or play right away on the managed instance.">
+  <title>Showdown · Self-hosted Texas Hold'em for private groups</title>
+  <meta name="description" content="Showdown is a self-hosted No-Limit Texas Hold'em table for private groups. One docker compose up, no sign-up, no external requests. Player profiles are optional and guests are always admitted.">
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <meta property="og:title" content="Showdown — self-hosted poker for private groups">
-  <meta property="og:description" content="No-Limit Texas Hold'em in the browser. Self-host with one command or play on the managed instance.">
-  <meta property="og:image" content="promo.png">
+  <meta property="og:title" content="Showdown · Self-hosted poker for private groups">
+  <meta property="og:description" content="No-Limit Texas Hold'em in the browser. Deployed with one command, or played on the managed instance. No sign-up is required.">
+  <meta property="og:image" content="promo-light.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,21 +19,21 @@
 
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="#">
-        <img src="logo.svg" alt="" width="72" height="28">
-        <span>Showdown</span>
+      <a class="brand" href="#" aria-label="Showdown">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Showdown</span>
       </a>
       <nav class="nav" aria-label="Main">
         <a href="#features">Features</a>
-        <a href="#verified">Verified</a>
-        <a href="#managed">Managed</a>
-        <a href="#self-host">Self-host</a>
+        <a href="#verified">Verification</a>
+        <a href="#profiles">Profiles</a>
+        <a href="#deploy">Deployment</a>
         <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">GitHub</a>
       </nav>
       <div class="header-actions">
         <button class="btn btn-ghost btn-icon" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
-          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>
         <a class="btn btn-primary" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play now</a>
       </div>
@@ -44,95 +44,89 @@
     <!-- Hero -->
     <section class="hero">
       <div class="container">
-        <div class="badge badge-outline">Open source · No accounts · No tracking</div>
-        <h1>Texas Hold'em for your group.<br><span class="muted">On your server, or ours.</span></h1>
+        <span class="pill"><span class="dot"></span> Open source · Guest play · No tracking</span>
+        <h1>Texas Hold'em, dealt on your server.<br><span class="dim">Or on ours.</span></h1>
         <p class="lead">
-          Showdown is a No-Limit Hold'em table that runs in the browser. Create a table,
-          share the link, play. The whole thing is one <code>docker compose up</code>
-          and never talks to the outside world.
+          No-Limit Hold'em is played in the browser by your group. A table is created,
+          a link is shared, and the cards are dealt. The entire stack is started with a
+          single <code>docker compose up</code>, and no request is ever sent beyond it.
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">
-            Play on play.showdown.kiunke.dev
+            Open play.showdown.kiunke.dev
           </a>
-          <a class="btn btn-outline btn-lg" href="#self-host">Self-host in 3 steps</a>
+          <a class="btn btn-outline btn-lg" href="#deploy">Deploy it yourself</a>
         </div>
         <p class="hero-note">
-          The managed instance keeps a table and its link for <strong>one day</strong>.
-          Self-host if you want history that lasts.
+          On the managed instance a table and its link are kept for one day.
+          Self-hosting is recommended where a longer history is wanted.
         </p>
-        <figure class="screenshot">
-          <img src="promo.png" alt="A full Showdown table: eight players, community cards and the pot" width="1600" height="868" loading="eager">
-        </figure>
+        <figure class="screenshot" role="img" aria-label="A full Showdown table with eight players, community cards and the pot"></figure>
       </div>
     </section>
 
     <!-- Features -->
     <section id="features" class="section">
       <div class="container">
-        <div class="section-head">
-          <h2>What you get</h2>
-          <p>A complete cash-game table, nothing more, nothing less.</p>
+        <div class="section-head center">
+          <span class="eyebrow">What is included</span>
+          <h2>A complete cash game table</h2>
+          <p>Everything that is needed for an evening of poker is provided, and nothing beyond it.</p>
         </div>
-        <div class="grid grid-3">
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            </div>
-            <h3>Real No-Limit rules</h3>
-            <p>Side pots, short all-ins, min-raise logic and odd-chip splits done on the server. The client only renders.</p>
+
+        <div class="bento cols-3">
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            <h3>Genuine No-Limit rules</h3>
+            <p>Side pots, short all-ins, minimum raise logic and odd chip splits are resolved on the server. Only the rendering is left to the client.</p>
           </article>
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <h3>Up to 10 seats, no sign-up</h3>
-            <p>Players open the link, pick a name and an avatar, and sit down. A refresh or dropped connection returns them to their seat.</p>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h3>Ten seats, no sign-up</h3>
+            <p>A link is opened, a name and an avatar are chosen, and a seat is taken. After a refresh or a dropped connection the same seat is restored.</p>
           </article>
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-            </div>
-            <h3>Voice chat and video built in</h3>
-            <p>Browser-to-browser WebRTC, with an optional small camera tile per player. The server only relays the handshake and never carries audio or video.</p>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <h3>Voice and video included</h3>
+            <p>Audio and an optional camera tile are carried browser to browser over WebRTC. Only the handshake is relayed by the server, never the media itself.</p>
           </article>
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-            </div>
-            <h3>Host controls</h3>
-            <p>Whoever creates the table is the host: live settings, blind schedules, pause and end, kick, adjust chips, mute, chat moderation.</p>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+            <h3>Full host control</h3>
+            <p>The table is administered by the browser that created it. Settings, blind schedules, pauses, seat removals, chip adjustments and chat moderation are all covered.</p>
           </article>
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            </div>
-            <h3>Log, replay, leaderboard</h3>
-            <p>Every hand is logged and can be replayed step by step. Each table keeps its own leaderboard and final standings.</p>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <h3>Hand log and replay</h3>
+            <p>Every hand is recorded and can be replayed step by step. A leaderboard and the final standings are kept for each table separately.</p>
           </article>
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <h3>Private by design</h3>
-            <p>Two containers, one SQLite file, zero external requests. The web client is a local WebAssembly build.</p>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <h3>Private by construction</h3>
+            <p>Two containers and one SQLite file are deployed. No external request is made, and the client is served from your own instance as a local WebAssembly build.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Verification -->
+    <!-- Verification, compact -->
     <section id="verified" class="section section-alt">
       <div class="container">
-        <div class="section-head">
-          <h2>The rules, checked by machine</h2>
+        <div class="section-head center">
+          <span class="eyebrow">Verification</span>
+          <h2>The rules are checked by machine</h2>
           <p>
-            Card games run on trust in the maths. Showdown ships a verifier that plays
-            millions of hands against the real engine and counts every chip.
+            A verifier is shipped with every release. Millions of hands are played against
+            the live engine and every chip is counted.
           </p>
         </div>
 
-        <div class="grid grid-4 stats">
+        <div class="bento cols-4 stats">
           <div class="stat">
             <span class="stat-num">200,000</span>
             <span class="stat-key">tables played</span>
@@ -141,191 +135,280 @@
             <span class="stat-num">4,343,686</span>
             <span class="stat-key">hands dealt</span>
           </div>
-          <div class="stat stat-good">
+          <div class="stat stat-ok">
             <span class="stat-num">0</span>
             <span class="stat-key">rules broken in 207,338,793 checks</span>
           </div>
-          <div class="stat stat-good">
+          <div class="stat stat-ok">
             <span class="stat-num">0</span>
             <span class="stat-key">chips created or lost</span>
           </div>
         </div>
 
-        <div class="grid grid-3">
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M14 3h7v7"/><path d="m21 3-9 9"/></svg>
-            </div>
-            <h3>Every hand that exists</h3>
-            <p>All 2,598,960 distinct five-card hands are ranked and counted. The nine totals match the textbook frequencies exactly &mdash; not approximately.</p>
-            <table class="freq">
-              <thead><tr><th>Category</th><th>Counted</th><th>Expected</th></tr></thead>
-              <tbody>
-                <tr><td>Straight flush</td><td>40</td><td>40</td></tr>
-                <tr><td>Four of a kind</td><td>624</td><td>624</td></tr>
-                <tr><td>Full house</td><td>3,744</td><td>3,744</td></tr>
-                <tr><td>Flush</td><td>5,108</td><td>5,108</td></tr>
-                <tr><td>Straight</td><td>10,200</td><td>10,200</td></tr>
-                <tr><td>Three of a kind</td><td>54,912</td><td>54,912</td></tr>
-                <tr><td>Two pair</td><td>123,552</td><td>123,552</td></tr>
-                <tr><td>One pair</td><td>1,098,240</td><td>1,098,240</td></tr>
-                <tr><td>High card</td><td>1,302,540</td><td>1,302,540</td></tr>
-              </tbody>
-            </table>
+        <div class="bento cols-3">
+          <article class="proof">
+            <h3>Hand ranking</h3>
+            <p>
+              All 2,598,960 distinct five-card hands are ranked and counted. The nine
+              category totals are matched against the textbook frequencies exactly.
+            </p>
+            <details class="disclose">
+              <summary>All nine categories</summary>
+              <table class="mini">
+                <thead><tr><th>Category</th><th>Counted</th><th>Expected</th></tr></thead>
+                <tbody>
+                  <tr><td>Straight flush</td><td>40</td><td>40</td></tr>
+                  <tr><td>Four of a kind</td><td>624</td><td>624</td></tr>
+                  <tr><td>Full house</td><td>3,744</td><td>3,744</td></tr>
+                  <tr><td>Flush</td><td>5,108</td><td>5,108</td></tr>
+                  <tr><td>Straight</td><td>10,200</td><td>10,200</td></tr>
+                  <tr><td>Three of a kind</td><td>54,912</td><td>54,912</td></tr>
+                  <tr><td>Two pair</td><td>123,552</td><td>123,552</td></tr>
+                  <tr><td>One pair</td><td>1,098,240</td><td>1,098,240</td></tr>
+                  <tr><td>High card</td><td>1,302,540</td><td>1,302,540</td></tr>
+                </tbody>
+              </table>
+            </details>
           </article>
 
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M12 12h.01"/><path d="M17 17h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/></svg>
-            </div>
-            <h3>An honest shuffle</h3>
+          <article class="proof">
+            <h3>Shuffle</h3>
             <p>
-              Cards are shuffled with Fisher&ndash;Yates driven by the operating system's
-              cryptographic random source &mdash; the same code the live server deals with.
-              A sample of 2,000,000 hands is tested against the theoretical
-              distribution.
+              Cards are shuffled by Fisher and Yates from the cryptographic random source
+              of the operating system, by the same code the live server deals with. A
+              sample of 2,000,000 hands is tested against the theoretical distribution.
             </p>
-            <table class="freq">
+            <table class="mini">
               <thead><tr><th>Test</th><th>&chi;&sup2;</th><th>p</th></tr></thead>
               <tbody>
-                <tr><td>Hand categories <span class="muted">(8 df)</span></td><td>8.79</td><td>0.360</td></tr>
-                <tr><td>Card positions <span class="muted">(51 df)</span></td><td>58.57</td><td>0.218</td></tr>
+                <tr><td>Categories <span class="muted">(8 df)</span></td><td>8.79</td><td>0.360</td></tr>
+                <tr><td>Positions <span class="muted">(51 df)</span></td><td>58.57</td><td>0.218</td></tr>
               </tbody>
             </table>
-            <p class="card-note">
-              A p-value far above 0 means the deal is indistinguishable from a perfectly
-              uniform shuffle. The second test looks for any of the 52 cards turning up
-              more often than it should.
-            </p>
+            <details class="disclose">
+              <summary>How it is read</summary>
+              <p>
+                A p value far above zero means the deal cannot be distinguished from a
+                perfectly uniform shuffle. In the second test each of the 52 cards is
+                watched for appearing more often than it should.
+              </p>
+            </details>
           </article>
 
-          <article class="card">
-            <div class="card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            </div>
+          <article class="proof">
             <h3>Checked after every event</h3>
-            <p>Random play with all-ins, side pots, time-outs, re-buys, straddles and a moving button. After every single event the verifier re-checks:</p>
-            <ul class="checklist">
-              <li><span class="check">&check;</span> chips in play never change during a hand</li>
-              <li><span class="check">&check;</span> buy-ins minus cash-outs equal the chips on the table</li>
-              <li><span class="check">&check;</span> no card is ever dealt twice</li>
-              <li><span class="check">&check;</span> blinds and button sit where the rules say</li>
-              <li><span class="check">&check;</span> only the player on turn can act</li>
-              <li><span class="check">&check;</span> the offered fold/call/raise range is the legal one</li>
-              <li><span class="check">&check;</span> illegal bets are refused and move no chips</li>
-              <li><span class="check">&check;</span> main and side pots match a second calculation</li>
-              <li><span class="check">&check;</span> every pot goes to the best eligible hand</li>
-              <li><span class="check">&check;</span> split pots are equal and odd chips go clockwise from the button</li>
-              <li><span class="check">&check;</span> each hand's winnings and losses cancel out exactly</li>
+            <p>
+              Random play is generated with all-ins, side pots, time-outs, rebuys,
+              straddles and a moving button. After each single event eleven invariants
+              are re-checked.
+            </p>
+            <ul class="checks">
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Chips in play are never changed during a hand</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> No card is ever dealt twice</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Every pot is awarded to the best eligible hand</li>
             </ul>
+            <details class="disclose">
+              <summary>The other eight</summary>
+              <ul class="checks">
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Buy-ins minus cash-outs equal the chips on the table</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Blinds and button are seated where the rules require</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Only the player on turn is allowed to act</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> The offered fold, call and raise range is the legal one</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Illegal bets are refused and no chips are moved</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Main and side pots are matched by a second calculation</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Split pots are equal and odd chips are passed clockwise from the button</li>
+                <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Winnings and losses of each hand are cancelled out exactly</li>
+              </ul>
+            </details>
           </article>
         </div>
 
-        <div class="grid grid-3 kv">
-          <div class="kv-item">
-            <span class="kv-key">Chips onto the tables</span>
-            <span class="kv-val">263,517,431,591 bought in and adjusted</span>
-          </div>
-          <div class="kv-item">
-            <span class="kv-key">Chips off the tables</span>
-            <span class="kv-val">106,101,379,502 cashed out, 157,416,052,089 left in stacks</span>
-          </div>
-          <div class="kv-item">
-            <span class="kv-key">Difference</span>
-            <span class="kv-val"><strong>Exactly zero</strong>, across 1.2 trillion chips wagered</span>
-          </div>
-        </div>
-
-        <div class="reproduce">
-          <h3>Don't take our word for it</h3>
-          <p class="muted">
-            The verifier is in the repository. Clone it and run the whole thing yourself
-            &mdash; the short run takes about ten seconds.
-          </p>
+        <div class="proof-foot">
           <div class="code" data-copy>
             <pre><code>git clone https://github.com/argseby/Showdown.git
 cd Showdown &amp;&amp; make simulate</code></pre>
             <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
           </div>
-          <p class="callout">
-            <strong>What this does and does not show.</strong> The hand ranking is checked
-            exhaustively &mdash; there is no five-card hand it has not seen. The rules and the
-            chip arithmetic are checked over millions of random hands, which is evidence, not
-            a proof. And none of it says anything about whether the person running a server is
-            looking at the cards. That is why Showdown is built to be self-hosted: run it
-            yourself and the deal is in your hands.
-          </p>
+          <div class="links">
+            <a href="verification.json">Raw report (JSON)</a>
+            <a href="https://github.com/argseby/Showdown/tree/main/backend/cmd/simulate" target="_blank" rel="noopener">Verifier source</a>
+            <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">Rules</a>
+          </div>
         </div>
 
-        <p class="more">
-          Recorded run of 6 September 2026 &middot;
-          <a href="verification.json">raw report (JSON)</a> &middot;
-          <a href="https://github.com/argseby/Showdown/tree/main/backend/cmd/simulate" target="_blank" rel="noopener">verifier source</a> &middot;
-          <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">the rules it checks</a>
+        <p class="callout">
+          <strong>What is shown and what is not.</strong> The hand ranking is checked
+          exhaustively, so no five-card hand has been left unseen. The rules and the chip
+          arithmetic are checked over millions of random hands, which is evidence rather
+          than a proof. Nothing at all is said about whether the cards are being looked at
+          by whoever runs a server. For that reason Showdown is built to be self-hosted:
+          once it is run by you, the deal is held in your own hands.
+          <span class="muted">Recorded run of 6 September 2026 over 1.2 trillion chips wagered, with a difference of exactly zero.</span>
         </p>
       </div>
     </section>
 
-    <!-- Managed vs self-hosted -->
-    <section id="managed" class="section section-alt">
+    <!-- Player profiles -->
+    <section id="profiles" class="section">
       <div class="container">
-        <div class="section-head">
-          <h2>Two ways to play</h2>
-          <p>Try it in a minute, or run it for good.</p>
+        <div class="section-head center">
+          <span class="eyebrow">Player profiles</span>
+          <h2>Profiles are offered, never required</h2>
+          <p>
+            Profiles are switched off by default. Where they have been enabled by an
+            operator, they remain optional for every player at every table: a seat is
+            taken as a guest with nothing more than a display name.
+          </p>
         </div>
-        <div class="grid grid-2">
-          <article class="card card-highlight">
-            <div class="card-header">
-              <h3>Managed</h3>
-              <span class="badge">play.showdown.kiunke.dev</span>
+
+        <div class="bento cols-3">
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="12" x="3" y="6" rx="6"/><circle cx="9" cy="12" r="2"/></svg>
+            <h3>Switched off by default</h3>
+            <p>
+              The feature is governed by one setting, <code>ACCOUNTS=true</code>. While the
+              default is kept, no sign-in is presented anywhere in the application and
+              every table is played as a guest.
+            </p>
+          </article>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-12 0"/><circle cx="12" cy="11" r="4"/><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+            <h3>Guest play is never withdrawn</h3>
+            <p>
+              Where profiles are enabled, <em>Play as guest</em> is offered beside every
+              sign-in. Seats, voice, video, chat, hand history and the table leaderboard
+              are given to guests in full. Nothing at the table is reserved for signed-in
+              players.
+            </p>
+          </article>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            <h3>No mail, no third party</h3>
+            <p>
+              A profile is created from a name and a password. No address is requested,
+              nothing is confirmed and no message is ever sent. One recovery code is
+              displayed at sign-up and is the only route back in should the password be
+              forgotten.
+            </p>
+          </article>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg>
+            <h3>What is recorded</h3>
+            <p>
+              Hands played, winnings, the best hands made and the milestones reached are
+              kept, and a seat is marked with the profile so it is recognised across
+              tables. Nothing beyond that is collected.
+            </p>
+          </article>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <h3>Private until it is shared</h3>
+            <p>
+              Profile, winnings, best hands, awards and activity are held privately and are
+              released one by one, to friends alone or to everyone. Anything that has been
+              made public can be made private again at any moment.
+            </p>
+          </article>
+
+          <article class="feature">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+            <h3>Friends, only on request</h3>
+            <p>
+              A player is found by name or from their seat, and a friend's table is joined
+              through its free seats. Invitations are delivered anywhere in the app and may
+              be declined quietly or blocked for good.
+            </p>
+          </article>
+        </div>
+
+        <div class="bento cols-2 stacked">
+          <div class="proof roomy">
+            <h3>How it is turned on</h3>
+            <p>One line is added to <code>.env</code> and the stack is restarted. Nothing else is required, and guests are unaffected.</p>
+            <div class="code" data-copy>
+              <pre><code>echo "ACCOUNTS=true" &gt;&gt; .env
+docker compose up -d</code></pre>
+              <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
             </div>
-            <p>Open the site, create a table and share the link. Nothing to install and no account.</p>
+          </div>
+          <div class="proof roomy">
+            <h3>What is not affected</h3>
             <ul class="list">
-              <li><span class="check">✓</span> Ready right now</li>
-              <li><span class="check">✓</span> HTTPS, so voice chat works</li>
-              <li><span class="warn">!</span> Tables and their links are kept for <strong>one day</strong>, then removed together with their history</li>
-              <li><span class="warn">!</span> Shared capacity and a limit on open tables</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Tables are still created and hosted without any profile</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Display names are still chosen per table and are not treated as identities</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> No instance-wide leaderboard is kept, only one per table</li>
+              <li><span class="mark warn" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3.4v5"/><path d="M8 12.2h.01"/></svg></span> On the managed instance profiles are left switched off, so every table there is played as a guest</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Managed or self-hosted -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-head center">
+          <span class="eyebrow">Two ways to play</span>
+          <h2>Tried in a minute, or run for good</h2>
+        </div>
+        <div class="bento cols-2">
+          <article class="proof roomy">
+            <div class="card-head">
+              <h3>Managed</h3>
+              <span class="tag">play.showdown.kiunke.dev</span>
+            </div>
+            <p>The site is opened, a table is created and its link is shared. Nothing is installed and no profile is needed.</p>
+            <ul class="list">
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Available immediately</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Served over HTTPS, so voice and video are permitted</li>
+              <li><span class="mark warn" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3.4v5"/><path d="M8 12.2h.01"/></svg></span> Tables and their links are kept for one day and are then removed with their history</li>
+              <li><span class="mark warn" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3.4v5"/><path d="M8 12.2h.01"/></svg></span> Capacity is shared and the number of open tables is limited</li>
             </ul>
             <a class="btn btn-primary" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Open the managed instance</a>
           </article>
-          <article class="card">
-            <div class="card-header">
+          <article class="proof roomy">
+            <div class="card-head">
               <h3>Self-hosted</h3>
-              <span class="badge badge-outline">Docker Compose</span>
+              <span class="tag">Docker Compose</span>
             </div>
-            <p>Run the same stack on your own machine or server. Your data stays with you.</p>
+            <p>The same stack is run on your own machine or server, and your data is kept with you.</p>
             <ul class="list">
-              <li><span class="check">✓</span> Tables, hands and chat kept as long as you like (90 days by default)</li>
-              <li><span class="check">✓</span> Your own domain and limits</li>
-              <li><span class="check">✓</span> Works on a home server, a VPS, Portainer or Dokploy</li>
-              <li><span class="warn">!</span> Needs Docker and, for voice chat, HTTPS</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Tables, hands and chat are retained as long as you wish, 90 days by default</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Your own domain, limits and optional player profiles</li>
+              <li><span class="mark ok" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg></span> Supported on a home server, a VPS, Portainer or Dokploy</li>
+              <li><span class="mark warn" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3.4v5"/><path d="M8 12.2h.01"/></svg></span> Docker is required, and HTTPS is required for voice and video</li>
             </ul>
-            <a class="btn btn-outline" href="#self-host">Show me how</a>
+            <a class="btn btn-outline" href="#deploy">See the steps</a>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Self-host -->
-    <section id="self-host" class="section">
+    <!-- Deployment -->
+    <section id="deploy" class="section">
       <div class="container">
         <div class="section-head">
-          <h2>Self-host in three steps</h2>
-          <p>All you need is Docker with the Compose plugin. The images come from GitHub's registry.</p>
+          <span class="eyebrow">Deployment</span>
+          <h2>Self-hosted in three steps</h2>
+          <p>Docker with the Compose plugin is all that is needed. The images are pulled from GitHub's registry.</p>
         </div>
 
         <div class="tabs" data-tabs>
           <div class="tabs-list" role="tablist" aria-label="Installation method">
             <button class="tab" role="tab" type="button" aria-selected="true" aria-controls="tab-compose" id="tab-compose-btn">Docker Compose</button>
             <button class="tab" role="tab" type="button" aria-selected="false" aria-controls="tab-proxy" id="tab-proxy-btn" tabindex="-1">Behind a reverse proxy</button>
-            <button class="tab" role="tab" type="button" aria-selected="false" aria-controls="tab-source" id="tab-source-btn" tabindex="-1">Build from source</button>
+            <button class="tab" role="tab" type="button" aria-selected="false" aria-controls="tab-source" id="tab-source-btn" tabindex="-1">Built from source</button>
           </div>
 
           <div class="tab-panel" role="tabpanel" id="tab-compose" aria-labelledby="tab-compose-btn">
-            <p>The images are published on GitHub's registry; nothing is compiled on your machine.</p>
+            <p>The images are published on GitHub's registry, so nothing is compiled on your machine.</p>
             <ol class="steps">
               <li>
-                <h4>Get the compose file</h4>
+                <h4>The compose file is fetched</h4>
                 <div class="code" data-copy>
                   <pre><code>mkdir showdown &amp;&amp; cd showdown
 curl -fsSLO https://raw.githubusercontent.com/argseby/Showdown/main/docker-compose.yml</code></pre>
@@ -333,30 +416,35 @@ curl -fsSLO https://raw.githubusercontent.com/argseby/Showdown/main/docker-compo
                 </div>
               </li>
               <li>
-                <h4>Optional: settings</h4>
-                <p class="muted">Port, table limit, retention, STUN/TURN servers for voice and video across networks, or <code>IMAGE_TAG</code> to pin a release.</p>
+                <h4>Optionally, settings are adjusted</h4>
+                <p>Port, table limit, retention, player profiles, or STUN and TURN servers for voice and video across networks. A release is pinned with <code>IMAGE_TAG</code>.</p>
                 <div class="code" data-copy>
                   <pre><code>curl -fsSL https://raw.githubusercontent.com/argseby/Showdown/main/.env.example -o .env</code></pre>
                   <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
                 </div>
               </li>
               <li>
-                <h4>Start</h4>
+                <h4>The stack is started</h4>
                 <div class="code" data-copy>
                   <pre><code>docker compose up -d</code></pre>
                   <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
                 </div>
               </li>
             </ol>
-            <p class="callout">Open <code>http://localhost:8080</code>, create a table and share the link. Done. In Portainer: add a repository stack with compose path <code>docker-compose.yml</code>; updates are "re-pull image and redeploy".</p>
+            <p class="callout">
+              <code>http://localhost:8080</code> is opened, a table is created and the link is
+              shared. In Portainer a repository stack is added with the compose path
+              <code>docker-compose.yml</code>, and updates are performed by re-pulling the
+              image and redeploying.
+            </p>
           </div>
 
           <div class="tab-panel" role="tabpanel" id="tab-proxy" aria-labelledby="tab-proxy-btn" hidden>
-            <p>Already running Traefik, nginx, Caddy or Dokploy? Point it at the <code>web</code> container on port 80 and let it terminate TLS. WebSockets on <code>/ws/*</code> must be forwarded.</p>
+            <p>Where Traefik, nginx, Caddy or Dokploy is already in use, it is pointed at the <code>web</code> container on port 80 and TLS is terminated there. WebSockets on <code>/ws/*</code> must be forwarded.</p>
             <ol class="steps">
               <li>
-                <h4>Join your proxy network instead of publishing a port</h4>
-                <p class="muted">Also download <code>deploy/docker-compose.proxy.yml</code> from the repository next to the compose file.</p>
+                <h4>Your proxy network is joined instead of a port being published</h4>
+                <p><code>deploy/docker-compose.proxy.yml</code> is downloaded from the repository next to the compose file.</p>
                 <div class="code" data-copy>
                   <pre><code>cat &gt;&gt; .env &lt;&lt;'EOF'
 PROXY_NETWORK=proxy-network
@@ -367,8 +455,8 @@ docker compose up -d</code></pre>
                 </div>
               </li>
               <li>
-                <h4>Or let Caddy handle HTTPS on its own</h4>
-                <p class="muted">If nothing sits in front of the stack and ports 80/443 are reachable from the internet (needs <code>deploy/docker-compose.tls.yml</code>).</p>
+                <h4>Or HTTPS is handled by Caddy alone</h4>
+                <p>Where nothing is placed in front of the stack and ports 80 and 443 are reachable from the internet, <code>deploy/docker-compose.tls.yml</code> is used.</p>
                 <div class="code" data-copy>
                   <pre><code>echo "SITE_ADDRESS=poker.example.com" &gt;&gt; .env
 docker compose -f docker-compose.yml -f deploy/docker-compose.tls.yml up -d</code></pre>
@@ -376,14 +464,14 @@ docker compose -f docker-compose.yml -f deploy/docker-compose.tls.yml up -d</cod
                 </div>
               </li>
             </ol>
-            <p class="callout">Browsers only grant the microphone on HTTPS, so voice chat needs one of these two setups.</p>
+            <p class="callout">The microphone is granted by browsers on HTTPS only, so one of these two arrangements is required for voice chat.</p>
           </div>
 
           <div class="tab-panel" role="tabpanel" id="tab-source" aria-labelledby="tab-source-btn" hidden>
-            <p>For development or a fork. The web image compiles the Flutter client: a few minutes and about 2 GB of disk.</p>
+            <p>Intended for development or a fork. The Flutter client is compiled by the web image, for which a few minutes and about 2 GB of disk are needed.</p>
             <ol class="steps">
               <li>
-                <h4>Clone the repository</h4>
+                <h4>The repository is cloned</h4>
                 <div class="code" data-copy>
                   <pre><code>git clone https://github.com/argseby/Showdown.git
 cd Showdown</code></pre>
@@ -391,42 +479,42 @@ cd Showdown</code></pre>
                 </div>
               </li>
               <li>
-                <h4>Copy the example environment</h4>
+                <h4>The example environment is copied</h4>
                 <div class="code" data-copy>
                   <pre><code>cp .env.example .env</code></pre>
                   <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
                 </div>
               </li>
               <li>
-                <h4>Build and start</h4>
-                <p class="muted"><code>make up</code> is the same command.</p>
+                <h4>The images are built and started</h4>
+                <p>The same result is obtained with <code>make up</code>.</p>
                 <div class="code" data-copy>
                   <pre><code>docker compose -f docker-compose.yml -f deploy/docker-compose.build.yml up -d --build</code></pre>
                   <button class="copy" type="button" aria-label="Copy to clipboard">Copy</button>
                 </div>
               </li>
             </ol>
-            <p class="callout">Releases are built by the repository's CI: pushing a tag <code>v*</code> publishes both images.</p>
+            <p class="callout">Releases are built by the repository's CI. Both images are published when a tag <code>v*</code> is pushed.</p>
           </div>
         </div>
 
-        <div class="grid grid-3 kv">
+        <div class="bento cols-3 kv">
           <div class="kv-item">
             <span class="kv-key">Stack</span>
-            <span class="kv-val">Go API + Flutter web behind Caddy, one SQLite volume</span>
+            <span class="kv-val">A Go API and a Flutter web client are served behind Caddy, backed by one SQLite volume</span>
           </div>
           <div class="kv-item">
             <span class="kv-key">Ports</span>
-            <span class="kv-val">Only <code>web</code> is exposed (default 8080); the API stays internal</span>
+            <span class="kv-val">Only <code>web</code> is exposed, on 8080 by default. The API is kept internal</span>
           </div>
           <div class="kv-item">
             <span class="kv-key">Updates</span>
-            <span class="kv-val"><code>docker compose pull && docker compose up -d</code>, migrations run on start</span>
+            <span class="kv-val"><code>docker compose pull &amp;&amp; docker compose up -d</code>. Migrations are applied at start</span>
           </div>
         </div>
 
         <p class="more">
-          Full configuration, backups and operations are in the
+          Configuration, backups and operations are documented in the
           <a href="https://github.com/argseby/Showdown#readme" target="_blank" rel="noopener">README</a>.
         </p>
       </div>
@@ -435,33 +523,56 @@ cd Showdown</code></pre>
     <!-- FAQ -->
     <section class="section section-alt">
       <div class="container narrow">
-        <div class="section-head">
+        <div class="section-head center">
+          <span class="eyebrow">FAQ</span>
           <h2>Questions</h2>
         </div>
+
         <details class="faq">
-          <summary>How long does a table on the managed instance live?</summary>
-          <p>One day. After that the table, its link, hands and chat are deleted. Start a new table for the next session, or self-host to keep history.</p>
+          <summary>Is a player profile required?</summary>
+          <p>No. Profiles are switched off by default, and where they have been enabled by an operator they are still optional. A table is joined as a guest with a display name alone, and every part of the game is available that way. Guest play is not restricted, delayed or reduced in any manner.</p>
         </details>
         <details class="faq">
-          <summary>Do players need an account?</summary>
-          <p>No. A table link and a display name are all it takes. Names are chosen per table and are not identities.</p>
+          <summary>What is gained by a profile?</summary>
+          <p>Your seat is marked with it and your record is carried across tables: hands played, winnings, the best hands made and the milestones reached. Friends can be added, and a friend's table can be found and joined from a free seat. Every section is kept private until it is released to friends or to everyone.</p>
         </details>
         <details class="faq">
-          <summary>Is it real money?</summary>
-          <p>No. Chips are just numbers on the table. There is no payment, no wallet, no exchange of any kind.</p>
+          <summary>Is an email address needed to create a profile?</summary>
+          <p>No. A name and a password are all that is asked for. No address is collected, nothing is confirmed and no message is ever sent by the server. A single recovery code is displayed once at sign-up and is the only way back in if the password is forgotten, so it is best written down.</p>
         </details>
         <details class="faq">
-          <summary>Who can manage a table?</summary>
-          <p>The browser that created it holds an admin key and sees an Admin tab. The key can be copied to another device. Anyone with the key can manage the table, so share it only with co-hosts.</p>
+          <summary>How long is a table kept on the managed instance?</summary>
+          <p>One day. The table, its link, its hands and its chat are deleted afterwards. A new table is created for the next session, or history is preserved by self-hosting.</p>
         </details>
         <details class="faq">
-          <summary>How do I know the deal is fair and no chips go missing?</summary>
-          <p>Every release is run through a verifier that plays millions of hands against the engine and re-checks the rules and the chip count after every single event &mdash; 207 million checks on the last run, with zero failures and not one chip created or lost. The <a href="#verified">summary is above</a> and you can run it yourself with <code>make simulate</code>. It says nothing about the honesty of a server operator, which is the reason to self-host.</p>
+          <summary>Is real money involved?</summary>
+          <p>No. Chips are numbers on a table. No payment is taken, no wallet is provided and no exchange of any kind is supported.</p>
         </details>
         <details class="faq">
-          <summary>Does the server phone home?</summary>
-          <p>Never. The API makes no outbound requests and the client is served entirely from your own instance. Voice and video only use a STUN or TURN server if you configure one.</p>
+          <summary>By whom is a table managed?</summary>
+          <p>By the browser in which it was created. An admin key is stored there and an Admin tab is shown. The key can be copied to another device, and the table can be managed by anyone holding it, so it should be shared with co-hosts only.</p>
         </details>
+        <details class="faq">
+          <summary>How is it known that the deal is fair?</summary>
+          <p>Every release is put through a verifier by which millions of hands are played against the engine, with the rules and the chip count re-checked after every single event. On the last run 207 million checks were passed, no chip was created or lost, and the <a href="#verified">summary is shown above</a>. The same run is reproduced locally with <code>make simulate</code>. Nothing is proven by it about the honesty of a server operator, which is precisely why self-hosting is offered.</p>
+        </details>
+        <details class="faq">
+          <summary>Is anything sent home by the server?</summary>
+          <p>Never. No outbound request is made by the API, and the client is served entirely from your own instance. A STUN or TURN server is contacted only where one has been configured by you.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta">
+      <div class="container narrow">
+        <span class="eyebrow">Get started</span>
+        <h2>A table is created in under a minute</h2>
+        <p>No installation is needed to try it, and no sign-up is needed to play.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play now</a>
+          <a class="btn btn-outline btn-lg" href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">View the source</a>
+        </div>
       </div>
     </section>
   </main>
@@ -473,7 +584,7 @@ cd Showdown</code></pre>
         <a href="https://play.showdown.kiunke.dev" target="_blank" rel="noopener">Play</a>
         <a href="https://github.com/argseby/Showdown" target="_blank" rel="noopener">Source</a>
         <a href="https://github.com/argseby/Showdown/blob/main/docs/rules.md" target="_blank" rel="noopener">Rules</a>
-        <a href="#verified">Verified</a>
+        <a href="#verified">Verification</a>
       </nav>
     </div>
   </footer>

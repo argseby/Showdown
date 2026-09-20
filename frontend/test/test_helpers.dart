@@ -39,6 +39,10 @@ Widget wrap(
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      // Mirrors ShowdownApp: a drawer layer above everything, so an
+      // adaptive popover has somewhere to go on a phone.
+      builder: (context, child) =>
+          DrawerOverlay(child: child ?? const SizedBox.shrink()),
       home: Scaffold(child: child),
     ),
   );
@@ -56,6 +60,10 @@ Widget wrapRouter({
     child: ShadcnApp.router(
       routerConfig: GoRouter(routes: routes, initialLocation: initialLocation),
       scrollBehavior: const NoScrollbarBehavior(),
+      // Mirrors ShowdownApp: a drawer layer above the router, so a select
+      // inside a dialog route can open on a phone.
+      builder: (context, child) =>
+          DrawerOverlay(child: child ?? const SizedBox.shrink()),
       theme: darkTheme,
       locale: const Locale('en'),
       localizationsDelegates: const [

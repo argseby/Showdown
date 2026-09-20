@@ -33,7 +33,8 @@ type spot struct {
 	hole    [2]poker.Card
 	board   []poker.Card
 	preflop bool
-	// pot is everything in the middle, this street's bets included.
+	// pot is everything in the middle: the pots built from earlier streets
+	// plus every bet still in front of a player on this one.
 	pot int64
 	// call is what it costs to continue, currentBet the biggest bet this
 	// street (what a raise is measured from).
@@ -45,6 +46,10 @@ type spot struct {
 	// us, so 1 means we act last and 0 first.
 	opponents int
 	relPos    float64
+	// stack is everything we can still put in this hand — what is left in
+	// front of us plus what we already bet this street. currentBet measured
+	// against it says how deep the raising has gone.
+	stack int64
 }
 
 // readSpot builds the spot from a snapshot. It returns false when the bot
@@ -69,6 +74,7 @@ func readSpot(o protocol.OptionsView, s protocol.Snapshot, seat int) (spot, bool
 		call:       o.Call,
 		currentBet: s.Hand.CurrentBet,
 		bb:         s.Table.Settings.BigBlind,
+		stack:      me.Stack + me.BetThisStreet,
 	}
 	if s.Table.Settings.Variant == poker.Royal.String() {
 		sp.variant = poker.Royal
@@ -89,6 +95,15 @@ func readSpot(o protocol.OptionsView, s protocol.Snapshot, seat int) (spot, bool
 	}
 	for _, p := range s.Hand.Pots {
 		sp.pot += p.Amount
+	}
+	// Pots holds only what earlier streets committed; this street's bets —
+	// the blinds included — are still in front of the players. Leaving them
+	// out would make the pot empty before the flop, and with it every bet
+	// size and every pot odd computed from it.
+	for _, sv := range s.Seats {
+		if sv.Player != nil {
+			sp.pot += sv.Player.BetThisStreet
+		}
 	}
 	sp.opponents, sp.relPos = position(s, seat)
 	return sp, true
@@ -247,6 +262,17 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 		return protocol.ActionPayload{Kind: "raise", Amount: target}
 	}
 
+	// pressure is how much of our stack the bet in front of us already is.
+	// Every re-raise makes it bigger, so a threshold that climbs with it
+	// asks for a better hand each time round — which is what stops two bots
+	// holding the same good hand from re-raising each other to the felt.
+	// Equity alone cannot: it does not change while the betting does, so a
+	// fixed bar either never raises or raises for ever.
+	var pressure float64
+	if sp.stack > 0 {
+		pressure = min(float64(sp.currentBet)/float64(sp.stack), 1)
+	}
+
 	if sp.preflop {
 		// Unopened: only the blinds are in, or a straddle on top of them.
 		if sp.currentBet <= 2*sp.bb {
@@ -268,7 +294,7 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 		}
 		// Facing a raise.
 		switch {
-		case edge >= 0.13:
+		case edge >= 0.13+2.5*pressure:
 			return raiseTo(1)
 		case edge >= 0.055-0.020*sp.relPos && equity >= potOdds*1.25:
 			return CheckOrCall(o)
@@ -297,7 +323,7 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 	// have us beaten already.
 	need := potOdds * (1.2 + 0.6*potOdds + 0.1*float64(sp.opponents-1))
 	switch {
-	case edge >= 0.55:
+	case edge >= 0.55+1.5*pressure:
 		return raiseTo(0.67)
 	case equity >= need:
 		return protocol.ActionPayload{Kind: "call"}

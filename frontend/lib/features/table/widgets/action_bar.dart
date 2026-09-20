@@ -426,7 +426,12 @@ class ActionBarState extends State<ActionBar> {
     final myTurn = m != null;
 
     Widget content;
-    if (!widget.isPlayer) {
+    if (snap == null) {
+      // No snapshot yet: the welcome has not landed, so there is no role to
+      // name. Saying "spectating" here is what makes a player still
+      // connecting believe they lost their seat.
+      content = const SizedBox.shrink();
+    } else if (!widget.isPlayer) {
       content = Center(
         child: Text(
           you?.role == 'admin' ? l10n.roleAdmin : l10n.roleSpectator,
@@ -458,7 +463,7 @@ class ActionBarState extends State<ActionBar> {
       // over for the viewer, take a row in between.
       // Once the viewer has folded, the pre-actions are moot until the next
       // hand, so the toggles are disabled along with the action buttons.
-      final folded = !myTurn && _hasFolded(snap!, you!);
+      final folded = !myTurn && _hasFolded(snap, you!);
       // Once the hand is over for the viewer the show-cards and rabbit
       // hunt buttons take the bottom row at full size; otherwise the three
       // action buttons are always there.
