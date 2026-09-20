@@ -72,11 +72,15 @@ class SessionStore {
 
   Future<StoredSession?> load(String tableId) async {
     final p = await _prefs;
-    final raw = p.getString(_key(tableId));
-    if (raw == null) return null;
     try {
+      final raw = p.getString(_key(tableId));
+      if (raw == null) return null;
       return StoredSession.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } on FormatException {
+    } on Object {
+      // Anything that does not parse — bad JSON, a value that is not an
+      // object, a session an older build wrote without a token — counts as
+      // no session. Throwing here would leave the provider in an error
+      // state, and the play page would sit on a table it never connects to.
       return null;
     }
   }
@@ -97,8 +101,12 @@ class SessionStore {
   /// for); null when this device does not host the table.
   Future<String?> loadAdminToken(String tableId) async {
     final p = await _prefs;
-    final raw = p.getString(_adminKey(tableId));
-    return raw == null || raw.isEmpty ? null : raw;
+    try {
+      final raw = p.getString(_adminKey(tableId));
+      return raw == null || raw.isEmpty ? null : raw;
+    } on Object {
+      return null; // see load(): an unreadable key is no key
+    }
   }
 
   Future<void> saveAdminToken(String tableId, String token) async {

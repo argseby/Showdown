@@ -99,8 +99,13 @@ class PeerPrefsNotifier extends Notifier<Map<String, PeerPrefs>> {
 
   void reset(String playerId) => set(playerId, PeerPrefs.none);
 
-  /// Forgets everything (leaving the table).
-  void clear() => state = const {};
+  /// Forgets everything (leaving the table). The table clears this as it
+  /// goes away, which can land after the container itself is gone — a
+  /// provider nobody is left to read needs no reset.
+  void clear() {
+    if (!ref.mounted) return;
+    state = const {};
+  }
 }
 
 final peerPrefsProvider =

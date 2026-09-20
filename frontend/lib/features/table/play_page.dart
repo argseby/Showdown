@@ -90,6 +90,12 @@ class _PlayPageState extends ConsumerState<PlayPage>
   /// frames, never while building: the tree walk would touch widgets on
   /// their way out. Published through [padCursorProvider].
   bool _padRefreshPending = false;
+
+  /// False between deactivate() and dispose(): the state object is still
+  /// "mounted" there, but its element has left the tree and reading a
+  /// provider through `ref` throws. The post-frame callbacks below outlive
+  /// a route change, so they have to check this and not just `mounted`.
+  bool _attached = true;
   bool _wasMyTurn = false;
 
   @override
@@ -110,11 +116,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
 
   /// Recomputes the cursor's context after the current frame.
   void _refreshPadContext() {
-    if (_padRefreshPending || !mounted) return;
+    if (_padRefreshPending || !mounted || !_attached) return;
     _padRefreshPending = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _padRefreshPending = false;
-      if (!mounted || !ref.read(gamepadProvider)) return;
+      if (!mounted || !_attached || !ref.read(gamepadProvider)) return;
       final focus = FocusManager.instance.primaryFocus;
       final section = _sectionOf(focus);
       final dialog = _overlayControl() != null;
@@ -142,9 +148,24 @@ class _PlayPageState extends ConsumerState<PlayPage>
   late final PeerPrefsNotifier _peerPrefs;
 
   @override
+  void deactivate() {
+    _attached = false;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _attached = true;
+  }
+
+  @override
   void dispose() {
-    // Per-player choices (volume, hidden video, ...) last one visit.
-    _peerPrefs.clear();
+    // Per-player choices (volume, hidden video, ...) last one visit. The
+    // reset cannot happen inside dispose — Riverpod forbids writing to a
+    // provider from a widget life-cycle — so it goes out with the frame.
+    final peerPrefs = _peerPrefs;
+    scheduleMicrotask(peerPrefs.clear);
     _eventSub?.cancel();
     _padSub?.cancel();
     FocusManager.instance.removeListener(_onFocusChange);
@@ -969,17 +990,21 @@ class _PlayPageState extends ConsumerState<PlayPage>
     final theme = Theme.of(context);
     final storedSession = ref.watch(sessionProvider(widget.tableId));
     final stored = storedSession.value;
-    if (storedSession.hasValue && stored == null) {
+    // No session, or one that could not be read at all: the join page is the
+    // only place the player can do anything about it. Staying here would
+    // show a table this page never connects to.
+    if (storedSession.hasError || (storedSession.hasValue && stored == null)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go('/t/${widget.tableId}');
       });
       return const Scaffold(child: SizedBox.shrink());
     }
     // The host's admin key travels with the hello; wait until it is known so
-    // the socket is opened once, not twice.
+    // the socket is opened once, not twice. A key that cannot be read is not
+    // worth stranding a player for — connect as an ordinary one instead.
     final adminTokenAsync = ref.watch(adminTokenProvider(widget.tableId));
     final adminToken = adminTokenAsync.value;
-    if (stored != null && adminTokenAsync.hasValue) {
+    if (stored != null && (adminTokenAsync.hasValue || adminTokenAsync.hasError)) {
       // Never open the socket inside build: state changes would race the
       // frame. The notifier ignores repeated calls with the same tokens.
       final token = stored.token;
@@ -1531,7 +1556,10 @@ class _PlayPageState extends ConsumerState<PlayPage>
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (!session.isPlayer) ...[
+          // Only once the server has said who we are: until the welcome
+          // lands there is no role to show, and calling an unidentified
+          // viewer a spectator is how a connecting player reads as one.
+          if (session.identity != null && !session.isPlayer) ...[
             const Gap(8),
             SecondaryBadge(
               child: Text(
