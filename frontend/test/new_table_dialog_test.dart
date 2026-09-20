@@ -131,12 +131,14 @@ void main() {
     await tester.enterText(find.byKey(const Key('field-name')), 'Royal');
     await tester.pumpAndSettle();
 
-    // The Select's popup needs the app's drawer overlay, which the test
-    // harness does not provide; pick the option through the widget's callback
-    // (after a frame, so the callback carries the current form state).
+    // Through the popup itself, the way a player picks it. On a phone the
+    // popup is a drawer, which needs a drawer layer above the dialog route:
+    // without one nothing opened at all.
     final variant = find.byKey(const Key('field-variant'));
     expect(tester.widget<Select<String>>(variant).value, 'holdem');
-    tester.widget<Select<String>>(variant).onChanged!('royal');
+    await tester.tap(variant);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Royal Hold'em (10 to Ace)").last);
     await tester.pumpAndSettle();
     expect(tester.widget<Select<String>>(variant).value, 'royal');
 

@@ -21,10 +21,17 @@ class ShowdownApp extends ConsumerWidget {
       routerConfig: router,
       // No platform scrollbar: every surface here draws its own edge.
       scrollBehavior: const NoScrollbarBehavior(),
+      // A popover turns itself into a drawer on a phone, and a drawer needs
+      // a [DrawerOverlay] to live in. Scaffold carries one, but a dialog
+      // route is a sibling of the page rather than a child of it, so a
+      // select inside one found none and opened nothing. One here sits
+      // above the router, so every route and every dialog has a layer.
+      //
       // Friend requests and invitations are about the person, so they
       // ride above whatever page they happen to be on.
-      builder: (context, child) =>
-          NotificationsScope(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => DrawerOverlay(
+        child: NotificationsScope(child: child ?? const SizedBox.shrink()),
+      ),
       onGenerateTitle: (context) => context.l10n.appTitle,
       theme: lightTheme,
       darkTheme: darkTheme,
