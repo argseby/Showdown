@@ -153,6 +153,31 @@ void main() {
     expect(find.byKey(const ValueKey('hat-worn-cowboy')), findsOneWidget);
   });
 
+  testWidgets('a seat played by a program is marked as one', (tester) async {
+    // Bob (seat 4) joined as a bot; Alice (seat 0) did not.
+    final snap = fixtureSnapshot().copyWith(
+      seats: [
+        for (final sv in fixtureSnapshot().seats)
+          sv.seat == 4
+              ? sv.copyWith(player: sv.player?.copyWith(bot: true))
+              : sv,
+      ],
+    );
+    final session = TableSessionState(
+      connection: const WsState(status: WsStatus.ready),
+      snapshot: snap,
+      identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+    );
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(width: 1000, height: 600, child: TableView(session: session)),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('bot-4')), findsOneWidget);
+    expect(find.byKey(const Key('bot-0')), findsNothing);
+  });
+
   testWidgets('a failed voice link shows a badge on that seat', (tester) async {
     final snap = fixtureSnapshot();
     final session = TableSessionState(

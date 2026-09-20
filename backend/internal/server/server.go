@@ -29,6 +29,13 @@ type Server struct {
 	limInfo   *limiter
 	limWS     *limiter
 	limCreate *limiter
+	// Sign-up and sign-in: fast enough for a mistyped password, far too
+	// slow to guess one (bcrypt costs the guesser ~50 ms on top).
+	limAccount *limiter
+
+	// users holds the open user sockets (/ws/me), one profile to many
+	// devices; nil is fine and simply means nobody is reachable.
+	users *userHub
 
 	connMu    sync.Mutex
 	connsByIP map[string]int
@@ -38,11 +45,13 @@ type Server struct {
 func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logger) *Server {
 	s := &Server{
 		cfg: cfg, store: st, registry: reg, log: log, mux: http.NewServeMux(), now: time.Now,
-		limJoin:   newLimiter(10, 10),
-		limInfo:   newLimiter(60, 60),
-		limWS:     newLimiter(30, 30),
-		limCreate: newLimiter(5, 5),
-		connsByIP: map[string]int{},
+		limJoin:    newLimiter(10, 10),
+		limInfo:    newLimiter(60, 60),
+		limWS:      newLimiter(30, 30),
+		limCreate:  newLimiter(5, 5),
+		limAccount: newLimiter(30, 15),
+		users:      newUserHub(),
+		connsByIP:  map[string]int{},
 	}
 	s.routes()
 	return s
@@ -72,6 +81,27 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/tables/{id}/hands", s.rateLimited(s.limInfo, s.handleSessionHands))
 	s.mux.HandleFunc("GET /ws/table/{id}", s.handleWS)
 
+	// Player profiles (optional; every route answers 404 with ACCOUNTS off).
+	s.mux.HandleFunc("POST /api/accounts", s.rateLimited(s.limAccount, s.handleRegister))
+	s.mux.HandleFunc("POST /api/accounts/session", s.rateLimited(s.limAccount, s.handleLogin))
+	s.mux.HandleFunc("DELETE /api/accounts/session", s.rateLimited(s.limInfo, s.handleLogout))
+	s.mux.HandleFunc("GET /api/accounts/me", s.rateLimited(s.limInfo, s.handleAccountMe))
+	s.mux.HandleFunc("GET /api/accounts/me/stats", s.rateLimited(s.limInfo, s.handleAccountStats))
+	s.mux.HandleFunc("GET /api/accounts/me/highlights", s.rateLimited(s.limInfo, s.handleAccountHighlights))
+	s.mux.HandleFunc("PATCH /api/accounts/me", s.rateLimited(s.limAccount, s.handleAccountUpdate))
+	s.mux.HandleFunc("GET /api/friends", s.rateLimited(s.limInfo, s.handleFriends))
+	s.mux.HandleFunc("GET /api/friends/search", s.rateLimited(s.limInfo, s.handleFriendSearch))
+	s.mux.HandleFunc("POST /api/friends/requests", s.rateLimited(s.limAccount, s.handleFriendRequest))
+	s.mux.HandleFunc("POST /api/friends/requests/{handle}/{answer}", s.rateLimited(s.limAccount, s.handleFriendAnswer))
+	s.mux.HandleFunc("DELETE /api/friends/{handle}", s.rateLimited(s.limAccount, s.handleUnfriend))
+	s.mux.HandleFunc("DELETE /api/friends/blocks/{handle}", s.rateLimited(s.limAccount, s.handleUnblock))
+	s.mux.HandleFunc("GET /api/profiles/{handle}", s.rateLimited(s.limInfo, s.handleProfile))
+	s.mux.HandleFunc("GET /api/friends/playing", s.rateLimited(s.limInfo, s.handleFriendsPlaying))
+	s.mux.HandleFunc("POST /api/tables/{id}/invites", s.rateLimited(s.limAccount, s.handleInvite))
+	s.mux.HandleFunc("DELETE /api/friends/invites/{id}", s.rateLimited(s.limAccount, s.handleInviteDismiss))
+	s.mux.HandleFunc("GET /ws/me", s.handleUserWS)
+	s.mux.HandleFunc("POST /api/accounts/password", s.rateLimited(s.limAccount, s.handleAccountPassword))
+
 	// Table admin: every route is guarded by the table's own admin token.
 	s.mux.HandleFunc("GET /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminGetTable))
 	s.mux.HandleFunc("PATCH /api/admin/tables/{id}/settings", s.requireTableAdmin(s.handleAdminSettings))
@@ -82,6 +112,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/restart", s.requireTableAdmin(s.lifecycle("restart")))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/blinds-up", s.requireTableAdmin(s.handleAdminBlindsUp))
 	s.mux.HandleFunc("DELETE /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminDeleteTable))
+	s.mux.HandleFunc("POST /api/admin/tables/{id}/bots", s.requireTableAdmin(s.handleAdminAddBot))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/kick", s.requireTableAdmin(s.handleAdminKick))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/chips", s.requireTableAdmin(s.handleAdminChips))
 	s.mux.HandleFunc("POST /api/admin/tables/{id}/players/{pid}/mute", s.requireTableAdmin(s.handleAdminMute))
@@ -147,6 +178,9 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 		"ice_servers": ice,
 		// The build this instance runs, shown on the client's start screen.
 		"version": buildinfo.Version(),
+		// Whether this instance offers player profiles at all; with it off
+		// the client shows no sign-in anywhere.
+		"accounts": s.cfg.Accounts,
 	})
 }
 

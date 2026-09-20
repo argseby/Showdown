@@ -81,6 +81,82 @@ type PlayerRow struct {
 	ShowdownsWon int
 	TimeBank     int
 	Place        int
+	// AccountID links the seat to a profile ("" for a guest), AccountHandle
+	// is that profile's handle as it was when the player sat down.
+	AccountID     string
+	AccountHandle string
+	// Bot marks a seat played by a program. The client says so when it
+	// joins; it is a label on the table, not a claim the server can check.
+	Bot bool
+}
+
+// AccountRow mirrors accounts: an optional player profile. Handle is the
+// name as typed, HandleKey its folded form (uniqueness), and the Vis*
+// fields say who may see each part of the profile ("private", "friends" or
+// "public").
+type AccountRow struct {
+	ID           string
+	Handle       string
+	HandleKey    string
+	DisplayName  string
+	PasswordHash string
+	RecoveryHash string
+	CreatedAt    int64
+
+	VisProfile      string
+	VisWinnings     string
+	VisBestHands    string
+	VisAchievements string
+	VisActivity     string
+}
+
+// HandResultRow mirrors hand_results: one profile's part in one hand.
+type HandResultRow struct {
+	AccountID   string
+	TableID     string
+	TableName   string
+	HandNumber  int
+	EndedAt     int64
+	BigBlind    int64
+	Net         int64
+	Won         int64
+	DealtIn     bool
+	Folded      bool
+	VPIP        bool
+	Showdown    bool
+	ShowdownWon bool
+	AllIn       bool
+	// Category is a poker.Category, -1 when the hand never saw a board;
+	// Royal marks an ace-high straight flush, Shown that the table saw it.
+	Category    int
+	Royal       bool
+	Shown       bool
+	Description string
+	BestCards   string
+	Profiles    int
+}
+
+// RoundResultRow mirrors round_results: one profile's finished round.
+type RoundResultRow struct {
+	AccountID  string
+	TableID    string
+	TableName  string
+	RoundStart int
+	EndedAt    int64
+	BigBlind   int64
+	Net        int64
+	Place      int
+	Players    int
+	Tournament bool
+}
+
+// AccountSessionRow mirrors account_sessions: a profile login, which
+// outlives the tables the player sits at.
+type AccountSessionRow struct {
+	TokenHash string
+	AccountID string
+	CreatedAt int64
+	ExpiresAt int64
 }
 
 // SessionRow mirrors sessions.

@@ -355,6 +355,13 @@ abstract class PlayerView with _$PlayerView {
     @JsonKey(includeIfNull: false) double? equity,
     @JsonKey(includeIfNull: false) int? timeBank,
     @JsonKey(includeIfNull: false) int? place,
+
+    /// The handle of the profile this seat belongs to; absent for a guest.
+    @JsonKey(includeIfNull: false) String? account,
+
+    /// The seat is played by a program. Declared by whoever joined; nobody
+    /// checks it. Absent for a person.
+    @JsonKey(includeIfNull: false) bool? bot,
     required int stack,
     required String status,
     required bool connected,

@@ -268,6 +268,646 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cancel => 'Abbrechen';
 
   @override
+  String get accountSignInTitle => 'Anmelden';
+
+  @override
+  String get accountSignInBody =>
+      'Dein Profil behält deine Statistik über Tische hinweg. Du kannst jederzeit als Gast spielen.';
+
+  @override
+  String get accountCreateTitle => 'Profil anlegen';
+
+  @override
+  String get accountCreateBody =>
+      'Name und Passwort genügen. Keine E-Mail, nichts zu bestätigen — stattdessen bekommst du einen Wiederherstellungscode.';
+
+  @override
+  String get accountHandle => 'Name (a–z, 0–9, _)';
+
+  @override
+  String get accountPassword => 'Passwort (mindestens 8 Zeichen)';
+
+  @override
+  String get accountSignIn => 'Anmelden';
+
+  @override
+  String get accountCreate => 'Profil anlegen';
+
+  @override
+  String get accountNeedOne => 'Noch kein Profil? Jetzt anlegen';
+
+  @override
+  String get accountHaveOne => 'Schon ein Profil? Anmelden';
+
+  @override
+  String get accountMissingFields => 'Bitte beide Felder ausfüllen.';
+
+  @override
+  String get accountHandleTaken => 'Dieser Name ist vergeben.';
+
+  @override
+  String get accountBadCredentials => 'Name oder Passwort stimmt nicht.';
+
+  @override
+  String get accountsOff => 'Diese Instanz hat keine Spielerprofile.';
+
+  @override
+  String get accountRecoveryTitle => 'Schreib das auf';
+
+  @override
+  String get accountRecoveryBody =>
+      'Dieser Code ist der einzige Weg zurück in dein Profil, wenn du das Passwort vergisst. Er wird einmal gezeigt und nie wieder — es wird keine E-Mail verschickt.';
+
+  @override
+  String get accountRecoveryDone => 'Habe ich aufgeschrieben';
+
+  @override
+  String get accountRecoveryCopy => 'Code kopieren';
+
+  @override
+  String get accountSignOut => 'Abmelden';
+
+  @override
+  String get accountHandleLabel => 'Name';
+
+  @override
+  String get accountDisplayName => 'Angezeigt als';
+
+  @override
+  String get accountStatsSoon =>
+      'Dein Profil markiert deinen Platz. Statistik, beste Hände und Erfolge folgen.';
+
+  @override
+  String get accountChangePassword => 'Passwort ändern';
+
+  @override
+  String get accountCurrentPassword => 'Aktuelles Passwort';
+
+  @override
+  String get accountNewPassword => 'Neues Passwort';
+
+  @override
+  String get accountSavePassword => 'Speichern';
+
+  @override
+  String get accountPasswordHint =>
+      'Ein neues Passwort meldet deine anderen Geräte ab und gibt dir einen neuen Wiederherstellungscode.';
+
+  @override
+  String get accountMenu => 'Profil';
+
+  @override
+  String get accountMenuHint => 'Profil, Passwort und Abmelden';
+
+  @override
+  String get statsTitle => 'Deine Statistik';
+
+  @override
+  String get statsEmpty =>
+      'Noch nichts — spiel angemeldet eine Hand, dann steht sie hier.';
+
+  @override
+  String get statsOpen => 'Statistik';
+
+  @override
+  String statsSince(String date) {
+    return 'Dabei seit $date';
+  }
+
+  @override
+  String get statsVolume => 'Gespielt';
+
+  @override
+  String get statsHands => 'Hände';
+
+  @override
+  String get statsMenuHint => 'Deine Hände, Ergebnisse und Spielweise';
+
+  @override
+  String get statsTabOverview => 'Überblick';
+
+  @override
+  String get statsTabHands => 'Hände';
+
+  @override
+  String statsOverHands(String hands, String tables) {
+    return 'aus $hands Händen an $tables Tischen';
+  }
+
+  @override
+  String get statsFirstHand => 'Erste Hand';
+
+  @override
+  String get statsBest => 'Bestwerte';
+
+  @override
+  String get statsBiggestPotHint =>
+      'der ganze Pot, deine eigenen Chips mitgezählt';
+
+  @override
+  String get statsBestRoundHint =>
+      'was am Ende eines Tisches für dich übrig war';
+
+  @override
+  String get statsRate => 'Gewinnrate';
+
+  @override
+  String get statsPer100Chips => 'Pro 100 Hände';
+
+  @override
+  String get statsBbHint =>
+      'Ein Big Blind ist der große Pflichteinsatz am Tisch. In Big Blinds gerechnet lassen sich Tische mit unterschiedlichen Einsätzen vergleichen.';
+
+  @override
+  String get statsShowdownGroup => 'Showdowns';
+
+  @override
+  String get statsNoHandsYet => 'Noch keine Hand von dir ging bis zum Ende.';
+
+  @override
+  String get statsTables => 'Tische';
+
+  @override
+  String get statsRounds => 'Runden';
+
+  @override
+  String get statsMoney => 'Ergebnis';
+
+  @override
+  String get statsNet => 'Netto';
+
+  @override
+  String get statsNetBB => 'In Big Blinds';
+
+  @override
+  String get statsPer100 => 'Pro 100 Hände in BB';
+
+  @override
+  String get statsBiggestPot => 'Größter Pot';
+
+  @override
+  String get statsBiggestWin => 'Größte Hand';
+
+  @override
+  String get statsBestRound => 'Beste Runde';
+
+  @override
+  String get statsHandsWon => 'Hände gewonnen';
+
+  @override
+  String get statsRoundsWon => 'Runden gewonnen';
+
+  @override
+  String get statsPodiums => 'Top drei';
+
+  @override
+  String get statsTournaments => 'Turniere';
+
+  @override
+  String get statsStyle => 'Spielweise';
+
+  @override
+  String get statsVpip => 'Hand gespielt';
+
+  @override
+  String get statsShowdowns => 'Showdowns gewonnen';
+
+  @override
+  String get statsNoShowdown => 'Ohne Showdown gewonnen';
+
+  @override
+  String get statsFolded => 'Gepasst';
+
+  @override
+  String get statsAllIns => 'All-ins';
+
+  @override
+  String get statsHandClasses => 'Getroffene Hände';
+
+  @override
+  String statsShownOf(String shown) {
+    return '$shown gezeigt';
+  }
+
+  @override
+  String get statsTabAwards => 'Auszeichnungen';
+
+  @override
+  String get statsBestHands => 'Beste Hände';
+
+  @override
+  String get statsBiggestPots => 'Größte Pots';
+
+  @override
+  String statsHandAt(String table, String number) {
+    return '$table · Hand $number';
+  }
+
+  @override
+  String get statsMucked => 'nicht gezeigt';
+
+  @override
+  String get statsShownAtTable => 'gezeigt';
+
+  @override
+  String get statsAwardsAhead => 'Noch offen';
+
+  @override
+  String statsProgressOf(String progress, String goal) {
+    return '$progress von $goal';
+  }
+
+  @override
+  String get statsNoAwardsYet =>
+      'Noch nichts erreicht — alle Meilensteine unten sind offen.';
+
+  @override
+  String get achRoyalFlushTitle => 'Royal Flush';
+
+  @override
+  String get achRoyalFlushBody => 'Die beste Hand im Poker getroffen.';
+
+  @override
+  String get achStraightFlushTitle => 'Straight Flush';
+
+  @override
+  String get achStraightFlushBody => 'Fünf in Folge, alle in einer Farbe.';
+
+  @override
+  String get achQuadsTitle => 'Vierling';
+
+  @override
+  String get achQuadsBody => 'Alle vier Karten eines Wertes.';
+
+  @override
+  String get achFullHouseTitle => 'Full House';
+
+  @override
+  String get achFullHouseBody => 'Drilling und Paar.';
+
+  @override
+  String get achBigPotTitle => 'Großer Pot';
+
+  @override
+  String get achBigPotBody =>
+      'Einen Pot von 100 Big Blinds oder mehr gewonnen.';
+
+  @override
+  String get achAllInWinTitle => 'All-in überstanden';
+
+  @override
+  String get achAllInWinBody =>
+      'Eine Hand mit dem ganzen Stack in der Mitte gewonnen.';
+
+  @override
+  String get achHands100Title => 'Stammgast';
+
+  @override
+  String get achHands100Body => '100 Hände gespielt.';
+
+  @override
+  String get achHands1000Title => 'Veteran';
+
+  @override
+  String get achHands1000Body => '1.000 Hände gespielt.';
+
+  @override
+  String get achBluffs25Title => 'Ohne Karten';
+
+  @override
+  String get achBluffs25Body => '25 Hände ohne Showdown gewonnen.';
+
+  @override
+  String get achRoundWinTitle => 'Zuletzt übrig';
+
+  @override
+  String get achRoundWinBody => 'Eine Runde gewonnen.';
+
+  @override
+  String get achPodium3Title => 'Podium';
+
+  @override
+  String get achPodium3Body => 'In drei Runden unter den ersten drei gelandet.';
+
+  @override
+  String get achTournamentWinTitle => 'Turniersieger';
+
+  @override
+  String get achTournamentWinBody => 'Ein Turnier gewonnen.';
+
+  @override
+  String get visTitle => 'Wer was sieht';
+
+  @override
+  String get visBody =>
+      'Deine Freunde sehen deinen Verlauf. Öffentlich wird nichts, bis du es so setzt — und alles lässt sich wieder auf privat stellen.';
+
+  @override
+  String get visOpen => 'Wer was sieht';
+
+  @override
+  String get visMenuHint => 'Was ein öffentliches Profil zeigen würde';
+
+  @override
+  String get visSignUpBody =>
+      'Dein Profil steht. Entscheide, wer was sieht — nur Freunde, alle oder niemand außer dir.';
+
+  @override
+  String get visChangeLater =>
+      'Alles davon lässt sich später unter „Wer was sieht\" ändern.';
+
+  @override
+  String get visFinish => 'Losspielen';
+
+  @override
+  String get visPublic => 'Öffentlich';
+
+  @override
+  String get visPrivate => 'Privat';
+
+  @override
+  String get visProfile => 'Profil';
+
+  @override
+  String get visProfileHint => 'dein Name und seit wann du spielst';
+
+  @override
+  String get visWinnings => 'Gewinne';
+
+  @override
+  String get visWinningsHint => 'Hände, Tische und dein Ergebnis';
+
+  @override
+  String get visBestHands => 'Beste Hände';
+
+  @override
+  String get visBestHandsHint =>
+      'deine getroffenen Hände, wie der Tisch sie sah';
+
+  @override
+  String get visAchievements => 'Auszeichnungen';
+
+  @override
+  String get visAchievementsHint => 'deine erreichten Meilensteine';
+
+  @override
+  String get visActivity => 'Aktivität';
+
+  @override
+  String get visActivityHint => 'wann du zuletzt gespielt hast';
+
+  @override
+  String get visAllPrivate => 'Noch ist nichts öffentlich.';
+
+  @override
+  String get visSaveFailed => 'Konnte nicht gespeichert werden.';
+
+  @override
+  String get friendsTitle => 'Freunde';
+
+  @override
+  String get friendsOpen => 'Freunde';
+
+  @override
+  String get friendsMenuHint => 'Deine Freunde, Anfragen und Einladungen';
+
+  @override
+  String get friendsTabAll => 'Freunde';
+
+  @override
+  String get friendsTabRequests => 'Anfragen';
+
+  @override
+  String get friendsTabFind => 'Suchen';
+
+  @override
+  String get friendsTabBlocked => 'Blockiert';
+
+  @override
+  String get friendsNone =>
+      'Noch keine Freunde — such jemanden über den Namen.';
+
+  @override
+  String get friendsFindPlaceholder => 'Name oder Kürzel';
+
+  @override
+  String get friendsFindNothing => 'Niemand mit diesem Namen.';
+
+  @override
+  String get friendsAdd => 'Freund hinzufügen';
+
+  @override
+  String get friendsAsked => 'Angefragt';
+
+  @override
+  String get friendsAccept => 'Annehmen';
+
+  @override
+  String get friendsDecline => 'Ablehnen';
+
+  @override
+  String get friendsBlock => 'Blockieren';
+
+  @override
+  String get friendsUnblock => 'Entsperren';
+
+  @override
+  String get friendsRemove => 'Freund entfernen';
+
+  @override
+  String friendsRemoveConfirm(String name) {
+    return '$name aus deinen Freunden entfernen? Die Person erfährt es nicht.';
+  }
+
+  @override
+  String friendsBlockConfirm(String name) {
+    return '$name blockieren? Die Freundschaft endet, neue Anfragen sind nicht möglich und was du mit Freunden teilst, ist nicht mehr sichtbar.';
+  }
+
+  @override
+  String get friendsIncoming => 'Möchte befreundet sein';
+
+  @override
+  String get friendsOutgoing => 'Wartet auf Antwort';
+
+  @override
+  String get friendsNoRequests => 'Nichts wartet auf eine Antwort.';
+
+  @override
+  String get friendsBlockedNone => 'Niemand ist blockiert.';
+
+  @override
+  String get friendsBlockedHint =>
+      'Blockierte Spieler können dich nicht erneut anfragen und sehen nichts, was du mit Freunden teilst.';
+
+  @override
+  String get friendsInvites => 'Einladungen';
+
+  @override
+  String friendsInviteFrom(String name, String table) {
+    return '$name lädt dich an $table ein';
+  }
+
+  @override
+  String get friendsJoin => 'Beitreten';
+
+  @override
+  String get friendsDismiss => 'Verwerfen';
+
+  @override
+  String friendsSince(String date) {
+    return 'Befreundet seit $date';
+  }
+
+  @override
+  String get friendsPlayingTitle => 'Freunde spielen gerade';
+
+  @override
+  String friendsPlayingSeats(String free, String max) {
+    return '$free von $max Plätzen frei';
+  }
+
+  @override
+  String get friendsPlayingFull => 'Kein freier Platz';
+
+  @override
+  String get friendsPlayingWatch => 'Zuschauen';
+
+  @override
+  String get friendsPlayingLocked => 'Passwort nötig';
+
+  @override
+  String get friendsInvite => 'Freund einladen';
+
+  @override
+  String get friendsInviteHint =>
+      'Deine Freunde bekommen eine Benachrichtigung mit dem Weg hierher.';
+
+  @override
+  String friendsInviteSent(String name) {
+    return 'Einladung an $name verschickt.';
+  }
+
+  @override
+  String get friendsInviteNone => 'Noch keine Freunde zum Einladen.';
+
+  @override
+  String get friendsInviteHere => 'Schon hier';
+
+  @override
+  String notifFriendRequest(String name) {
+    return '$name möchte befreundet sein';
+  }
+
+  @override
+  String notifFriendAccepted(String name) {
+    return '$name ist jetzt dein Freund';
+  }
+
+  @override
+  String notifInvite(String name, String table) {
+    return '$name lädt dich an $table ein';
+  }
+
+  @override
+  String get notifOk => 'Alles klar';
+
+  @override
+  String get playerIsFriend => 'Einer deiner Freunde';
+
+  @override
+  String get playerFriendRecord => 'Statistik und Auszeichnungen';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get profilePrivate => 'Dieses Profil ist privat.';
+
+  @override
+  String profileSince(String date) {
+    return 'Spielt seit $date';
+  }
+
+  @override
+  String get profileNotShared => 'Nicht geteilt';
+
+  @override
+  String profileNotSharedHint(String name) {
+    return 'Privat — das sieht nur $name selbst.';
+  }
+
+  @override
+  String profileOverHands(String hands) {
+    return 'aus $hands Händen';
+  }
+
+  @override
+  String get profileWinnings => 'Gewinne';
+
+  @override
+  String get profileBestHands => 'Beste Hände';
+
+  @override
+  String get profileAwards => 'Auszeichnungen';
+
+  @override
+  String get profileActivity => 'Aktivität';
+
+  @override
+  String get profileLastHand => 'Letzte Hand';
+
+  @override
+  String get profilePlayingNow => 'Sitzt gerade an einem Tisch';
+
+  @override
+  String get profileOpen => 'Profil ansehen';
+
+  @override
+  String get visFriendsOnly => 'Freunde';
+
+  @override
+  String get handRoyalFlush => 'Royal Flush';
+
+  @override
+  String get handStraightFlush => 'Straight Flush';
+
+  @override
+  String get handFourOfAKind => 'Vierling';
+
+  @override
+  String get handFullHouse => 'Full House';
+
+  @override
+  String get handFlush => 'Flush';
+
+  @override
+  String get handStraight => 'Straße';
+
+  @override
+  String get handThreeOfAKind => 'Drilling';
+
+  @override
+  String get handTwoPair => 'Zwei Paare';
+
+  @override
+  String get handPair => 'Paar';
+
+  @override
+  String get handHighCard => 'Höchste Karte';
+
+  @override
+  String accountSignedInAs(String handle) {
+    return 'Angemeldet als $handle';
+  }
+
+  @override
+  String get accountGuestHint => 'Du spielst als Gast';
+
+  @override
+  String get accountPlayAsGuest => 'Als Gast spielen';
+
+  @override
   String get confirm => 'Bestätigen';
 
   @override
@@ -1193,14 +1833,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get valPassword => 'Muss leer oder 4-64 Zeichen lang sein';
 
   @override
+  String get prefsTableSection => 'Wie der Tisch aussieht';
+
+  @override
+  String get prefsMoreSection => 'Alles Weitere';
+
+  @override
+  String get fourColorDeckAbout =>
+      'Eine Farbe je Symbol — Pik schwarz, Herz rot, Karo blau, Kreuz grün — damit ein Flush auf einen Blick auffällt.';
+
+  @override
+  String get handLineAbout =>
+      'Benennt, was du hältst — Zehnerpaar, Flush-Draw — auf dem Filz, unter dem Tisch oder gar nicht.';
+
+  @override
   String get fourColorDeck => 'Vierfarbiges Deck';
 
   @override
   String get chipStacks => 'Chipstapel auf dem Tisch';
 
   @override
-  String get fixedSeats =>
-      'Feste Plätze: der gleiche Tisch für alle (aus: du sitzt unten)';
+  String get chipStacksAbout =>
+      'Zeichnet jeden Einsatz und jeden Stack als echte Chips auf dem Filz statt als Zahl.';
+
+  @override
+  String get fixedSeatsAbout =>
+      'Alle sehen den Tisch gleich herum, dein Platz ist dort, wo du dich hingesetzt hast. Aus dreht sich der Tisch so, dass du immer unten sitzt.';
+
+  @override
+  String get showdownSpotlightAbout =>
+      'Beim Showdown bleibt die Gewinnerhand hell, während der Rest des Tisches abdunkelt — so sieht man, was gewonnen hat.';
+
+  @override
+  String get fixedSeats => 'Feste Plätze';
 
   @override
   String get landingCreateTitle => 'Eine Runde hosten';
@@ -1256,6 +1921,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setAllowDrawing => 'Zeichnen auf dem Tisch erlauben';
+
+  @override
+  String get setTableType => 'Tischart';
+
+  @override
+  String get tableTypeTournamentTitle => 'Daraus ein Turnier machen?';
+
+  @override
+  String get tableTypeTournamentConfirm =>
+      'Die Cash-Game-Einstellungen — Blinds, Startgeld, Rebuys, Platzwechsel — sind ab der ersten ausgeteilten Hand für alle gesperrt, auch für dich. Bis dahin kannst du zurückwechseln.';
+
+  @override
+  String get tableTypeLocked =>
+      'Es wurde bereits eine Hand gespielt: die Tischart steht für diese Runde fest.';
+
+  @override
+  String get tableTypeCash => 'Cash Game';
+
+  @override
+  String get tableTypeTournament => 'Turnier';
 
   @override
   String get setTournament =>
@@ -1761,6 +2446,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get peerReset => 'Zurücksetzen';
+
+  @override
+  String get botSection => 'Bots';
+
+  @override
+  String get botHint =>
+      'Niemanden zum Fragen oder fehlt einer? Setz einen Bot dazu: er spielt selbst, und du wirfst ihn raus wie jeden anderen.';
+
+  @override
+  String get botTableFull =>
+      'Alle Plätze sind besetzt. Mach einen frei für einen Bot.';
+
+  @override
+  String get botAdd => 'Bot dazusetzen';
+
+  @override
+  String botAdded(String name) {
+    return '$name hat sich gesetzt';
+  }
+
+  @override
+  String get botSeatMark => 'Bot';
+
+  @override
+  String get botSeatHint => 'Auf diesem Platz spielt ein Programm, kein Mensch';
 
   @override
   String get peerMutedMark => 'Für dich stummgeschaltet';

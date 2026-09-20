@@ -559,8 +559,6 @@ class ActionBarState extends State<ActionBar> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(LucideIcons.x, size: 18, color: color),
-                const Gap(6),
                 Text(
                   context.l10n.youFolded,
                   style: TextStyle(color: color),

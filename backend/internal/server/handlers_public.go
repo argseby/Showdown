@@ -46,6 +46,9 @@ type joinRequest struct {
 	Seat     *int    `json:"seat"`   // wanted seat; omitted = lowest free
 	Avatar   *int    `json:"avatar"` // 0..19; omitted = random
 	Hat      *string `json:"hat"`    // one of protocol.Hats; omitted = none
+	// Bot: the client says it plays this seat with a program, so the table
+	// can mark it. Self-declared; the server has no way to check.
+	Bot bool `json:"bot"`
 }
 
 func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
@@ -76,10 +79,20 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 	if req.Hat != nil {
 		hat = *req.Hat
 	}
-	res, err := t.Join(req.Name, seat, avatar, hat)
+	// Signed in? The seat carries the profile; a guest passes the zero
+	// value and plays exactly as before.
+	var profile table.Profile
+	if a, ok := s.accountOf(r.Context(), r); ok {
+		profile = table.Profile{ID: a.ID, Handle: a.Handle}
+	}
+	res, err := t.Join(req.Name, seat, avatar, hat, profile, req.Bot)
 	if err != nil {
 		writeErr(w, err)
 		return
+	}
+	// A friend sitting down is news on everybody else's home screen.
+	if profile.ID != "" {
+		s.friendsChanged(profile.ID)
 	}
 	token, err := s.createSession(r.Context(), table.RolePlayer, t.ID, res.PlayerID, res.Name)
 	if err != nil {

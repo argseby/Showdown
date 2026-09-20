@@ -1,6 +1,10 @@
 // Command bot runs scripted players against a table for manual testing:
 //
 //	go run ./cmd/bot -server http://localhost:8080 -table <id> -password <pw> -count 6
+//
+// The default strategy is random, which is what shakes rule bugs out. To play
+// against opponents worth playing against, pass -strategy solid (what the
+// bots make target uses). Every bot marks its seat as a bot when it joins.
 package main
 
 import (
@@ -33,7 +37,8 @@ func run() error {
 	count := flag.Int("count", 6, "number of bots")
 	prefix := flag.String("prefix", "Bot", "display name prefix")
 	names := flag.String("names", "", "comma-separated display names (overrides -prefix and -count)")
-	strategy := flag.String("strategy", "random", "random | passive | aggressive | idle")
+	accounts := flag.String("accounts", "", "comma-separated profile tokens, one per bot, so they play signed in")
+	strategy := flag.String("strategy", "random", "solid | random | passive | aggressive | idle")
 	hands := flag.Int("hands", 0, "stop after this many hands (0 = run until interrupted)")
 	delay := flag.Duration("delay", 300*time.Millisecond, "thinking time before acting")
 	verbose := flag.Bool("v", false, "debug logging")
@@ -58,12 +63,21 @@ func run() error {
 			nameList = append(nameList, fmt.Sprintf("%s%d", *prefix, i+1))
 		}
 	}
+	var accountList []string
+	if *accounts != "" {
+		accountList = strings.Split(*accounts, ",")
+	}
 	bots := make([]*botclient.Bot, 0, len(nameList))
 	for i, name := range nameList {
+		account := ""
+		if i < len(accountList) {
+			account = strings.TrimSpace(accountList[i])
+		}
 		b := botclient.New(botclient.Config{
 			BaseURL: *server, TableID: *tableID, Name: strings.TrimSpace(name), Password: *password, Avatar: (i * 7) % 20,
 			Hat:      protocol.Hats[i%len(protocol.Hats)],
 			Strategy: botclient.Strategy(*strategy), Log: log, ActDelay: *delay,
+			AccountToken: account,
 		})
 		if err := b.Join(ctx); err != nil {
 			return fmt.Errorf("join failed for %s: %w", b.Name(), err)

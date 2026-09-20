@@ -21,8 +21,11 @@ type Config struct {
 	MaxConnectionsPerIP int
 	TrustProxy          bool
 	DevCORSOrigin       string
-	LogLevel            string
-	LogFormat           string
+	// Accounts enables optional player profiles (sign-up, sign-in, stats).
+	// Off by default: a home game among friends never sees a sign-in.
+	Accounts  bool
+	LogLevel  string
+	LogFormat string
 	// StunURLs are handed to browsers for the voice and video connections
 	// (WebRTC ICE); empty means no STUN, which works within one network only.
 	StunURLs []string
@@ -46,6 +49,7 @@ func Load(getenv func(string) string) (Config, error) {
 		MaxTables:           l.integer("MAX_TABLES", 100),
 		MaxConnectionsPerIP: l.integer("MAX_CONNECTIONS_PER_IP", 50),
 		TrustProxy:          l.boolean("TRUST_PROXY", true),
+		Accounts:            l.boolean("ACCOUNTS", false),
 		DevCORSOrigin:       l.str("DEV_CORS_ORIGIN", ""),
 		LogLevel:            strings.ToLower(l.str("LOG_LEVEL", "info")),
 		LogFormat:           strings.ToLower(l.str("LOG_FORMAT", "json")),

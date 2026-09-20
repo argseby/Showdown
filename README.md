@@ -1,8 +1,9 @@
 # Showdown
 
-Self-hosted No-Limit Texas Hold'em for friends. One `docker compose up`, no accounts,
+Self-hosted No-Limit Texas Hold'em for friends. One `docker compose up`, no sign-up,
 no external requests. Anyone on your instance creates a table, shares the link, and
-plays in the browser.
+plays in the browser. Player profiles are optional and off by default; guests can
+always play.
 
 ![A full table in Showdown: eight players, community cards and the pot](promo.png)
 
@@ -34,6 +35,19 @@ plays in the browser.
   notifications, English and German.
 - Keyboard shortcuts for every action (press `?` at the table), and a game controller
   works too: X folds, A checks or calls, Y raises, the D-pad moves through the menus.
+- Optional player profiles (`ACCOUNTS=true`): a name, a password and a recovery
+  code — no mail server, no third party. A profile marks your seat and keeps your
+  record: hands, winnings, the hands you made and the milestones you reached. Every
+  section is private until you share it — with your friends or with everyone — and
+  playing as a guest stays possible everywhere.
+- Friends: find someone by name or from their seat, and see where your friends are
+  playing with the free seats and a way in. A friend at a table can call you over;
+  requests and invitations reach you wherever you are in the app. Anyone can be
+  declined quietly or blocked for good.
+- Bots: short a player, the host adds one from the invite dialog. It reads its
+  cards, weighs its chances against the price it is being offered, and folds,
+  calls or raises accordingly — no solver, but a long way from random. Its seat
+  says it is a bot, and the host kicks it like anyone else.
 - Two containers, one SQLite file, images published on GitHub's registry.
 
 ## Install
@@ -175,8 +189,8 @@ login.
 ## Development
 
 ```
-make dev-api          # Go API on :8080 with CORS for the dev web server
-make dev-web          # flutter run in Chrome on :3000
+make dev-api          # Go API on :8081 with CORS for the dev web server
+make dev-web          # flutter run in Chrome on :3000, talking to :8081
 make lint test check-gen
 make bots TABLE=<id>  # scripted players
 ```

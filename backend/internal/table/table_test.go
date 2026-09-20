@@ -139,7 +139,7 @@ func newTestTableShuffled(t *testing.T, s Settings, shuffle func([]poker.Card)) 
 
 func join(t *testing.T, tbl *Table, name string) (JoinResult, *fakeConn) {
 	t.Helper()
-	res, err := tbl.Join(name, -1, -1, "")
+	res, err := tbl.Join(name, -1, -1, "", Profile{}, false)
 	if err != nil {
 		t.Fatalf("Join(%s): %v", name, err)
 	}
@@ -212,13 +212,13 @@ func TestJoinAutoStartAndHoleCardPrivacy(t *testing.T) {
 	if err := tbl.Attach(&Client{Conn: admin, Role: RoleAdmin, Name: "admin"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := tbl.Join("alice", -1, -1, ""); !errors.Is(err, ErrNameTaken) {
+	if _, err := tbl.Join("alice", -1, -1, "", Profile{}, false); !errors.Is(err, ErrNameTaken) {
 		t.Fatalf("duplicate name: %v", err)
 	}
-	if _, err := tbl.Join("Watcher", -1, -1, ""); !errors.Is(err, ErrNameTaken) {
+	if _, err := tbl.Join("Watcher", -1, -1, "", Profile{}, false); !errors.Is(err, ErrNameTaken) {
 		t.Fatalf("spectator name reuse: %v", err)
 	}
-	if _, err := tbl.Join("bad!name", -1, -1, ""); !errors.Is(err, ErrInvalidName) {
+	if _, err := tbl.Join("bad!name", -1, -1, "", Profile{}, false); !errors.Is(err, ErrInvalidName) {
 		t.Fatalf("invalid name: %v", err)
 	}
 
@@ -532,7 +532,7 @@ func TestLifecycleAndVoid(t *testing.T) {
 	if err := tbl.End(false); !errors.Is(err, ErrInvalidState) {
 		t.Fatalf("end twice: %v", err)
 	}
-	if _, err := tbl.Join("Zed", -1, -1, ""); !errors.Is(err, ErrTableEnded) {
+	if _, err := tbl.Join("Zed", -1, -1, "", Profile{}, false); !errors.Is(err, ErrTableEnded) {
 		t.Fatalf("join ended: %v", err)
 	}
 	// An ended table is inert but not gone: a player who reloads gets back
@@ -865,17 +865,17 @@ func TestSeatPickingAndAvatar(t *testing.T) {
 	s := testSettings()
 	s.AutoStart = false
 	tbl := newTestTable(t, s)
-	a, err := tbl.Join("Alice", 3, 7, "")
+	a, err := tbl.Join("Alice", 3, 7, "", Profile{}, false)
 	if err != nil || a.Seat != 3 {
 		t.Fatalf("pick seat 3: %+v %v", a, err)
 	}
-	if _, err := tbl.Join("Bob", 3, 1, ""); !errors.Is(err, ErrSeatTaken) {
+	if _, err := tbl.Join("Bob", 3, 1, "", Profile{}, false); !errors.Is(err, ErrSeatTaken) {
 		t.Fatalf("taken seat: %v", err)
 	}
-	if _, err := tbl.Join("Bob", 42, 1, ""); !errors.Is(err, ErrSeatTaken) {
+	if _, err := tbl.Join("Bob", 42, 1, "", Profile{}, false); !errors.Is(err, ErrSeatTaken) {
 		t.Fatalf("seat out of range: %v", err)
 	}
-	b, err := tbl.Join("Bob", -1, 99, "")
+	b, err := tbl.Join("Bob", -1, 99, "", Profile{}, false)
 	if err != nil || b.Seat != 0 {
 		t.Fatalf("lowest free seat: %+v %v", b, err)
 	}
@@ -889,17 +889,54 @@ func TestSeatPickingAndAvatar(t *testing.T) {
 	}
 }
 
+func TestBotSeatIsMarked(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.AutoStart = false
+	tbl := newTestTable(t, s)
+	person, err := tbl.Join("Alice", -1, -1, "", Profile{}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	program, err := tbl.Join("Bot1", -1, -1, "", Profile{}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn := &fakeConn{}
+	if err := tbl.Attach(&Client{Conn: conn, Role: RolePlayer, PlayerID: person.PlayerID}); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, sv := range conn.lastSnapshot(t).Seats {
+		if sv.Player != nil {
+			seen[sv.Player.ID] = sv.Player.Bot
+		}
+	}
+	if seen[person.PlayerID] {
+		t.Error("a person was marked as a bot")
+	}
+	if !seen[program.PlayerID] {
+		t.Error("the bot seat was not marked")
+	}
+	// The admin view says the same thing.
+	for _, p := range tbl.AdminDetail().Players {
+		if want := p.ID == program.PlayerID; p.Bot != want {
+			t.Errorf("admin detail: %s bot = %v, want %v", p.Name, p.Bot, want)
+		}
+	}
+}
+
 func TestHats(t *testing.T) {
 	t.Parallel()
 	s := testSettings()
 	s.AutoStart = false
 	tbl := newTestTable(t, s)
-	a, err := tbl.Join("Alice", -1, -1, "crown")
+	a, err := tbl.Join("Alice", -1, -1, "crown", Profile{}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// An unknown hat at join time means no hat.
-	b, err := tbl.Join("Bob", -1, -1, "fez")
+	b, err := tbl.Join("Bob", -1, -1, "fez", Profile{}, false)
 	if err != nil {
 		t.Fatal(err)
 	}

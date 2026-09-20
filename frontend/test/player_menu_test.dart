@@ -12,24 +12,29 @@ import 'package:showdown/protocol/protocol.dart';
 
 import 'test_helpers.dart';
 
-PlayerView bob({String voice = 'on', bool camera = true, bool muted = false}) =>
-    PlayerView(
-      id: 'p4',
-      name: 'Bob',
-      avatar: 0,
-      voice: voice,
-      camera: camera,
-      muted: muted,
-      stack: 100,
-      status: 'active',
-      connected: true,
-      inHand: false,
-      folded: false,
-      allIn: false,
-      betThisStreet: 0,
-      totalBet: 0,
-      lastAction: null,
-    );
+PlayerView bob({
+  String voice = 'on',
+  bool camera = true,
+  bool muted = false,
+  bool? bot,
+}) => PlayerView(
+  id: 'p4',
+  name: 'Bob',
+  avatar: 0,
+  bot: bot,
+  voice: voice,
+  camera: camera,
+  muted: muted,
+  stack: 100,
+  status: 'active',
+  connected: true,
+  inHand: false,
+  folded: false,
+  allIn: false,
+  betThisStreet: 0,
+  totalBet: 0,
+  lastAction: null,
+);
 
 void main() {
   Future<List<String>> openMenu(WidgetTester tester, PlayerView player) async {
@@ -103,5 +108,13 @@ void main() {
     final cam = tester.widget<Switch>(find.byKey(const Key('host-camera')));
     expect(cam.value, isFalse);
     expect(cam.onChanged, isNull);
+  });
+
+  testWidgets('the menu of a bot says who is playing the seat', (tester) async {
+    await openMenu(tester, bob());
+    expect(find.byKey(const Key('player-bot')), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    await openMenu(tester, bob(bot: true));
+    expect(find.byKey(const Key('player-bot')), findsOneWidget);
   });
 }

@@ -6,17 +6,25 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
+import '../../../core/account.dart';
 import '../../../core/file_saver.dart';
 import '../../../core/formatting.dart';
+import '../../../core/friends.dart';
 import '../../../core/gamepad/gamepad.dart';
 import '../../../core/gamepad/pad_section.dart';
+import '../../../core/providers.dart';
 import '../../../core/session_store.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
 import '../../../shared/kbd_hint.dart';
 import '../../../shared/suit_painter.dart';
+import '../../account/account_dialog.dart';
+import '../../account/account_sheet.dart';
+import '../../account/stats_dialog.dart';
 import '../../admin/admin_panel.dart';
+import '../../admin/table_rules_pending.dart';
 import '../../admin/table_rules_section.dart';
+import '../../friends/friends_dialog.dart';
 import '../log_text.dart';
 import '../replay/replay_dialog.dart';
 import '../table_session.dart';
@@ -304,6 +312,11 @@ class SidePanelState extends ConsumerState<SidePanel> {
               ],
               const Gap(4),
               Expanded(child: Text(_pageTitle(l10n, page)).semiBold()),
+              // The rules page settles field by field; what is still typed
+              // can be settled or dropped from here, where a long form
+              // cannot scroll it out of reach.
+              if (page == SettingsPage.hostRules)
+                const TableRulesPendingActions(),
             ],
           );
     return Column(
@@ -986,7 +999,7 @@ String _pageTitle(AppLocalizations l10n, SettingsPage page) => switch (page) {
 
 /// The root of the Settings tab: one row per page, the host's pages in
 /// their own section.
-class _SettingsMenu extends StatelessWidget {
+class _SettingsMenu extends ConsumerWidget {
   const _SettingsMenu({
     required this.isPlayer,
     required this.host,
@@ -998,7 +1011,7 @@ class _SettingsMenu extends StatelessWidget {
   final ValueChanged<SettingsPage> onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     Widget row(
@@ -1065,6 +1078,142 @@ class _SettingsMenu extends StatelessWidget {
             l10n.settingsTableHint,
             keyName: 'table',
           ),
+          // The profile, on the instances that have them: the same sheet
+          // the person in the app bar opens elsewhere.
+          if (ref.watch(accountsEnabledProvider).value == true) ...[
+            section(l10n.accountMenu),
+            Builder(
+              builder: (context) {
+                final account = ref.watch(accountProvider).value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: OutlineButton(
+                    key: const Key('settings-account'),
+                    onPressed: () => account == null
+                        ? showAccountDialog(context)
+                        : showAccountSheet(context),
+                    alignment: Alignment.centerLeft,
+                    leading: Icon(
+                      account == null
+                          ? LucideIcons.user
+                          : LucideIcons.userCheck,
+                      size: 18,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    trailing: Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          account == null
+                              ? l10n.accountSignIn
+                              : '@${account.handle}',
+                        ),
+                        Text(
+                          account == null
+                              ? l10n.accountGuestHint
+                              : l10n.accountMenuHint,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Friends: who is asking, who is playing, who to invite.
+            Builder(
+              builder: (context) {
+                if (ref.watch(accountProvider).value == null) {
+                  return const SizedBox.shrink();
+                }
+                final waiting = ref.watch(friendsProvider).value?.waiting ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: OutlineButton(
+                    key: const Key('settings-friends'),
+                    onPressed: () => showFriendsDialog(context),
+                    alignment: Alignment.centerLeft,
+                    leading: Icon(
+                      LucideIcons.users,
+                      size: 18,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    trailing: waiting == 0
+                        ? Icon(
+                            LucideIcons.chevronRight,
+                            size: 16,
+                            color: theme.colorScheme.mutedForeground,
+                          )
+                        : Text('$waiting').xSmall().semiBold(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.friendsOpen),
+                        Text(
+                          l10n.friendsMenuHint,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            // The record itself, for a player who is signed in: the same
+            // dialog the profile sheet opens.
+            Builder(
+              builder: (context) {
+                if (ref.watch(accountProvider).value == null) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: OutlineButton(
+                    key: const Key('settings-stats'),
+                    onPressed: () => showStatsDialog(context),
+                    alignment: Alignment.centerLeft,
+                    leading: Icon(
+                      LucideIcons.chartNoAxesColumn,
+                      size: 18,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    trailing: Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.statsOpen),
+                        Text(
+                          l10n.statsMenuHint,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
           if (host) ...[
             section(l10n.tabAdmin),
             row(

@@ -3,11 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../core/account.dart';
 import '../../core/providers.dart';
 import '../../core/session_store.dart';
 import '../../shared/logo.dart';
 import '../../shared/top_bar.dart';
+import '../account/account_dialog.dart';
 import '../admin/new_table_dialog.dart';
+import '../friends/friends_playing_card.dart';
 import 'table_code.dart';
 
 /// The project's public page, linked from the footer.
@@ -151,10 +154,54 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                   ),
                 ),
                 const Gap(24),
+                // Where your friends are playing, when any are.
+                const FriendsPlayingCard(),
+                // Profiles, when this instance offers them at all.
+                const _AccountCard(),
                 const _LandingFooter(),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sign in, or the profile this device is signed in as. Nothing at all on
+/// an instance that runs without profiles, which is the default.
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    if (ref.watch(accountsEnabledProvider).value != true) {
+      return const SizedBox.shrink();
+    }
+    // Signed in, the person in the app bar says so; here the card would
+    // only repeat it.
+    if (ref.watch(accountProvider).value != null) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.accountSignInTitle).semiBold(),
+            const Gap(4),
+            Text(l10n.accountSignInBody).muted().small(),
+            const Gap(12),
+            OutlineButton(
+              key: const Key('landing-sign-in'),
+              onPressed: () => showAccountDialog(context),
+              leading: const Icon(LucideIcons.user),
+              child: Text(l10n.accountSignIn),
+            ),
+          ],
         ),
       ),
     );

@@ -415,6 +415,22 @@ class SeatWidget extends ConsumerWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Who is in the seat comes before anything they are doing: a
+            // program says so here, next to the name, and keeps saying it
+            // for as long as it sits there.
+            if (p.bot ?? false) ...[
+              Tooltip(
+                tooltip: TooltipContainer(child: Text(l10n.botSeatHint)).call,
+                child: Icon(
+                  LucideIcons.bot,
+                  key: Key('bot-$seat'),
+                  size: compact ? 12 : 14,
+                  color: theme.colorScheme.mutedForeground,
+                  semanticLabel: l10n.botSeatMark,
+                ),
+              ),
+              const Gap(3),
+            ],
             Flexible(
               child: Text(
                 p.name,

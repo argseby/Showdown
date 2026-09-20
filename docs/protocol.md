@@ -192,6 +192,107 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   the standing of the finished round and outlives the reset, which is the only record
 >   left once the stacks are back at the start money. Event: `table_restarted`. A server
 >   restart restores ended tables for 7 days so a new round is still possible.
+> - **Player profiles (2026-09-19).** Optional and off unless `ACCOUNTS=true`;
+>   `GET /api/config` reports `accounts`, and with it false every profile route
+>   answers 404 `accounts_disabled`. A profile is a handle (3–20 of `a-z 0-9 _`,
+>   unique on a folded form that treats `1`, `l` and `i`, `0` and `o`, `5` and `s`
+>   as the same stroke and drops `_`), a display name (the table's name rules,
+>   checked at sign-up and on every change — it is what other people are shown),
+>   a bcrypt password (8–64)
+>   and one recovery code, shown once at sign-up and the only way back in — the
+>   server sends no mail. `POST /api/accounts` → `{token, account, recovery_code}`
+>   (201); `POST /api/accounts/session` → `{token, account}`; `DELETE` the same
+>   path signs this device out; `GET /api/accounts/me` → `{account}`;
+>   `POST /api/accounts/password` takes `current_password` (bearer) or
+>   `recovery_code` with the handle in `X-Handle`, signs every device out and
+>   returns a fresh token and code. The profile token is a bearer token like the
+>   others and lives 90 days. `POST /api/tables/{id}/join` accepts it too: the
+>   seat then carries the profile, and `snapshot.seats[].player.account` names the
+>   handle (absent for a guest, who may always join without one).
+> - **A profile's own record (2026-09-20).** Every hand a signed-in player is
+>   dealt writes one `hand_results` row and every finished round one
+>   `round_results` row; a guest writes nothing. Every hand played counts —
+>   heads-up, against bots, at a table where the host handed out chips, all of
+>   it. Rows carried a `counted` flag until 0018: it kept arranged numbers out
+>   of public totals but threw away most of the poker people actually play
+>   here, and a record that leaves out most of your play is worse than one a
+>   determined person could game. `hand_results.profiles` still says how many
+>   signed-in players were dealt in; nothing gates on it.
+>   `GET /api/accounts/me/stats` aggregates them (chips first, big blinds
+>   as the rate); `GET /api/accounts/me/highlights` → `{best_hands,
+>   biggest_wins, achievements}`, the hands with their five cards, where they
+>   happened and whether the table saw them, and the milestones as
+>   `{id, earned_at, progress, goal}` with `earned_at` the moment they were
+>   reached (0 while still ahead). Both are private: they need the profile's own
+>   bearer token.
+> - **Visibility (2026-09-20).** The five sections (`profile, winnings,
+>   best_hands, achievements, activity`) are stored with every profile as
+>   `private | friends | public`. They default to `friends` (0016): seeing what
+>   a friend has been up to is most of what a friend is for here, and the
+>   public still sees nothing until the owner says so. The app asks for the
+>   five choices at the end of sign-up, right after the recovery code, and
+>   sends them as one `PATCH /api/accounts/me`, which takes
+>   `{display_name?, visibility?}`. `canSee` is the only thing that reads them
+>   (see the public profile above), and `profile` that a viewer may not see
+>   hides the page itself rather than returning an empty one.
+> - **Friends (2026-09-20).** A friendship is stored both ways, an ask is one
+>   row that answering removes, and a block is one-way and silent. `GET
+>   /api/friends` answers the whole screen (`friends`, `incoming`, `outgoing`,
+>   `blocked`, `invites`); `GET /api/friends/search?q=` finds profiles by the
+>   start of a handle or display name — as literal text, `%` and `_` included —
+>   and says how each already stands to the
+>   searcher (`none`, `friend`, `pending_out`, `pending_in`). `POST
+>   /api/friends/requests` asks — two profiles that have each asked the other
+>   are friends at once — and `POST /api/friends/requests/{handle}/{accept |
+>   decline | block}` answers. Only an accepted ask is announced: a decline and
+>   an unanswered ask look the same from the outside, and a block is never
+>   mentioned to the blocked, who simply cannot ask again and gets a 404 for
+>   anything of the blocker's. `DELETE /api/friends/{handle}` ends a
+>   friendship, `DELETE /api/friends/blocks/{handle}` lifts a block without
+>   restoring it.
+> - **The user socket (2026-09-20).** `GET /ws/me` is one connection per device
+>   for the signed-in profile (up to four; the oldest goes when a fifth
+>   arrives). Hello carries the profile token, the only push is `user_event`
+>   (`friend_request`, `friend_accepted`, `friends_changed`, `table_invite`,
+>   `friends_playing`) and the only accepted command is `ping` — anything else
+>   closes the connection with 1008. Nothing is only delivered here: a device
+>   that was away finds the same things over REST.
+> - **Table invitations and who is playing (2026-09-20).** `POST
+>   /api/tables/{id}/invites` asks a friend to a table, and only a friend, and
+>   only from somebody sitting at it; the invitation is stored (two hours) as
+>   well as pushed, and `DELETE /api/friends/invites/{id}` spends it. Asking the
+>   same friend to the same table again renews that one invitation instead of
+>   adding another. `GET
+>   /api/friends/playing` lists the live tables friends are seated at with the
+>   stakes, the free seats and whether the door is open. A friend sitting down
+>   pushes `friends_playing` to their friends; nobody is told when one gets up,
+>   so the home screen also looks again every 30 s.
+> - **Public profiles (2026-09-20).** `GET /api/profiles/{handle}` answers the
+>   sections their owner shares with this viewer, by `canSee`: your own always,
+>   `public` to anyone (a guest included), `friends` to a friend, and nothing
+>   either way once one has blocked the other. A profile whose `profile`
+>   section is not visible answers 404 — the same as a handle nobody took — so
+>   the route cannot be used to find out who exists or who blocked you. Public
+>   winnings are the same figures the owner sees, and public best hands only
+>   the ones the table was actually shown.
+> - **Bots at the table (2026-09-20).** `POST /api/tables/{id}/join` accepts
+>   `bot: true`, stored with the seat and reported as
+>   `snapshot.seats[].player.bot` (absent otherwise) and in the admin detail.
+>   The client declares it of its own accord — the server cannot tell a program
+>   from a person, and nothing else changes for the seat: a bot joins, acts and
+>   is kicked exactly like anybody else. The clients that ship with Showdown
+>   (`cmd/bot`, `cmd/loadtest`) always set it, and the web app marks such a seat
+>   so the table can see who it is playing against.
+> - **Bots the server plays (2026-09-20).** `POST /api/admin/tables/{id}/bots`
+>   (table admin) seats one and starts playing it: `{player_id, name, seat}`
+>   (201), the name being the lowest free `Bot n`. `table_full` when there is no
+>   seat. The bot attaches as an ordinary client and reads the same redacted
+>   snapshots as everyone else, so it cannot see a card it has no business
+>   seeing and the rules that apply to it are the rules that apply to a person.
+>   It pauses before acting, never past a third of the turn clock, and rebuys
+>   like anybody else. There is no route to remove one: the host kicks it.
+>   Bot seats are restored after a server restart — the seat survived, so the
+>   table starts playing it again, while a person's browser reconnects itself.
 > - **Close codes** in use: `4001` bad/expired token (also a player who already left),
 >   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
 >   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,

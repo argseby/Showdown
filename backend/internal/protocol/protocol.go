@@ -67,7 +67,38 @@ const (
 	TypeDrawing         = "drawing"
 	TypeDrawingsRemoved = "drawings_removed"
 	TypeDrawingHistory  = "drawing_history"
+	// TypeUserEvent is the only push of the user socket (/ws/me): something
+	// happened that concerns the signed-in profile, wherever it is.
+	TypeUserEvent = "user_event"
 )
+
+// What a user event can be about.
+const (
+	// UserFriendRequest: somebody asked to be friends.
+	UserFriendRequest = "friend_request"
+	// UserFriendAccepted: an ask was answered with yes (either way round).
+	UserFriendAccepted = "friend_accepted"
+	// UserFriendsChanged: the friend list changed for a reason that needs
+	// no words of its own — a friend left, say.
+	UserFriendsChanged = "friends_changed"
+	// UserTableInvite: a friend asked you to a table.
+	UserTableInvite = "table_invite"
+	// UserFriendsPlaying: the tables friends are at have changed.
+	UserFriendsPlaying = "friends_playing"
+)
+
+// UserEvent is what the user socket pushes. Everything but Kind is
+// optional: the app reloads the list the event points at.
+type UserEvent struct {
+	Kind        string `json:"kind"`
+	Handle      string `json:"handle,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
+	// The invitation, when the event is one.
+	InviteID  string `json:"invite_id,omitempty"`
+	TableID   string `json:"table_id,omitempty"`
+	TableName string `json:"table_name,omitempty"`
+	At        int64  `json:"at,omitempty"`
+}
 
 // WebSocket close codes sent by the server.
 const (
@@ -78,6 +109,10 @@ const (
 	CloseKicked             = 4005
 	ClosePolicy             = 1008
 )
+
+// ErrForbidden is the answer to something the profile may not do — asking
+// a profile that blocked it, inviting a stranger — without saying why.
+const ErrForbidden = "forbidden"
 
 // Error codes used in error messages and REST error envelopes.
 const (
@@ -108,6 +143,9 @@ const (
 	ErrSeatTaken          = "seat_taken"
 	ErrRabbitNotAllowed   = "rabbit_not_allowed"
 	ErrTournamentLocked   = "tournament_locked"
+	ErrAccountsOff        = "accounts_disabled"
+	ErrHandleTaken        = "handle_taken"
+	ErrBadCredentials     = "bad_credentials"
 	ErrInternal           = "internal_error"
 )
 
@@ -397,6 +435,12 @@ type PlayerView struct {
 	TotalBet      int64       `json:"total_bet"`
 	HoleCards     []string    `json:"hole_cards,omitempty"`
 	LastAction    *LastAction `json:"last_action"`
+	// Account is the handle of the profile this seat belongs to, absent
+	// for a guest. It is the badge at the table, nothing more.
+	Account string `json:"account,omitempty"`
+	// Bot marks a seat played by a program rather than a person. The client
+	// declares it when it joins; nobody verifies it.
+	Bot bool `json:"bot,omitempty"`
 	// HandDescription and BestCards describe a revealed hand against the
 	// current board (they follow every run-out street); only set for seats
 	// whose hole cards are fully revealed.

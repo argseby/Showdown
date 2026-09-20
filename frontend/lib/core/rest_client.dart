@@ -208,6 +208,17 @@ class RestClient {
     }
   }
 
+  /// Whether this instance offers player profiles at all. False when the
+  /// server cannot be reached, so no sign-in is ever offered in the dark.
+  Future<bool> accountsEnabled() async {
+    try {
+      final json = await getJson('/api/config');
+      return json['accounts'] as bool? ?? false;
+    } on Object catch (_) {
+      return false;
+    }
+  }
+
   /// STUN and TURN servers the instance hands to browsers for voice and
   /// video.
   Future<List<IceServer>> iceServers() async {
@@ -233,6 +244,8 @@ class RestClient {
     int? seat,
     int? avatar,
     String? hat,
+    // Signed in: the seat then belongs to that profile.
+    String? accountToken,
   }) async {
     final json = await postJson('/api/tables/$tableId/join', {
       'name': name,
@@ -240,7 +253,7 @@ class RestClient {
       'seat': ?seat,
       'avatar': ?avatar,
       'hat': ?hat,
-    });
+    }, token: accountToken);
     return JoinResultDto(
       token: json['player_token'] as String,
       playerId: json['player_id'] as String,

@@ -156,6 +156,23 @@ func (s *Server) handleAdminKick(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "kicked"})
 }
 
+// handleAdminAddBot seats a bot the server plays itself. Seating somebody is
+// the host's call, the same way kicking them is, so it lives behind the
+// admin token.
+func (s *Server) handleAdminAddBot(w http.ResponseWriter, r *http.Request) {
+	t, ok := s.tableOr404(w, r.PathValue("id"))
+	if !ok {
+		return
+	}
+	res, err := t.AddBot()
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	s.audit(r, "add_bot", t.ID, "", map[string]any{"name": res.Name, "seat": res.Seat})
+	writeJSON(w, http.StatusCreated, map[string]any{"player_id": res.PlayerID, "name": res.Name, "seat": res.Seat})
+}
+
 func (s *Server) handleAdminChips(w http.ResponseWriter, r *http.Request) {
 	t, ok := s.tableOr404(w, r.PathValue("id"))
 	if !ok {

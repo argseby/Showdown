@@ -406,6 +406,16 @@ class AdminApi {
   Future<void> deleteTable(String token, String id) =>
       _rest.delete('/api/admin/tables/$id', token: token);
 
+  /// Seats a bot the server plays itself; returns the name it was given.
+  Future<String> addBot(String token, String id) async {
+    final json = await _rest.postJson(
+      '/api/admin/tables/$id/bots',
+      null,
+      token: token,
+    );
+    return (json['name'] as String?) ?? '';
+  }
+
   Future<void> kick(String token, String id, String playerId) => _rest.postJson(
     '/api/admin/tables/$id/players/$playerId/kick',
     null,
