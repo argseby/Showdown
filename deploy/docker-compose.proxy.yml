@@ -6,7 +6,6 @@
 #   docker compose -f docker-compose.yml -f deploy/docker-compose.proxy.yml up -d
 services:
   web:
-    ports: !override []
     networks:
       - default
       - proxy
