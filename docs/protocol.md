@@ -255,22 +255,26 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   [revoked](https://docs.revoked.link) as an OpenID Connect provider. revoked
 >   is self-hosted, so no server is configured here and none is registered:
 >   the `client_id` is `PUBLIC_ORIGIN` itself, the client is public, and PKCE
->   `S256` is the only credential. `/api/config` gains `revoked_sign_in`.
+>   `S256` is the only credential. `/api/config` gains `revoked_sign_in` and
+>   `revoked_default_server`, the server the sign-in starts with.
 >   `POST /api/accounts/revoked/start` takes an optional `{issuer}` and returns
->   `{app_link, authorize_url, issuer, check_code}`, setting a short
->   `SameSite=Lax` cookie that carries the `state`; the tab then leaves. With no
->   issuer — the ordinary case — `app_link` is a `revoked://signin` link that
->   carries the request itself: the app opens it on whichever server the person
->   is signed into, so which server that is never has to be asked. Naming an
->   issuer instead discovers it up front and fills `authorize_url`, whose page
->   opens the app with the same request. The app sends the browser back to
->   `GET /api/accounts/revoked/callback`, which checks the cookie against
->   `state`; the RFC 9207 `iss` must then match the server the flow started
->   against, or, when none was named, is itself the server — checked against the
->   allow-list, refused if private, and discovered before use. It redeems the
->   code and verifies the RS256 `id_token` against the issuer's `jwks_uri`, then
->   redirects to `PUBLIC_ORIGIN/?revoked=<code>` (or
->   `?revoked_error=<reason>`). `POST /api/accounts/revoked/finish` spends that
+>   `{app_link, wait, issuer, check_code}`. `app_link` is a `revoked://signin`
+>   link with `revoked_return=background` that carries the request itself: the
+>   app opens it on whichever server the person is signed into, so which server
+>   that is never has to be asked. The page shows it as a QR code and as a link
+>   for this device, because a page cannot tell where the app is. The client
+>   sends the server the player sees, which is discovered up front and is the
+>   only one whose answer is accepted; with none, any server may answer. The app
+>   delivers its answer to `GET /api/accounts/revoked/callback`, usually from a
+>   phone, so no cookie is involved and `state` alone finds the sign-in; the RFC
+>   9207 `iss` must then match the server the flow started against, or, when
+>   none was named, is itself the server — checked against the allow-list,
+>   refused if private, and discovered before use. It redeems the code and
+>   verifies the RS256 `id_token` against the issuer's `jwks_uri`. The page asks
+>   `POST /api/accounts/revoked/wait` with `{wait}` until it answers
+>   `{done: true, code, error}`, handed over once; the `wait` key never leaves
+>   the page, so reading the QR code off a screen is enough to answer a sign-in
+>   but not to collect it. `POST /api/accounts/revoked/finish` spends that
 >   code once and returns either `{token, account}` or, for an identity with no
 >   profile here, `{pending: true, claim, issuer, suggested_handle, name}`;
 >   `POST /api/accounts/revoked/claim` then takes `{claim, handle}` and makes

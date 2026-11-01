@@ -273,6 +273,17 @@ class ProfileStats {
       showdowns == 0 ? 0 : showdownsWon * 100 / showdowns;
 }
 
+/// A sign-in with revoked this page is waiting on.
+typedef RevokedStart = ({
+  String appLink,
+  String wait,
+  String issuer,
+  String checkCode,
+});
+
+/// What became of it: a one-time [code], or the [error] that says why not.
+typedef RevokedAnswer = ({String code, String error});
+
 /// A sign-in with revoked that has come back from the revoked server.
 /// Either the identity is already linked here and there is a session, or
 /// it is new and the player has to choose a handle before there is one.
@@ -345,29 +356,36 @@ class AccountApi {
   Future<void> signOut(String token) =>
       _rest.delete('/api/accounts/session', token: token);
 
-  /// Asks this server to prepare a sign-in.
-  ///
-  /// With no [issuer] the answer carries a `revoked://signin` link: the
-  /// app opens the request on whichever server the person uses and names
-  /// it in the answer. That is the ordinary way in — which server someone
-  /// runs is their own business. Naming one is the fallback, and then
-  /// `authorizeUrl` sends the browser to that server instead.
-  Future<
-    ({String appLink, String authorizeUrl, String issuer, String checkCode})
-  >
-  revokedStart({String issuer = ''}) async {
+  /// Asks this server to prepare a sign-in: a `revoked://signin` link for
+  /// this device or a QR code, and the key that collects the result. The
+  /// app opens the request on whichever server the person uses and names it
+  /// in the answer, so which server someone runs stays their own business.
+  /// With an [issuer], only that server's answer is accepted.
+  Future<RevokedStart> revokedStart({String issuer = ''}) async {
     final json = await _rest.postJson('/api/accounts/revoked/start', {
       'issuer': issuer,
     });
     return (
       appLink: json['app_link'] as String? ?? '',
-      authorizeUrl: json['authorize_url'] as String? ?? '',
+      wait: json['wait'] as String? ?? '',
       issuer: json['issuer'] as String? ?? issuer,
       checkCode: json['check_code'] as String? ?? '',
     );
   }
 
-  /// Spends the one-time code the revoked server sent the tab back with.
+  /// How a started sign-in stands; null while the player has not answered.
+  Future<RevokedAnswer?> revokedWait(String wait) async {
+    final json = await _rest.postJson('/api/accounts/revoked/wait', {
+      'wait': wait,
+    });
+    if (json['done'] != true) return null;
+    return (
+      code: json['code'] as String? ?? '',
+      error: json['error'] as String? ?? '',
+    );
+  }
+
+  /// Spends the one-time code a finished sign-in left for this page.
   Future<RevokedFinish> revokedFinish(String code) async {
     final json = await _rest.postJson('/api/accounts/revoked/finish', {
       'code': code,

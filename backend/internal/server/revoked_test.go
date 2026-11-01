@@ -1,10 +1,18 @@
 package server
 
 import (
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 // revokedOn is the configuration of an instance that offers the sign-in.
@@ -52,6 +60,9 @@ func TestRevokedSignInAdvertised(t *testing.T) {
 	status, cfg := h.request(http.MethodGet, "/api/config", "", nil)
 	if status != http.StatusOK || cfg["revoked_sign_in"] != true {
 		t.Fatalf("config: %d %v", status, cfg)
+	}
+	if cfg["revoked_default_server"] != "https://api.revoked.link" {
+		t.Fatalf("default server: %v", cfg["revoked_default_server"])
 	}
 }
 
@@ -193,8 +204,19 @@ func TestRevokedStartWithoutAServer(t *testing.T) {
 				t.Errorf("app_link has no %s", k)
 			}
 		}
+		// The page may be on another device, so the app must hand the
+		// answer over itself.
+		if q.Get("revoked_return") != "background" {
+			t.Errorf("app_link revoked_return = %q", q.Get("revoked_return"))
+		}
+		// The key is the page's alone: nothing that travels through the QR
+		// code may be enough to collect the result.
+		wait, _ := out["wait"].(string)
+		if wait == "" || strings.Contains(link, wait) {
+			t.Errorf("wait = %q, link = %q", wait, link)
+		}
 		// Nothing was discovered, so no server is named yet.
-		if out["issuer"] != "" || out["authorize_url"] != "" {
+		if out["issuer"] != "" {
 			t.Errorf("start without a server named one: %v", out)
 		}
 		if code, _ := out["check_code"].(string); len(code) != 7 {
@@ -211,35 +233,186 @@ func TestRevokedCallbackNeedsAKnownIssuer(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", revokedOn)
 	defer h.stop()
 
-	status, out := h.request(http.MethodPost, "/api/accounts/revoked/start", "", map[string]string{})
-	if status != http.StatusOK {
-		t.Fatalf("start: %d %v", status, out)
-	}
-	u, _ := url.Parse(out["app_link"].(string))
-	state := u.Query().Get("state")
-
-	client := &http.Client{
-		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
-	}
 	for _, iss := range []string{"", "not-an-origin", "https://a.example/path", "http://10.0.0.1"} {
-		req, err := http.NewRequest(http.MethodGet,
-			h.base+"/api/accounts/revoked/callback?code=x&state="+url.QueryEscape(state)+
-				"&iss="+url.QueryEscape(iss), nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		req.AddCookie(&http.Cookie{Name: "showdown_revoked", Value: state})
-		res, err := client.Do(req)
-		if err != nil {
-			t.Fatalf("callback: %v", err)
-		}
-		_ = res.Body.Close()
+		state, wait := startRevoked(t, h)
+		res := deliverRevoked(t, h, url.Values{"code": {"x"}, "state": {state}, "iss": {iss}})
 		loc := res.Header.Get("Location")
 		if res.StatusCode != http.StatusSeeOther || !strings.Contains(loc, "revoked_error=") {
 			t.Errorf("iss %q: %d %s", iss, res.StatusCode, loc)
 		}
-		if strings.Contains(loc, "revoked=") && !strings.Contains(loc, "revoked_error=") {
-			t.Errorf("iss %q was accepted: %s", iss, loc)
+		// The page hears the same, and no code to spend.
+		status, out := h.request(http.MethodPost, "/api/accounts/revoked/wait", "", map[string]string{"wait": wait})
+		if status != http.StatusOK || out["done"] != true || out["code"] != "" || out["error"] == "" {
+			t.Errorf("iss %q: wait: %d %v", iss, status, out)
 		}
 	}
+}
+
+func startRevoked(t *testing.T, h *harness) (state, wait string) {
+	t.Helper()
+	status, out := h.request(http.MethodPost, "/api/accounts/revoked/start", "", map[string]string{})
+	if status != http.StatusOK {
+		t.Fatalf("start: %d %v", status, out)
+	}
+	u, err := url.Parse(out["app_link"].(string))
+	if err != nil {
+		t.Fatalf("app_link: %v", err)
+	}
+	return u.Query().Get("state"), out["wait"].(string)
+}
+
+// deliverRevoked answers the way the Revoked app does from a phone: no
+// cookies, and without following the redirect.
+func deliverRevoked(t *testing.T, h *harness, q url.Values) *http.Response {
+	t.Helper()
+	client := &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
+	res, err := client.Get(h.base + "/api/accounts/revoked/callback?" + q.Encode())
+	if err != nil {
+		t.Fatalf("callback: %v", err)
+	}
+	_ = res.Body.Close()
+	return res
+}
+
+// TestRevokedPageWaitsForTheAnswer is the sign-in from a computer with the
+// app on a phone. The two share nothing but the link in the QR code.
+func TestRevokedPageWaitsForTheAnswer(t *testing.T) {
+	t.Parallel()
+	issuer := newFakeRevoked(t)
+	env := map[string]string{"REVOKED_ALLOW_PRIVATE_NETWORK": "true"}
+	for k, v := range revokedOn {
+		env[k] = v
+	}
+	h := newHarness(t, t.TempDir(), "", env)
+	defer h.stop()
+
+	status, out := h.request(http.MethodPost, "/api/accounts/revoked/start", "", map[string]string{})
+	if status != http.StatusOK {
+		t.Fatalf("start: %d %v", status, out)
+	}
+	wait := out["wait"].(string)
+	link, _ := url.Parse(out["app_link"].(string))
+	state := link.Query().Get("state")
+	issuer.nonce = link.Query().Get("nonce")
+
+	ask := func(key string) (int, map[string]any) {
+		return h.request(http.MethodPost, "/api/accounts/revoked/wait", "", map[string]string{"wait": key})
+	}
+	if status, out := ask(wait); status != http.StatusOK || out["done"] != false {
+		t.Fatalf("before the answer: %d %v", status, out)
+	}
+	// Reading the QR code off the screen is enough to answer, never to
+	// collect: otherwise anyone behind the player could take the session.
+	if status, out := ask(state); status != http.StatusUnauthorized || errCode(out) != "revoked_sign_in_expired" {
+		t.Fatalf("collecting with the state: %d %v", status, out)
+	}
+
+	answer := url.Values{"code": {"auth-code"}, "state": {state}, "iss": {issuer.URL}}
+	res := deliverRevoked(t, h, answer)
+	if res.StatusCode >= 400 || strings.Contains(res.Header.Get("Location"), "revoked_error") {
+		t.Fatalf("delivery: %d %s", res.StatusCode, res.Header.Get("Location"))
+	}
+	// An answer is good once.
+	res = deliverRevoked(t, h, answer)
+	if !strings.Contains(res.Header.Get("Location"), "revoked_error=state_mismatch") {
+		t.Fatalf("second delivery: %s", res.Header.Get("Location"))
+	}
+
+	status, out = ask(wait)
+	code, _ := out["code"].(string)
+	if status != http.StatusOK || out["done"] != true || code == "" {
+		t.Fatalf("after the answer: %d %v", status, out)
+	}
+	// The result is handed over once.
+	if status, _ := ask(wait); status != http.StatusUnauthorized {
+		t.Fatalf("collecting twice: %d", status)
+	}
+
+	status, out = h.request(http.MethodPost, "/api/accounts/revoked/finish", "", map[string]string{"code": code})
+	if status != http.StatusOK || out["pending"] != true || out["issuer"] != issuer.URL {
+		t.Fatalf("finish: %d %v", status, out)
+	}
+	status, out = h.request(http.MethodPost, "/api/accounts/revoked/claim", "", map[string]string{
+		"claim": out["claim"].(string), "handle": "robin",
+	})
+	if status != http.StatusCreated || out["token"] == "" {
+		t.Fatalf("claim: %d %v", status, out)
+	}
+}
+
+// TestRevokedPageHearsADecline: declining from the phone must end the wait.
+func TestRevokedPageHearsADecline(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", revokedOn)
+	defer h.stop()
+
+	state, wait := startRevoked(t, h)
+	deliverRevoked(t, h, url.Values{"error": {"access_denied"}, "state": {state}})
+	status, out := h.request(http.MethodPost, "/api/accounts/revoked/wait", "", map[string]string{"wait": wait})
+	if status != http.StatusOK || out["done"] != true || out["error"] != "access_denied" {
+		t.Fatalf("wait: %d %v", status, out)
+	}
+}
+
+type fakeRevoked struct {
+	*httptest.Server
+	key   *rsa.PrivateKey
+	nonce string
+}
+
+// newFakeRevoked stands in for a revoked instance: discovery, keys and a
+// token endpoint that signs whatever nonce the sign-in started with.
+func newFakeRevoked(t *testing.T) *fakeRevoked {
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := &fakeRevoked{key: key}
+	respond := func(w http.ResponseWriter, v any) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(v)
+	}
+	enc := func(v any) string {
+		b, _ := json.Marshal(v)
+		return base64.RawURLEncoding.EncodeToString(b)
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
+		respond(w, map[string]any{
+			"issuer":                           f.URL,
+			"authorization_endpoint":           f.URL + "/oidc/authorize",
+			"token_endpoint":                   f.URL + "/oidc/token",
+			"jwks_uri":                         f.URL + "/oidc/jwks",
+			"code_challenge_methods_supported": []string{"S256"},
+		})
+	})
+	mux.HandleFunc("/oidc/jwks", func(w http.ResponseWriter, _ *http.Request) {
+		respond(w, map[string]any{"keys": []map[string]any{{
+			"kty": "RSA", "alg": "RS256", "use": "sig", "kid": "k",
+			"n": base64.RawURLEncoding.EncodeToString(key.N.Bytes()),
+			"e": base64.RawURLEncoding.EncodeToString([]byte{1, 0, 1}),
+		}}})
+	})
+	mux.HandleFunc("/oidc/token", func(w http.ResponseWriter, _ *http.Request) {
+		now := time.Now().Unix()
+		signing := enc(map[string]any{"alg": "RS256", "typ": "JWT", "kid": "k"}) + "." + enc(map[string]any{
+			"iss": f.URL, "sub": "subject-1", "aud": revokedOn["PUBLIC_ORIGIN"], "nonce": f.nonce,
+			"iat": now, "exp": now + 300, "name": "Robin",
+		})
+		sum := sha256.Sum256([]byte(signing))
+		sig, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, sum[:])
+		if err != nil {
+			t.Error(err)
+		}
+		respond(w, map[string]any{
+			"access_token": "a", "token_type": "Bearer",
+			"id_token": signing + "." + base64.RawURLEncoding.EncodeToString(sig),
+		})
+	})
+	f.Server = httptest.NewServer(mux)
+	t.Cleanup(f.Close)
+	return f
 }

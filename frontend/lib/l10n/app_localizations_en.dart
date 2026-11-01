@@ -313,10 +313,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get revokedNeedsApp =>
-      'Nothing happened? The Revoked app is needed to sign in.';
+      'You need the Revoked app on your phone or on this device.';
 
   @override
-  String get revokedNameServer => 'Use a particular server';
+  String get revokedScan =>
+      'Scan this code with your phone, then approve in the Revoked app.';
+
+  @override
+  String get revokedScanElsewhere =>
+      'Is Revoked on another device? Scan this code there.';
+
+  @override
+  String get revokedOpenHere => 'Open Revoked here';
+
+  @override
+  String get revokedServerChange => 'Change';
+
+  @override
+  String revokedServerUseDefault(String server) {
+    return 'Use $server';
+  }
+
+  @override
+  String get revokedWrongServer =>
+      'Your Revoked app is signed in to a different server. Change the server here and try again.';
 
   @override
   String get revokedBack => 'Back';
@@ -336,9 +356,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get revokedContinue => 'Continue';
-
-  @override
-  String get revokedOpening => 'Opening your revoked server…';
 
   @override
   String revokedCheckCode(String code) {

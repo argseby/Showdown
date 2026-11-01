@@ -238,32 +238,15 @@ func (c *Client) Discover(ctx context.Context, issuer string) (Metadata, error) 
 	return md, nil
 }
 
-// AuthorizeURL is where the player's browser goes to approve the sign-in.
-// client_id is this instance's origin and redirectURI must sit on it; both
-// are checked by the revoked server before it shows anything.
-func AuthorizeURL(md Metadata, clientID, redirectURI, state, nonce, challenge string, scopes []string) (string, error) {
-	u, err := url.Parse(md.AuthorizationEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("authorization_endpoint: %w", err)
-	}
-	q := u.Query()
-	q.Set("client_id", clientID)
-	q.Set("redirect_uri", redirectURI)
-	q.Set("response_type", "code")
-	q.Set("scope", strings.Join(scopes, " "))
-	q.Set("state", state)
-	q.Set("nonce", nonce)
-	q.Set("code_challenge", challenge)
-	q.Set("code_challenge_method", "S256")
-	u.RawQuery = q.Encode()
-	return u.String(), nil
-}
-
 // AppLink is the link that starts a sign-in through the Revoked app
 // itself, without knowing the person's server: the app opens the request
 // on whichever server it is signed into, and names that server in the iss
 // of the answer. It is the ordinary way in — a person's server is their
 // own business, and asking them to type it is the fallback.
+//
+// revoked_return=background has the app hand the answer over itself rather
+// than through a browser, because the page waiting for it may be on another
+// device. It also has the app show the check code.
 func AppLink(clientID, redirectURI, state, nonce, challenge string, scopes []string) string {
 	q := url.Values{
 		"client_id":             {clientID},
@@ -274,6 +257,7 @@ func AppLink(clientID, redirectURI, state, nonce, challenge string, scopes []str
 		"nonce":                 {nonce},
 		"code_challenge":        {challenge},
 		"code_challenge_method": {"S256"},
+		"revoked_return":        {"background"},
 	}
 	return "revoked://signin?" + q.Encode()
 }

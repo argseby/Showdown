@@ -52,14 +52,13 @@ always play.
   section is private until you share it — with your friends or with everyone — and
   playing as a guest stays possible everywhere.
 - Sign in with [revoked](https://docs.revoked.link) (`REVOKED_SIGN_IN=true`)
-  instead of a password, from **any** revoked server. Nothing is registered in
-  advance and no server is configured: the button hands the request to the
-  player's Revoked app, the app answers on whichever server that player uses,
-  and this instance learns which one from the answer. The client id is this
-  instance's own origin and PKCE is the only credential. A profile made this
-  way has no password and no recovery code; the revoked server is how its
-  owner proves who they are. Naming a server by hand is the fallback, for a
-  player whose app is elsewhere.
+  instead of a password, from **any** revoked server. The sign-in starts with
+  `api.revoked.link`, and a player on another server changes it right there.
+  Nothing is registered in advance: the button shows the request as a QR code
+  for a phone and a link for this device, and the player approves in their
+  Revoked app. The client id is this instance's own origin and PKCE is the only
+  credential. A profile made this way has no password and no recovery code; the
+  revoked server is how its owner proves who they are.
 - Friends: find someone by name or from their seat, and see where your friends are
   playing with the free seats and a way in. A friend at a table can call you over;
   requests and invitations reach you wherever you are in the app. Anyone can be
@@ -168,6 +167,7 @@ All settings live in `.env`; everything has a default.
 | `REVOKED_SIGN_IN` | `false` | offer sign-in with revoked (needs `ACCOUNTS` and `PUBLIC_ORIGIN`) |
 | `PUBLIC_ORIGIN` | – | the address players reach this instance at, no path |
 | `REVOKED_ISSUERS` | – | only these revoked servers; empty accepts any |
+| `REVOKED_DEFAULT_ISSUER` | `https://api.revoked.link` | the revoked server the sign-in starts with; players can change it |
 
 Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_IP`
 (50), `TRUST_PROXY` (`true`, rate limiting uses `X-Forwarded-For`), `LOG_LEVEL`

@@ -31,6 +31,7 @@ services:
       REVOKED_SIGN_IN: ${REVOKED_SIGN_IN:-false}
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
       REVOKED_ISSUERS: ${REVOKED_ISSUERS:-}
+      REVOKED_DEFAULT_ISSUER: ${REVOKED_DEFAULT_ISSUER:-https://api.revoked.link}
       # WEBRTC_STUN_URLS was called VOICE_STUN_URLS in the first releases; both work.
       WEBRTC_STUN_URLS: ${WEBRTC_STUN_URLS:-${VOICE_STUN_URLS:-}}
       WEBRTC_TURN_URLS: ${WEBRTC_TURN_URLS:-}

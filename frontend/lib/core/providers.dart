@@ -24,8 +24,12 @@ final revokedSignInEnabledProvider = FutureProvider<bool>(
   (ref) => ref.read(restClientProvider).revokedSignInEnabled(),
 );
 
-/// The browser half of the revoked sign-in: leaving the page and reading
-/// the answer back out of the address.
+/// The revoked server the sign-in starts with, until the player changes it.
+final revokedDefaultServerProvider = FutureProvider<String>(
+  (ref) => ref.read(restClientProvider).revokedDefaultServer(),
+);
+
+/// The browser half of the revoked sign-in: opening the app on this device.
 final revokedBrowserProvider = Provider<RevokedBrowser>(
   (ref) => RevokedBrowser.create(),
 );

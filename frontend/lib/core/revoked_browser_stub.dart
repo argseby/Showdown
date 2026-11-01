@@ -7,7 +7,7 @@ class _NoRevokedBrowser implements RevokedBrowser {
   void go(String url) {}
 
   @override
-  RevokedReturn take() => (code: null, error: null);
+  String? take() => null;
 }
 
 RevokedBrowser createRevokedBrowser() => _NoRevokedBrowser();

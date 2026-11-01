@@ -18,15 +18,16 @@ func TestLoadDefaults(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	want := Config{
-		ListenAddr:          ":8080",
-		DataDir:             "/data",
-		TableRetentionDays:  90,
-		MaxTables:           100,
-		MaxConnectionsPerIP: 50,
-		TrustProxy:          true,
-		PlayerAdvice:        true,
-		LogLevel:            "info",
-		LogFormat:           "json",
+		ListenAddr:           ":8080",
+		DataDir:              "/data",
+		TableRetentionDays:   90,
+		MaxTables:            100,
+		MaxConnectionsPerIP:  50,
+		TrustProxy:           true,
+		PlayerAdvice:         true,
+		RevokedDefaultIssuer: "https://api.revoked.link",
+		LogLevel:             "info",
+		LogFormat:            "json",
 	}
 	if !reflect.DeepEqual(cfg, want) {
 		t.Fatalf("defaults mismatch:\n got %+v\nwant %+v", cfg, want)
@@ -180,6 +181,21 @@ func TestRevokedSignIn(t *testing.T) {
 	}
 	if cfg.RevokedSignIn || cfg.PublicOrigin != "" || len(cfg.RevokedIssuers) != 0 {
 		t.Fatalf("defaults carry revoked settings: %+v", cfg)
+	}
+	if cfg.RevokedDefaultIssuer != "https://api.revoked.link" {
+		t.Fatalf("default server = %q", cfg.RevokedDefaultIssuer)
+	}
+	cfg, err = Load(env(map[string]string{"REVOKED_DEFAULT_ISSUER": "https://own.example/"}))
+	if err != nil || cfg.RevokedDefaultIssuer != "https://own.example" {
+		t.Fatalf("own default: %q, %v", cfg.RevokedDefaultIssuer, err)
+	}
+	// A default the allow-list would refuse is not offered.
+	cfg, err = Load(env(map[string]string{"REVOKED_ISSUERS": "https://a.example,https://b.example"}))
+	if err != nil || cfg.RevokedDefaultIssuer != "https://a.example" {
+		t.Fatalf("default off the allow-list: %q, %v", cfg.RevokedDefaultIssuer, err)
+	}
+	if _, err = Load(env(map[string]string{"REVOKED_DEFAULT_ISSUER": "not an origin"})); err == nil {
+		t.Fatal("a bad default server was accepted")
 	}
 
 	bad := map[string]struct {

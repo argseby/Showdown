@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/subtle"
 	"errors"
 	"net/http"
 	"net/url"
@@ -17,18 +16,10 @@ import (
 	"showdown/internal/table"
 )
 
-// How long each half of the sign-in may take. The first is the player's
-// time: find the phone, approve, come back. The second is a redirect and a
-// fetch by a page that is already open, so it is short on purpose — the
-// handoff code rides in a URL the browser keeps in its history.
-const (
-	revokedFlowLifetime    = 10 * time.Minute
-	revokedHandoffLifetime = 2 * time.Minute
-	// revokedCookie carries the state so the callback can tell that the
-	// browser coming back is the one that left. The revoked spec asks for
-	// exactly this; it is the only cookie this server sets.
-	revokedCookie = "showdown_revoked"
-)
+// revokedFlowLifetime is the player's time: find the phone, approve, come
+// back. The page keeps asking for that long, and a phone browser that was
+// put to sleep while the app was open may only ask again at the end of it.
+const revokedFlowLifetime = 10 * time.Minute
 
 // revokedScopes: the subject is what a profile is keyed on and the name is
 // only a suggested handle. No email is asked for — this server sends none,
@@ -40,7 +31,20 @@ type revokedFlow struct {
 	issuer   string
 	nonce    string
 	verifier string
+	wait     string
 	expires  time.Time
+}
+
+// revokedWait is the page that started a sign-in, waiting for its result.
+// The answer arrives from the Revoked app, usually on another device, so no
+// cookie can tie the two together. The key does instead: state travels
+// through the QR code and the phone, this one only ever goes to the page, so
+// whoever reads the code off the screen can answer but cannot collect.
+type revokedWait struct {
+	done    bool
+	code    string
+	reason  string
+	expires time.Time
 }
 
 // revokedHandoff is the finished sign-in waiting to be picked up by the
@@ -65,11 +69,16 @@ type revokedHandoff struct {
 type revokedFlows struct {
 	mu       sync.Mutex
 	flows    map[string]*revokedFlow
+	waits    map[string]*revokedWait
 	handoffs map[string]*revokedHandoff
 }
 
 func newRevokedFlows() *revokedFlows {
-	return &revokedFlows{flows: map[string]*revokedFlow{}, handoffs: map[string]*revokedHandoff{}}
+	return &revokedFlows{
+		flows:    map[string]*revokedFlow{},
+		waits:    map[string]*revokedWait{},
+		handoffs: map[string]*revokedHandoff{},
+	}
 }
 
 func (f *revokedFlows) startFlow(state string, fl *revokedFlow) {
@@ -77,6 +86,7 @@ func (f *revokedFlows) startFlow(state string, fl *revokedFlow) {
 	defer f.mu.Unlock()
 	f.sweep()
 	f.flows[state] = fl
+	f.waits[fl.wait] = &revokedWait{expires: fl.expires}
 }
 
 // takeFlow returns a flow and removes it: a state is good for one callback.
@@ -92,6 +102,34 @@ func (f *revokedFlows) takeFlow(state string, now time.Time) (*revokedFlow, bool
 		return nil, false
 	}
 	return fl, true
+}
+
+// finishWait leaves the result for the page: a handoff code, or the reason
+// there is none.
+func (f *revokedFlows) finishWait(wait, code, reason string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if w, ok := f.waits[wait]; ok {
+		w.done, w.code, w.reason = true, code, reason
+	}
+}
+
+// takeWait reports how a sign-in stands. A finished one is handed over once.
+func (f *revokedFlows) takeWait(wait string, now time.Time) (revokedWait, bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	w, ok := f.waits[wait]
+	if !ok {
+		return revokedWait{}, false
+	}
+	if now.After(w.expires) {
+		delete(f.waits, wait)
+		return revokedWait{}, false
+	}
+	if w.done {
+		delete(f.waits, wait)
+	}
+	return *w, true
 }
 
 func (f *revokedFlows) putHandoff(code string, h *revokedHandoff) {
@@ -145,6 +183,11 @@ func (f *revokedFlows) sweep() {
 			delete(f.flows, k)
 		}
 	}
+	for k, v := range f.waits {
+		if now.After(v.expires) {
+			delete(f.waits, k)
+		}
+	}
 	for k, v := range f.handoffs {
 		if now.After(v.expires) {
 			delete(f.handoffs, k)
@@ -169,9 +212,11 @@ type revokedStartRequest struct {
 	Issuer string `json:"issuer"`
 }
 
-// handleRevokedStart turns the address a player typed into the link their
-// browser follows. Nothing is created here: the profile, if there is to be
-// one, is made when the revoked server vouches for them.
+// handleRevokedStart prepares a sign-in for the page to show: a link that
+// opens the Revoked app, on this device or as a QR code on a phone, and the
+// key the page collects the result with. Nothing is created here: the
+// profile, if there is to be one, is made when the revoked server vouches
+// for them.
 func (s *Server) handleRevokedStart(w http.ResponseWriter, r *http.Request) {
 	if !s.revokedOn(w) {
 		return
@@ -181,18 +226,16 @@ func (s *Server) handleRevokedStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// No address is the ordinary case: the app knows which server the
-	// person uses, and says so in the iss of the answer. An address is
-	// the fallback, for a player who wants a particular server or whose
-	// app is not on this device.
+	// person uses, and says so in the iss of the answer. An address only
+	// narrows it: the answer then has to come from that server.
 	var issuer string
-	var md revokedauth.Metadata
 	if strings.TrimSpace(req.Issuer) != "" {
 		var err error
 		if issuer, err = revokedauth.NormalizeIssuer(req.Issuer); err != nil {
 			writeError(w, http.StatusBadRequest, protocol.ErrValidation, err.Error())
 			return
 		}
-		if md, err = s.revoked.Discover(r.Context(), issuer); err != nil {
+		if _, err = s.revoked.Discover(r.Context(), issuer); err != nil {
 			var re *revokedauth.Error
 			if errors.As(err, &re) {
 				writeError(w, http.StatusBadGateway, protocol.ErrRevokedServer, re.Reason)
@@ -210,82 +253,61 @@ func (s *Server) handleRevokedStart(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not start the sign-in")
 		return
 	}
-	state, nonce := newToken(), newToken()
+	state, nonce, wait := newToken(), newToken(), newToken()
 	challenge := revokedauth.Challenge(verifier)
-	// The app link needs no server: it carries the request itself.
-	appLink := revokedauth.AppLink(
-		s.cfg.PublicOrigin, s.revokedRedirectURI(), state, nonce, challenge, revokedScopes)
-	var authURL string
-	if issuer != "" {
-		var err error
-		authURL, err = revokedauth.AuthorizeURL(
-			md, s.cfg.PublicOrigin, s.revokedRedirectURI(), state, nonce, challenge, revokedScopes)
-		if err != nil {
-			s.log.Error("revoked authorize url", "issuer", issuer, "err", err)
-			writeError(w, http.StatusBadGateway, protocol.ErrRevokedServer, "that server published an unusable address")
-			return
-		}
-	}
 	s.revokedFlows.startFlow(state, &revokedFlow{
-		issuer: issuer, nonce: nonce, verifier: verifier,
+		issuer: issuer, nonce: nonce, verifier: verifier, wait: wait,
 		expires: s.now().Add(revokedFlowLifetime),
 	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     revokedCookie,
-		Value:    state,
-		Path:     "/api/accounts/revoked",
-		MaxAge:   int(revokedFlowLifetime / time.Second),
-		HttpOnly: true,
-		Secure:   strings.HasPrefix(s.cfg.PublicOrigin, "https://"),
-		// Lax, not Strict: the player comes back by following a link from
-		// the revoked app, and Strict would withhold the cookie exactly
-		// then. Lax still keeps it off cross-site POSTs.
-		SameSite: http.SameSiteLaxMode,
-	})
 	writeJSON(w, http.StatusOK, map[string]any{
-		// The app link always works; authorize_url is set only when the
-		// player named a server, and sends the browser there instead.
-		"app_link":      appLink,
-		"authorize_url": authURL,
-		"issuer":        issuer,
+		"app_link": revokedauth.AppLink(
+			s.cfg.PublicOrigin, s.revokedRedirectURI(), state, nonce, challenge, revokedScopes),
+		"wait":   wait,
+		"issuer": issuer,
 		// Shown next to the prompt in the app, so the player can see the
 		// request they are approving is this one.
 		"check_code": revokedauth.CheckCode(challenge),
 	})
 }
 
-// revokedRedirectURI is where the revoked server sends the player back. It
-// must sit on PublicOrigin, which is also this instance's client id.
+// revokedRedirectURI is where the Revoked app delivers its answer. It must
+// sit on PublicOrigin, which is also this instance's client id.
 func (s *Server) revokedRedirectURI() string {
 	return s.cfg.PublicOrigin + "/api/accounts/revoked/callback"
 }
 
-// handleRevokedCallback is the address the revoked app returns to. It is a
-// browser navigation, not an API call, so every outcome ends in a redirect
-// back to the app with a code it can exchange.
+// handleRevokedCallback takes the answer from the Revoked app and leaves the
+// result for the page that is waiting. The app does not follow the redirect;
+// it only matters if the app could not reach this server and handed the
+// address to a browser instead, which then lands somewhere readable.
 func (s *Server) handleRevokedCallback(w http.ResponseWriter, r *http.Request) {
 	if s.revoked == nil || !s.cfg.Accounts {
 		http.NotFound(w, r)
 		return
 	}
 	q := r.URL.Query()
-	// A refusal comes back here too; the app says so and offers to retry.
-	if e := q.Get("error"); e != "" {
-		s.revokedFail(w, r, e)
-		return
-	}
-	state, code, iss := q.Get("state"), q.Get("code"), q.Get("iss")
-	cookie, err := r.Cookie(revokedCookie)
-	s.clearRevokedCookie(w)
-	if err != nil || state == "" || subtle.ConstantTimeCompare([]byte(cookie.Value), []byte(state)) != 1 {
-		s.revokedFail(w, r, "state_mismatch")
-		return
-	}
-	flow, ok := s.revokedFlows.takeFlow(state, s.now())
+	flow, ok := s.revokedFlows.takeFlow(q.Get("state"), s.now())
 	if !ok {
-		s.revokedFail(w, r, "expired")
+		s.revokedRedirect(w, r, url.Values{"revoked_error": {"state_mismatch"}})
 		return
 	}
+	code, reason := s.revokedAnswer(r, flow, q)
+	s.revokedFlows.finishWait(flow.wait, code, reason)
+	if reason != "" {
+		s.revokedRedirect(w, r, url.Values{"revoked_error": {reason}})
+		return
+	}
+	s.revokedRedirect(w, r, nil)
+}
+
+// revokedAnswer turns the app's answer into a handoff code, or into the
+// reason there is none.
+func (s *Server) revokedAnswer(r *http.Request, flow *revokedFlow, q url.Values) (code, reason string) {
+	// A refusal comes back here too; the page says so and offers to retry.
+	if e := q.Get("error"); e != "" {
+		return "", e
+	}
+	iss := q.Get("iss")
 	// RFC 9207: the server names itself in the redirect.
 	issuer := flow.issuer
 	switch {
@@ -294,8 +316,7 @@ func (s *Server) handleRevokedCallback(w http.ResponseWriter, r *http.Request) {
 		// second revoked server must not answer a code meant for the
 		// first.
 		if iss != "" && iss != issuer {
-			s.revokedFail(w, r, "issuer_mismatch")
-			return
+			return "", "issuer_mismatch"
 		}
 	default:
 		// Started through the app, so iss is the only thing that says
@@ -303,46 +324,41 @@ func (s *Server) handleRevokedCallback(w http.ResponseWriter, r *http.Request) {
 		// any address a player could have typed.
 		norm, err := revokedauth.NormalizeIssuer(iss)
 		if err != nil || norm != iss {
-			s.revokedFail(w, r, "issuer_mismatch")
-			return
+			return "", "issuer_mismatch"
 		}
 		// Discover checks the allow-list, refuses a private address and
 		// an issuer that does not name itself, and pins every endpoint
 		// to it.
 		if _, err := s.revoked.Discover(r.Context(), norm); err != nil {
 			s.log.Warn("revoked discovery from iss", "iss", norm, "err", err)
-			s.revokedFail(w, r, "unknown_server")
-			return
+			return "", "unknown_server"
 		}
 		issuer = norm
 	}
-	if code == "" {
-		s.revokedFail(w, r, "no_code")
-		return
+	authCode := q.Get("code")
+	if authCode == "" {
+		return "", "no_code"
 	}
 
-	tokens, err := s.revoked.Exchange(r.Context(), issuer, code, s.cfg.PublicOrigin, s.revokedRedirectURI(), flow.verifier)
+	tokens, err := s.revoked.Exchange(r.Context(), issuer, authCode, s.cfg.PublicOrigin, s.revokedRedirectURI(), flow.verifier)
 	if err != nil {
 		s.log.Warn("revoked exchange", "issuer", issuer, "err", err)
-		s.revokedFail(w, r, "exchange_failed")
-		return
+		return "", "exchange_failed"
 	}
 	claims, err := s.revoked.VerifyIDToken(r.Context(), issuer, tokens.IDToken, s.cfg.PublicOrigin, flow.nonce)
 	if err != nil {
 		s.log.Warn("revoked id_token", "issuer", issuer, "err", err)
-		s.revokedFail(w, r, "bad_identity")
-		return
+		return "", "bad_identity"
 	}
 
-	handoff := &revokedHandoff{expires: s.now().Add(revokedHandoffLifetime)}
+	handoff := &revokedHandoff{expires: s.now().Add(revokedFlowLifetime)}
 	a, err := s.store.GetAccountByIdentity(r.Context(), claims.Issuer, claims.Subject)
 	switch {
 	case err == nil:
 		token, err := s.createAccountSession(r.Context(), a.ID)
 		if err != nil {
 			s.log.Error("create account session", "err", err)
-			s.revokedFail(w, r, "internal")
-			return
+			return "", "internal"
 		}
 		handoff.token, handoff.account = token, a
 	case errors.Is(err, store.ErrNotFound):
@@ -353,31 +369,41 @@ func (s *Server) handleRevokedCallback(w http.ResponseWriter, r *http.Request) {
 		handoff.suggested = s.suggestHandle(r, claims.Name)
 	default:
 		s.log.Error("account by identity", "err", err)
-		s.revokedFail(w, r, "internal")
-		return
+		return "", "internal"
 	}
 
-	hc := newToken()
-	s.revokedFlows.putHandoff(hc, handoff)
-	s.revokedRedirect(w, r, url.Values{"revoked": {hc}})
+	code = newToken()
+	s.revokedFlows.putHandoff(code, handoff)
+	return code, ""
 }
 
-func (s *Server) revokedFail(w http.ResponseWriter, r *http.Request, reason string) {
-	s.revokedRedirect(w, r, url.Values{"revoked_error": {reason}})
-}
-
-// revokedRedirect sends the browser back to the app. The app reads the
-// parameter, acts on it and takes it out of the address bar.
 func (s *Server) revokedRedirect(w http.ResponseWriter, r *http.Request, q url.Values) {
-	http.Redirect(w, r, s.cfg.PublicOrigin+"/?"+q.Encode(), http.StatusSeeOther)
+	target := s.cfg.PublicOrigin + "/"
+	if len(q) > 0 {
+		target += "?" + q.Encode()
+	}
+	http.Redirect(w, r, target, http.StatusSeeOther)
 }
 
-func (s *Server) clearRevokedCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name: revokedCookie, Value: "", Path: "/api/accounts/revoked", MaxAge: -1,
-		HttpOnly: true, Secure: strings.HasPrefix(s.cfg.PublicOrigin, "https://"),
-		SameSite: http.SameSiteLaxMode,
-	})
+type revokedWaitRequest struct {
+	Wait string `json:"wait"`
+}
+
+// handleRevokedWait is what the page asks while it shows the QR code.
+func (s *Server) handleRevokedWait(w http.ResponseWriter, r *http.Request) {
+	if !s.revokedOn(w) {
+		return
+	}
+	var req revokedWaitRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	res, ok := s.revokedFlows.takeWait(req.Wait, s.now())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, protocol.ErrRevokedState, "that sign-in is no longer valid")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"done": res.done, "code": res.code, "error": res.reason})
 }
 
 type revokedFinishRequest struct {

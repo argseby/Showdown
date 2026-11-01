@@ -31,6 +31,32 @@ final soundEnabledProvider = NotifierProvider<SoundEnabledNotifier, bool>(
   SoundEnabledNotifier.new,
 );
 
+/// The revoked server this player changed to; empty for the instance's
+/// default. Remembered so someone on their own server sets it once.
+class RevokedServerNotifier extends Notifier<String> {
+  static const _key = 'pref:revoked_server';
+
+  @override
+  String build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getString(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return '';
+  }
+
+  void set(String value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(_key, value))
+        .ignore();
+  }
+}
+
+final revokedServerProvider = NotifierProvider<RevokedServerNotifier, String>(
+  RevokedServerNotifier.new,
+);
+
 /// Four-color deck preference (toggle arrives with M5 polish).
 class FourColorDeckNotifier extends Notifier<bool> {
   static const _key = 'pref:four_color';

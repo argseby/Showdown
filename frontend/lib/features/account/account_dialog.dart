@@ -218,52 +218,60 @@ class _AccountDialogState extends ConsumerState<AccountDialog> {
       ),
       content: SizedBox(
         width: 360,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(_register ? l10n.accountCreateBody : l10n.accountSignInBody)
-                .muted()
-                .small(),
-            const Gap(12),
-            TextField(
-              key: const Key('account-handle'),
-              controller: _handle,
-              placeholder: Text(l10n.accountHandle),
-              autofocus: true,
-              onSubmitted: (_) => _submit(),
-            ),
-            const Gap(8),
-            TextField(
-              key: const Key('account-password'),
-              controller: _password,
-              placeholder: Text(l10n.accountPassword),
-              obscureText: true,
-              onSubmitted: (_) => _submit(),
-            ),
-            if (_error != null) ...[
-              const Gap(8),
-              Text(
-                _error!,
-                key: const Key('account-error'),
-                style: TextStyle(
-                  color: theme.colorScheme.destructive,
-                  fontSize: 12,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _register ? l10n.accountCreateBody : l10n.accountSignInBody,
+                ).muted().small(),
+                const Gap(12),
+                TextField(
+                  key: const Key('account-handle'),
+                  controller: _handle,
+                  placeholder: Text(l10n.accountHandle),
+                  autofocus: true,
+                  onSubmitted: (_) => _submit(),
                 ),
-              ),
-            ],
-            const RevokedSignInSection(),
-            const Gap(10),
-            GhostButton(
-              key: const Key('account-switch-mode'),
-              onPressed: () => setState(() {
-                _register = !_register;
-                _error = null;
-              }),
-              child: Text(_register ? l10n.accountHaveOne : l10n.accountNeedOne)
-                  .small(),
+                const Gap(8),
+                TextField(
+                  key: const Key('account-password'),
+                  controller: _password,
+                  placeholder: Text(l10n.accountPassword),
+                  obscureText: true,
+                  onSubmitted: (_) => _submit(),
+                ),
+                if (_error != null) ...[
+                  const Gap(8),
+                  Text(
+                    _error!,
+                    key: const Key('account-error'),
+                    style: TextStyle(
+                      color: theme.colorScheme.destructive,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                const Gap(10),
+                GhostButton(
+                  key: const Key('account-switch-mode'),
+                  onPressed: () => setState(() {
+                    _register = !_register;
+                    _error = null;
+                  }),
+                  child: Text(
+                    _register ? l10n.accountHaveOne : l10n.accountNeedOne,
+                  ).small(),
+                ),
+                const RevokedSignInSection(),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       actions: [

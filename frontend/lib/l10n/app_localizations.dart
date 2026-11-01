@@ -641,14 +641,44 @@ abstract class AppLocalizations {
   /// No description provided for @revokedNeedsApp.
   ///
   /// In en, this message translates to:
-  /// **'Nothing happened? The Revoked app is needed to sign in.'**
+  /// **'You need the Revoked app on your phone or on this device.'**
   String get revokedNeedsApp;
 
-  /// No description provided for @revokedNameServer.
+  /// No description provided for @revokedScan.
   ///
   /// In en, this message translates to:
-  /// **'Use a particular server'**
-  String get revokedNameServer;
+  /// **'Scan this code with your phone, then approve in the Revoked app.'**
+  String get revokedScan;
+
+  /// No description provided for @revokedScanElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Is Revoked on another device? Scan this code there.'**
+  String get revokedScanElsewhere;
+
+  /// No description provided for @revokedOpenHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Revoked here'**
+  String get revokedOpenHere;
+
+  /// No description provided for @revokedServerChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get revokedServerChange;
+
+  /// No description provided for @revokedServerUseDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {server}'**
+  String revokedServerUseDefault(String server);
+
+  /// No description provided for @revokedWrongServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Revoked app is signed in to a different server. Change the server here and try again.'**
+  String get revokedWrongServer;
 
   /// No description provided for @revokedBack.
   ///
@@ -685,12 +715,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get revokedContinue;
-
-  /// No description provided for @revokedOpening.
-  ///
-  /// In en, this message translates to:
-  /// **'Opening your revoked server…'**
-  String get revokedOpening;
 
   /// No description provided for @revokedCheckCode.
   ///

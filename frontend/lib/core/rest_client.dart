@@ -231,6 +231,17 @@ class RestClient {
     }
   }
 
+  /// The revoked server the sign-in starts with. Empty when the server cannot
+  /// be reached or names none; the sign-in then takes an answer from any.
+  Future<String> revokedDefaultServer() async {
+    try {
+      final json = await getJson('/api/config');
+      return json['revoked_default_server'] as String? ?? '';
+    } on Object catch (_) {
+      return '';
+    }
+  }
+
   /// Whether this instance lets a player be told what to do on their turn.
   /// True when the server cannot be reached, which costs nothing: the
   /// advice itself comes from the server, so an instance that refuses it

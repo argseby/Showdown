@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -42,6 +43,9 @@ type Config struct {
 	// accepted. Empty means any server a player names, which is the point
 	// of the feature: a revoked server is something people run themselves.
 	RevokedIssuers []string
+	// RevokedDefaultIssuer is the revoked server the sign-in starts with.
+	// Players can change it, unless RevokedIssuers says otherwise.
+	RevokedDefaultIssuer string
 	// RevokedAllowPrivateNetwork lets a revoked address resolve into a
 	// private network. Development only — it turns the sign-in form into
 	// a way to ask this server what it can reach.
@@ -81,6 +85,7 @@ func Load(getenv func(string) string) (Config, error) {
 		PlayerAdvice:               l.boolean("PLAYER_ADVICE", true),
 		RevokedSignIn:              l.boolean("REVOKED_SIGN_IN", false),
 		RevokedIssuers:             splitList(l.str("REVOKED_ISSUERS", "")),
+		RevokedDefaultIssuer:       strings.TrimRight(l.str("REVOKED_DEFAULT_ISSUER", "https://api.revoked.link"), "/"),
 		RevokedAllowPrivateNetwork: l.boolean("REVOKED_ALLOW_PRIVATE_NETWORK", false),
 		PublicOrigin:               strings.TrimRight(l.str("PUBLIC_ORIGIN", ""), "/"),
 		DevCORSOrigin:              l.str("DEV_CORS_ORIGIN", ""),
@@ -142,6 +147,14 @@ func Load(getenv func(string) string) (Config, error) {
 		if err := validateOrigin(iss); err != nil {
 			l.errorf("REVOKED_ISSUERS: %q: %v", iss, err)
 		}
+	}
+	if err := validateOrigin(cfg.RevokedDefaultIssuer); err != nil {
+		l.errorf("REVOKED_DEFAULT_ISSUER: %v", err)
+	}
+	// An allow-list that leaves the default out must not offer a server that
+	// would then be refused.
+	if len(cfg.RevokedIssuers) > 0 && !slices.Contains(cfg.RevokedIssuers, cfg.RevokedDefaultIssuer) {
+		cfg.RevokedDefaultIssuer = cfg.RevokedIssuers[0]
 	}
 	if cfg.RevokedSignIn {
 		if !cfg.Accounts {

@@ -167,15 +167,24 @@
   "accountBadCredentials": "Wrong name or password.",
   "accountsOff": "This instance has no player profiles.",
   "revokedSignIn": "Sign in with Revoked",
-  "revokedNeedsApp": "Nothing happened? The Revoked app is needed to sign in.",
-  "revokedNameServer": "Use a particular server",
+  "revokedNeedsApp": "You need the Revoked app on your phone or on this device.",
+  "revokedScan": "Scan this code with your phone, then approve in the Revoked app.",
+  "revokedScanElsewhere": "Is Revoked on another device? Scan this code there.",
+  "revokedOpenHere": "Open Revoked here",
+  "revokedServerChange": "Change",
+  "revokedServerUseDefault": "Use {server}",
+  "@revokedServerUseDefault": {
+    "placeholders": {
+      "server": { "type": "String" }
+    }
+  },
+  "revokedWrongServer": "Your Revoked app is signed in to a different server. Change the server here and try again.",
   "revokedBack": "Back",
   "revokedOr": "or",
   "revokedServerLabel": "Your revoked server",
   "revokedServerHint": "revoked.example",
   "revokedServerBody": "Any revoked server works \u2014 type the address of the one you use.",
   "revokedContinue": "Continue",
-  "revokedOpening": "Opening your revoked server\u2026",
   "revokedCheckCode": "Approve the request showing {code}.",
   "@revokedCheckCode": {
     "placeholders": {
