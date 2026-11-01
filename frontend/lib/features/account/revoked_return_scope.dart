@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../app/router.dart';
 import '../../core/account.dart';
 import '../../core/providers.dart';
 import '../../core/rest_client.dart';
@@ -54,7 +55,14 @@ class _RevokedReturnScopeState extends ConsumerState<RevokedReturnScope> {
         case RevokedSignedIn():
           await ref.read(accountProvider.notifier).adoptRevoked(res);
         case RevokedNeedsHandle():
-          if (mounted) await showRevokedHandleDialog(context, res);
+          // A dialog is a route, and this widget sits above the router, so
+          // its own context has no Navigator over it - asking from here
+          // threw and the player saw only "that sign-in did not finish".
+          // Go through the router's navigator instead.
+          final below = ref.read(rootNavigatorKeyProvider).currentContext;
+          if (mounted && below != null && below.mounted) {
+            await showRevokedHandleDialog(below, res);
+          }
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -62,7 +70,11 @@ class _RevokedReturnScopeState extends ConsumerState<RevokedReturnScope> {
           e.code == 'revoked_sign_in_expired' ? l10n.revokedExpired : e.message,
         );
       }
-    } catch (_) {
+    } catch (e, stack) {
+      // The catch-all used to be silent, and it hid a dialog that could
+      // not open for a whole release. The player still gets one sentence;
+      // whoever is looking at the console gets the reason.
+      debugPrint('revoked sign-in could not finish: $e\n$stack');
       if (mounted) _toast(l10n.revokedFailed);
     }
   }

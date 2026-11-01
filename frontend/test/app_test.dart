@@ -1,36 +1,31 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:showdown/app/app.dart';
 import 'package:showdown/app/l10n.dart';
-import 'package:showdown/app/router.dart';
 import 'package:showdown/core/link_opener.dart';
 import 'package:showdown/core/providers.dart';
 import 'package:showdown/core/rest_client.dart';
 import 'package:showdown/features/landing/landing_page.dart';
 import 'package:showdown/shared/logo.dart';
 
-Widget app({
+import 'test_helpers.dart';
+
+/// [app] itself lives in test_helpers so every test drives the same
+/// wiring; this only adds the locale override app_test needs.
+Widget appIn(
+  Locale locale, {
   String initialLocation = '/',
-  Locale? locale,
   List<Override> overrides = const [],
-}) {
-  return ProviderScope(
-    overrides: [
-      routerProvider.overrideWithValue(
-        createRouter(initialLocation: initialLocation),
-      ),
-      if (locale != null)
-        localePreferenceProvider.overrideWith(() => _FixedLocale(locale)),
-      ...overrides,
-    ],
-    child: const ShowdownApp(),
-  );
-}
+}) => app(
+  initialLocation: initialLocation,
+  overrides: [
+    localePreferenceProvider.overrideWith(() => _FixedLocale(locale)),
+    ...overrides,
+  ],
+);
 
 class _FixedLocale extends LocalePreferenceNotifier {
   _FixedLocale(this.locale);
@@ -151,7 +146,7 @@ void main() {
   });
 
   testWidgets('German locale is complete for the landing page', (tester) async {
-    await tester.pumpWidget(app(locale: const Locale('de')));
+    await tester.pumpWidget(appIn(const Locale('de')));
     await tester.pumpAndSettle();
     expect(find.text('Eine Runde hosten'), findsOneWidget);
   });

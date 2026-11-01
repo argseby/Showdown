@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:showdown/app/app.dart';
 import 'package:showdown/app/l10n.dart';
+import 'package:showdown/app/router.dart';
 import 'package:showdown/app/scroll_behavior.dart';
 import 'package:showdown/app/theme.dart';
 import 'package:showdown/protocol/protocol.dart';
@@ -75,5 +77,31 @@ Widget wrapRouter({
       ],
       supportedLocales: AppLocalizations.supportedLocales,
     ),
+  );
+}
+
+/// The real application, with the router pointed where a test wants it.
+/// Goes through [routerProvider] so the root navigator key is wired exactly
+/// as it is in production - a dialog opened from above the router depends
+/// on it.
+Widget app({
+  String initialLocation = '/',
+  List<Override> overrides = const [],
+}) {
+  // A router per call, as the tests that pump several in a row expect,
+  // and the key it is built with handed to the provider beside it.
+  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root navigator');
+  return ProviderScope(
+    overrides: [
+      rootNavigatorKeyProvider.overrideWithValue(navigatorKey),
+      routerProvider.overrideWithValue(
+        createRouter(
+          initialLocation: initialLocation,
+          navigatorKey: navigatorKey,
+        ),
+      ),
+      ...overrides,
+    ],
+    child: const ShowdownApp(),
   );
 }

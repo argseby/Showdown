@@ -6,6 +6,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'app/app.dart';
+import 'core/revoked_browser.dart';
 
 void main() {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -22,5 +23,7 @@ void main() {
     );
   }
   usePathUrlStrategy();
+  // Before the router reads the address, not after: see the doc comment.
+  captureRevokedReturn();
   runApp(const ProviderScope(child: ShowdownApp()));
 }

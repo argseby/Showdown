@@ -11,3 +11,5 @@ class _NoRevokedBrowser implements RevokedBrowser {
 }
 
 RevokedBrowser createRevokedBrowser() => _NoRevokedBrowser();
+
+void captureRevokedReturn() {}

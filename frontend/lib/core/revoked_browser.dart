@@ -16,9 +16,17 @@ abstract class RevokedBrowser {
   /// to land where the sign-in began.
   void go(String url);
 
-  /// Reads the result out of the current address and takes it back out
-  /// again, so a reload does not try to spend a code a second time.
+  /// Hands over what [captureRevokedReturn] found, once.
   RevokedReturn take();
 
   static RevokedBrowser create() => impl.createRevokedBrowser();
 }
+
+/// Lifts the one-time parameters out of the address and strips them.
+///
+/// This runs in `main`, before the router is built, and that order is the
+/// whole point: the router keeps the location it was constructed with and
+/// writes it back into history later, so a strip after the fact is undone
+/// and the spent code reappears in the address bar. Off the web it does
+/// nothing.
+void captureRevokedReturn() => impl.captureRevokedReturn();
