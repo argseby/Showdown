@@ -632,6 +632,102 @@ abstract class AppLocalizations {
   /// **'This instance has no player profiles.'**
   String get accountsOff;
 
+  /// No description provided for @revokedSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Revoked'**
+  String get revokedSignIn;
+
+  /// No description provided for @revokedNeedsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing happened? The Revoked app is needed to sign in.'**
+  String get revokedNeedsApp;
+
+  /// No description provided for @revokedNameServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a particular server'**
+  String get revokedNameServer;
+
+  /// No description provided for @revokedBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get revokedBack;
+
+  /// No description provided for @revokedOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get revokedOr;
+
+  /// No description provided for @revokedServerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your revoked server'**
+  String get revokedServerLabel;
+
+  /// No description provided for @revokedServerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'revoked.example'**
+  String get revokedServerHint;
+
+  /// No description provided for @revokedServerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Any revoked server works — type the address of the one you use.'**
+  String get revokedServerBody;
+
+  /// No description provided for @revokedContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get revokedContinue;
+
+  /// No description provided for @revokedOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening your revoked server…'**
+  String get revokedOpening;
+
+  /// No description provided for @revokedCheckCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve the request showing {code}.'**
+  String revokedCheckCode(String code);
+
+  /// No description provided for @revokedChooseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your name'**
+  String get revokedChooseTitle;
+
+  /// No description provided for @revokedChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{server} vouched for you. Choose the name you play under here; there is no password to set.'**
+  String revokedChooseBody(String server);
+
+  /// No description provided for @revokedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That sign-in did not finish. Please try again.'**
+  String get revokedFailed;
+
+  /// No description provided for @revokedDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'The sign-in was declined.'**
+  String get revokedDeclined;
+
+  /// No description provided for @revokedExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'That sign-in took too long. Please start again.'**
+  String get revokedExpired;
+
   /// No description provided for @accountRecoveryTitle.
   ///
   /// In en, this message translates to:

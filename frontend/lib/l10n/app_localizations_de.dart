@@ -312,6 +312,62 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accountsOff => 'Diese Instanz hat keine Spielerprofile.';
 
   @override
+  String get revokedSignIn => 'Mit Revoked anmelden';
+
+  @override
+  String get revokedNeedsApp =>
+      'Nichts passiert? Zum Anmelden wird die Revoked-App benötigt.';
+
+  @override
+  String get revokedNameServer => 'Bestimmten Server verwenden';
+
+  @override
+  String get revokedBack => 'Zurück';
+
+  @override
+  String get revokedOr => 'oder';
+
+  @override
+  String get revokedServerLabel => 'Dein revoked-Server';
+
+  @override
+  String get revokedServerHint => 'revoked.example';
+
+  @override
+  String get revokedServerBody =>
+      'Jeder revoked-Server funktioniert — gib die Adresse deines Servers ein.';
+
+  @override
+  String get revokedContinue => 'Weiter';
+
+  @override
+  String get revokedOpening => 'Dein revoked-Server wird geöffnet…';
+
+  @override
+  String revokedCheckCode(String code) {
+    return 'Bestätige die Anfrage mit $code.';
+  }
+
+  @override
+  String get revokedChooseTitle => 'Namen wählen';
+
+  @override
+  String revokedChooseBody(String server) {
+    return '$server hat für dich gebürgt. Wähle den Namen, unter dem du hier spielst — ein Passwort brauchst du nicht.';
+  }
+
+  @override
+  String get revokedFailed =>
+      'Die Anmeldung wurde nicht abgeschlossen. Bitte versuche es erneut.';
+
+  @override
+  String get revokedDeclined => 'Die Anmeldung wurde abgelehnt.';
+
+  @override
+  String get revokedExpired =>
+      'Die Anmeldung hat zu lange gedauert. Bitte starte sie neu.';
+
+  @override
   String get accountRecoveryTitle => 'Schreib das auf';
 
   @override

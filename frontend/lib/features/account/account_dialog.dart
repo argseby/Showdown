@@ -7,6 +7,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/l10n.dart';
 import '../../core/account.dart';
 import '../../core/rest_client.dart';
+import 'revoked_sign_in.dart';
 import 'visibility_dialog.dart';
 
 /// Sign in, or make a profile. Profiles are optional everywhere: this
@@ -251,6 +252,7 @@ class _AccountDialogState extends ConsumerState<AccountDialog> {
                 ),
               ),
             ],
+            const RevokedSignInSection(),
             const Gap(10),
             GhostButton(
               key: const Key('account-switch-mode'),

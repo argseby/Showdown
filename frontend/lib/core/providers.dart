@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'link_opener.dart';
 import 'rest_client.dart';
+import 'revoked_browser.dart';
 
 final restClientProvider = Provider<RestClient>((ref) => RestClient());
 
@@ -15,6 +16,18 @@ final serverVersionProvider = FutureProvider<String?>(
 /// default, and then nothing about sign-in is shown.
 final accountsEnabledProvider = FutureProvider<bool>(
   (ref) => ref.read(restClientProvider).accountsEnabled(),
+);
+
+/// Whether this instance offers "sign in with revoked". Shown only next
+/// to the password fields, and only when the server says so.
+final revokedSignInEnabledProvider = FutureProvider<bool>(
+  (ref) => ref.read(restClientProvider).revokedSignInEnabled(),
+);
+
+/// The browser half of the revoked sign-in: leaving the page and reading
+/// the answer back out of the address.
+final revokedBrowserProvider = Provider<RevokedBrowser>(
+  (ref) => RevokedBrowser.create(),
 );
 
 /// Whether this instance lets a player be told what to do on their turn

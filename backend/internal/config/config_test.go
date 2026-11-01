@@ -170,3 +170,63 @@ func TestTurn(t *testing.T) {
 		}
 	}
 }
+
+func TestRevokedSignIn(t *testing.T) {
+	t.Parallel()
+	// Off by default, and then nothing else about it matters.
+	cfg, err := Load(env(map[string]string{}))
+	if err != nil {
+		t.Fatalf("defaults: %v", err)
+	}
+	if cfg.RevokedSignIn || cfg.PublicOrigin != "" || len(cfg.RevokedIssuers) != 0 {
+		t.Fatalf("defaults carry revoked settings: %+v", cfg)
+	}
+
+	bad := map[string]struct {
+		env     map[string]string
+		wantErr string
+	}{
+		"without profiles there is nothing to sign in to": {
+			map[string]string{"REVOKED_SIGN_IN": "true", "PUBLIC_ORIGIN": "https://poker.example"},
+			"needs ACCOUNTS=true",
+		},
+		"without an origin the client id is unknown": {
+			map[string]string{"REVOKED_SIGN_IN": "true", "ACCOUNTS": "true"},
+			"needs PUBLIC_ORIGIN",
+		},
+		"an origin with a path is not an origin": {
+			map[string]string{"PUBLIC_ORIGIN": "https://poker.example/play"},
+			"PUBLIC_ORIGIN",
+		},
+		"an allow-listed issuer must be an origin": {
+			map[string]string{"REVOKED_ISSUERS": "revoked.example"},
+			"REVOKED_ISSUERS",
+		},
+	}
+	for name, tc := range bad {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			if _, err := Load(env(tc.env)); err == nil {
+				t.Fatalf("expected an error containing %q, got nil", tc.wantErr)
+			} else if !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("error %q does not contain %q", err.Error(), tc.wantErr)
+			}
+		})
+	}
+
+	// The whole set together, with the trailing slash taken off.
+	cfg, err = Load(env(map[string]string{
+		"ACCOUNTS": "true", "REVOKED_SIGN_IN": "true",
+		"PUBLIC_ORIGIN":   "https://poker.example/",
+		"REVOKED_ISSUERS": "https://a.example, https://b.example",
+	}))
+	if err != nil {
+		t.Fatalf("valid configuration refused: %v", err)
+	}
+	if cfg.PublicOrigin != "https://poker.example" {
+		t.Errorf("PublicOrigin = %q", cfg.PublicOrigin)
+	}
+	if len(cfg.RevokedIssuers) != 2 || cfg.RevokedIssuers[1] != "https://b.example" {
+		t.Errorf("RevokedIssuers = %v", cfg.RevokedIssuers)
+	}
+}

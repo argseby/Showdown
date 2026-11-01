@@ -51,6 +51,15 @@ always play.
   record: hands, winnings, the hands you made and the milestones you reached. Every
   section is private until you share it — with your friends or with everyone — and
   playing as a guest stays possible everywhere.
+- Sign in with [revoked](https://docs.revoked.link) (`REVOKED_SIGN_IN=true`)
+  instead of a password, from **any** revoked server. Nothing is registered in
+  advance and no server is configured: the button hands the request to the
+  player's Revoked app, the app answers on whichever server that player uses,
+  and this instance learns which one from the answer. The client id is this
+  instance's own origin and PKCE is the only credential. A profile made this
+  way has no password and no recovery code; the revoked server is how its
+  owner proves who they are. Naming a server by hand is the fallback, for a
+  player whose app is elsewhere.
 - Friends: find someone by name or from their seat, and see where your friends are
   playing with the free seats and a way in. A friend at a table can call you over;
   requests and invitations reach you wherever you are in the app. Anyone can be
@@ -156,6 +165,9 @@ All settings live in `.env`; everything has a default.
 | `IMAGE_OWNER` | `argseby` | only for a fork that publishes its own images |
 | `PROXY_NETWORK` | – | with the proxy override: the Docker network of your reverse proxy |
 | `API_UPSTREAM` | `showdown-api:8080` | what the web container proxies `/api` and `/ws` to |
+| `REVOKED_SIGN_IN` | `false` | offer sign-in with revoked (needs `ACCOUNTS` and `PUBLIC_ORIGIN`) |
+| `PUBLIC_ORIGIN` | – | the address players reach this instance at, no path |
+| `REVOKED_ISSUERS` | – | only these revoked servers; empty accepts any |
 
 Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_IP`
 (50), `TRUST_PROXY` (`true`, rate limiting uses `X-Forwarded-For`), `LOG_LEVEL`

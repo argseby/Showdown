@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:1
 
 # ghcr.io/cirruslabs/flutter publishes tags with a lag behind Flutter stable
-# (3.44.0 was the newest when this was written, while the project pins 3.47.2).
+# (3.44.0 was the newest when this was written, while the project needs 3.47.x).
 # The SDK inside the image is a git checkout, so the exact pinned tag is
-# checked out before building. FLUTTER_VERSION must match pubspec.yaml.
+# checked out before building. FLUTTER_VERSION must satisfy the flutter
+# constraint in pubspec.yaml.
 FROM ghcr.io/cirruslabs/flutter:3.44.0 AS build
-ARG FLUTTER_VERSION=3.47.2
+ARG FLUTTER_VERSION=3.47.7
 # Needs network access to github.com and storage.googleapis.com and about 2 GB of
 # free disk; on small servers pull the published images instead (see README).
 RUN set -eu; \

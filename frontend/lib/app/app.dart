@@ -2,6 +2,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../features/account/revoked_return_scope.dart';
 import '../features/friends/notifications_overlay.dart';
 import 'l10n.dart';
 import 'router.dart';
@@ -30,7 +31,9 @@ class ShowdownApp extends ConsumerWidget {
       // Friend requests and invitations are about the person, so they
       // ride above whatever page they happen to be on.
       builder: (context, child) => DrawerOverlay(
-        child: NotificationsScope(child: child ?? const SizedBox.shrink()),
+        child: RevokedReturnScope(
+          child: NotificationsScope(child: child ?? const SizedBox.shrink()),
+        ),
       ),
       onGenerateTitle: (context) => context.l10n.appTitle,
       theme: lightTheme,

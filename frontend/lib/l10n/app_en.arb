@@ -166,6 +166,32 @@
   "accountHandleTaken": "That name is taken.",
   "accountBadCredentials": "Wrong name or password.",
   "accountsOff": "This instance has no player profiles.",
+  "revokedSignIn": "Sign in with Revoked",
+  "revokedNeedsApp": "Nothing happened? The Revoked app is needed to sign in.",
+  "revokedNameServer": "Use a particular server",
+  "revokedBack": "Back",
+  "revokedOr": "or",
+  "revokedServerLabel": "Your revoked server",
+  "revokedServerHint": "revoked.example",
+  "revokedServerBody": "Any revoked server works \u2014 type the address of the one you use.",
+  "revokedContinue": "Continue",
+  "revokedOpening": "Opening your revoked server\u2026",
+  "revokedCheckCode": "Approve the request showing {code}.",
+  "@revokedCheckCode": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "revokedChooseTitle": "Pick your name",
+  "revokedChooseBody": "{server} vouched for you. Choose the name you play under here; there is no password to set.",
+  "@revokedChooseBody": {
+    "placeholders": {
+      "server": { "type": "String" }
+    }
+  },
+  "revokedFailed": "That sign-in did not finish. Please try again.",
+  "revokedDeclined": "The sign-in was declined.",
+  "revokedExpired": "That sign-in took too long. Please start again.",
   "accountRecoveryTitle": "Write this down",
   "accountRecoveryBody": "This code is the only way back into your profile if you forget your password. It is shown once and never again — no email is sent.",
   "accountRecoveryDone": "I wrote it down",

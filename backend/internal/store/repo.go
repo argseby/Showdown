@@ -339,6 +339,95 @@ func (s *Store) GetAccountByHandle(ctx context.Context, handleKey string) (Accou
 	return a, nil
 }
 
+// ErrIdentityLinked is returned when the (issuer, subject) pair already
+// belongs to a profile.
+var ErrIdentityLinked = errors.New("store: identity already linked")
+
+// GetAccountByIdentity loads the profile a revoked identity signs in to.
+func (s *Store) GetAccountByIdentity(ctx context.Context, issuer, subject string) (AccountRow, error) {
+	a, err := scanAccount(s.db.QueryRowContext(ctx, `
+		SELECT `+accountCols+` FROM accounts
+		WHERE id = (SELECT account_id FROM account_identities WHERE issuer = ? AND subject = ?)`,
+		issuer, subject))
+	if errors.Is(err, sql.ErrNoRows) {
+		return AccountRow{}, ErrNotFound
+	}
+	if err != nil {
+		return AccountRow{}, fmt.Errorf("get account by identity: %w", err)
+	}
+	return a, nil
+}
+
+// LinkAccountIdentity points a revoked identity at an existing profile.
+func (s *Store) LinkAccountIdentity(ctx context.Context, i AccountIdentityRow) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO account_identities (issuer, subject, account_id, created_at, name)
+		VALUES (?, ?, ?, ?, ?)`,
+		i.Issuer, i.Subject, i.AccountID, i.CreatedAt, i.Name)
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") || strings.Contains(err.Error(), "PRIMARY KEY") {
+			return ErrIdentityLinked
+		}
+		return fmt.Errorf("link account identity: %w", err)
+	}
+	return nil
+}
+
+// CreateAccountWithIdentity creates a profile and its revoked link together,
+// so a half-made profile cannot outlive a failed sign-in.
+func (s *Store) CreateAccountWithIdentity(ctx context.Context, a AccountRow, i AccountIdentityRow) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("create account with identity: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO accounts (`+accountCols+`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		a.ID, a.Handle, a.HandleKey, a.DisplayName, a.PasswordHash, a.RecoveryHash, a.CreatedAt,
+		a.VisProfile, a.VisWinnings, a.VisBestHands, a.VisAchievements, a.VisActivity); err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			return ErrHandleTaken
+		}
+		return fmt.Errorf("create account with identity: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO account_identities (issuer, subject, account_id, created_at, name)
+		VALUES (?, ?, ?, ?, ?)`,
+		i.Issuer, i.Subject, a.ID, i.CreatedAt, i.Name); err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") || strings.Contains(err.Error(), "PRIMARY KEY") {
+			return ErrIdentityLinked
+		}
+		return fmt.Errorf("create account with identity: %w", err)
+	}
+	return tx.Commit()
+}
+
+// AccountIdentities lists the revoked links of one profile, oldest first.
+func (s *Store) AccountIdentities(ctx context.Context, accountID string) ([]AccountIdentityRow, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT issuer, subject, account_id, created_at, name FROM account_identities
+		WHERE account_id = ? ORDER BY created_at`, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("account identities: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var out []AccountIdentityRow
+	for rows.Next() {
+		var i AccountIdentityRow
+		if err := rows.Scan(&i.Issuer, &i.Subject, &i.AccountID, &i.CreatedAt, &i.Name); err != nil {
+			return nil, fmt.Errorf("account identities: %w", err)
+		}
+		out = append(out, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("account identities: %w", err)
+	}
+	return out, nil
+}
+
 // UpdateAccountSecrets writes a new password and recovery hash.
 func (s *Store) UpdateAccountSecrets(ctx context.Context, id, passwordHash, recoveryHash string) error {
 	res, err := s.db.ExecContext(ctx,

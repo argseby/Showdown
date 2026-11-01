@@ -111,6 +111,17 @@ type AccountRow struct {
 	VisActivity     string
 }
 
+// AccountIdentityRow mirrors account_identities: a profile's link to one
+// person at one revoked server. Issuer and Subject together name that
+// person; the subject is pairwise, so it identifies nobody anywhere else.
+type AccountIdentityRow struct {
+	Issuer    string
+	Subject   string
+	AccountID string
+	CreatedAt int64
+	Name      string
+}
+
 // HandResultRow mirrors hand_results: one profile's part in one hand.
 type HandResultRow struct {
 	AccountID   string

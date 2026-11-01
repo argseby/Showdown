@@ -35,6 +35,23 @@ type Config struct {
 	// withheld: the player is holding those cards.
 	PlayerAdvice bool
 
+	// RevokedSignIn offers "sign in with revoked" alongside the password.
+	// Needs Accounts and PublicOrigin; off by default, like Accounts.
+	RevokedSignIn bool
+	// RevokedIssuers, when not empty, is the only set of revoked servers
+	// accepted. Empty means any server a player names, which is the point
+	// of the feature: a revoked server is something people run themselves.
+	RevokedIssuers []string
+	// RevokedAllowPrivateNetwork lets a revoked address resolve into a
+	// private network. Development only — it turns the sign-in form into
+	// a way to ask this server what it can reach.
+	RevokedAllowPrivateNetwork bool
+	// PublicOrigin is the address players reach this instance at, with no
+	// path: "https://poker.example". It is this instance's OpenID client
+	// id, and the revoked server checks that the address it sends the
+	// player back to sits on it, so it cannot be guessed from a request.
+	PublicOrigin string
+
 	LogLevel  string
 	LogFormat string
 	// StunURLs are handed to browsers for the voice and video connections
@@ -54,17 +71,21 @@ func Load(getenv func(string) string) (Config, error) {
 	l := loader{getenv: getenv}
 
 	cfg := Config{
-		ListenAddr:          l.str("LISTEN_ADDR", ":8080"),
-		DataDir:             l.str("DATA_DIR", "/data"),
-		TableRetentionDays:  l.integer("TABLE_RETENTION_DAYS", 90),
-		MaxTables:           l.integer("MAX_TABLES", 100),
-		MaxConnectionsPerIP: l.integer("MAX_CONNECTIONS_PER_IP", 50),
-		TrustProxy:          l.boolean("TRUST_PROXY", true),
-		Accounts:            l.boolean("ACCOUNTS", false),
-		PlayerAdvice:        l.boolean("PLAYER_ADVICE", true),
-		DevCORSOrigin:       l.str("DEV_CORS_ORIGIN", ""),
-		LogLevel:            strings.ToLower(l.str("LOG_LEVEL", "info")),
-		LogFormat:           strings.ToLower(l.str("LOG_FORMAT", "json")),
+		ListenAddr:                 l.str("LISTEN_ADDR", ":8080"),
+		DataDir:                    l.str("DATA_DIR", "/data"),
+		TableRetentionDays:         l.integer("TABLE_RETENTION_DAYS", 90),
+		MaxTables:                  l.integer("MAX_TABLES", 100),
+		MaxConnectionsPerIP:        l.integer("MAX_CONNECTIONS_PER_IP", 50),
+		TrustProxy:                 l.boolean("TRUST_PROXY", true),
+		Accounts:                   l.boolean("ACCOUNTS", false),
+		PlayerAdvice:               l.boolean("PLAYER_ADVICE", true),
+		RevokedSignIn:              l.boolean("REVOKED_SIGN_IN", false),
+		RevokedIssuers:             splitList(l.str("REVOKED_ISSUERS", "")),
+		RevokedAllowPrivateNetwork: l.boolean("REVOKED_ALLOW_PRIVATE_NETWORK", false),
+		PublicOrigin:               strings.TrimRight(l.str("PUBLIC_ORIGIN", ""), "/"),
+		DevCORSOrigin:              l.str("DEV_CORS_ORIGIN", ""),
+		LogLevel:                   strings.ToLower(l.str("LOG_LEVEL", "info")),
+		LogFormat:                  strings.ToLower(l.str("LOG_FORMAT", "json")),
 		// VOICE_STUN_URLS is the name of the first release; still honoured.
 		StunURLs:       splitList(l.str("WEBRTC_STUN_URLS", l.str("VOICE_STUN_URLS", ""))),
 		TurnURLs:       splitList(l.str("WEBRTC_TURN_URLS", "")),
@@ -112,6 +133,25 @@ func Load(getenv func(string) string) (Config, error) {
 			l.errorf("DEV_CORS_ORIGIN: %v", err)
 		}
 	}
+	if cfg.PublicOrigin != "" {
+		if err := validateOrigin(cfg.PublicOrigin); err != nil {
+			l.errorf("PUBLIC_ORIGIN: %v", err)
+		}
+	}
+	for _, iss := range cfg.RevokedIssuers {
+		if err := validateOrigin(iss); err != nil {
+			l.errorf("REVOKED_ISSUERS: %q: %v", iss, err)
+		}
+	}
+	if cfg.RevokedSignIn {
+		if !cfg.Accounts {
+			l.errorf("REVOKED_SIGN_IN needs ACCOUNTS=true: there is nothing to sign in to without profiles")
+		}
+		if cfg.PublicOrigin == "" {
+			l.errorf("REVOKED_SIGN_IN needs PUBLIC_ORIGIN: a revoked server is told this instance's address and checks it")
+		}
+	}
+
 	switch cfg.LogLevel {
 	case "debug", "info", "warn", "error":
 	default:

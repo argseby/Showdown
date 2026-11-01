@@ -105,6 +105,32 @@
   "accountHandleTaken": "Dieser Name ist vergeben.",
   "accountBadCredentials": "Name oder Passwort stimmt nicht.",
   "accountsOff": "Diese Instanz hat keine Spielerprofile.",
+  "revokedSignIn": "Mit Revoked anmelden",
+  "revokedNeedsApp": "Nichts passiert? Zum Anmelden wird die Revoked-App ben\u00f6tigt.",
+  "revokedNameServer": "Bestimmten Server verwenden",
+  "revokedBack": "Zur\u00fcck",
+  "revokedOr": "oder",
+  "revokedServerLabel": "Dein revoked-Server",
+  "revokedServerHint": "revoked.example",
+  "revokedServerBody": "Jeder revoked-Server funktioniert \u2014 gib die Adresse deines Servers ein.",
+  "revokedContinue": "Weiter",
+  "revokedOpening": "Dein revoked-Server wird ge\u00f6ffnet\u2026",
+  "revokedCheckCode": "Best\u00e4tige die Anfrage mit {code}.",
+  "@revokedCheckCode": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "revokedChooseTitle": "Namen w\u00e4hlen",
+  "revokedChooseBody": "{server} hat f\u00fcr dich geb\u00fcrgt. W\u00e4hle den Namen, unter dem du hier spielst \u2014 ein Passwort brauchst du nicht.",
+  "@revokedChooseBody": {
+    "placeholders": {
+      "server": { "type": "String" }
+    }
+  },
+  "revokedFailed": "Die Anmeldung wurde nicht abgeschlossen. Bitte versuche es erneut.",
+  "revokedDeclined": "Die Anmeldung wurde abgelehnt.",
+  "revokedExpired": "Die Anmeldung hat zu lange gedauert. Bitte starte sie neu.",
   "accountRecoveryTitle": "Schreib das auf",
   "accountRecoveryBody": "Dieser Code ist der einzige Weg zurück in dein Profil, wenn du das Passwort vergisst. Er wird einmal gezeigt und nie wieder — es wird keine E-Mail verschickt.",
   "accountRecoveryDone": "Habe ich aufgeschrieben",

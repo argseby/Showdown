@@ -12,6 +12,7 @@ import (
 
 	"showdown/internal/buildinfo"
 	"showdown/internal/config"
+	"showdown/internal/revokedauth"
 	"showdown/internal/store"
 	"showdown/internal/table"
 )
@@ -33,6 +34,12 @@ type Server struct {
 	// slow to guess one (bcrypt costs the guesser ~50 ms on top).
 	limAccount *limiter
 
+	// revoked talks to the revoked servers players sign in with; nil when
+	// the instance does not offer it. revokedFlows holds the sign-ins
+	// that have been started and not yet come back.
+	revoked      *revokedauth.Client
+	revokedFlows *revokedFlows
+
 	// users holds the open user sockets (/ws/me), one profile to many
 	// devices; nil is fine and simply means nobody is reachable.
 	users *userHub
@@ -52,6 +59,20 @@ func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logg
 		limAccount: newLimiter(30, 15),
 		users:      newUserHub(),
 		connsByIP:  map[string]int{},
+	}
+	if cfg.Accounts && cfg.RevokedSignIn {
+		rc, err := revokedauth.New(revokedauth.Options{
+			Issuers:             cfg.RevokedIssuers,
+			AllowPrivateNetwork: cfg.RevokedAllowPrivateNetwork,
+		})
+		if err != nil {
+			// Config validation has already checked the list, so this is
+			// a bug rather than a typo: say so and leave the sign-in off
+			// rather than starting with a client nobody checked.
+			log.Error("revoked sign-in disabled", "err", err)
+		} else {
+			s.revoked, s.revokedFlows = rc, newRevokedFlows()
+		}
 	}
 	s.routes()
 	return s
@@ -102,6 +123,10 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("DELETE /api/friends/invites/{id}", s.rateLimited(s.limAccount, s.handleInviteDismiss))
 	s.mux.HandleFunc("GET /ws/me", s.handleUserWS)
 	s.mux.HandleFunc("POST /api/accounts/password", s.rateLimited(s.limAccount, s.handleAccountPassword))
+	s.mux.HandleFunc("POST /api/accounts/revoked/start", s.rateLimited(s.limAccount, s.handleRevokedStart))
+	s.mux.HandleFunc("GET /api/accounts/revoked/callback", s.rateLimited(s.limAccount, s.handleRevokedCallback))
+	s.mux.HandleFunc("POST /api/accounts/revoked/finish", s.rateLimited(s.limAccount, s.handleRevokedFinish))
+	s.mux.HandleFunc("POST /api/accounts/revoked/claim", s.rateLimited(s.limAccount, s.handleRevokedClaim))
 
 	// Table admin: every route is guarded by the table's own admin token.
 	s.mux.HandleFunc("GET /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminGetTable))
@@ -182,6 +207,9 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 		// Whether this instance offers player profiles at all; with it off
 		// the client shows no sign-in anywhere.
 		"accounts": s.cfg.Accounts,
+		// Whether this instance offers "sign in with revoked" as well as
+		// a password; the client shows the button only when it does.
+		"revoked_sign_in": s.revoked != nil,
 		// Whether this instance lets a player be told what to do on their
 		// turn; with it off no client offers the recommendation. What a
 		// player's own cards make is theirs either way.

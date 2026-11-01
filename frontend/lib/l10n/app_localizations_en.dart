@@ -309,6 +309,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountsOff => 'This instance has no player profiles.';
 
   @override
+  String get revokedSignIn => 'Sign in with Revoked';
+
+  @override
+  String get revokedNeedsApp =>
+      'Nothing happened? The Revoked app is needed to sign in.';
+
+  @override
+  String get revokedNameServer => 'Use a particular server';
+
+  @override
+  String get revokedBack => 'Back';
+
+  @override
+  String get revokedOr => 'or';
+
+  @override
+  String get revokedServerLabel => 'Your revoked server';
+
+  @override
+  String get revokedServerHint => 'revoked.example';
+
+  @override
+  String get revokedServerBody =>
+      'Any revoked server works — type the address of the one you use.';
+
+  @override
+  String get revokedContinue => 'Continue';
+
+  @override
+  String get revokedOpening => 'Opening your revoked server…';
+
+  @override
+  String revokedCheckCode(String code) {
+    return 'Approve the request showing $code.';
+  }
+
+  @override
+  String get revokedChooseTitle => 'Pick your name';
+
+  @override
+  String revokedChooseBody(String server) {
+    return '$server vouched for you. Choose the name you play under here; there is no password to set.';
+  }
+
+  @override
+  String get revokedFailed => 'That sign-in did not finish. Please try again.';
+
+  @override
+  String get revokedDeclined => 'The sign-in was declined.';
+
+  @override
+  String get revokedExpired =>
+      'That sign-in took too long. Please start again.';
+
+  @override
   String get accountRecoveryTitle => 'Write this down';
 
   @override

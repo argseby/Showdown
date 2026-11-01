@@ -273,6 +273,37 @@ class ProfileStats {
       showdowns == 0 ? 0 : showdownsWon * 100 / showdowns;
 }
 
+/// A sign-in with revoked that has come back from the revoked server.
+/// Either the identity is already linked here and there is a session, or
+/// it is new and the player has to choose a handle before there is one.
+sealed class RevokedFinish {
+  const RevokedFinish();
+}
+
+class RevokedSignedIn extends RevokedFinish {
+  const RevokedSignedIn(this.token, this.account);
+  final String token;
+  final Account account;
+}
+
+class RevokedNeedsHandle extends RevokedFinish {
+  const RevokedNeedsHandle({
+    required this.claim,
+    required this.issuer,
+    required this.suggestedHandle,
+    required this.name,
+  });
+
+  /// Spend this on [AccountApi.revokedClaim] with the chosen handle.
+  final String claim;
+  final String issuer;
+
+  /// What the revoked server's name claim folds down to, or empty when it
+  /// yields nothing a handle may be — the field simply starts empty.
+  final String suggestedHandle;
+  final String name;
+}
+
 /// The REST calls of the profile API.
 class AccountApi {
   AccountApi(this._rest);
@@ -313,6 +344,64 @@ class AccountApi {
 
   Future<void> signOut(String token) =>
       _rest.delete('/api/accounts/session', token: token);
+
+  /// Asks this server to prepare a sign-in.
+  ///
+  /// With no [issuer] the answer carries a `revoked://signin` link: the
+  /// app opens the request on whichever server the person uses and names
+  /// it in the answer. That is the ordinary way in — which server someone
+  /// runs is their own business. Naming one is the fallback, and then
+  /// `authorizeUrl` sends the browser to that server instead.
+  Future<
+    ({String appLink, String authorizeUrl, String issuer, String checkCode})
+  >
+  revokedStart({String issuer = ''}) async {
+    final json = await _rest.postJson('/api/accounts/revoked/start', {
+      'issuer': issuer,
+    });
+    return (
+      appLink: json['app_link'] as String? ?? '',
+      authorizeUrl: json['authorize_url'] as String? ?? '',
+      issuer: json['issuer'] as String? ?? issuer,
+      checkCode: json['check_code'] as String? ?? '',
+    );
+  }
+
+  /// Spends the one-time code the revoked server sent the tab back with.
+  Future<RevokedFinish> revokedFinish(String code) async {
+    final json = await _rest.postJson('/api/accounts/revoked/finish', {
+      'code': code,
+    });
+    if (json['pending'] == true) {
+      return RevokedNeedsHandle(
+        claim: json['claim'] as String,
+        issuer: json['issuer'] as String? ?? '',
+        suggestedHandle: json['suggested_handle'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+      );
+    }
+    return RevokedSignedIn(
+      json['token'] as String,
+      Account.fromJson(json['account'] as Map<String, dynamic>),
+    );
+  }
+
+  /// Makes the profile for a revoked identity that has none here yet.
+  Future<({String token, Account account})> revokedClaim({
+    required String claim,
+    required String handle,
+    String? displayName,
+  }) async {
+    final json = await _rest.postJson('/api/accounts/revoked/claim', {
+      'claim': claim,
+      'handle': handle,
+      'display_name': ?displayName,
+    });
+    return (
+      token: json['token'] as String,
+      account: Account.fromJson(json['account'] as Map<String, dynamic>),
+    );
+  }
 
   /// Sets a new password. Every other device is signed out and a fresh
   /// recovery code comes back — the old one is spent.
@@ -439,6 +528,22 @@ class AccountNotifier extends AsyncNotifier<Account?> {
     final res = await ref
         .read(accountApiProvider)
         .signIn(handle: handle, password: password);
+    await _adopt(res.token, res.account);
+  }
+
+  /// Takes the session a finished revoked sign-in produced.
+  Future<void> adoptRevoked(RevokedSignedIn res) =>
+      _adopt(res.token, res.account);
+
+  /// Creates the profile for a new revoked identity and signs in.
+  Future<void> claimRevoked({
+    required String claim,
+    required String handle,
+    String? displayName,
+  }) async {
+    final res = await ref
+        .read(accountApiProvider)
+        .revokedClaim(claim: claim, handle: handle, displayName: displayName);
     await _adopt(res.token, res.account);
   }
 

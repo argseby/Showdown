@@ -144,9 +144,14 @@ const (
 	ErrRabbitNotAllowed   = "rabbit_not_allowed"
 	ErrTournamentLocked   = "tournament_locked"
 	ErrAccountsOff        = "accounts_disabled"
-	ErrHandleTaken        = "handle_taken"
-	ErrBadCredentials     = "bad_credentials"
-	ErrInternal           = "internal_error"
+	// Sign-in with revoked: off on this instance, the revoked server
+	// could not be used, or the half-finished sign-in has expired.
+	ErrRevokedOff     = "revoked_sign_in_disabled"
+	ErrRevokedServer  = "revoked_server_unusable"
+	ErrRevokedState   = "revoked_sign_in_expired"
+	ErrHandleTaken    = "handle_taken"
+	ErrBadCredentials = "bad_credentials"
+	ErrInternal       = "internal_error"
 )
 
 // ---- client payloads ------------------------------------------------------------

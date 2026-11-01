@@ -219,6 +219,18 @@ class RestClient {
     }
   }
 
+  /// Whether this instance offers "sign in with revoked" next to the
+  /// password. False when the server cannot be reached: the button is not
+  /// shown on a guess.
+  Future<bool> revokedSignInEnabled() async {
+    try {
+      final json = await getJson('/api/config');
+      return json['revoked_sign_in'] as bool? ?? false;
+    } on Object catch (_) {
+      return false;
+    }
+  }
+
   /// Whether this instance lets a player be told what to do on their turn.
   /// True when the server cannot be reached, which costs nothing: the
   /// advice itself comes from the server, so an instance that refuses it
