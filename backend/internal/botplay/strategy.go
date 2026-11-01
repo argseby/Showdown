@@ -223,6 +223,90 @@ func CheckOrCall(o protocol.OptionsView) protocol.ActionPayload {
 	return protocol.ActionPayload{Kind: "fold"}
 }
 
+// Advice is a decision with its working shown: what the strategy would do
+// and the numbers it got there with. The bots need only the action; a
+// player being helped along needs the reasons, and the two must be the same
+// strategy or the advice is a lie.
+type Advice struct {
+	// Action is "fold", "check", "call", "raise" or "all_in"; Amount is the
+	// raise-to for a raise and zero otherwise.
+	Action string
+	Amount int64
+	// Equity is the share of the pot the hand takes against Opponents
+	// random hands over random run-outs (0..1). Against real opponents,
+	// who put money in with better than random hands, it reads high.
+	Equity float64
+	// Need is the share a call has to win to pay for itself — the price
+	// over the pot it creates. Zero when checking is free.
+	Need float64
+	// Edge places the hand between an average holding at this table (0)
+	// and a certainty (1), which is what makes one scale out of spots with
+	// different numbers of players. Negative is worse than average.
+	Edge      float64
+	Opponents int
+	// Sizing says how big a raise is against the pot it would be raising
+	// into — "small" for about half of it, "big" for about all of it.
+	// Empty for every other action. A player learning the game needs the
+	// size in words far more than they need the number.
+	Sizing string
+	// Reason is why, in one word the client has a sentence for. The
+	// strategy names it where it decides, so the reason a player reads can
+	// never drift from the reason the strategy had.
+	Reason string
+}
+
+// The reasons a line is taken. They are about the hand and the price, not
+// about the numbers behind either: a player who is told "too expensive for
+// what you hold" has learned something they can use next time, and one who
+// is told "0.32 < 0.37" has not.
+const (
+	// ReasonStrongStart: these two cards are worth putting money in with.
+	ReasonStrongStart = "strong_start"
+	// ReasonWeakStart: these two cards are not worth paying to see a flop.
+	ReasonWeakStart = "weak_start"
+	// ReasonCheapLook: the price is small enough to see what comes.
+	ReasonCheapLook = "cheap_look"
+	// ReasonFreeLook: nothing to pay, so there is no reason not to look.
+	ReasonFreeLook = "free_look"
+	// ReasonWorthPrice: what the hand holds is worth what is being asked.
+	ReasonWorthPrice = "worth_price"
+	// ReasonTooExpensive: it holds something, just not enough for this price.
+	ReasonTooExpensive = "too_expensive"
+	// ReasonNothingThere: no hand and nothing to draw at.
+	ReasonNothingThere = "nothing_there"
+	// ReasonAhead: likely the best hand at the table right now.
+	ReasonAhead = "ahead"
+	// ReasonNothingToBet: not worth putting money in yet.
+	ReasonNothingToBet = "nothing_to_bet"
+)
+
+// Raise sizings, as words rather than fractions of a pot.
+const (
+	SizingSmall = "small"
+	SizingBig   = "big"
+)
+
+// Advise is [Decide] with the numbers kept. It differs from the bot in one
+// way on purpose: where the strategy mixes in a bluff or a thin value bet
+// by coin flip, the advice declines the flip and gives the plain line
+// instead. Advice that changed between two presses of the same button would
+// teach nothing, and a beginner told to bluff with nothing learns the wrong
+// lesson first.
+func Advise(o protocol.OptionsView, s protocol.Snapshot, seat int) (Advice, bool) {
+	sp, ok := readSpot(o, s, seat)
+	if !ok || sp.opponents == 0 {
+		return Advice{}, false
+	}
+	// A fixed seed makes the equity estimate repeatable for one spot: the
+	// cards are what differ between spots, not the sampling.
+	rng := rand.New(rand.NewPCG(adviceSeed, adviceSeed))
+	return decide(o, sp, rng, func() float64 { return 1 }), true
+}
+
+// adviceSeed keeps the advice for one spot the same every time it is asked
+// for. Any constant does; this one is arbitrary.
+const adviceSeed = 0x5d09c0de
+
 // Decide picks the action for `seat`, whose turn the snapshot says it is.
 // rng carries the mixed frequencies and makes a seeded bot repeatable.
 func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Rand) protocol.ActionPayload {
@@ -230,6 +314,14 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 	if !ok || sp.opponents == 0 {
 		return CheckOrCall(o)
 	}
+	a := decide(o, sp, rng, rng.Float64)
+	return protocol.ActionPayload{Kind: a.Action, Amount: a.Amount}
+}
+
+// decide is the strategy itself. roll draws the coin flips that mix the
+// frequencies, so a caller that wants one plain line passes a roll that
+// never comes up.
+func decide(o protocol.OptionsView, sp spot, rng *rand.Rand, roll func() float64) Advice {
 	equity := equityVsRandom(sp, rng)
 	// Everyone holds 1/(opponents+1) of the pot on average, whatever the
 	// table size. Measuring the hand between that share and certainty puts
@@ -247,12 +339,25 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 	// raiseTo bets a fraction of the pot as it would stand after our call,
 	// the usual way to size a bet. Raising is not always offered (a short
 	// stack, a bet that is already all-in); shove instead when it is not.
+	sizing, reason := "", ""
+	// because tags a line with why it was taken, at the point it is taken.
+	because := func(r string, act protocol.ActionPayload) protocol.ActionPayload {
+		reason = r
+		return act
+	}
 	raiseTo := func(fraction float64) protocol.ActionPayload {
 		if o.Raise == nil {
 			if o.AllIn > 0 {
 				return protocol.ActionPayload{Kind: "all_in"}
 			}
 			return CheckOrCall(o)
+		}
+		// Half the pot or thereabouts is a small raise; anything more is
+		// a big one. Two words are all a beginner can act on.
+		if fraction <= 0.55 {
+			sizing = SizingSmall
+		} else {
+			sizing = SizingBig
 		}
 		target := sp.currentBet + int64(fraction*float64(sp.pot+sp.call))
 		if sp.bb > 0 {
@@ -273,63 +378,79 @@ func Decide(o protocol.OptionsView, s protocol.Snapshot, seat int, rng *rand.Ran
 		pressure = min(float64(sp.currentBet)/float64(sp.stack), 1)
 	}
 
-	if sp.preflop {
-		// Unopened: only the blinds are in, or a straddle on top of them.
-		if sp.currentBet <= 2*sp.bb {
-			// Tight up front, wider on the button. Six-handed that is
-			// about the top 6% from the first seat and the top 20% from
-			// the last; heads-up the same numbers open about half.
-			if edge >= 0.045-0.030*sp.relPos {
-				return raiseTo(1) // about three big blinds, plus one per limper
+	// The decision tree, kept whole: it reads as the strategy rather
+	// than as a value being assembled.
+	act := func() protocol.ActionPayload {
+		if sp.preflop {
+			// Unopened: only the blinds are in, or a straddle on top of them.
+			if sp.currentBet <= 2*sp.bb {
+				// Tight up front, wider on the button. Six-handed that is
+				// about the top 6% from the first seat and the top 20% from
+				// the last; heads-up the same numbers open about half.
+				if edge >= 0.045-0.030*sp.relPos {
+					// about three big blinds, plus one per limper
+					return because(ReasonStrongStart, raiseTo(1))
+				}
+				if o.Check {
+					return because(ReasonFreeLook, protocol.ActionPayload{Kind: "check"})
+				}
+				// Completing the small blind is cheap enough to be worth it
+				// with anything playable; limping behind is not.
+				if edge >= 0 && sp.call <= sp.bb/2 {
+					return because(ReasonCheapLook, protocol.ActionPayload{Kind: "call"})
+				}
+				return because(ReasonWeakStart, protocol.ActionPayload{Kind: "fold"})
 			}
-			if o.Check {
-				return protocol.ActionPayload{Kind: "check"}
+			// Facing a raise.
+			switch {
+			case edge >= 0.13+2.5*pressure:
+				return because(ReasonStrongStart, raiseTo(1))
+			case edge >= 0.055-0.020*sp.relPos && equity >= potOdds*1.25:
+				return because(ReasonWorthPrice, CheckOrCall(o))
+			default:
+				return because(ReasonWeakStart, protocol.ActionPayload{Kind: "fold"})
 			}
-			// Completing the small blind is cheap enough to be worth it
-			// with anything playable; limping behind is not.
-			if edge >= 0 && sp.call <= sp.bb/2 {
-				return protocol.ActionPayload{Kind: "call"}
-			}
-			return protocol.ActionPayload{Kind: "fold"}
 		}
-		// Facing a raise.
-		switch {
-		case edge >= 0.13+2.5*pressure:
-			return raiseTo(1)
-		case edge >= 0.055-0.020*sp.relPos && equity >= potOdds*1.25:
-			return CheckOrCall(o)
-		default:
-			return protocol.ActionPayload{Kind: "fold"}
-		}
-	}
 
-	// After the flop, with the board to go on.
-	if sp.call == 0 {
-		switch {
-		case edge >= 0.35:
-			return raiseTo(0.67) // value
-		case edge >= 0.18 && rng.Float64() < 0.6:
-			return raiseTo(0.5) // thin value, not every time
-		case sp.opponents == 1 && sp.relPos == 1 && rng.Float64() < 0.15:
-			return raiseTo(0.5) // a bluff at a checked pot, heads-up and last
-		default:
-			return protocol.ActionPayload{Kind: "check"}
+		// After the flop, with the board to go on.
+		if sp.call == 0 {
+			switch {
+			case edge >= 0.35:
+				return because(ReasonAhead, raiseTo(0.67)) // value
+			case edge >= 0.18 && roll() < 0.6:
+				return because(ReasonAhead, raiseTo(0.5)) // thin value, not every time
+			case sp.opponents == 1 && sp.relPos == 1 && roll() < 0.15:
+				// a bluff at a checked pot, heads-up and last
+				return because(ReasonAhead, raiseTo(0.5))
+			default:
+				return because(ReasonNothingToBet, protocol.ActionPayload{Kind: "check"})
+			}
 		}
+		// Facing a bet. The margin on top of the pot odds pays for the equity
+		// the estimate overstates. It grows with the size of the bet, because a
+		// player betting big is rarely doing it with nothing, and with the
+		// number of players still in, because one of more hands is likelier to
+		// have us beaten already.
+		need := potOdds * (1.2 + 0.6*potOdds + 0.1*float64(sp.opponents-1))
+		switch {
+		case edge >= 0.55+1.5*pressure:
+			return because(ReasonAhead, raiseTo(0.67))
+		case equity >= need:
+			return because(ReasonWorthPrice, protocol.ActionPayload{Kind: "call"})
+		case equity >= potOdds && sp.call <= sp.bb:
+			// a token price, worth the look
+			return because(ReasonCheapLook, protocol.ActionPayload{Kind: "call"})
+		case edge < 0:
+			return because(ReasonNothingThere, protocol.ActionPayload{Kind: "fold"})
+		default:
+			return because(ReasonTooExpensive, protocol.ActionPayload{Kind: "fold"})
+		}
+	}()
+	if act.Kind != "raise" {
+		sizing = "" // only a raise has a size
 	}
-	// Facing a bet. The margin on top of the pot odds pays for the equity
-	// the estimate overstates. It grows with the size of the bet, because a
-	// player betting big is rarely doing it with nothing, and with the
-	// number of players still in, because one of more hands is likelier to
-	// have us beaten already.
-	need := potOdds * (1.2 + 0.6*potOdds + 0.1*float64(sp.opponents-1))
-	switch {
-	case edge >= 0.55+1.5*pressure:
-		return raiseTo(0.67)
-	case equity >= need:
-		return protocol.ActionPayload{Kind: "call"}
-	case equity >= potOdds && sp.call <= sp.bb:
-		return protocol.ActionPayload{Kind: "call"} // a token price, worth the look
-	default:
-		return protocol.ActionPayload{Kind: "fold"}
+	return Advice{
+		Action: act.Kind, Amount: act.Amount, Sizing: sizing, Reason: reason,
+		Equity: equity, Need: potOdds, Edge: edge, Opponents: sp.opponents,
 	}
 }

@@ -24,6 +24,7 @@ func TestLoadDefaults(t *testing.T) {
 		MaxTables:           100,
 		MaxConnectionsPerIP: 50,
 		TrustProxy:          true,
+		PlayerAdvice:        true,
 		LogLevel:            "info",
 		LogFormat:           "json",
 	}
@@ -44,6 +45,7 @@ func TestLoadOverrides(t *testing.T) {
 		"DEV_CORS_ORIGIN":        "http://localhost:3000",
 		"LOG_LEVEL":              "DEBUG",
 		"LOG_FORMAT":             "text",
+		"PLAYER_ADVICE":          "false",
 	}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -51,7 +53,7 @@ func TestLoadOverrides(t *testing.T) {
 	if cfg.ListenAddr != "127.0.0.1:9090" || cfg.DataDir != "/tmp/x" ||
 		cfg.TableRetentionDays != 0 || cfg.MaxTables != 5 || cfg.MaxConnectionsPerIP != 7 ||
 		cfg.TrustProxy || cfg.DevCORSOrigin != "http://localhost:3000" ||
-		cfg.LogLevel != "debug" || cfg.LogFormat != "text" {
+		cfg.LogLevel != "debug" || cfg.LogFormat != "text" || cfg.PlayerAdvice {
 		t.Fatalf("overrides not applied: %+v", cfg)
 	}
 	if cfg.SlogLevel() != slog.LevelDebug {

@@ -301,6 +301,7 @@ _PublicSettings _$PublicSettingsFromJson(Map<String, dynamic> json) =>
       requiresPassword: json['requires_password'] as bool,
       allowRabbitHunt: json['allow_rabbit_hunt'] as bool,
       allowDrawing: json['allow_drawing'] as bool? ?? true,
+      allowAdvice: json['allow_advice'] as bool? ?? true,
       tournament: json['tournament'] as bool? ?? false,
       blindsUpMinutes: (json['blinds_up_minutes'] as num).toInt(),
       blindsUpPercent: (json['blinds_up_percent'] as num).toInt(),
@@ -328,6 +329,7 @@ Map<String, dynamic> _$PublicSettingsToJson(_PublicSettings instance) =>
       'requires_password': instance.requiresPassword,
       'allow_rabbit_hunt': instance.allowRabbitHunt,
       'allow_drawing': instance.allowDrawing,
+      'allow_advice': instance.allowAdvice,
       'tournament': instance.tournament,
       'blinds_up_minutes': instance.blindsUpMinutes,
       'blinds_up_percent': instance.blindsUpPercent,
@@ -496,6 +498,14 @@ _You _$YouFromJson(Map<String, dynamic> json) => _You(
   bestCards: (json['best_cards'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
+  handCategory: (json['hand_category'] as num?)?.toInt(),
+  handRoyal: json['hand_royal'] as bool?,
+  handRanks: (json['hand_ranks'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  notes: (json['notes'] as List<dynamic>?)
+      ?.map((e) => HandNote.fromJson(e as Map<String, dynamic>))
+      .toList(),
   canRabbitHunt: json['can_rabbit_hunt'] as bool,
   pendingSeat: (json['pending_seat'] as num?)?.toInt(),
   canChangeSeat: json['can_change_seat'] as bool? ?? false,
@@ -515,12 +525,28 @@ Map<String, dynamic> _$YouToJson(_You instance) => <String, dynamic>{
   'can_show_cards': instance.canShowCards,
   'pre_action': instance.preAction,
   'best_cards': ?instance.bestCards,
+  'hand_category': ?instance.handCategory,
+  'hand_royal': ?instance.handRoyal,
+  'hand_ranks': ?instance.handRanks,
+  'notes': ?instance.notes?.map((e) => e.toJson()).toList(),
   'can_rabbit_hunt': instance.canRabbitHunt,
   'pending_seat': ?instance.pendingSeat,
   'can_change_seat': instance.canChangeSeat,
   'straddle': ?instance.straddle,
   'can_run_twice': ?instance.canRunTwice,
   'run_twice_vote': ?instance.runTwiceVote,
+};
+
+_HandNote _$HandNoteFromJson(Map<String, dynamic> json) => _HandNote(
+  id: json['id'] as String,
+  rank: json['rank'] as String?,
+  suit: json['suit'] as String?,
+);
+
+Map<String, dynamic> _$HandNoteToJson(_HandNote instance) => <String, dynamic>{
+  'id': instance.id,
+  'rank': ?instance.rank,
+  'suit': ?instance.suit,
 };
 
 _OptionsView _$OptionsViewFromJson(Map<String, dynamic> json) => _OptionsView(

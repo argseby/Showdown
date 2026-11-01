@@ -594,6 +594,60 @@ func DescribeHole(a, b Card) string {
 // BestCards returns the cards that make up the seat's current best hand: the
 // best five from the flop on, before that the hole cards that count (the
 // pair, or the high card).
+// Rank is the category of the seat's hand as [Description] words it, with
+// the royal flush told apart from a straight flush; ok is false for a seat
+// that was never dealt in. Before the flop it ranks the two cards alone —
+// a pocket pair is a pair, anything else a high card — so a client can
+// point at a row of the hand rankings from the deal on.
+func (h *Hand) Rank(seat int) (cat Category, royal, ok bool) {
+	p, found := h.bySeat[seat]
+	if !found {
+		return 0, false, false
+	}
+	if len(h.board) < 3 {
+		if p.hole[0].Rank() == p.hole[1].Rank() {
+			return OnePair, false, true
+		}
+		return HighCard, false, true
+	}
+	v := Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...))
+	return v.Category, IsRoyalFlush(v), true
+}
+
+// HandRanks are the ranks that name the seat's hand, in the one-character
+// spelling the cards use: the pair's rank, both ranks of a two pair, the
+// high card of a straight. Before the flop it is the rank of a pocket pair
+// and both cards otherwise, high first, which is what names a starting
+// hand. Empty for a seat that was never dealt in.
+func (h *Hand) HandRanks(seat int) []Rank {
+	p, ok := h.bySeat[seat]
+	if !ok {
+		return nil
+	}
+	if len(h.board) < 3 {
+		a, b := p.hole[0], p.hole[1]
+		if a.Rank() == b.Rank() {
+			return []Rank{a.Rank()}
+		}
+		if b.Rank() > a.Rank() {
+			a, b = b, a
+		}
+		return []Rank{a.Rank(), b.Rank()}
+	}
+	return Evaluate(append([]Card{p.hole[0], p.hole[1]}, h.board...)).Significant()
+}
+
+// Notes reads the board for a seat: what it threatens for anyone, and what
+// the seat's own hand can still become. Empty before the flop and for a
+// seat that was never dealt in.
+func (h *Hand) Notes(seat int) []Note {
+	p, ok := h.bySeat[seat]
+	if !ok {
+		return nil
+	}
+	return Read(h.Variant(), p.hole, h.board)
+}
+
 func (h *Hand) BestCards(seat int) []Card {
 	p, ok := h.bySeat[seat]
 	if !ok {

@@ -28,6 +28,7 @@ class SeatWidget extends ConsumerWidget {
     required this.compact,
     this.winner = false,
     this.winnerColor = winnerGold,
+    this.bestColor,
     this.handNumber = 0,
     this.bigBlind = 0,
     this.chipDisplay = ChipDisplay.coins,
@@ -90,8 +91,12 @@ class SeatWidget extends ConsumerWidget {
   final bool isViewer;
   final int turnTimeMs;
 
-  /// Best five cards of this seat when it won a pot (gold highlight).
+  /// Best five cards of this seat when it won a pot (gold highlight), or
+  /// the viewer's own five while they are still playing the hand.
   final List<String>? best;
+
+  /// Ring colour of [best]; the winner's colour when null.
+  final Color? bestColor;
   final bool compact;
 
   /// Won a pot in the current hand: glowing avatar ring.
@@ -386,7 +391,7 @@ class SeatWidget extends ConsumerWidget {
                         width: cardWidth,
                         fourColor: fourColor,
                         highlighted: _inBest(p, i),
-                        highlightColor: winnerColor,
+                        highlightColor: bestColor ?? winnerColor,
                       ),
                     ),
                 ],
@@ -567,7 +572,7 @@ class SeatWidget extends ConsumerWidget {
     );
   }
 
-  /// Whether hole card [i] belongs to the winning five at the showdown.
+  /// Whether hole card [i] belongs to the five being highlighted.
   bool _inBest(PlayerView p, int i) {
     final cards = p.holeCards;
     if (cards == null || cards.length <= i) return false;

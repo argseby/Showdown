@@ -45,6 +45,13 @@ class _Rotating extends FixedSeatsNotifier {
   bool build() => false;
 }
 
+/// The viewer's own five ringed — the help a player gets by asking for it,
+/// which is off until they do.
+class _Highlighting extends HandHighlightNotifier {
+  @override
+  bool build() => true;
+}
+
 void main() {
   test('seat positions rotate the viewer to the bottom', () {
     expect(TableView.positionOf(4, 4, 9), 0);
@@ -348,6 +355,7 @@ void main() {
   });
   _moreTests();
   _potTests();
+  _handHighlightTests();
   _showdownTests();
   _markerTests();
 }
@@ -829,5 +837,136 @@ void _markerTests() {
     container.read(handLineProvider.notifier).set(HandLinePlacement.off);
     await tester.pump();
     expect(find.byKey(const Key('your-hand')), findsNothing);
+  });
+}
+
+void _handHighlightTests() {
+  /// A board that makes its own hand: trip sevens with an ace on the end.
+  /// Alice's king is the card that does nothing, which is the whole point
+  /// of the highlight.
+  Snapshot sevens() {
+    final snap = fixtureSnapshot();
+    return snap.copyWith(
+      hand: snap.hand!.copyWith(
+        street: 'river',
+        board: ['7c', '7d', '7h', '2d', 'Ah'],
+        toActSeat: null,
+      ),
+      you: snap.you.copyWith(
+        options: null,
+        handDescription: 'Full House, Sevens over Aces',
+        bestCards: ['7c', '7d', '7h', 'As', 'Ah'],
+      ),
+    );
+  }
+
+  TableSessionState session(Snapshot snap) => TableSessionState(
+    connection: const WsState(status: WsStatus.ready),
+    snapshot: snap,
+    identity: const YouIdentity(role: 'player', playerId: 'p1', seat: 0),
+  );
+
+  Set<String?> ringed(WidgetTester tester) => tester
+      .widgetList<PlayingCardWidget>(find.byType(PlayingCardWidget))
+      .where((c) => c.highlighted)
+      .map((c) => c.card)
+      .toSet();
+
+  final ringing = [handHighlightProvider.overrideWith(_Highlighting.new)];
+
+  testWidgets('your own five is ringed while you are playing it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(
+          width: 1000,
+          height: 600,
+          child: TableView(session: session(sevens())),
+        ),
+        overrides: ringing,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    // The board's three sevens and the ace it pairs — Alice's king plays no
+    // part and is left plain.
+    expect(ringed(tester), {'7c', '7d', '7h', 'As', 'Ah'});
+    final rings = tester
+        .widgetList<PlayingCardWidget>(find.byType(PlayingCardWidget))
+        .where((c) => c.highlighted)
+        .map((c) => c.highlightColor)
+        .toSet();
+    // Teal, never the winner's gold and never the theme's near-white
+    // primary, which would disappear on a card face.
+    expect(rings, {handRing});
+    expect(
+      Theme.of(tester.element(find.byType(TableView))).colorScheme.primary,
+      isNot(handRing),
+    );
+  });
+
+  testWidgets('a pot being presented takes the felt back', (tester) async {
+    final snap = sevens();
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(
+          width: 1000,
+          height: 600,
+          child: TableView(
+            session: session(snap).copyWith(
+              winners: const {4},
+              best: const {
+                4: ['7c', '7d', '7h', '2d', 'Ah'],
+              },
+            ),
+          ),
+        ),
+        overrides: ringing,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    // Bob's winning five, in gold; Alice's ace is no longer ringed.
+    expect(ringed(tester), {'7c', '7d', '7h', '2d', 'Ah'});
+    expect(ringed(tester), isNot(contains('As')));
+  });
+
+  testWidgets('a folded hand is not ringed', (tester) async {
+    final snap = sevens();
+    final folded = snap.copyWith(
+      seats: [
+        for (final sv in snap.seats)
+          sv.seat == 0
+              ? sv.copyWith(player: sv.player?.copyWith(folded: true))
+              : sv,
+      ],
+    );
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(
+          width: 1000,
+          height: 600,
+          child: TableView(session: session(folded)),
+        ),
+        overrides: ringing,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(ringed(tester), isEmpty);
+  });
+
+  testWidgets('nobody is ringed who has not asked to be', (tester) async {
+    // The default: the table names the hand and rings nothing. The ring
+    // arrives with the help a player picks when they join.
+    await tester.pumpWidget(
+      wrap(
+        SizedBox(
+          width: 1000,
+          height: 600,
+          child: TableView(session: session(sevens())),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(ringed(tester), isEmpty);
   });
 }

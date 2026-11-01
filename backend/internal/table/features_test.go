@@ -597,3 +597,117 @@ func TestOwnHandDescribedAfterFold(t *testing.T) {
 		return false
 	})
 }
+
+// The board is read back to the viewer from the flop on, alongside the
+// name of their hand: what it threatens, and what they can still hit.
+func TestOwnHandNotes(t *testing.T) {
+	t.Parallel()
+	tbl := newTestTable(t, testSettings())
+	_, connA := join(t, tbl, "Alice")
+	_, _ = join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	waitFor(t, "cards dealt", func() bool {
+		snap := connA.lastSnapshot(t)
+		return snap.Hand != nil && len(snap.You.BestCards) > 0
+	})
+	// Before the flop there is no board, so there is nothing to read.
+	if snap := connA.lastSnapshot(t); len(snap.Hand.Board) == 0 && len(snap.You.Notes) != 0 {
+		t.Errorf("notes %v before the flop, want none", snap.You.Notes)
+	}
+	// Play the hand out to a board and look again: whatever the deal, a
+	// note that appears must name itself.
+	waitFor(t, "a flop", func() bool {
+		if id, _ := toAct(tbl); id != "" {
+			if err := tbl.Action(id, poker.Action{Kind: poker.Check}); err != nil {
+				_ = tbl.Action(id, poker.Action{Kind: poker.Call})
+			}
+		}
+		snap := connA.lastSnapshot(t)
+		return snap.Hand != nil && len(snap.Hand.Board) >= 3
+	})
+	snap := connA.lastSnapshot(t)
+	// An unshuffled deck puts a pair on the flop, so there is always
+	// something to say about this board.
+	if len(snap.You.Notes) == 0 {
+		t.Fatalf("no notes for board %v with %v", snap.Hand.Board, snap.You.BestCards)
+	}
+	for _, n := range snap.You.Notes {
+		if n.ID == "" {
+			t.Errorf("note without an id: %+v", n)
+		}
+	}
+	t.Logf("board %v -> notes %+v", snap.Hand.Board, snap.You.Notes)
+}
+
+// The rank of the viewer's own hand rides along with its description, from
+// the deal on, so a client can point at a row of the hand rankings.
+func TestOwnHandRank(t *testing.T) {
+	t.Parallel()
+	tbl := newTestTable(t, testSettings())
+	a, connA := join(t, tbl, "Alice")
+	_, _ = join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	_ = a
+	waitFor(t, "cards dealt", func() bool {
+		snap := connA.lastSnapshot(t)
+		return snap.Hand != nil && len(snap.Hand.Board) == 0 &&
+			snap.You.HandCategory != nil
+	})
+	snap := connA.lastSnapshot(t)
+	var hole []string
+	for _, sv := range snap.Seats {
+		if sv.Player != nil && sv.Player.ID == snap.You.PlayerID {
+			hole = sv.Player.HoleCards
+		}
+	}
+	if len(hole) != 2 {
+		t.Fatalf("own hole cards = %v, want both", hole)
+	}
+	// Before the flop the two cards alone are the hand: a pair when they
+	// match, a high card otherwise.
+	want := int(poker.HighCard)
+	if hole[0][0] == hole[1][0] {
+		want = int(poker.OnePair)
+	}
+	if got := *snap.You.HandCategory; got != want {
+		t.Errorf("hand_category for %v = %d, want %d", hole, got, want)
+	}
+	if snap.You.HandRoyal {
+		t.Error("hand_royal before the flop must be false")
+	}
+}
+
+// PLAYER_ADVICE=false stops the instance recommending an action. It does
+// not touch what a player's own cards make: those are the player's, and
+// reading them back is not advice.
+func TestNoAdviceStillReadsTheOwnHand(t *testing.T) {
+	t.Parallel()
+	tbl := newTestTableDeps(t, testSettings(), Deps{NoAdvice: true})
+	a, connA := join(t, tbl, "Alice")
+	_, _ = join(t, tbl, "Bob")
+	waitFor(t, "hand", func() bool { return handRunning(tbl) })
+	waitFor(t, "hand dealt", func() bool {
+		return connA.lastSnapshot(t).Hand != nil
+	})
+	snap := connA.lastSnapshot(t)
+	if snap.You.HandDescription == "" {
+		t.Error("hand_description is the player's own cards and must stay")
+	}
+	if len(snap.You.BestCards) == 0 {
+		t.Error("best_cards is the player's own hand and must stay")
+	}
+	if snap.You.HandCategory == nil {
+		t.Error("hand_category is the player's own hand and must stay")
+	}
+	// The line, though, is refused however the table is set up.
+	view, ok := tbl.Strength(a.PlayerID)
+	if !ok {
+		t.Fatal("the hand must still be readable")
+	}
+	if view.Advice != nil {
+		t.Errorf("advice = %+v, want none on an instance without it", view.Advice)
+	}
+	if view.Description == "" {
+		t.Error("the reading must survive without the advice")
+	}
+}

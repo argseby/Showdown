@@ -306,6 +306,27 @@ func (s *Server) handleSessionHands(w http.ResponseWriter, r *http.Request) {
 	s.writeHands(w, r, t.ID, viewerSeat)
 }
 
+// handleStrength answers how the caller's own hand is doing and, where the
+// table allows it, what the house strategy would do with it. Player token
+// only: the answer is built from the caller's own cards.
+func (s *Server) handleStrength(w http.ResponseWriter, r *http.Request) {
+	t, ok := s.tableOr404(w, r.PathValue("id"))
+	if !ok {
+		return
+	}
+	sess, err := s.lookupSession(r.Context(), bearerToken(r))
+	if err != nil || sess.TableID != t.ID || sess.Kind != table.RolePlayer {
+		writeError(w, http.StatusUnauthorized, protocol.ErrUnauthorized, "player session token of this table required")
+		return
+	}
+	view, ok := t.Strength(sess.PlayerID)
+	if !ok {
+		writeError(w, http.StatusConflict, protocol.ErrInvalidState, "no hand to read")
+		return
+	}
+	writeJSON(w, http.StatusOK, view)
+}
+
 func (s *Server) writeHands(w http.ResponseWriter, r *http.Request, tableID string, viewerSeat int) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	if limit <= 0 || limit > 100 {

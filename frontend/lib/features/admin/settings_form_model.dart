@@ -23,6 +23,7 @@ const Map<String, AppliesWhen> settingsApplies = {
   'hand_delay_ms': AppliesWhen.nextHand,
   'allow_rabbit_hunt': AppliesWhen.immediately,
   'allow_drawing': AppliesWhen.immediately,
+  'allow_advice': AppliesWhen.immediately,
   'tournament': AppliesWhen.immediately,
   'blinds_up_minutes': AppliesWhen.immediately,
   'blinds_up_percent': AppliesWhen.immediately,

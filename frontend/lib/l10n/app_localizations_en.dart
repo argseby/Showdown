@@ -1851,6 +1851,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Everyone sees the table the same way round, with your own seat wherever you sat down. Off, the table turns so that you are always at the bottom.';
 
   @override
+  String get handHighlight => 'Highlight your hand';
+
+  @override
+  String get handHighlightAbout =>
+      'Rings the cards that make your hand, yours and the board\'s, while you play it — so you can see at once which of your cards contributes nothing.';
+
+  @override
+  String get potOdds => 'Pot odds';
+
+  @override
+  String get potOddsAbout =>
+      'Over the buttons when there is a bet to you: what the call costs, what it would win, and how often it has to be good to be worth paying.';
+
+  @override
   String get showdownSpotlightAbout =>
       'At the showdown the winning hand stays lit while the rest of the table dims, so you can see what won.';
 
@@ -2113,6 +2127,370 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String yourHand(String description) {
     return 'Your hand: $description';
+  }
+
+  @override
+  String get handRankingsTitle => 'Hand rankings';
+
+  @override
+  String get handRankingsIntro =>
+      'Best to worst. Five cards make a hand — yours plus the board.';
+
+  @override
+  String get handRankingsYours => 'What you have';
+
+  @override
+  String handRankingsYoursNamed(String description) {
+    return 'You have $description';
+  }
+
+  @override
+  String get handRankingsOpen => 'Hand rankings';
+
+  @override
+  String get helpTitle => 'Help while you play';
+
+  @override
+  String get helpQuestion => 'How much help do you want?';
+
+  @override
+  String get helpChangeLater => 'You can change this any time under Settings.';
+
+  @override
+  String get helpLevelNone => 'No help';
+
+  @override
+  String get helpLevelHand => 'I play regularly';
+
+  @override
+  String get helpLevelCards => 'I know the basics';
+
+  @override
+  String get helpLevelFull => 'New to poker';
+
+  @override
+  String get helpLevelCustom => 'Your own mix';
+
+  @override
+  String get helpNoneAbout =>
+      'The table tells you nothing you could not read yourself.';
+
+  @override
+  String get helpHandAbout =>
+      'Names the hand you are holding, with the hand rankings one tap away.';
+
+  @override
+  String get helpCardsAbout =>
+      'Also rings the cards that make your hand, and says what the board makes possible.';
+
+  @override
+  String get helpFullAbout =>
+      'Also tells you what the house strategy would do in your seat — and why.';
+
+  @override
+  String get helpCustomAbout => 'Your own mix of the three switches below.';
+
+  @override
+  String get helpOffByServer =>
+      'This server is set up without the help for beginners.';
+
+  @override
+  String get setAllowAdvice => 'Advice on your turn';
+
+  @override
+  String get adviceWorthCall => 'Worth a call';
+
+  @override
+  String get adviceWorthAllIn => 'Worth going all in';
+
+  @override
+  String get adviceCheck => 'Checking costs nothing here';
+
+  @override
+  String get adviceFold => 'Better to fold this one';
+
+  @override
+  String adviceChanceAndPrice(String equity, String need) {
+    return 'You win about $equity% of the time; the call asks for $need%.';
+  }
+
+  @override
+  String adviceChance(String equity) {
+    return 'You win about $equity% of the time.';
+  }
+
+  @override
+  String get adviceAbout =>
+      'A suggestion, not a truth: guessed from your cards against random hands. It cannot see how the others are really playing — and it will never bluff for you.';
+
+  @override
+  String get adviceTitle => 'Advice on your turn';
+
+  @override
+  String get adviceSettingAbout =>
+      'On your turn: what you are holding, what the board says about it, and how the house strategy would play your seat. The host allows it for their table.';
+
+  @override
+  String get adviceOffByHost =>
+      'The host has switched the advice off at this table.';
+
+  @override
+  String get suitSpades => 'spades';
+
+  @override
+  String get suitHearts => 'hearts';
+
+  @override
+  String get suitDiamonds => 'diamonds';
+
+  @override
+  String get suitClubs => 'clubs';
+
+  @override
+  String get noteNuts => 'Nothing can beat this hand right now.';
+
+  @override
+  String noteFlushDraw(String suit) {
+    return 'Four $suit — one more makes a flush.';
+  }
+
+  @override
+  String get noteOpenEnded =>
+      'Four in a row — a card at either end makes a straight.';
+
+  @override
+  String get noteGutshot => 'One card in the middle would fill a straight.';
+
+  @override
+  String noteFlushPossible(String suit) {
+    return 'Three $suit out there: anyone holding two more has a flush.';
+  }
+
+  @override
+  String noteFlushLanded(String suit) {
+    return 'Five $suit on the board — everyone has a flush, and the highest card takes it.';
+  }
+
+  @override
+  String get noteStraightPossible =>
+      'The board sits close enough together for a straight.';
+
+  @override
+  String noteBoardPaired(String rank) {
+    return 'A pair of $rank on the board — a full house is in reach.';
+  }
+
+  @override
+  String noteOvercard(String rank) {
+    return '$rank on the board: anyone holding one beats your pair.';
+  }
+
+  @override
+  String get noteScaryForEveryone =>
+      'A board like this is hard to call on — for them as much as for you.';
+
+  @override
+  String get rankTwos => 'Twos';
+
+  @override
+  String get rankThrees => 'Threes';
+
+  @override
+  String get rankFours => 'Fours';
+
+  @override
+  String get rankFives => 'Fives';
+
+  @override
+  String get rankSixes => 'Sixes';
+
+  @override
+  String get rankSevens => 'Sevens';
+
+  @override
+  String get rankEights => 'Eights';
+
+  @override
+  String get rankNines => 'Nines';
+
+  @override
+  String get rankTens => 'Tens';
+
+  @override
+  String get rankJacks => 'Jacks';
+
+  @override
+  String get rankQueens => 'Queens';
+
+  @override
+  String get rankKings => 'Kings';
+
+  @override
+  String get rankAces => 'Aces';
+
+  @override
+  String get boardNotes => 'Read the board';
+
+  @override
+  String get boardNotesAbout =>
+      'Under your hand: what the board makes possible — a flush, a straight, a full house — and what you are still missing. The danger is theirs too: a board nobody likes calling on is one worth betting into.';
+
+  @override
+  String get adviceCloseButRandom =>
+      'Close — but the sum assumes the others hold random cards, and someone who raises usually holds better.';
+
+  @override
+  String get rankOneTwo => 'Two';
+
+  @override
+  String get rankOneThree => 'Three';
+
+  @override
+  String get rankOneFour => 'Four';
+
+  @override
+  String get rankOneFive => 'Five';
+
+  @override
+  String get rankOneSix => 'Six';
+
+  @override
+  String get rankOneSeven => 'Seven';
+
+  @override
+  String get rankOneEight => 'Eight';
+
+  @override
+  String get rankOneNine => 'Nine';
+
+  @override
+  String get rankOneTen => 'Ten';
+
+  @override
+  String get rankOneJack => 'Jack';
+
+  @override
+  String get rankOneQueen => 'Queen';
+
+  @override
+  String get rankOneKing => 'King';
+
+  @override
+  String get rankOneAce => 'Ace';
+
+  @override
+  String adviceRaiseLittle(String amount) {
+    return 'Raise a little, to $amount';
+  }
+
+  @override
+  String adviceRaiseLot(String amount) {
+    return 'Raise a lot, to $amount';
+  }
+
+  @override
+  String get showOdds => 'Show the percentages';
+
+  @override
+  String get showOddsAbout =>
+      'For anyone who wants the arithmetic behind the advice: how often your hand wins, and how often it has to. Off unless you ask — the advice says it in words.';
+
+  @override
+  String get whyStrongStart => 'these two cards are worth playing for a raise';
+
+  @override
+  String get whyWeakStart => 'these two are not worth paying to see a flop';
+
+  @override
+  String get whyCheapLook => 'it costs little to see what comes next';
+
+  @override
+  String get whyFreeLook => 'nothing to pay, so there is no reason not to look';
+
+  @override
+  String get whyWorthPrice => 'what you hold is worth what they are asking';
+
+  @override
+  String get whyTooExpensive => 'too expensive for what you are holding';
+
+  @override
+  String get whyNothingThere => 'there is nothing here and nothing coming';
+
+  @override
+  String get whyAhead => 'you are likely ahead of them right now';
+
+  @override
+  String get whyNothingToBet => 'nothing worth putting money in yet';
+
+  @override
+  String get haveRoyalFlush => 'You have a royal flush.';
+
+  @override
+  String get adviceHint => 'Suggestion';
+
+  @override
+  String get adviceWhatIsThis => 'What is this?';
+
+  @override
+  String get adviceExplainTitle => 'A suggestion, not a rule';
+
+  @override
+  String get adviceExplainBody =>
+      'This is the line the table\'s own bot would take in your seat — the same one you can sit down at the table. It guesses from your cards against random hands, so it runs a little optimistic, and it cannot see how the players around you are actually playing.\n\nIt will never tell you to bluff, which is half of poker. Take it as a second opinion while you learn the shapes, and start overruling it as soon as you have a reason to.';
+
+  @override
+  String handHighCardOf(String rank) {
+    return '$rank high';
+  }
+
+  @override
+  String handPairOf(String rank) {
+    return 'Pair of $rank';
+  }
+
+  @override
+  String handTwoPairOf(String high, String low) {
+    return 'Two pair, $high and $low';
+  }
+
+  @override
+  String handTripsOf(String rank) {
+    return 'Three of a kind, $rank';
+  }
+
+  @override
+  String handStraightTo(String rank) {
+    return 'Straight, $rank high';
+  }
+
+  @override
+  String handFlushTo(String rank) {
+    return 'Flush, $rank high';
+  }
+
+  @override
+  String handFullHouseOf(String high, String low) {
+    return 'Full house, $high over $low';
+  }
+
+  @override
+  String handQuadsOf(String rank) {
+    return 'Four of a kind, $rank';
+  }
+
+  @override
+  String handStraightFlushTo(String rank) {
+    return 'Straight flush, $rank high';
+  }
+
+  @override
+  String handStartSuited(String high, String low) {
+    return '$high-$low suited';
+  }
+
+  @override
+  String handStartOffsuit(String high, String low) {
+    return '$high-$low offsuit';
   }
 
   @override

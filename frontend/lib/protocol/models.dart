@@ -313,6 +313,7 @@ abstract class PublicSettings with _$PublicSettings {
     required bool requiresPassword,
     required bool allowRabbitHunt,
     @Default(true) bool allowDrawing,
+    @Default(true) bool allowAdvice,
     @Default(false) bool tournament,
     required int blindsUpMinutes,
     required int blindsUpPercent,
@@ -439,6 +440,10 @@ abstract class You with _$You {
     required bool canShowCards,
     required String preAction,
     @JsonKey(includeIfNull: false) List<String>? bestCards,
+    @JsonKey(includeIfNull: false) int? handCategory,
+    @JsonKey(includeIfNull: false) bool? handRoyal,
+    @JsonKey(includeIfNull: false) List<String>? handRanks,
+    @JsonKey(includeIfNull: false) List<HandNote>? notes,
     required bool canRabbitHunt,
     @JsonKey(includeIfNull: false) int? pendingSeat,
     @Default(false) bool canChangeSeat,
@@ -447,6 +452,20 @@ abstract class You with _$You {
     @JsonKey(includeIfNull: false) bool? runTwiceVote,
   }) = _You;
   factory You.fromJson(Map<String, dynamic> json) => _$YouFromJson(json);
+}
+
+/// One thing worth noticing about the board, as the server reads it: an
+/// id the client has words for, plus the rank or suit that makes it
+/// concrete ("three hearts", "a pair of sevens").
+@freezed
+abstract class HandNote with _$HandNote {
+  const factory HandNote({
+    required String id,
+    @JsonKey(includeIfNull: false) String? rank,
+    @JsonKey(includeIfNull: false) String? suit,
+  }) = _HandNote;
+  factory HandNote.fromJson(Map<String, dynamic> json) =>
+      _$HandNoteFromJson(json);
 }
 
 @freezed

@@ -68,6 +68,13 @@ type Settings struct {
 	AllowRabbitHunt bool
 	// AllowDrawing lets players scribble on the table with the pencil.
 	AllowDrawing bool
+	// AllowAdvice lets a player ask the table what to do on their turn —
+	// their chance of winning against the price, and the line the house
+	// strategy would take. It changes the game for everyone at the table
+	// and not just for the one asking, which is why the host holds it and
+	// the rules card names it. The instance can refuse it outright
+	// (PLAYER_ADVICE=false) whatever a host sets here.
+	AllowAdvice bool
 	// Tournament: chip adjustments are refused for the life of the table;
 	// once the first hand is dealt, the settings in TournamentLocked and
 	// seat changes are refused too.
@@ -97,7 +104,8 @@ func DefaultSettings() Settings {
 		TurnTime: 30, DisconnectedTurnTime: 10, SitOutAfterMissedTurns: 2,
 		JoinPolicy: JoinAlways, AllowSpectators: true, SpectatorChat: true, ChatEnabled: true,
 		AllowRebuy: true, ShowdownReveal: RevealInOrder, AutoStart: true, HandDelayMs: 5000,
-		AllowRabbitHunt: true, AllowDrawing: true, Tournament: false, BlindsUpMinutes: 0, BlindsUpPercent: 100,
+		AllowRabbitHunt: true, AllowDrawing: true, AllowAdvice: true,
+		Tournament: false, BlindsUpMinutes: 0, BlindsUpPercent: 100,
 		TimeBankSeconds: 30, TimeBankRefillSeconds: 1, AllowStraddle: false, RunItTwice: false,
 		Variant: VariantHoldem,
 	}
@@ -118,7 +126,7 @@ func (s Settings) Public() protocol.PublicSettings {
 		MaxPlayers: s.MaxPlayers, StartMoney: s.StartMoney, JoinPolicy: s.JoinPolicy,
 		AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal, ChatEnabled: s.ChatEnabled,
 		SpectatorChat: s.SpectatorChat, RequiresPassword: s.PasswordHash != "",
-		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, AllowAdvice: s.AllowAdvice, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -134,7 +142,7 @@ func (s Settings) Row(tableID string) store.SettingsRow {
 		JoinPolicy: s.JoinPolicy, AllowSpectators: s.AllowSpectators, SpectatorChat: s.SpectatorChat,
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
-		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, AllowAdvice: s.AllowAdvice, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -161,7 +169,7 @@ func SettingsFromRow(r store.SettingsRow) Settings {
 		JoinPolicy: r.JoinPolicy, AllowSpectators: r.AllowSpectators, SpectatorChat: r.SpectatorChat,
 		ChatEnabled: r.ChatEnabled, AllowRebuy: r.AllowRebuy, ShowdownReveal: r.ShowdownReveal,
 		AutoStart: r.AutoStart, HandDelayMs: r.HandDelayMs,
-		AllowRabbitHunt: r.AllowRabbitHunt, AllowDrawing: r.AllowDrawing, Tournament: r.Tournament, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
+		AllowRabbitHunt: r.AllowRabbitHunt, AllowDrawing: r.AllowDrawing, AllowAdvice: r.AllowAdvice, Tournament: r.Tournament, BlindsUpMinutes: r.BlindsUpMinutes, BlindsUpPercent: r.BlindsUpPercent,
 		TimeBankSeconds: r.TimeBankSeconds, TimeBankRefillSeconds: r.TimeBankRefillSeconds, AllowStraddle: r.AllowStraddle, RunItTwice: r.RunItTwice,
 		Variant: variant,
 	}
@@ -189,6 +197,7 @@ type AdminView struct {
 	HandDelayMs            int    `json:"hand_delay_ms"`
 	AllowRabbitHunt        bool   `json:"allow_rabbit_hunt"`
 	AllowDrawing           bool   `json:"allow_drawing"`
+	AllowAdvice            bool   `json:"allow_advice"`
 	Tournament             bool   `json:"tournament"`
 	BlindsUpMinutes        int    `json:"blinds_up_minutes"`
 	BlindsUpPercent        int    `json:"blinds_up_percent"`
@@ -208,7 +217,7 @@ func (s Settings) Admin() AdminView {
 		JoinPolicy: s.JoinPolicy, AllowSpectators: s.AllowSpectators, SpectatorChat: s.SpectatorChat,
 		ChatEnabled: s.ChatEnabled, AllowRebuy: s.AllowRebuy, ShowdownReveal: s.ShowdownReveal,
 		AutoStart: s.AutoStart, HandDelayMs: s.HandDelayMs,
-		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
+		AllowRabbitHunt: s.AllowRabbitHunt, AllowDrawing: s.AllowDrawing, AllowAdvice: s.AllowAdvice, Tournament: s.Tournament, BlindsUpMinutes: s.BlindsUpMinutes, BlindsUpPercent: s.BlindsUpPercent,
 		TimeBankSeconds: s.TimeBankSeconds, TimeBankRefillSeconds: s.TimeBankRefillSeconds, AllowStraddle: s.AllowStraddle, RunItTwice: s.RunItTwice,
 		Variant: s.Variant,
 	}
@@ -236,6 +245,7 @@ type SettingsPatch struct {
 	AutoStart              *bool   `json:"auto_start"`
 	HandDelayMs            *int    `json:"hand_delay_ms"`
 	AllowRabbitHunt        *bool   `json:"allow_rabbit_hunt"`
+	AllowAdvice            *bool   `json:"allow_advice"`
 	AllowDrawing           *bool   `json:"allow_drawing"`
 	Tournament             *bool   `json:"tournament"`
 	BlindsUpMinutes        *int    `json:"blinds_up_minutes"`
@@ -359,6 +369,10 @@ func (s Settings) Apply(p SettingsPatch, passwordHash string, seated int) (Setti
 	if p.AllowRabbitHunt != nil {
 		out.AllowRabbitHunt = *p.AllowRabbitHunt
 		set("allow_rabbit_hunt")
+	}
+	if p.AllowAdvice != nil {
+		out.AllowAdvice = *p.AllowAdvice
+		set("allow_advice")
 	}
 	if p.AllowDrawing != nil {
 		out.AllowDrawing = *p.AllowDrawing

@@ -452,6 +452,7 @@ class _SettingsFormState extends State<SettingsForm> {
         flag('allow_rebuy', l10n.setAllowRebuy),
         flag('allow_rabbit_hunt', l10n.setAllowRabbitHunt),
         flag('allow_drawing', l10n.setAllowDrawing),
+        flag('allow_advice', l10n.setAllowAdvice),
         flag('allow_straddle', l10n.setAllowStraddle),
         flag('run_it_twice', l10n.setRunItTwice),
         flag('auto_start', l10n.setAutoStart),

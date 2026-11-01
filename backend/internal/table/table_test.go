@@ -121,8 +121,20 @@ func newTestTable(t *testing.T, s Settings) *Table {
 // leaves the deck in order, which makes every heads-up hand a tie).
 func newTestTableShuffled(t *testing.T, s Settings, shuffle func([]poker.Card)) *Table {
 	t.Helper()
-	deps := Deps{Log: slog.New(slog.DiscardHandler), Delays: testDelays,
-		Shuffle: shuffle, RandIntn: func(int) int { return 0 }}
+	return newTestTableDeps(t, s, Deps{Shuffle: shuffle})
+}
+
+// newTestTableDeps is newTestTable with chosen dependencies; the fields the
+// tests all need (log, delays, a fixed RandIntn) are filled in where the
+// caller left them empty.
+func newTestTableDeps(t *testing.T, s Settings, deps Deps) *Table {
+	t.Helper()
+	deps.Log = slog.New(slog.DiscardHandler)
+	deps.Delays = testDelays
+	if deps.Shuffle == nil {
+		deps.Shuffle = func([]poker.Card) {}
+	}
+	deps.RandIntn = func(int) int { return 0 }
 	tbl := newTable(NewTableID(), deps)
 	tbl.name = "Test"
 	tbl.state = StateWaiting

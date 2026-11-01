@@ -23,7 +23,18 @@ type Config struct {
 	DevCORSOrigin       string
 	// Accounts enables optional player profiles (sign-up, sign-in, stats).
 	// Off by default: a home game among friends never sees a sign-in.
-	Accounts  bool
+	Accounts bool
+	// PlayerAdvice lets a player be told what to do on their turn — fold,
+	// check, call or raise — by the same strategy the bots play. On by
+	// default; PLAYER_ADVICE=false withholds it for the whole instance,
+	// and the host of a table can refuse it as well.
+	//
+	// It governs the recommendation and nothing else. Reading a player's
+	// own cards back to them — the name of the hand, the five that make
+	// it, what the board threatens — is not a recommendation and is never
+	// withheld: the player is holding those cards.
+	PlayerAdvice bool
+
 	LogLevel  string
 	LogFormat string
 	// StunURLs are handed to browsers for the voice and video connections
@@ -50,6 +61,7 @@ func Load(getenv func(string) string) (Config, error) {
 		MaxConnectionsPerIP: l.integer("MAX_CONNECTIONS_PER_IP", 50),
 		TrustProxy:          l.boolean("TRUST_PROXY", true),
 		Accounts:            l.boolean("ACCOUNTS", false),
+		PlayerAdvice:        l.boolean("PLAYER_ADVICE", true),
 		DevCORSOrigin:       l.str("DEV_CORS_ORIGIN", ""),
 		LogLevel:            strings.ToLower(l.str("LOG_LEVEL", "info")),
 		LogFormat:           strings.ToLower(l.str("LOG_FORMAT", "json")),

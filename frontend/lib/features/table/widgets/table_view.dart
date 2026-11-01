@@ -8,6 +8,7 @@ import '../../../app/preferences.dart';
 import '../../../core/formatting.dart';
 import '../../../core/voice/voice_engine.dart';
 import '../../../protocol/protocol.dart';
+import '../../../shared/board_notes.dart';
 import '../../../shared/chip_stack.dart';
 import '../../../shared/chips.dart';
 import '../../../shared/phrases.dart';
@@ -31,7 +32,13 @@ class TableView extends ConsumerWidget {
     this.onErase,
     this.videoViews = const {},
     this.voiceFailed = const {},
+    this.onHandLineTap,
   });
+
+  /// Opens the hand rankings from the hand line on the felt, the same way
+  /// the line under the buttons does.
+
+  final VoidCallback? onHandLineTap;
 
   /// Player ids in the voice chat whose audio connection to the viewer
   /// failed and is being retried (badge on the seat).
@@ -146,11 +153,46 @@ class TableView extends ConsumerWidget {
     final highlightColor = spot != null && spot.winner
         ? potColor(spot.potIndex ?? session.winnerPotIndex ?? 0)
         : winnerColor;
+    // A player who sat out is away from the table; the felt says nothing
+    // about the cards they were dealt before they left.
+    final sittingOut = snap.seats.any(
+      (sv) => sv.seat == session.mySeat && sv.player?.status == 'sitting_out',
+    );
     final yourHand =
         session.isPlayer &&
+            !sittingOut &&
             ref.watch(handLineProvider) == HandLinePlacement.board
         ? snap.you.handDescription
         : '';
+    // Your own five while the hand is still being played: the board cards
+    // and hole cards that make what you are holding, ringed in teal so that
+    // they are never mistaken for a winner's gold. It shows from the flop
+    // on — before it there is nothing to learn, both your cards are the
+    // hand — and it steps aside for a pot being presented or a hand under
+    // the spotlight, so the felt carries one highlight at a time.
+    final mySeat = session.mySeat;
+    final myFolded = snap.seats.any(
+      (sv) => sv.seat == mySeat && (sv.player?.folded ?? false),
+    );
+    final liveBest = <String>{
+      if (session.isPlayer &&
+          mySeat != null &&
+          !myFolded &&
+          !sittingOut &&
+          winnerBest.isEmpty &&
+          spot == null &&
+          (hand?.board.length ?? 0) >= 3 &&
+          ref.watch(handHighlightProvider))
+        ...?snap.you.bestCards,
+    };
+    final liveHighlight = liveBest.isNotEmpty;
+    // The board in words, under the hand it is about. Only on the felt
+    // when the hand line is there too, so the middle of the table does not
+    // fill with text nobody asked for.
+    final notes =
+        session.isPlayer && yourHand.isNotEmpty && ref.watch(boardNotesProvider)
+        ? snap.you.notes ?? const <HandNote>[]
+        : const <HandNote>[];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -317,13 +359,14 @@ class TableView extends ConsumerWidget {
                       board: hand.board,
                       best: winnerBest.isNotEmpty
                           ? winnerBest.toList()
-                          : spot?.cards,
+                          : spot?.cards ??
+                                (liveHighlight ? liveBest.toList() : null),
                       lift: spotCards,
                       rabbit: hand.rabbitCards ?? const [],
                       fourColor: fourColor,
                       compact: compact,
                       scale: scale,
-                      highlightColor: highlightColor,
+                      highlightColor: liveHighlight ? handRing : highlightColor,
                     ),
                     if (spot != null) ...[
                       const Gap(4),
@@ -345,28 +388,18 @@ class TableView extends ConsumerWidget {
                     if (yourHand.isNotEmpty) ...[
                       // The viewer's own hand, right under the community
                       // cards where the eyes already are; it stays after a
-                      // fold and through the showdown.
+                      // fold and through the showdown. Tapping it opens the
+                      // hand rankings with that hand marked.
                       const Gap(4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            LucideIcons.sparkles,
-                            size: 12,
-                            color: theme.colorScheme.mutedForeground,
-                          ),
-                          const Gap(6),
-                          Text(
-                            l10n.yourHand(yourHand),
-                            key: const Key('your-hand'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: compact ? 11 : 12,
-                              color: theme.colorScheme.mutedForeground,
-                            ),
-                          ),
-                        ],
+                      _FeltHandLine(
+                        text: l10n.yourHand(yourHand),
+                        compact: compact,
+                        onTap: onHandLineTap,
                       ),
+                    ],
+                    if (notes.isNotEmpty) ...[
+                      const Gap(2),
+                      BoardNotes(notes: notes, compact: compact),
                     ],
                     if (hand.runTwice ?? false) ...[
                       const Gap(4),
@@ -429,6 +462,11 @@ class TableView extends ConsumerWidget {
                       ? bestOf(sv.seat)
                       : spot != null && spot.seat == sv.seat
                       ? spot.cards
+                      : liveHighlight && sv.seat == mySeat
+                      ? liveBest.toList()
+                      : null,
+                  bestColor: liveHighlight && sv.seat == mySeat
+                      ? handRing
                       : null,
                   wonAmount: session.winnerAmounts[sv.seat],
                   timeBankSeconds: snap.table.settings.timeBankSeconds,
@@ -751,6 +789,56 @@ Spotlight? _currentSpotlight(Spotlight? spot, Snapshot snap) {
     );
   }
   return spot;
+}
+
+/// The hand line on the felt: plain text until there are hand rankings to
+/// open, a button after that.
+class _FeltHandLine extends StatelessWidget {
+  const _FeltHandLine({required this.text, required this.compact, this.onTap});
+
+  final String text;
+  final bool compact;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final line = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          LucideIcons.sparkles,
+          size: 12,
+          color: theme.colorScheme.mutedForeground,
+        ),
+        const Gap(6),
+        Text(
+          text,
+          key: const Key('your-hand'),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: compact ? 11 : 12,
+            color: theme.colorScheme.mutedForeground,
+          ),
+        ),
+        if (onTap != null) ...[
+          const Gap(4),
+          Icon(
+            LucideIcons.circleHelp,
+            size: 12,
+            color: theme.colorScheme.mutedForeground,
+          ),
+        ],
+      ],
+    );
+    if (onTap == null) return line;
+    return GhostButton(
+      key: const Key('felt-hand-line-button'),
+      density: ButtonDensity.compact,
+      onPressed: onTap,
+      child: line,
+    );
+  }
 }
 
 class _Board extends StatelessWidget {

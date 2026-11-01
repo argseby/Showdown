@@ -31,6 +31,17 @@ always play.
 - Avatars with hats, a fire ring for players on a win streak, animated stickers and
   quick phrases, pencil drawings on the table (per table on or off, hidden per player
   or erased by anyone).
+- Help while you learn, asked for by name when you join: a line that says what you are
+  holding, the hand rankings a tap away with your own hand marked, the cards on the
+  felt that make it ringed, the board read out in words — three hearts out there, a
+  pair on the board, one card from a straight — and, on your turn, how often the hand
+  wins against what the call is asking for, with the line the house strategy would
+  take. Four answers —
+  from "new to poker" to "no help" — set the lot, and each part is still a switch of
+  its own under Settings. None of it says anything about anyone else's cards. The
+  advice is the same brain the bots play with, so it is a tutor and not an oracle: the
+  host allows it per table (`allow_advice`), and `PLAYER_ADVICE=false` takes it off a
+  whole instance. Reading your own cards back to you is never withheld.
 - Hand log with replay and export, per-table leaderboard with statistics, turn sound and
   notifications, English and German.
 - Keyboard shortcuts for every action (press `?` at the table), and a game controller
@@ -110,6 +121,10 @@ COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.proxy.yml
 Then `docker compose up -d` as usual and point the proxy at `showdown-web-1:80` (the
 container name is `<stack name>-web-1`).
 
+Point the proxy at the **web** container, never at `api` — the web container
+terminates `/api/*` and `/ws/*` itself and reaches the API over the stack's own
+private network. The API is deliberately not on the proxy network.
+
 **Standalone with automatic HTTPS**: if nothing sits in front of the stack and ports
 80/443 are reachable from the internet, download `deploy/docker-compose.tls.yml` and:
 
@@ -136,16 +151,18 @@ All settings live in `.env`; everything has a default.
 | `WEBRTC_TURN_URLS` | empty | TURN relay for players whose networks block direct connections (strict NAT, mobile carriers), `turn:`/`turns:` URLs, comma-separated. Media then passes through that relay, so it needs your own coturn or a hosted TURN service. Requires `WEBRTC_TURN_USERNAME` and `WEBRTC_TURN_CREDENTIAL` |
 | `TABLE_RETENTION_DAYS` | `90` | hands and chat of ended tables are deleted after this many days; tables and final standings stay |
 | `MAX_TABLES` | `100` | cap on tables that have not ended |
+| `PLAYER_ADVICE` | `true` | whether a player may be told what to do on their turn — fold, check, call or raise — by the same strategy the bots play. `false` withholds the recommendation for the whole instance; hosts can also refuse it per table. It governs the recommendation alone: what a player's own cards make is read back to them either way |
 | `IMAGE_TAG` | `latest` | `latest` = newest release, `v1.1.0` = a fixed release, `edge` = every commit on `main` |
 | `IMAGE_OWNER` | `argseby` | only for a fork that publishes its own images |
 | `PROXY_NETWORK` | – | with the proxy override: the Docker network of your reverse proxy |
+| `API_UPSTREAM` | `showdown-api:8080` | what the web container proxies `/api` and `/ws` to |
 
 Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_IP`
 (50), `TRUST_PROXY` (`true`, rate limiting uses `X-Forwarded-For`), `LOG_LEVEL`
 (`info`), `LOG_FORMAT` (`json` or `text`).
 
 Table settings (game variant, blinds, antes, turn time, time bank, rebuys, straddle,
-run it twice, showdoOne small UI change: in the settings/wn reveal, blind schedule, tournament mode and more) are set per
+run it twice, showdown reveal, blind schedule, tournament mode and more) are set per
 table by its host under Settings at the table.
 
 ## Hosting a table

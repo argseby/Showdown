@@ -79,6 +79,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/tables/{id}/spectate", s.rateLimited(s.limJoin, s.handleSpectate))
 	s.mux.HandleFunc("POST /api/tables", s.rateLimited(s.limCreate, s.handleCreateTable))
 	s.mux.HandleFunc("GET /api/tables/{id}/hands", s.rateLimited(s.limInfo, s.handleSessionHands))
+	s.mux.HandleFunc("GET /api/tables/{id}/strength", s.rateLimited(s.limInfo, s.handleStrength))
 	s.mux.HandleFunc("GET /ws/table/{id}", s.handleWS)
 
 	// Player profiles (optional; every route answers 404 with ACCOUNTS off).
@@ -181,6 +182,10 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 		// Whether this instance offers player profiles at all; with it off
 		// the client shows no sign-in anywhere.
 		"accounts": s.cfg.Accounts,
+		// Whether this instance lets a player be told what to do on their
+		// turn; with it off no client offers the recommendation. What a
+		// player's own cards make is theirs either way.
+		"player_advice": s.cfg.PlayerAdvice,
 	})
 }
 

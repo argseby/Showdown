@@ -17,6 +17,13 @@ final accountsEnabledProvider = FutureProvider<bool>(
   (ref) => ref.read(restClientProvider).accountsEnabled(),
 );
 
+/// Whether this instance lets a player be told what to do on their turn
+/// (`PLAYER_ADVICE`). It governs the recommendation alone: what a player's
+/// own cards make is read back to them on every instance.
+final playerAdviceEnabledProvider = FutureProvider<bool>(
+  (ref) => ref.read(restClientProvider).playerAdviceEnabled(),
+);
+
 /// Opens external links (the project page in the footer) in a new tab.
 final linkOpenerProvider = Provider<LinkOpener>((ref) => LinkOpener.create());
 

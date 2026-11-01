@@ -3362,6 +3362,30 @@ abstract class AppLocalizations {
   /// **'Everyone sees the table the same way round, with your own seat wherever you sat down. Off, the table turns so that you are always at the bottom.'**
   String get fixedSeatsAbout;
 
+  /// No description provided for @handHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight your hand'**
+  String get handHighlight;
+
+  /// No description provided for @handHighlightAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings the cards that make your hand, yours and the board\'s, while you play it — so you can see at once which of your cards contributes nothing.'**
+  String get handHighlightAbout;
+
+  /// No description provided for @potOdds.
+  ///
+  /// In en, this message translates to:
+  /// **'Pot odds'**
+  String get potOdds;
+
+  /// No description provided for @potOddsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Over the buttons when there is a bet to you: what the call costs, what it would win, and how often it has to be good to be worth paying.'**
+  String get potOddsAbout;
+
   /// No description provided for @showdownSpotlightAbout.
   ///
   /// In en, this message translates to:
@@ -3829,6 +3853,618 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your hand: {description}'**
   String yourHand(String description);
+
+  /// No description provided for @handRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand rankings'**
+  String get handRankingsTitle;
+
+  /// No description provided for @handRankingsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Best to worst. Five cards make a hand — yours plus the board.'**
+  String get handRankingsIntro;
+
+  /// No description provided for @handRankingsYours.
+  ///
+  /// In en, this message translates to:
+  /// **'What you have'**
+  String get handRankingsYours;
+
+  /// No description provided for @handRankingsYoursNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {description}'**
+  String handRankingsYoursNamed(String description);
+
+  /// No description provided for @handRankingsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand rankings'**
+  String get handRankingsOpen;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help while you play'**
+  String get helpTitle;
+
+  /// No description provided for @helpQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How much help do you want?'**
+  String get helpQuestion;
+
+  /// No description provided for @helpChangeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this any time under Settings.'**
+  String get helpChangeLater;
+
+  /// No description provided for @helpLevelNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No help'**
+  String get helpLevelNone;
+
+  /// No description provided for @helpLevelHand.
+  ///
+  /// In en, this message translates to:
+  /// **'I play regularly'**
+  String get helpLevelHand;
+
+  /// No description provided for @helpLevelCards.
+  ///
+  /// In en, this message translates to:
+  /// **'I know the basics'**
+  String get helpLevelCards;
+
+  /// No description provided for @helpLevelFull.
+  ///
+  /// In en, this message translates to:
+  /// **'New to poker'**
+  String get helpLevelFull;
+
+  /// No description provided for @helpLevelCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own mix'**
+  String get helpLevelCustom;
+
+  /// No description provided for @helpNoneAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'The table tells you nothing you could not read yourself.'**
+  String get helpNoneAbout;
+
+  /// No description provided for @helpHandAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Names the hand you are holding, with the hand rankings one tap away.'**
+  String get helpHandAbout;
+
+  /// No description provided for @helpCardsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Also rings the cards that make your hand, and says what the board makes possible.'**
+  String get helpCardsAbout;
+
+  /// No description provided for @helpFullAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Also tells you what the house strategy would do in your seat — and why.'**
+  String get helpFullAbout;
+
+  /// No description provided for @helpCustomAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own mix of the three switches below.'**
+  String get helpCustomAbout;
+
+  /// No description provided for @helpOffByServer.
+  ///
+  /// In en, this message translates to:
+  /// **'This server is set up without the help for beginners.'**
+  String get helpOffByServer;
+
+  /// No description provided for @setAllowAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Advice on your turn'**
+  String get setAllowAdvice;
+
+  /// No description provided for @adviceWorthCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth a call'**
+  String get adviceWorthCall;
+
+  /// No description provided for @adviceWorthAllIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth going all in'**
+  String get adviceWorthAllIn;
+
+  /// No description provided for @adviceCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking costs nothing here'**
+  String get adviceCheck;
+
+  /// No description provided for @adviceFold.
+  ///
+  /// In en, this message translates to:
+  /// **'Better to fold this one'**
+  String get adviceFold;
+
+  /// No description provided for @adviceChanceAndPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'You win about {equity}% of the time; the call asks for {need}%.'**
+  String adviceChanceAndPrice(String equity, String need);
+
+  /// No description provided for @adviceChance.
+  ///
+  /// In en, this message translates to:
+  /// **'You win about {equity}% of the time.'**
+  String adviceChance(String equity);
+
+  /// No description provided for @adviceAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'A suggestion, not a truth: guessed from your cards against random hands. It cannot see how the others are really playing — and it will never bluff for you.'**
+  String get adviceAbout;
+
+  /// No description provided for @adviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advice on your turn'**
+  String get adviceTitle;
+
+  /// No description provided for @adviceSettingAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'On your turn: what you are holding, what the board says about it, and how the house strategy would play your seat. The host allows it for their table.'**
+  String get adviceSettingAbout;
+
+  /// No description provided for @adviceOffByHost.
+  ///
+  /// In en, this message translates to:
+  /// **'The host has switched the advice off at this table.'**
+  String get adviceOffByHost;
+
+  /// No description provided for @suitSpades.
+  ///
+  /// In en, this message translates to:
+  /// **'spades'**
+  String get suitSpades;
+
+  /// No description provided for @suitHearts.
+  ///
+  /// In en, this message translates to:
+  /// **'hearts'**
+  String get suitHearts;
+
+  /// No description provided for @suitDiamonds.
+  ///
+  /// In en, this message translates to:
+  /// **'diamonds'**
+  String get suitDiamonds;
+
+  /// No description provided for @suitClubs.
+  ///
+  /// In en, this message translates to:
+  /// **'clubs'**
+  String get suitClubs;
+
+  /// No description provided for @noteNuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing can beat this hand right now.'**
+  String get noteNuts;
+
+  /// No description provided for @noteFlushDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Four {suit} — one more makes a flush.'**
+  String noteFlushDraw(String suit);
+
+  /// No description provided for @noteOpenEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Four in a row — a card at either end makes a straight.'**
+  String get noteOpenEnded;
+
+  /// No description provided for @noteGutshot.
+  ///
+  /// In en, this message translates to:
+  /// **'One card in the middle would fill a straight.'**
+  String get noteGutshot;
+
+  /// No description provided for @noteFlushPossible.
+  ///
+  /// In en, this message translates to:
+  /// **'Three {suit} out there: anyone holding two more has a flush.'**
+  String noteFlushPossible(String suit);
+
+  /// No description provided for @noteFlushLanded.
+  ///
+  /// In en, this message translates to:
+  /// **'Five {suit} on the board — everyone has a flush, and the highest card takes it.'**
+  String noteFlushLanded(String suit);
+
+  /// No description provided for @noteStraightPossible.
+  ///
+  /// In en, this message translates to:
+  /// **'The board sits close enough together for a straight.'**
+  String get noteStraightPossible;
+
+  /// No description provided for @noteBoardPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'A pair of {rank} on the board — a full house is in reach.'**
+  String noteBoardPaired(String rank);
+
+  /// No description provided for @noteOvercard.
+  ///
+  /// In en, this message translates to:
+  /// **'{rank} on the board: anyone holding one beats your pair.'**
+  String noteOvercard(String rank);
+
+  /// No description provided for @noteScaryForEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'A board like this is hard to call on — for them as much as for you.'**
+  String get noteScaryForEveryone;
+
+  /// No description provided for @rankTwos.
+  ///
+  /// In en, this message translates to:
+  /// **'Twos'**
+  String get rankTwos;
+
+  /// No description provided for @rankThrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Threes'**
+  String get rankThrees;
+
+  /// No description provided for @rankFours.
+  ///
+  /// In en, this message translates to:
+  /// **'Fours'**
+  String get rankFours;
+
+  /// No description provided for @rankFives.
+  ///
+  /// In en, this message translates to:
+  /// **'Fives'**
+  String get rankFives;
+
+  /// No description provided for @rankSixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sixes'**
+  String get rankSixes;
+
+  /// No description provided for @rankSevens.
+  ///
+  /// In en, this message translates to:
+  /// **'Sevens'**
+  String get rankSevens;
+
+  /// No description provided for @rankEights.
+  ///
+  /// In en, this message translates to:
+  /// **'Eights'**
+  String get rankEights;
+
+  /// No description provided for @rankNines.
+  ///
+  /// In en, this message translates to:
+  /// **'Nines'**
+  String get rankNines;
+
+  /// No description provided for @rankTens.
+  ///
+  /// In en, this message translates to:
+  /// **'Tens'**
+  String get rankTens;
+
+  /// No description provided for @rankJacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Jacks'**
+  String get rankJacks;
+
+  /// No description provided for @rankQueens.
+  ///
+  /// In en, this message translates to:
+  /// **'Queens'**
+  String get rankQueens;
+
+  /// No description provided for @rankKings.
+  ///
+  /// In en, this message translates to:
+  /// **'Kings'**
+  String get rankKings;
+
+  /// No description provided for @rankAces.
+  ///
+  /// In en, this message translates to:
+  /// **'Aces'**
+  String get rankAces;
+
+  /// No description provided for @boardNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the board'**
+  String get boardNotes;
+
+  /// No description provided for @boardNotesAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Under your hand: what the board makes possible — a flush, a straight, a full house — and what you are still missing. The danger is theirs too: a board nobody likes calling on is one worth betting into.'**
+  String get boardNotesAbout;
+
+  /// No description provided for @adviceCloseButRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'Close — but the sum assumes the others hold random cards, and someone who raises usually holds better.'**
+  String get adviceCloseButRandom;
+
+  /// No description provided for @rankOneTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Two'**
+  String get rankOneTwo;
+
+  /// No description provided for @rankOneThree.
+  ///
+  /// In en, this message translates to:
+  /// **'Three'**
+  String get rankOneThree;
+
+  /// No description provided for @rankOneFour.
+  ///
+  /// In en, this message translates to:
+  /// **'Four'**
+  String get rankOneFour;
+
+  /// No description provided for @rankOneFive.
+  ///
+  /// In en, this message translates to:
+  /// **'Five'**
+  String get rankOneFive;
+
+  /// No description provided for @rankOneSix.
+  ///
+  /// In en, this message translates to:
+  /// **'Six'**
+  String get rankOneSix;
+
+  /// No description provided for @rankOneSeven.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven'**
+  String get rankOneSeven;
+
+  /// No description provided for @rankOneEight.
+  ///
+  /// In en, this message translates to:
+  /// **'Eight'**
+  String get rankOneEight;
+
+  /// No description provided for @rankOneNine.
+  ///
+  /// In en, this message translates to:
+  /// **'Nine'**
+  String get rankOneNine;
+
+  /// No description provided for @rankOneTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Ten'**
+  String get rankOneTen;
+
+  /// No description provided for @rankOneJack.
+  ///
+  /// In en, this message translates to:
+  /// **'Jack'**
+  String get rankOneJack;
+
+  /// No description provided for @rankOneQueen.
+  ///
+  /// In en, this message translates to:
+  /// **'Queen'**
+  String get rankOneQueen;
+
+  /// No description provided for @rankOneKing.
+  ///
+  /// In en, this message translates to:
+  /// **'King'**
+  String get rankOneKing;
+
+  /// No description provided for @rankOneAce.
+  ///
+  /// In en, this message translates to:
+  /// **'Ace'**
+  String get rankOneAce;
+
+  /// No description provided for @adviceRaiseLittle.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a little, to {amount}'**
+  String adviceRaiseLittle(String amount);
+
+  /// No description provided for @adviceRaiseLot.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a lot, to {amount}'**
+  String adviceRaiseLot(String amount);
+
+  /// No description provided for @showOdds.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the percentages'**
+  String get showOdds;
+
+  /// No description provided for @showOddsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'For anyone who wants the arithmetic behind the advice: how often your hand wins, and how often it has to. Off unless you ask — the advice says it in words.'**
+  String get showOddsAbout;
+
+  /// No description provided for @whyStrongStart.
+  ///
+  /// In en, this message translates to:
+  /// **'these two cards are worth playing for a raise'**
+  String get whyStrongStart;
+
+  /// No description provided for @whyWeakStart.
+  ///
+  /// In en, this message translates to:
+  /// **'these two are not worth paying to see a flop'**
+  String get whyWeakStart;
+
+  /// No description provided for @whyCheapLook.
+  ///
+  /// In en, this message translates to:
+  /// **'it costs little to see what comes next'**
+  String get whyCheapLook;
+
+  /// No description provided for @whyFreeLook.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing to pay, so there is no reason not to look'**
+  String get whyFreeLook;
+
+  /// No description provided for @whyWorthPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'what you hold is worth what they are asking'**
+  String get whyWorthPrice;
+
+  /// No description provided for @whyTooExpensive.
+  ///
+  /// In en, this message translates to:
+  /// **'too expensive for what you are holding'**
+  String get whyTooExpensive;
+
+  /// No description provided for @whyNothingThere.
+  ///
+  /// In en, this message translates to:
+  /// **'there is nothing here and nothing coming'**
+  String get whyNothingThere;
+
+  /// No description provided for @whyAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'you are likely ahead of them right now'**
+  String get whyAhead;
+
+  /// No description provided for @whyNothingToBet.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing worth putting money in yet'**
+  String get whyNothingToBet;
+
+  /// No description provided for @haveRoyalFlush.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a royal flush.'**
+  String get haveRoyalFlush;
+
+  /// No description provided for @adviceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion'**
+  String get adviceHint;
+
+  /// No description provided for @adviceWhatIsThis.
+  ///
+  /// In en, this message translates to:
+  /// **'What is this?'**
+  String get adviceWhatIsThis;
+
+  /// No description provided for @adviceExplainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A suggestion, not a rule'**
+  String get adviceExplainTitle;
+
+  /// No description provided for @adviceExplainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the line the table\'s own bot would take in your seat — the same one you can sit down at the table. It guesses from your cards against random hands, so it runs a little optimistic, and it cannot see how the players around you are actually playing.\n\nIt will never tell you to bluff, which is half of poker. Take it as a second opinion while you learn the shapes, and start overruling it as soon as you have a reason to.'**
+  String get adviceExplainBody;
+
+  /// No description provided for @handHighCardOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{rank} high'**
+  String handHighCardOf(String rank);
+
+  /// No description provided for @handPairOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair of {rank}'**
+  String handPairOf(String rank);
+
+  /// No description provided for @handTwoPairOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Two pair, {high} and {low}'**
+  String handTwoPairOf(String high, String low);
+
+  /// No description provided for @handTripsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Three of a kind, {rank}'**
+  String handTripsOf(String rank);
+
+  /// No description provided for @handStraightTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight, {rank} high'**
+  String handStraightTo(String rank);
+
+  /// No description provided for @handFlushTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Flush, {rank} high'**
+  String handFlushTo(String rank);
+
+  /// No description provided for @handFullHouseOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Full house, {high} over {low}'**
+  String handFullHouseOf(String high, String low);
+
+  /// No description provided for @handQuadsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Four of a kind, {rank}'**
+  String handQuadsOf(String rank);
+
+  /// No description provided for @handStraightFlushTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight flush, {rank} high'**
+  String handStraightFlushTo(String rank);
+
+  /// No description provided for @handStartSuited.
+  ///
+  /// In en, this message translates to:
+  /// **'{high}-{low} suited'**
+  String handStartSuited(String high, String low);
+
+  /// No description provided for @handStartOffsuit.
+  ///
+  /// In en, this message translates to:
+  /// **'{high}-{low} offsuit'**
+  String handStartOffsuit(String high, String low);
 
   /// No description provided for @sittingOutNotice.
   ///

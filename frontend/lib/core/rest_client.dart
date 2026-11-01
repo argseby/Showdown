@@ -219,6 +219,37 @@ class RestClient {
     }
   }
 
+  /// Whether this instance lets a player be told what to do on their turn.
+  /// True when the server cannot be reached, which costs nothing: the
+  /// advice itself comes from the server, so an instance that refuses it
+  /// simply never answers.
+  Future<bool> playerAdviceEnabled() async {
+    try {
+      final json = await getJson('/api/config');
+      return json['player_advice'] as bool? ?? true;
+    } on Object catch (_) {
+      return true;
+    }
+  }
+
+  /// How the caller's own hand is doing, and the line the house strategy
+  /// would take where the table allows it. Null when the server has
+  /// nothing to say — between hands, after a fold, or an instance that
+  /// serves no player help.
+  Future<Map<String, dynamic>?> strength(
+    String tableId, {
+    required String token,
+  }) async {
+    try {
+      return await getJson('/api/tables/$tableId/strength', token: token);
+    } on ApiException catch (e) {
+      // "Nothing to read" is an ordinary answer here, not a failure: no
+      // hand, folded, or an instance that serves no help.
+      if (e.code == 'invalid_state' || e.status == 401) return null;
+      rethrow;
+    }
+  }
+
   /// STUN and TURN servers the instance hands to browsers for voice and
   /// video.
   Future<List<IceServer>> iceServers() async {

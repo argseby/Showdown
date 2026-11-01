@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../shared/chip_stack.dart';
 import '../../../shared/playing_card.dart';
@@ -285,4 +286,148 @@ class HandLinePreview extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Your own five on the felt: three board cards of which two play, ringed
+/// the way the table rings them, and one card left plain — which is the
+/// thing the setting is for.
+class HandHighlightPreview extends StatelessWidget {
+  const HandHighlightPreview({super.key, required this.on});
+
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final (card, plays) in const [
+        ('Ks', true),
+        ('7d', false),
+        ('Kh', true),
+      ])
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: PlayingCardWidget(
+            card: card,
+            width: 24,
+            highlighted: on && plays,
+            highlightColor: handRing,
+          ),
+        ),
+    ],
+  );
+}
+
+/// The pot odds line as the action bar draws it: the scale, the price and
+/// the share it has to beat.
+class PotOddsPreview extends StatelessWidget {
+  const PotOddsPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.muted,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.scale,
+            size: 12,
+            color: theme.colorScheme.mutedForeground,
+          ),
+          const Gap(6),
+          const Text('300 · 600 · 33%').xSmall().muted(),
+        ],
+      ),
+    );
+  }
+}
+
+/// The advice as the bar under the buttons draws it: how often the hand
+/// wins, filled, against the mark for how often it has to.
+class AdvicePreview extends StatelessWidget {
+  const AdvicePreview({super.key, required this.on});
+
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const good = Color(0xFF3AA655);
+    return SizedBox(
+      width: 150,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            on ? '✓' : '·',
+            style: const TextStyle(fontSize: 11, color: good),
+          ),
+          const Gap(4),
+          SizedBox(
+            height: 8,
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.muted,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Container(
+                  width: 150 * 0.42,
+                  decoration: BoxDecoration(
+                    color: good.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Positioned(
+                  left: 150 * 0.24,
+                  child: Container(
+                    width: 2,
+                    height: 8,
+                    color: theme.colorScheme.foreground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The board in words, as it reads under the hand: three of a suit, and
+/// what that means for everybody.
+class BoardNotesPreview extends StatelessWidget {
+  const BoardNotesPreview({super.key, required this.on});
+
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final card in const ['Kh', '9h', '4h'])
+        Padding(
+          padding: const EdgeInsets.only(right: 3),
+          child: PlayingCardWidget(card: card, width: 20),
+        ),
+      const Gap(6),
+      Flexible(
+        child: SizedBox(
+          width: 130,
+          child: Text(context.l10n.noteFlushPossible(context.l10n.suitHearts))
+              .muted()
+              .xSmall(),
+        ),
+      ),
+    ],
+  );
 }

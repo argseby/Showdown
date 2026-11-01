@@ -46,6 +46,7 @@ type SettingsRow struct {
 	HandDelayMs            int
 	AllowRabbitHunt        bool
 	AllowDrawing           bool
+	AllowAdvice            bool
 	Tournament             bool
 	BlindsUpMinutes        int
 	BlindsUpPercent        int

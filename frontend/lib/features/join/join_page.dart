@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/l10n.dart';
+import '../../app/preferences.dart';
 import '../../core/account.dart';
 import '../../core/formatting.dart';
 import '../../core/providers.dart';
@@ -12,6 +13,7 @@ import '../../shared/avatars.dart';
 import '../../shared/confirm_dialog.dart';
 import '../../shared/display_size_picker.dart';
 import '../../shared/hats.dart';
+import '../../shared/help_level_picker.dart';
 import '../../shared/look_dialog.dart';
 import '../../shared/top_bar.dart';
 import '../account/account_dialog.dart';
@@ -41,6 +43,10 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   bool _voice = false;
   bool _camera = false;
   bool _seatsOpen = false;
+
+  /// The help question stands open until it has been answered once; after
+  /// that it is a line showing the answer, which opens on a tap.
+  bool? _helpOpen;
 
   /// Avatar and hat in one dialog with two tabs.
   Future<void> _pickLook() async {
@@ -262,6 +268,16 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     final stored = ref.watch(sessionProvider(widget.tableId));
     final isHost = ref.watch(adminTokenProvider(widget.tableId)).value != null;
     final accountsOn = ref.watch(accountsEnabledProvider).value ?? false;
+
+    final helpLevel = helpLevelOf(
+      line: ref.watch(handLineProvider),
+      highlight: ref.watch(handHighlightProvider),
+      notes: ref.watch(boardNotesProvider),
+      potOdds: ref.watch(potOddsProvider),
+      advice: ref.watch(adviceProvider),
+    );
+    // Open on a first visit, so the question is asked rather than offered.
+    final helpOpen = _helpOpen ?? !ref.watch(helpAskedProvider);
     final account = ref.watch(accountProvider).value;
     // A signed-in player sits down under their profile name unless they
     // type something else.
@@ -512,6 +528,44 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                                     child: Text('${i + 1}'),
                                   ),
                             ],
+                          ),
+                        ],
+                      ],
+                      if (canJoin) ...[
+                        const Gap(12),
+                        // Asked here because the settings tab at the table
+                        // is the last place a first-time player looks, and
+                        // the answer changes what their first hand looks
+                        // like. Answered once: after that it is a line with
+                        // the answer on it.
+                        GhostButton(
+                          key: const Key('join-help-toggle'),
+                          size: ButtonSize.small,
+                          alignment: Alignment.centerLeft,
+                          onPressed: () =>
+                              setState(() => _helpOpen = !helpOpen),
+                          leading: Icon(
+                            helpOpen
+                                ? LucideIcons.chevronDown
+                                : LucideIcons.chevronRight,
+                          ),
+                          child: Text(
+                            helpOpen
+                                ? l10n.helpQuestion
+                                : '${l10n.helpTitle}: '
+                                      '${HelpLevelPicker.label(l10n, helpLevel)}',
+                          ),
+                        ),
+                        if (helpOpen) ...[
+                          const Gap(6),
+                          HelpLevelPicker(
+                            level: helpLevel,
+                            compact: true,
+                            onChanged: (v) {
+                              applyHelpLevel(ref, v);
+                              ref.read(helpAskedProvider.notifier).mark();
+                              setState(() => _helpOpen = false);
+                            },
                           ),
                         ],
                       ],

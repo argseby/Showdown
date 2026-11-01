@@ -52,6 +52,12 @@ class PlayingCardWidget extends StatelessWidget {
 /// into black blocks in the light theme).
 const cardBack = Color(0xFF2B4C7E);
 
+/// The ring around the viewer's own five while they are still playing the
+/// hand. Teal on purpose: it has to read on a white card face and on the
+/// dark felt, and it must not be mistaken for a pot's gold, silver or
+/// bronze, or for a suit.
+const handRing = Color(0xFF14B8A6);
+
 const _rankNames = {
   'A': 'Ace',
   'K': 'King',

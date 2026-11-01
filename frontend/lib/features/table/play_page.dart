@@ -15,6 +15,7 @@ import '../../core/gamepad/pad_section.dart';
 import '../../core/peer_prefs.dart';
 import '../../core/providers.dart';
 import '../../core/session_store.dart';
+import '../../core/strength.dart';
 import '../../core/table_sounds.dart';
 import '../../core/time_sync.dart';
 import '../../core/turn_notifier.dart';
@@ -22,6 +23,7 @@ import '../../core/voice/voice_controller.dart';
 import '../../core/voice/voice_engine.dart';
 import '../../core/ws_client.dart';
 import '../../protocol/protocol.dart';
+import '../../shared/board_notes.dart';
 import '../../shared/confirm_dialog.dart';
 import '../../shared/connection_banner.dart';
 import '../../shared/top_bar.dart';
@@ -35,6 +37,7 @@ import 'replay/replay_dialog.dart';
 import 'shortcuts.dart';
 import 'table_session.dart';
 import 'widgets/action_bar.dart';
+import 'widgets/hand_rankings_dialog.dart';
 import 'widgets/invite_dialog.dart';
 import 'widgets/pad_hint_bar.dart';
 import 'widgets/player_menu.dart';
@@ -276,6 +279,36 @@ class _PlayPageState extends ConsumerState<PlayPage>
   }
 
   /// Opens the hand replay with the viewer's session (or the admin key).
+  /// Whether the viewer's two cards share a suit, which is half of what
+  /// names a starting hand ("Ace-King suited").
+  bool _holeSuited(Snapshot? snap) {
+    final seat = snap?.you.seat;
+    if (snap == null || seat == null) return false;
+    for (final sv in snap.seats) {
+      if (sv.seat != seat) continue;
+      final cards = sv.player?.holeCards;
+      if (cards == null || cards.length < 2) return false;
+      if (cards[0].length < 2 || cards[1].length < 2) return false;
+      return cards[0][1] == cards[1][1];
+    }
+    return false;
+  }
+
+  /// The hand rankings, with the viewer's own hand marked when the table
+  /// is telling them what it is. Opened from the hand line and from the
+  /// bar, which is the one place a phone can reach it.
+  Future<void> _handRankings(Snapshot? snap) async {
+    final you = snap?.you;
+    final named = ref.read(handLineProvider) != HandLinePlacement.off;
+    await showHandRankingsDialog(
+      context,
+      category: named ? you?.handCategory : null,
+      royal: you?.handRoyal ?? false,
+      description: named ? you?.handDescription : null,
+      fourColor: ref.read(fourColorDeckProvider),
+    );
+  }
+
   Future<void> _replay() async {
     final session = ref.read(tableSessionProvider(widget.tableId));
     final stored = ref.read(sessionProvider(widget.tableId)).value;
@@ -1128,6 +1161,35 @@ class _PlayPageState extends ConsumerState<PlayPage>
     );
     final chipDisplay = ref.watch(chipDisplayProvider);
     final myTurn = session.isPlayer && snap?.you.options != null;
+    // The hand rankings and the reading of your own hand are yours on
+    // every instance; only the recommendation answers to anyone else.
+    const helpOn = true;
+    // Away is away: a player who sat out is not in the hand and does not
+    // want their cards read back to them while they wait. Sitting out
+    // during a hand folds them at once, so the server keeps describing
+    // the hand they were dealt — the quiet has to come from here.
+    final sittingOut = myPlayer?.status == 'sitting_out';
+    // The advice needs three yeses: the instance, the host of this table,
+    // and the player themselves.
+    final adviceOn =
+        ref.watch(shownAdviceProvider) &&
+        (snap?.table.settings.allowAdvice ?? false) &&
+        session.isPlayer &&
+        !sittingOut;
+    // The help box, when there is one, is where all of this lands: the
+    // hand, the board's notes and the line to take. The bar decides —
+    // everything here just hands it the parts.
+    final strength = adviceOn
+        ? ref.watch(strengthProvider(widget.tableId)).value
+        : null;
+    if (adviceOn) {
+      // One ask per spot; the notifier drops the repeats.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(strengthProvider(widget.tableId).notifier).ask(snap);
+        }
+      });
+    }
     final voice = ref.watch(voiceControllerProvider(widget.tableId));
     // The player asked for the voice chat when joining: start it once the
     // connection is up (the join click counts as the required user gesture).
@@ -1278,6 +1340,9 @@ class _PlayPageState extends ConsumerState<PlayPage>
                   : null,
               onDraw: canDraw ? _session.draw : null,
               onErase: canDraw ? _session.eraseDrawings : null,
+              onHandLineTap: session.isPlayer && helpOn
+                  ? () => _handRankings(snap)
+                  : null,
               onPlayerTap: (p) => showPlayerMenu(
                 context,
                 tableId: widget.tableId,
@@ -1311,9 +1376,32 @@ class _PlayPageState extends ConsumerState<PlayPage>
               chipDisplay: chipDisplay,
               handLine:
                   ref.watch(handLineProvider) == HandLinePlacement.bottom &&
-                      session.isPlayer
-                  ? snap?.you.handDescription
+                      session.isPlayer &&
+                      !sittingOut
+                  ? handName(
+                      context.l10n,
+                      category: snap?.you.handCategory ?? 0,
+                      ranks: snap?.you.handRanks ?? const [],
+                      royal: snap?.you.handRoyal ?? false,
+                      preflop: (snap?.hand?.board.length ?? 0) < 3,
+                      suited: _holeSuited(snap),
+                    )
                   : null,
+              onRankings: session.isPlayer && helpOn
+                  ? () => _handRankings(snap)
+                  : null,
+              potOdds:
+                  ref.watch(shownPotOddsProvider) &&
+                  (snap?.table.settings.allowAdvice ?? false) &&
+                  !sittingOut,
+              strength: strength,
+              notes:
+                  session.isPlayer &&
+                      !sittingOut &&
+                      ref.watch(boardNotesProvider) &&
+                      ref.watch(handLineProvider) == HandLinePlacement.bottom
+                  ? snap?.you.notes ?? const []
+                  : const [],
               shown: session.mySeat != null
                   ? session.shown[session.mySeat!] ?? const []
                   : const [],
@@ -1592,6 +1680,19 @@ class _PlayPageState extends ConsumerState<PlayPage>
         ...pencilButtons,
         // Phones: the replay lives in the Log tab; the bar keeps the room
         // for the table name.
+        if (!compact && helpOn)
+          Tooltip(
+            tooltip: TooltipContainer(child: Text(l10n.handRankingsOpen)).call,
+            child: GhostButton(
+              key: const Key('rankings-button'),
+              density: ButtonDensity.icon,
+              onPressed: () => _handRankings(snap),
+              child: Icon(
+                LucideIcons.listOrdered,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+          ),
         if (!compact)
           Tooltip(
             tooltip: TooltipContainer(child: Text(l10n.replayOpen)).call,

@@ -290,3 +290,140 @@ func TestReadSpotPosition(t *testing.T) {
 		t.Errorf("relPos %.2f, want 0: the all-in seat does not act", spot.relPos)
 	}
 }
+
+// The advice is the strategy's own line, and it is the same line every
+// time: a player who asks twice in one spot must not be told two things.
+func TestAdviseIsStableAndAgreesWithTheBot(t *testing.T) {
+	t.Parallel()
+	// A strong made hand facing a bet: the strategy has a clear line.
+	sp := solidSpot{
+		hole: []string{"Ah", "Ad"}, board: []string{"As", "7c", "2d"},
+		opponents: 2, pot: 600, call: 200, currentBet: 200, button: 2,
+		options: protocol.OptionsView{
+			Fold: true, Raise: &protocol.RaiseView{Min: 400, Max: 10000}, AllIn: 10000,
+		},
+	}
+	o := sp.options
+	o.Call = sp.call
+	snap, seat := sp.snapshot(), 0
+	first, ok := Advise(o, snap, seat)
+	if !ok {
+		t.Fatal("no advice for a readable spot")
+	}
+	for range 5 {
+		again, _ := Advise(o, snap, seat)
+		if again != first {
+			t.Fatalf("advice changed between asks: %+v then %+v", first, again)
+		}
+	}
+	if first.Action == "" {
+		t.Error("advice without an action")
+	}
+	if first.Equity <= 0 || first.Equity > 1 {
+		t.Errorf("equity = %v, want a share of the pot", first.Equity)
+	}
+	// The bot facing the same spot plays the advice, or the plain line the
+	// advice declined to gamble on (the mixed bluff and thin value bet).
+	rng := rand.New(rand.NewPCG(7, 7))
+	act := Decide(o, snap, seat, rng)
+	if act.Kind != first.Action && first.Action != "check" && first.Action != "fold" {
+		t.Errorf("bot played %q where the advice says %q", act.Kind, first.Action)
+	}
+}
+
+// Advice never bluffs: the coin flips the strategy mixes in are declined,
+// so a checked pot is checked back rather than stabbed at.
+func TestAdviseDeclinesTheCoinFlips(t *testing.T) {
+	t.Parallel()
+	// A checked pot, heads-up and last to act, holding nothing: the one
+	// place the strategy stabs at a pot by coin flip.
+	sp := solidSpot{
+		hole: []string{"7h", "2c"}, board: []string{"As", "Kd", "Qs"},
+		opponents: 1, pot: 200, button: 0, street: "flop",
+		options: protocol.OptionsView{
+			Check: true, Raise: &protocol.RaiseView{Min: 100, Max: 10000}, AllIn: 10000,
+		},
+	}
+	a, ok := Advise(sp.options, sp.snapshot(), 0)
+	if !ok {
+		t.Fatal("no advice for a readable spot")
+	}
+	if a.Action == "raise" && a.Edge < 0.35 {
+		t.Errorf("advice raised on an edge of %.2f — that is the bluff it must decline", a.Edge)
+	}
+}
+
+// A raise carries its size in words, because "raise a little" is something
+// a beginner can act on and "raise to 420" is arithmetic.
+func TestAdviseSizesARaiseInWords(t *testing.T) {
+	t.Parallel()
+	// A monster on the flop: the strategy bets for value, two thirds of
+	// the pot, which is the big one of the two sizes.
+	big := solidSpot{
+		hole: []string{"Ah", "Ad"}, board: []string{"As", "7c", "2d"},
+		opponents: 1, pot: 400, button: 0, street: "flop",
+		options: protocol.OptionsView{
+			Check: true, Raise: &protocol.RaiseView{Min: 100, Max: 10000}, AllIn: 10000,
+		},
+	}
+	a, ok := Advise(big.options, big.snapshot(), 0)
+	if !ok {
+		t.Fatal("no advice for a readable spot")
+	}
+	if a.Action != "raise" {
+		t.Fatalf("action = %q with aces full of nothing, want a raise", a.Action)
+	}
+	if a.Sizing != SizingBig {
+		t.Errorf("sizing = %q, want %q", a.Sizing, SizingBig)
+	}
+
+	// Anything that is not a raise has no size to speak of.
+	fold := solidSpot{
+		hole: []string{"7h", "2c"}, board: []string{"As", "Kd", "Qs"},
+		opponents: 3, pot: 600, call: 600, currentBet: 600, button: 3, street: "flop",
+		options: protocol.OptionsView{
+			Fold: true, Raise: &protocol.RaiseView{Min: 1200, Max: 10000}, AllIn: 10000,
+		},
+	}
+	o := fold.options
+	o.Call = fold.call
+	if a, _ := Advise(o, fold.snapshot(), 0); a.Action == "raise" || a.Sizing != "" {
+		t.Errorf("action %q sizing %q, want no size on a hand it does not raise", a.Action, a.Sizing)
+	}
+}
+
+// Every line the strategy takes carries the reason it took it: a player
+// told "too expensive for what you are holding" has learned something,
+// and one told a percentage has not.
+func TestAdviseAlwaysSaysWhy(t *testing.T) {
+	t.Parallel()
+	spots := []solidSpot{
+		// Preflop, unopened, from the button with a premium.
+		{hole: []string{"Ah", "Ad"}, opponents: 2, pot: 150, call: solidBB,
+			currentBet: solidBB, button: 0,
+			options: protocol.OptionsView{Fold: true, Raise: &protocol.RaiseView{Min: 200, Max: 10000}, AllIn: 10000}},
+		// Preflop, facing a raise, with trash.
+		{hole: []string{"7h", "2c"}, opponents: 2, pot: 450, call: 300,
+			currentBet: 300, button: 2,
+			options: protocol.OptionsView{Fold: true, Raise: &protocol.RaiseView{Min: 600, Max: 10000}, AllIn: 10000}},
+		// Flop, checked to us, holding the world.
+		{hole: []string{"Ah", "Ad"}, board: []string{"As", "7c", "2d"},
+			opponents: 1, pot: 400, button: 0, street: "flop",
+			options: protocol.OptionsView{Check: true, Raise: &protocol.RaiseView{Min: 100, Max: 10000}, AllIn: 10000}},
+		// Flop, facing a big bet, holding nothing.
+		{hole: []string{"7h", "2c"}, board: []string{"As", "Kd", "Qs"},
+			opponents: 2, pot: 600, call: 600, currentBet: 600, button: 2, street: "flop",
+			options: protocol.OptionsView{Fold: true, Raise: &protocol.RaiseView{Min: 1200, Max: 10000}, AllIn: 10000}},
+	}
+	for i, sp := range spots {
+		o := sp.options
+		o.Call = sp.call
+		a, ok := Advise(o, sp.snapshot(), 0)
+		if !ok {
+			t.Fatalf("spot %d: no advice", i)
+		}
+		if a.Reason == "" {
+			t.Errorf("spot %d: %q without a reason", i, a.Action)
+		}
+	}
+}

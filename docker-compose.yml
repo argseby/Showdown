@@ -9,13 +9,20 @@ services:
       - "${WEB_PORT:-8080}:80"
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
-      API_UPSTREAM: api:8080
+      # Not plain "api": that is a common service name, and on a shared
+      # reverse-proxy network another stack's "api" can win the lookup and
+      # leave web proxying to the wrong container. The alias below belongs
+      # to this stack alone.
+      API_UPSTREAM: ${API_UPSTREAM:-showdown-api:8080}
     depends_on:
       api:
         condition: service_healthy
     restart: unless-stopped
   api:
     image: ghcr.io/${IMAGE_OWNER:-argseby}/showdown-api:${IMAGE_TAG:-latest}
+    networks:
+      default:
+        aliases: [showdown-api]   # the name web proxies to; see API_UPSTREAM
     environment:
       TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
       MAX_TABLES: ${MAX_TABLES:-100}

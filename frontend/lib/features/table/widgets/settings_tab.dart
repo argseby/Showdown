@@ -7,6 +7,7 @@ import '../../../app/theme.dart';
 import '../../../core/gamepad/gamepad.dart';
 import '../../../core/turn_notifier.dart';
 import '../../../core/voice/voice_controller.dart';
+import '../../../shared/help_level_picker.dart';
 import '../../../shared/kbd_hint.dart';
 import '../network_texts.dart';
 import '../table_session.dart';
@@ -66,6 +67,25 @@ class TableSettingsTab extends ConsumerWidget {
     final scale = ref.watch(uiScaleProvider);
     final handLine = ref.watch(handLineProvider);
     final spotlight = ref.watch(showdownSpotlightProvider);
+    final handHighlight = ref.watch(handHighlightProvider);
+    final boardNotes = ref.watch(boardNotesProvider);
+    final potOdds = ref.watch(potOddsProvider);
+    final advice = ref.watch(adviceProvider);
+    // The recommendation needs the instance and the host; the rest of the
+    // section is the player's own cards and needs nobody.
+    final adviceAllowed =
+        ref.watch(adviceAllowedProvider) &&
+        ref.watch(
+          tableSessionProvider(tableId)
+              .select((s) => s.snapshot?.table.settings.allowAdvice ?? true),
+        );
+    final helpLevel = helpLevelOf(
+      line: handLine,
+      highlight: handHighlight,
+      notes: boardNotes,
+      potOdds: potOdds,
+      advice: advice,
+    );
     final notifier = TurnNotifier.create();
     final voiceCtrl = ref.read(voiceControllerProvider(tableId).notifier);
     final isHost = ref.watch(
@@ -284,6 +304,14 @@ class TableSettingsTab extends ConsumerWidget {
                 onChanged: (v) =>
                     ref.read(showdownSpotlightProvider.notifier).set(v),
               ),
+              section(l10n.helpTitle),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: HelpLevelPicker(
+                  level: helpLevel,
+                  onChanged: (v) => applyHelpLevel(ref, v),
+                ),
+              ),
               PreferenceCard(
                 icon: LucideIcons.type,
                 title: l10n.handLine,
@@ -300,6 +328,47 @@ class TableSettingsTab extends ConsumerWidget {
                     HandLinePlacement.bottom => l10n.handLineBottom,
                   }),
                 ),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.scanEye,
+                title: l10n.handHighlight,
+                body: l10n.handHighlightAbout,
+                value: handHighlight,
+                switchKey: const Key('drawer-hand-highlight'),
+                preview: HandHighlightPreview(on: handHighlight),
+                onChanged: (v) =>
+                    ref.read(handHighlightProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.compass,
+                title: l10n.adviceTitle,
+                body: adviceAllowed
+                    ? l10n.adviceSettingAbout
+                    : l10n.adviceOffByHost,
+                value: advice && adviceAllowed,
+                switchKey: const Key('drawer-advice'),
+                preview: AdvicePreview(on: advice && adviceAllowed),
+                onChanged: adviceAllowed
+                    ? (v) => ref.read(adviceProvider.notifier).set(v)
+                    : null,
+              ),
+              PreferenceCard(
+                icon: LucideIcons.eye,
+                title: l10n.boardNotes,
+                body: l10n.boardNotesAbout,
+                value: boardNotes,
+                switchKey: const Key('drawer-board-notes'),
+                preview: BoardNotesPreview(on: boardNotes),
+                onChanged: (v) => ref.read(boardNotesProvider.notifier).set(v),
+              ),
+              PreferenceCard(
+                icon: LucideIcons.scale,
+                title: l10n.showOdds,
+                body: l10n.showOddsAbout,
+                value: potOdds,
+                switchKey: const Key('drawer-pot-odds'),
+                preview: const PotOddsPreview(),
+                onChanged: (v) => ref.read(potOddsProvider.notifier).set(v),
               ),
               section(l10n.prefsMoreSection),
               toggle(

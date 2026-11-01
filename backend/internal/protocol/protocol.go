@@ -388,6 +388,9 @@ type PublicSettings struct {
 	AllowRabbitHunt bool `json:"allow_rabbit_hunt"`
 	// AllowDrawing lets players scribble on the table with the pencil.
 	AllowDrawing bool `json:"allow_drawing"`
+	// AllowAdvice lets a player ask the table what to do on their turn.
+	// Public, because it is the table's rule and not the asker's secret.
+	AllowAdvice bool `json:"allow_advice"`
 	// Tournament locks every setting that could move chips or information
 	// once the first hand is dealt, chip adjustments and seat changes too.
 	Tournament bool `json:"tournament"`
@@ -491,6 +494,14 @@ type PotView struct {
 	EligibleSeats []int `json:"eligible_seats"`
 }
 
+// NoteView is one thing worth noticing about the board, with the rank or
+// suit that makes it concrete where there is one.
+type NoteView struct {
+	ID   string `json:"id"`
+	Rank string `json:"rank,omitempty"`
+	Suit string `json:"suit,omitempty"`
+}
+
 // You is the recipient-specific part of a snapshot.
 type You struct {
 	Role            string       `json:"role"`
@@ -505,6 +516,24 @@ type You struct {
 	PreAction string `json:"pre_action"`
 	// BestCards are the recipient's cards that make their current hand.
 	BestCards []string `json:"best_cards,omitempty"`
+	// HandCategory ranks that hand the way the record does (0 high card ..
+	// 8 straight flush), so a client can mark it in the hand rankings
+	// without parsing HandDescription. Absent when there is no hand, and
+	// withheld along with HandDescription where the instance serves no
+	// player help.
+	HandCategory *int `json:"hand_category,omitempty"`
+	// HandRoyal tells the royal flush from any other straight flush.
+	HandRoyal bool `json:"hand_royal,omitempty"`
+	// HandRanks are the ranks that name the hand, most significant first
+	// ("K" and "9" for kings and nines), in the spelling the cards use.
+	// With HandCategory they are enough to write HandDescription in any
+	// language, which is why a client never has to parse the English one.
+	HandRanks []string `json:"hand_ranks,omitempty"`
+	// Notes read the board back to the recipient: what it threatens for
+	// anyone, and what their own hand can still become. Ids, because the
+	// client has the words in the player's language. Absent before the
+	// flop, where there is no board to read.
+	Notes []NoteView `json:"notes,omitempty"`
 	// CanRabbitHunt is true in the result phase when the board was not dealt
 	// out and rabbit hunting is allowed.
 	CanRabbitHunt bool `json:"can_rabbit_hunt"`

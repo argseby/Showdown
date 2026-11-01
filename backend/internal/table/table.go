@@ -228,6 +228,11 @@ type Deps struct {
 	Shuffle  func([]poker.Card)
 	RandIntn func(n int) int
 	Delays   Delays
+	// NoAdvice withholds the recommendation a player can ask for on their
+	// turn, for the whole instance. What their own cards make is theirs
+	// either way. Inverted on purpose: the zero value gives the advice,
+	// which is the default everywhere.
+	NoAdvice bool
 }
 
 func (d Deps) withDefaults() Deps {

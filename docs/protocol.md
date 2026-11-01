@@ -179,6 +179,47 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   `equity` is the share of the pot the hand would win against `opponents` random hands over
 >   the cards to come (2000 samples), `tier` one of `monster, strong, good, marginal, weak`
 >   relative to an even share. Rate limited like `info`.
+> - **Hand strength and advice (2026-09-20).** `GET /api/tables/{id}/strength` (bearer =
+>   the caller's own player session token of this table; `unauthorized` for a spectator or
+>   another table's token, `invalid_state` when there is no hand of theirs to read)
+>   answers `{street, cards, board, description, category, royal?, best?, equity,
+>   opponents, tier, advice?}`. Everything in it is derived from the caller's own cards
+>   and the public board. `equity` is the share of the pot the hand takes against
+>   `opponents` random hands (0..1, 1500 sampled run-outs), `tier` the same in a word
+>   (`monster, strong, good, marginal, weak`) measured as the edge over an average
+>   holding, not as raw equity — the tier is what a client shows, since a player
+>   learning the game reads words and not percentages. `advice` is
+>   `{action, amount?, sizing?, reason?, need}`, where `sizing` is `small` or `big` for a
+>   raise (about half the pot, or about all of it) and `reason` is why that line, one of
+>   `strong_start, weak_start, cheap_look, free_look, worth_price, too_expensive,
+>   nothing_there, ahead, nothing_to_bet` — named by the strategy at the branch it takes,
+>   so the reason a player reads cannot drift from the reason it had — the line
+>   `internal/botplay` would take, the same strategy the bots play, with `need` the share
+>   a call has to win to break even (0 when checking is free). It is present only on the
+>   caller's own turn and only where the table setting `allow_advice` (default true, host,
+>   applies immediately) allows it; the advice declines the coin flips the bot mixes in,
+>   so it never bluffs and is the same answer every time it is asked for one spot.
+>   Rate limited like `info`. `PLAYER_ADVICE=false` (`GET /api/config` →
+>   `player_advice: false`) drops `advice` from the answer for the whole instance; the
+>   reading of the hand comes back either way, because those are the caller's own cards.
+> - **Player help (2026-09-20).** `you.hand_category` (0 high card .. 8 straight flush,
+>   the numbering the record uses) and `you.hand_royal` ride along with
+>   `you.hand_description` and `you.best_cards` from the deal on, so a client can mark
+>   the player's hand in a card of the hand rankings without parsing the description.
+>   Before the flop they rank the two cards alone: a pocket pair is a pair, anything
+>   else a high card. `you.hand_ranks` carries the ranks that name it, most significant
+>   first (`["K","9"]` for kings and nines; two for a two pair or a full house, one
+>   otherwise, and before the flop the pocket pair's rank or both cards high first), so a
+>   client writes `hand_description` in its own language instead of parsing the English
+>   one — which is what it is for, along with the hands other players reveal.
+>   `you.notes` reads the board back in the same spirit, from the flop
+>   on: at most three of `nuts, flush_draw, open_ended, gutshot, flush_possible,
+>   flush_landed, straight_possible, board_paired, overcard, scary_for_everyone`, each
+>   `{id, rank?, suit?}` with the rank or suit that makes it concrete (the one-character
+>   spellings the cards use). The reader's own hand comes first, then the board's
+>   threats; a client that does not know an id leaves that note unsaid. None of these
+>   are ever withheld: they are the recipient's own cards read back to them. Revealed hands keep `seats[].player.hand_description` and
+>   `best_cards` as before — those describe what the whole table saw.
 > - **New round on the same table (2026-09-19).** `POST /api/admin/tables/{id}/restart`
 >   (table admin, only from `ended` → `{state: "waiting"}`, `invalid_state` otherwise)
 >   opens a new round on the same table id: everyone keeps their seat, their session and

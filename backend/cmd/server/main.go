@@ -95,7 +95,9 @@ func run() error {
 		}
 	}()
 
-	registry := table.NewRegistry(table.Deps{Store: st, Log: log}, cfg.MaxTables)
+	registry := table.NewRegistry(table.Deps{
+		Store: st, Log: log, NoAdvice: !cfg.PlayerAdvice,
+	}, cfg.MaxTables)
 	if err := registry.LoadAll(ctx); err != nil {
 		return fmt.Errorf("restore tables: %w", err)
 	}

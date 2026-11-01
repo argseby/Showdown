@@ -58,6 +58,20 @@ func (h HandValue) ranks() [5]Rank {
 	}
 }
 
+// Significant returns the ranks [Describe] names, most significant first:
+// two for the hands built from two ranks (two pair, a full house), one for
+// everything else. A client with the words in its own language builds the
+// same sentence from these rather than parsing the English one.
+func (h HandValue) Significant() []Rank {
+	r := h.ranks()
+	switch h.Category {
+	case TwoPair, FullHouse:
+		return []Rank{r[0], r[1]}
+	default:
+		return []Rank{r[0]}
+	}
+}
+
 // Describe renders the hand in words, e.g. "Two Pair, Kings and Nines".
 func (h HandValue) Describe() string {
 	r := h.ranks()

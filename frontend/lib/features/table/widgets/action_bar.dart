@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -6,7 +7,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../../app/l10n.dart';
 import '../../../app/preferences.dart';
 import '../../../core/formatting.dart';
+import '../../../core/strength.dart';
 import '../../../protocol/protocol.dart';
+import '../../../shared/board_notes.dart';
 import '../../../shared/kbd_hint.dart';
 import '../../../shared/shown_cards_icon.dart';
 import '../action_model.dart';
@@ -63,6 +66,10 @@ class ActionBar extends StatefulWidget {
     this.chipDisplay = ChipDisplay.coins,
     this.shown = const [],
     this.handLine,
+    this.potOdds = false,
+    this.strength,
+    this.notes = const [],
+    this.onRankings,
   });
 
   final Snapshot? snapshot;
@@ -78,6 +85,24 @@ class ActionBar extends StatefulWidget {
 
   /// "Your hand: …" shown at the bottom when the preference says so.
   final String? handLine;
+
+  /// Show the price of a call against the pot it would win (preference).
+  final bool potOdds;
+
+  /// What the server says about the viewer's hand this turn, when they
+  /// asked for it. Null hides the panel; an answer without an `advice`
+  /// leaves the price standing on its own.
+  final Strength? strength;
+
+  /// The board read back in words — what it threatens, what is still to
+  /// come. They sit with the advice when there is advice, because they are
+  /// what its percentage means; under the hand otherwise.
+  final List<HandNote> notes;
+
+  /// Opens the hand rankings from the advice box. While the box is up it
+  /// names the hand instead of the line under the buttons, so it carries
+  /// that line's way into the rankings too.
+  final VoidCallback? onRankings;
 
   /// How long the action buttons stay disabled after the turn arrives, so
   /// a click aimed at something that was under the pointer a moment ago
@@ -472,6 +497,7 @@ class ActionBarState extends State<ActionBar> {
       final rows = <Widget>[
         ?_topRow(context, you, togglesEnabled: !myTurn && !folded),
         ?_resultRow(context, you),
+        ?_helpBox(context, sittingOut: sittingOut),
         if (folded && result == null)
           _foldedNotice(context, actions)
         else
@@ -489,8 +515,6 @@ class ActionBarState extends State<ActionBar> {
       );
     }
 
-    final handLine = widget.handLine;
-    final showHandLine = handLine != null && handLine.isNotEmpty;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -500,31 +524,7 @@ class ActionBarState extends State<ActionBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          content,
-          if (showHandLine) ...[
-            const Gap(4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  LucideIcons.sparkles,
-                  size: 12,
-                  color: theme.colorScheme.mutedForeground,
-                ),
-                const Gap(6),
-                Text(
-                  l10n.yourHand(handLine),
-                  key: const Key('your-hand-bottom'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
+        children: [content],
       ),
     );
   }
@@ -652,6 +652,32 @@ class ActionBarState extends State<ActionBar> {
           ],
         ],
       ),
+    );
+  }
+
+  /// The help box: the hand, what the board makes of it, and the line to
+  /// take when the server has one. It is the only place the help appears,
+  /// on turn and off it, so nothing about a player's own cards is ever
+  /// said twice in two different places.
+  Widget? _helpBox(BuildContext context, {required bool sittingOut}) {
+    if (sittingOut) return null;
+    final handLine = widget.handLine;
+    final strength = widget.strength;
+    if (!_HelpBox.hasContent(
+      handLine: handLine,
+      notes: widget.notes,
+      strength: strength,
+    )) {
+      return null;
+    }
+    return _HelpBox(
+      fmt: _fmt,
+      strength: strength,
+      notes: widget.notes,
+      showOdds: widget.potOdds,
+      onRankings: widget.onRankings,
+      onExplain: () => showAdviceExplainer(context),
+      handLine: handLine,
     );
   }
 
@@ -930,6 +956,18 @@ class ActionBarState extends State<ActionBar> {
       overflow: TextOverflow.ellipsis,
       style: compact ? const TextStyle(fontSize: compactActionLabelSize) : null,
     );
+    // An icon in front of a label belongs in the same centred row as the
+    // label. A button's `leading` slot sits outside the aligned child, so a
+    // button wide enough to fill the bar leaves the icon pinned to its left
+    // edge with the words adrift in the middle of what is left.
+    Widget withIcon(IconData icon, Widget child) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18),
+        const Gap(8),
+        Flexible(child: child),
+      ],
+    );
     if (you.canShowCards) {
       final first = widget.shown.isNotEmpty && widget.shown[0];
       final second = widget.shown.length > 1 && widget.shown[1];
@@ -987,13 +1025,15 @@ class ActionBarState extends State<ActionBar> {
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: () => widget.callbacks.showCards('both'),
-          leading: compact ? null : const Icon(LucideIcons.eye, size: 18),
-          child: cards(
+          child: switch (cards(
             l10n.showCards,
             ShortcutAction.showBoth,
             a: true,
             b: true,
-          ),
+          )) {
+            final child when compact => child,
+            final child => withIcon(LucideIcons.eye, child),
+          },
         ),
       );
     }
@@ -1004,13 +1044,18 @@ class ActionBarState extends State<ActionBar> {
           size: actionButtonSize,
           alignment: Alignment.center,
           onPressed: widget.callbacks.rabbitHunt,
-          leading: const Icon(LucideIcons.rabbit, size: 18),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: label(l10n.rabbitHunt)),
-              KbdHint(shortcutLabel(ShortcutAction.rabbitHunt), leadingGap: 6),
-            ],
+          child: withIcon(
+            LucideIcons.rabbit,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: label(l10n.rabbitHunt)),
+                KbdHint(
+                  shortcutLabel(ShortcutAction.rabbitHunt),
+                  leadingGap: 6,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -1043,6 +1088,362 @@ bool isCompactActionBar(BuildContext context) =>
 const double compactActionLabelSize = 12;
 
 /// The colour code of the action buttons.
+/// The line the house strategy would take, with the numbers behind it and
+/// a bar that compares them without arithmetic: the filled part is how
+/// often the hand wins, the mark is how often it has to. Left of the mark
+/// the call loses money, right of it it makes money.
+/// Everything the help has to say, in one box: the hand being held, what
+/// the board makes of it, and — on the player's own turn — the line the
+/// house strategy would take. It is the only place any of it appears, so a
+/// player learns where to look once.
+///
+/// The sections are told apart by more than line breaks: the hand wears a
+/// card, each note the icon and colour of what it is (amber for what the
+/// board owes the others, teal for what is still coming, gold for a hand
+/// nothing beats), and the suggestion sits behind a rule in the colour of
+/// the action it names.
+class _HelpBox extends StatelessWidget {
+  const _HelpBox({
+    required this.fmt,
+    this.strength,
+    this.notes = const [],
+    this.showOdds = false,
+    this.onRankings,
+    this.onExplain,
+    this.handLine,
+  });
+
+  final String Function(int) fmt;
+
+  /// The server's reading of this turn, when there is one. Null off turn,
+  /// where the box still has the hand and the board to show.
+  final Strength? strength;
+  final List<HandNote> notes;
+  final bool showOdds;
+  final VoidCallback? onRankings;
+  final VoidCallback? onExplain;
+
+  /// The hand being held, already written in the player's language.
+  final String? handLine;
+
+  static bool hasContent({
+    required String? handLine,
+    required List<HandNote> notes,
+    required Strength? strength,
+  }) =>
+      (handLine != null && handLine.isNotEmpty) ||
+      notes.isNotEmpty ||
+      strength?.advice != null;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final advice = strength?.advice;
+    final hand = handLine;
+    return Container(
+      key: const Key('advice-box'),
+      padding: const EdgeInsets.fromLTRB(10, 7, 6, 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.muted.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: theme.colorScheme.border),
+      ),
+      // No size animation here: the box has to be able to grow upwards as
+      // a street adds a note, and an animated box clips whatever has not
+      // been measured yet — which is the top of itself.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // The hand, first and named as the player's own.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Icon(
+                  LucideIcons.spade,
+                  size: 13,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+              ),
+              const Gap(6),
+              Expanded(
+                child: hand == null || hand.isEmpty
+                    ? const SizedBox.shrink()
+                    : Text(
+                        l10n.yourHand(hand),
+                        key: const Key('box-hand'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
+              if (onRankings != null)
+                GhostButton(
+                  key: const Key('advice-rankings'),
+                  density: ButtonDensity.compact,
+                  onPressed: onRankings,
+                  child: Icon(
+                    LucideIcons.listOrdered,
+                    size: 13,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+              if (advice != null && onExplain != null)
+                GhostButton(
+                  key: const Key('advice-explain'),
+                  density: ButtonDensity.compact,
+                  onPressed: onExplain,
+                  child: Icon(
+                    LucideIcons.circleHelp,
+                    size: 13,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+            ],
+          ),
+          if (notes.isNotEmpty) ...[const Gap(5), BoardNotes(notes: notes)],
+          if (advice != null) ...[
+            const Gap(7),
+            _AdviceSection(
+              strength: strength!,
+              advice: advice,
+              fmt: fmt,
+              showOdds: showOdds,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The suggestion half of the box: a rule in the colour of the action, the
+/// line itself, and the reason under it.
+class _AdviceSection extends StatelessWidget {
+  const _AdviceSection({
+    required this.strength,
+    required this.advice,
+    required this.fmt,
+    required this.showOdds,
+  });
+
+  final Strength strength;
+  final Advice advice;
+  final String Function(int) fmt;
+  final bool showOdds;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final equity = strength.equity.clamp(0.0, 1.0);
+    final need = advice.need.clamp(0.0, 1.0);
+    final verdict = switch (advice.action) {
+      'call' => l10n.adviceWorthCall,
+      'raise' when advice.sizing == 'small' => l10n.adviceRaiseLittle(
+        fmt(advice.amount),
+      ),
+      'raise' => l10n.adviceRaiseLot(fmt(advice.amount)),
+      'all_in' => l10n.adviceWorthAllIn,
+      'check' => l10n.adviceCheck,
+      _ => l10n.adviceFold,
+    };
+    final why = switch (advice.reason) {
+      'strong_start' => l10n.whyStrongStart,
+      'weak_start' => l10n.whyWeakStart,
+      'cheap_look' => l10n.whyCheapLook,
+      'free_look' => l10n.whyFreeLook,
+      'worth_price' => l10n.whyWorthPrice,
+      'too_expensive' => l10n.whyTooExpensive,
+      'nothing_there' => l10n.whyNothingThere,
+      'ahead' => l10n.whyAhead,
+      'nothing_to_bet' => l10n.whyNothingToBet,
+      _ => '',
+    };
+    // One colour for the section, taken from the line itself: reading it
+    // off the equity would put a red bar under a green "raise a lot".
+    final colour = switch (advice.action) {
+      'fold' => ActionColors.fold,
+      'check' => theme.colorScheme.mutedForeground,
+      _ => ActionColors.check,
+    };
+    // The price is only the question when the choice is to pay it or not.
+    final weighing =
+        need > 0 && (advice.action == 'call' || advice.action == 'fold');
+    final percent = (equity * 100).round();
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(color: colour, width: 2)),
+      ),
+      padding: const EdgeInsets.only(left: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.scale, size: 11, color: colour),
+              const Gap(5),
+              Text(
+                l10n.adviceHint.toUpperCase(),
+                key: const Key('advice-hint-label'),
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: colour,
+                ),
+              ),
+            ],
+          ),
+          const Gap(1),
+          // The line changes as the betting does; fading it keeps a new
+          // verdict from reading as the old one at a glance.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            // The switcher needs a key that changes with the line; the
+            // line itself keeps a stable one so it can still be found.
+            child: KeyedSubtree(
+              key: ValueKey('$verdict|${advice.reason}'),
+              child: Text(
+                verdict,
+                key: const Key('advice-verdict'),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colour,
+                ),
+              ),
+            ),
+          ),
+          if (why.isNotEmpty && advice.action != 'check')
+            Text(
+              why,
+              key: const Key('advice-why'),
+              style: TextStyle(
+                fontSize: 11,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+          if (showOdds) ...[
+            const Gap(5),
+            _ChanceBar(
+              equity: equity,
+              need: weighing ? need : 0,
+              colour: colour,
+            ),
+            const Gap(3),
+            Text(
+              weighing
+                  ? l10n.adviceChanceAndPrice(
+                      '$percent',
+                      '${(need * 100).round()}',
+                    )
+                  : l10n.adviceChance('$percent'),
+              key: const Key('advice-numbers'),
+              style: TextStyle(
+                fontSize: 11,
+                color: theme.colorScheme.mutedForeground,
+              ),
+            ),
+            if (advice.action == 'fold' && need > 0 && equity >= need)
+              Text(
+                l10n.adviceCloseButRandom,
+                key: const Key('advice-close'),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// What the box is and is not, for whoever taps the question mark. The
+/// heading already says "suggestion"; this is the rest of the truth — that
+/// it is the bots' own brain, that it guesses against random hands, and
+/// that it will never tell anybody to bluff.
+Future<void> showAdviceExplainer(BuildContext context) => showOverlay<void>(
+  context,
+  const DialogConfiguration(),
+  builder: (context) => AlertDialog(
+    title: Text(context.l10n.adviceExplainTitle),
+    content: SizedBox(
+      width: math.min(420.0, MediaQuery.sizeOf(context).width - 40),
+      child: Text(context.l10n.adviceExplainBody).small(),
+    ),
+    actions: [
+      PrimaryButton(
+        key: const Key('advice-explain-close'),
+        onPressed: () => closeOverlay<void>(context),
+        child: Text(context.l10n.close),
+      ),
+    ],
+  ),
+).future;
+
+/// How often the hand wins against how often it has to: a filled bar and a
+/// mark on it. The comparison is the message, so it is drawn rather than
+/// left to the reader.
+class _ChanceBar extends StatelessWidget {
+  const _ChanceBar({
+    required this.equity,
+    required this.need,
+    required this.colour,
+  });
+
+  final double equity;
+  final double need;
+  final Color colour;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        return SizedBox(
+          height: 8,
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.muted,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              Container(
+                width: w * equity,
+                decoration: BoxDecoration(
+                  color: colour.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              if (need > 0)
+                Positioned(
+                  left: (w * need).clamp(0.0, w - 2),
+                  child: Container(
+                    key: const Key('advice-need-mark'),
+                    width: 2,
+                    height: 8,
+                    color: theme.colorScheme.foreground,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ActionColors {
   const ActionColors._();
   static const fold = Color(0xFFD64545);

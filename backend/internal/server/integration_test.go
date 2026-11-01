@@ -62,14 +62,16 @@ func newHarness(t *testing.T, dir, addr string, env ...map[string]string) *harne
 	if err != nil {
 		t.Fatal(err)
 	}
-	reg := table.NewRegistry(table.Deps{Store: st, Log: log, Delays: table.Delays{
+	cfg, err := config.Load(func(k string) string { return settings[k] })
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The registry takes the same dependencies the binary gives it, so a
+	// test that sets PLAYER_ADVICE sees what an instance with it set does.
+	reg := table.NewRegistry(table.Deps{Store: st, Log: log, NoAdvice: !cfg.PlayerAdvice, Delays: table.Delays{
 		Street: 20 * time.Millisecond, Runout: 20 * time.Millisecond, Showdown: 50 * time.Millisecond,
 	}}, 10)
 	if err := reg.LoadAll(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err := config.Load(func(k string) string { return settings[k] })
-	if err != nil {
 		t.Fatal(err)
 	}
 	s := New(cfg, st, reg, log)

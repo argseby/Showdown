@@ -116,6 +116,7 @@ class _TableRulesDialogState extends State<TableRulesDialog> {
       (s.chatEnabled, l10n.setChatEnabled),
       (s.spectatorChat, l10n.setSpectatorChat),
       (s.allowDrawing, l10n.setAllowDrawing),
+      (s.allowAdvice, l10n.setAllowAdvice),
       (s.requiresPassword, l10n.rulesPassword),
     ];
     final host = [

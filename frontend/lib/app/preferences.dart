@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/providers.dart';
+
 /// Sound cue on your turn. On by default (owner decision); the toggle in the
 /// top bar and the M shortcut switch it off.
 class SoundEnabledNotifier extends Notifier<bool> {
@@ -389,4 +391,254 @@ class HandLineNotifier extends Notifier<HandLinePlacement> {
 
 final handLineProvider = NotifierProvider<HandLineNotifier, HandLinePlacement>(
   HandLineNotifier.new,
+);
+
+/// Your own five, ringed in teal on the felt: the board cards and hole
+/// cards that make what you are holding right now. The quickest way to see
+/// that a card does not play — and the quickest way to learn why. It steps
+/// aside while a pot is being presented so that the winner's gold never
+/// competes with it.
+///
+/// Off by default, like the pot odds: the table has always named the hand
+/// and left it at that, and a player who wants more than that is asked in
+/// so many words when they join ([HelpLevel]).
+class HandHighlightNotifier extends Notifier<bool> {
+  static const _key = 'pref:hand_highlight';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final handHighlightProvider = NotifierProvider<HandHighlightNotifier, bool>(
+  HandHighlightNotifier.new,
+);
+
+/// Pot odds over the action buttons: what the call costs, what it stands to
+/// win, and how often it has to be good to be worth it. Arithmetic on
+/// numbers everyone at the table can already see, so it tells nobody
+/// anything about anybody's cards; it only saves doing it in your head.
+/// Off until a player asks for it ([HelpLevel]).
+class PotOddsNotifier extends Notifier<bool> {
+  static const _key = 'pref:pot_odds';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final potOddsProvider = NotifierProvider<PotOddsNotifier, bool>(
+  PotOddsNotifier.new,
+);
+
+/// The board read back in words under your hand: what it threatens for
+/// anyone, and what you can still hit. The half a percentage cannot carry
+/// — and deliberately even-handed, because a board nobody can call on is
+/// also a board worth betting. On from the level that shows which cards
+/// play, since both are about reading the board.
+class BoardNotesNotifier extends Notifier<bool> {
+  static const _key = 'pref:board_notes';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final boardNotesProvider = NotifierProvider<BoardNotesNotifier, bool>(
+  BoardNotesNotifier.new,
+);
+
+/// The strategy's line on your turn, asked of the server: how often the
+/// hand wins, what the price asks for, and what it would do. The strongest
+/// help there is — it answers the question instead of teaching it — so it
+/// is the last thing any level turns on, the host allows it per table, and
+/// the instance can refuse it outright. Off until asked for.
+class AdviceNotifier extends Notifier<bool> {
+  static const _key = 'pref:advice';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void set(bool value) {
+    state = value;
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool(_key, value))
+        .ignore();
+  }
+}
+
+final adviceProvider = NotifierProvider<AdviceNotifier, bool>(
+  AdviceNotifier.new,
+);
+
+/// How much help a player wants at the table. The levels are cumulative,
+/// and each one is nothing more than a preset of the three switches below
+/// it — [handLineProvider], [handHighlightProvider] and [potOddsProvider] —
+/// so the level is never a second source of truth that can drift from what
+/// the table actually shows. A player who then changes one switch lands on
+/// [HelpLevel.custom], which is a reading of the switches and not a setting
+/// of its own.
+enum HelpLevel {
+  /// Nothing: the table says only what a table says.
+  none,
+
+  /// The name of your hand, and the hand rankings to put it in context.
+  /// This is what Showdown has always done, and the default.
+  hand,
+
+  /// Also the cards that make it, ringed on the felt.
+  cards,
+
+  /// Also what a call costs against the pot it would win.
+  full,
+
+  /// The switches do not match any level; nothing sets this.
+  custom,
+}
+
+/// Reads the three switches as a level.
+/// The percentages are not part of a level: they are an extra for whoever
+/// wants the arithmetic, and turning them on should not make a player's
+/// answer read as "your own mix". Only the level that turns everything off
+/// takes them with it.
+HelpLevel helpLevelOf({
+  required HandLinePlacement line,
+  required bool highlight,
+  required bool notes,
+  required bool potOdds,
+  required bool advice,
+}) {
+  final named = line != HandLinePlacement.off;
+  return switch ((named, highlight, notes, advice)) {
+    (false, false, false, false) => potOdds ? HelpLevel.custom : HelpLevel.none,
+    (true, false, false, false) => HelpLevel.hand,
+    (true, true, true, false) => HelpLevel.cards,
+    (true, true, true, true) => HelpLevel.full,
+    _ => HelpLevel.custom,
+  };
+}
+
+/// The level as the three switches, so picking one writes all of them.
+/// [HelpLevel.custom] is not a preset and changes nothing.
+extension HelpLevelPreset on HelpLevel {
+  bool get showsHandLine => this != HelpLevel.none && this != HelpLevel.custom;
+  bool get showsHighlight => this == HelpLevel.cards || this == HelpLevel.full;
+  bool get showsNotes => showsHighlight;
+  bool get showsAdvice => this == HelpLevel.full;
+}
+
+/// The advice needs the host's yes and the instance's as well as the
+/// player's; the table setting is read where the snapshot is, so this is
+/// the player's switch and the instance's. Everything else in the help is
+/// the player's own cards read back to them and answers to nobody.
+final shownAdviceProvider = Provider<bool>(
+  (ref) => ref.watch(adviceAllowedProvider) && ref.watch(adviceProvider),
+);
+
+/// The percentages are the working behind the advice, so they follow the
+/// same permission. Without this, switching the advice off at the server
+/// would *reveal* the bare price line to anyone with the numbers on —
+/// quieting the table by taking away its words and leaving its sums.
+final shownPotOddsProvider = Provider<bool>(
+  (ref) => ref.watch(adviceAllowedProvider) && ref.watch(potOddsProvider),
+);
+
+/// Whether this instance allows a recommendation at all. A plain bool, so
+/// widgets never deal with a loading state: until the server answers it is
+/// allowed, and an instance that refuses simply never answers the ask.
+final adviceAllowedProvider = Provider<bool>(
+  (ref) => ref.watch(playerAdviceEnabledProvider).value ?? true,
+);
+
+/// Applies a level by writing the switches it stands for. The one place
+/// that knows what each level means in practice, so the join form and the
+/// settings tab cannot drift apart. [HelpLevel.custom] is a reading, not a
+/// choice, and does nothing.
+void applyHelpLevel(WidgetRef ref, HelpLevel level) {
+  if (level == HelpLevel.custom) return;
+  final line = ref.read(handLineProvider);
+  ref
+      .read(handLineProvider.notifier)
+      .set(
+        !level.showsHandLine
+            ? HandLinePlacement.off
+            // Whoever had the line somewhere keeps it there.
+            : line == HandLinePlacement.off
+            ? HandLinePlacement.bottom
+            : line,
+      );
+  ref.read(handHighlightProvider.notifier).set(level.showsHighlight);
+  ref.read(boardNotesProvider.notifier).set(level.showsNotes);
+  // The percentages stay where the player left them, except at the level
+  // that means "tell me nothing".
+  if (level == HelpLevel.none) {
+    ref.read(potOddsProvider.notifier).set(false);
+  }
+  ref.read(adviceProvider.notifier).set(level.showsAdvice);
+}
+
+/// Whether the player has been asked how much help they want. The join
+/// form asks once and never again; changing it later is a settings job.
+class HelpAskedNotifier extends Notifier<bool> {
+  static const _key = 'pref:help_asked';
+
+  @override
+  bool build() {
+    SharedPreferences.getInstance().then((p) {
+      final v = p.getBool(_key);
+      if (v != null) state = v;
+    }).ignore();
+    return false;
+  }
+
+  void mark() {
+    state = true;
+    SharedPreferences.getInstance().then((p) => p.setBool(_key, true)).ignore();
+  }
+}
+
+final helpAskedProvider = NotifierProvider<HelpAskedNotifier, bool>(
+  HelpAskedNotifier.new,
 );
