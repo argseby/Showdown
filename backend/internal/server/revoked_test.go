@@ -235,10 +235,9 @@ func TestRevokedCallbackNeedsAKnownIssuer(t *testing.T) {
 
 	for _, iss := range []string{"", "not-an-origin", "https://a.example/path", "http://10.0.0.1"} {
 		state, wait := startRevoked(t, h)
-		res := deliverRevoked(t, h, url.Values{"code": {"x"}, "state": {state}, "iss": {iss}})
-		loc := res.Header.Get("Location")
-		if res.StatusCode != http.StatusSeeOther || !strings.Contains(loc, "revoked_error=") {
-			t.Errorf("iss %q: %d %s", iss, res.StatusCode, loc)
+		code, loc := deliverRevoked(t, h, url.Values{"code": {"x"}, "state": {state}, "iss": {iss}})
+		if code != http.StatusSeeOther || !strings.Contains(loc, "revoked_error=") {
+			t.Errorf("iss %q: %d %s", iss, code, loc)
 		}
 		// The page hears the same, and no code to spend.
 		status, out := h.request(http.MethodPost, "/api/accounts/revoked/wait", "", map[string]string{"wait": wait})
@@ -263,7 +262,7 @@ func startRevoked(t *testing.T, h *harness) (state, wait string) {
 
 // deliverRevoked answers the way the Revoked app does from a phone: no
 // cookies, and without following the redirect.
-func deliverRevoked(t *testing.T, h *harness, q url.Values) *http.Response {
+func deliverRevoked(t *testing.T, h *harness, q url.Values) (status int, location string) {
 	t.Helper()
 	client := &http.Client{
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
@@ -272,8 +271,8 @@ func deliverRevoked(t *testing.T, h *harness, q url.Values) *http.Response {
 	if err != nil {
 		t.Fatalf("callback: %v", err)
 	}
-	_ = res.Body.Close()
-	return res
+	defer func() { _ = res.Body.Close() }()
+	return res.StatusCode, res.Header.Get("Location")
 }
 
 // TestRevokedPageWaitsForTheAnswer is the sign-in from a computer with the
@@ -310,14 +309,13 @@ func TestRevokedPageWaitsForTheAnswer(t *testing.T) {
 	}
 
 	answer := url.Values{"code": {"auth-code"}, "state": {state}, "iss": {issuer.URL}}
-	res := deliverRevoked(t, h, answer)
-	if res.StatusCode >= 400 || strings.Contains(res.Header.Get("Location"), "revoked_error") {
-		t.Fatalf("delivery: %d %s", res.StatusCode, res.Header.Get("Location"))
+	delivered, loc := deliverRevoked(t, h, answer)
+	if delivered >= 400 || strings.Contains(loc, "revoked_error") {
+		t.Fatalf("delivery: %d %s", delivered, loc)
 	}
 	// An answer is good once.
-	res = deliverRevoked(t, h, answer)
-	if !strings.Contains(res.Header.Get("Location"), "revoked_error=state_mismatch") {
-		t.Fatalf("second delivery: %s", res.Header.Get("Location"))
+	if _, loc = deliverRevoked(t, h, answer); !strings.Contains(loc, "revoked_error=state_mismatch") {
+		t.Fatalf("second delivery: %s", loc)
 	}
 
 	status, out = ask(wait)
