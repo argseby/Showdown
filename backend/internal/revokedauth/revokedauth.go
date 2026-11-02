@@ -15,6 +15,7 @@
 package revokedauth
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -26,6 +27,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -247,7 +249,7 @@ func (c *Client) Discover(ctx context.Context, issuer string) (Metadata, error) 
 // revoked_return=background has the app hand the answer over itself rather
 // than through a browser, because the page waiting for it may be on another
 // device. It also has the app show the check code.
-func AppLink(clientID, redirectURI, state, nonce, challenge string, scopes []string) string {
+func AppLink(clientID, redirectURI, state, nonce, challenge string, scopes, entries []string) string {
 	q := url.Values{
 		"client_id":             {clientID},
 		"redirect_uri":          {redirectURI},
@@ -258,6 +260,12 @@ func AppLink(clientID, redirectURI, state, nonce, challenge string, scopes []str
 		"code_challenge":        {challenge},
 		"code_challenge_method": {"S256"},
 		"revoked_return":        {"background"},
+	}
+	if len(entries) > 0 {
+		claims, _ := json.Marshal(map[string]any{
+			"userinfo": map[string]any{"revoked_links": map[string]any{"values": entries}},
+		})
+		q.Set("claims", string(claims))
 	}
 	return "revoked://signin?" + q.Encode()
 }
@@ -333,6 +341,70 @@ func (c *Client) VerifyIDToken(ctx context.Context, issuer, idToken, clientID, n
 	return cl, nil
 }
 
+// ReadEntry returns the current value of a vault entry the player agreed to
+// share at sign-in, or "" when they shared none. The grant's endpoint comes from
+// the server, so it is held to that server's origin like every other endpoint.
+func (c *Client) ReadEntry(ctx context.Context, issuer, accessToken, key string) (string, error) {
+	md, err := c.Discover(ctx, issuer)
+	if err != nil {
+		return "", err
+	}
+	if md.UserinfoEndpoint == "" {
+		return "", nil
+	}
+	var info struct {
+		Links struct {
+			Endpoint string `json:"endpoint"`
+			Grants   []struct {
+				ID    string   `json:"id"`
+				Token string   `json:"token"`
+				Keys  []string `json:"keys"`
+			} `json:"grants"`
+		} `json:"revoked_links"`
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, md.UserinfoEndpoint, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	if err := c.doJSON(req, &info); err != nil {
+		return "", failf(issuer, "userinfo failed", err)
+	}
+	for _, g := range info.Links.Grants {
+		if !slices.Contains(g.Keys, key) {
+			continue
+		}
+		if err := sameOrigin(issuer, info.Links.Endpoint); err != nil {
+			return "", failf(issuer, "the shared entry is not on that server", err)
+		}
+		body, err := json.Marshal(map[string]any{
+			"grants": []map[string]string{{"id": g.ID, "token": g.Token}},
+		})
+		if err != nil {
+			return "", err
+		}
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, info.Links.Endpoint, bytes.NewReader(body))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		var answer struct {
+			Items []struct {
+				Status string            `json:"status"`
+				Values map[string]string `json:"values"`
+			} `json:"items"`
+		}
+		if err := c.doJSON(req, &answer); err != nil {
+			return "", failf(issuer, "reading the shared entry failed", err)
+		}
+		if len(answer.Items) == 0 || answer.Items[0].Status != "active" {
+			return "", nil
+		}
+		return answer.Items[0].Values[key], nil
+	}
+	return "", nil
+}
+
 func (c *Client) jwks(ctx context.Context, uri string) ([]jwk, error) {
 	var doc struct {
 		Keys []jwk `json:"keys"`
@@ -351,6 +423,10 @@ func (c *Client) getJSON(ctx context.Context, uri string, out any) error {
 	if err != nil {
 		return err
 	}
+	return c.doJSON(req, out)
+}
+
+func (c *Client) doJSON(req *http.Request, out any) error {
 	req.Header.Set("Accept", "application/json")
 	res, err := c.http.Do(req)
 	if err != nil {
@@ -359,7 +435,7 @@ func (c *Client) getJSON(ctx context.Context, uri string, out any) error {
 	defer func() { _, _ = io.Copy(io.Discard, res.Body); _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s answered %d", uri, res.StatusCode)
+		return fmt.Errorf("%s answered %d", req.URL, res.StatusCode)
 	}
 	return json.NewDecoder(io.LimitReader(res.Body, maxBody)).Decode(out)
 }

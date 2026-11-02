@@ -139,6 +139,8 @@ type revokedServer struct {
 	// jwksOverride moves the key set off this origin.
 	jwksOverride string
 	tokenBody    func() (int, string)
+	userinfoBody func() map[string]any
+	resolveBody  func() map[string]any
 }
 
 func newRevokedServer(t *testing.T) *revokedServer {
@@ -166,6 +168,16 @@ func newRevokedServer(t *testing.T) *revokedServer {
 	})
 	mux.HandleFunc("/oidc/jwks", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, rs.sign.jwks())
+	})
+	mux.HandleFunc("/oidc/userinfo", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer access" || rs.userinfoBody == nil {
+			http.Error(w, "refused", http.StatusUnauthorized)
+			return
+		}
+		writeJSON(w, rs.userinfoBody())
+	})
+	mux.HandleFunc("/api/grants/resolve", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, rs.resolveBody())
 	})
 	mux.HandleFunc("/oidc/token", func(w http.ResponseWriter, r *http.Request) {
 		if rs.tokenBody != nil {
@@ -414,5 +426,55 @@ func TestUnknownKeyIsNotRefetchedEveryTime(t *testing.T) {
 	}
 	if fetches > 1 {
 		t.Errorf("key set was fetched %d times for an unknown kid; want at most 1", fetches)
+	}
+}
+
+func TestReadEntry(t *testing.T) {
+	links := func(endpoint string, keys ...string) map[string]any {
+		return map[string]any{"sub": "s", "revoked_links": map[string]any{
+			"endpoint": endpoint,
+			"grants":   []map[string]any{{"id": "g", "token": "t", "keys": keys}},
+		}}
+	}
+	active := func() map[string]any {
+		return map[string]any{"items": []map[string]any{
+			{"id": "g", "status": "active", "values": map[string]string{"showdown_name": "Robin"}},
+		}}
+	}
+	revoked := func() map[string]any {
+		return map[string]any{"items": []map[string]any{{"id": "g", "status": "revoked"}}}
+	}
+	for _, tc := range []struct {
+		name     string
+		userinfo func(rs *revokedServer) map[string]any
+		resolve  func() map[string]any
+		want     string
+		wantErr  bool
+	}{
+		{"shared", func(rs *revokedServer) map[string]any { return links(rs.URL+"/api/grants/resolve", "showdown_name") }, active, "Robin", false},
+		{"nothing shared", func(*revokedServer) map[string]any { return map[string]any{"sub": "s"} }, active, "", false},
+		{"another entry shared", func(rs *revokedServer) map[string]any { return links(rs.URL+"/api/grants/resolve", "phone") }, active, "", false},
+		{"revoked", func(rs *revokedServer) map[string]any { return links(rs.URL+"/api/grants/resolve", "showdown_name") }, revoked, "", false},
+		// The server names this address, so it must not send us anywhere else.
+		{"endpoint on another origin", func(*revokedServer) map[string]any {
+			return links("https://elsewhere.example/resolve", "showdown_name")
+		}, active, "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rs := newRevokedServer(t)
+			rs.userinfoBody = func() map[string]any { return tc.userinfo(rs) }
+			rs.resolveBody = tc.resolve
+			c, err := New(Options{AllowPrivateNetwork: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := c.ReadEntry(t.Context(), rs.URL, "access", "showdown_name")
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("err = %v, wantErr %v", err, tc.wantErr)
+			}
+			if got != tc.want {
+				t.Errorf("value = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

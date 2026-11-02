@@ -191,7 +191,8 @@ func TestRevokedStartWithoutAServer(t *testing.T) {
 			"client_id":             "https://poker.example",
 			"redirect_uri":          "https://poker.example/api/accounts/revoked/callback",
 			"response_type":         "code",
-			"scope":                 "openid profile",
+			"scope":                 "openid",
+			"claims":                `{"userinfo":{"revoked_links":{"values":["showdown_name"]}}}`,
 			"code_challenge_method": "S256",
 		}
 		for k, v := range want {
@@ -332,6 +333,9 @@ func TestRevokedPageWaitsForTheAnswer(t *testing.T) {
 	if status != http.StatusOK || out["pending"] != true || out["issuer"] != issuer.URL {
 		t.Fatalf("finish: %d %v", status, out)
 	}
+	if out["suggested_handle"] != "robin" || out["name"] != "Robin" {
+		t.Errorf("the shared showdown_name did not reach the handle prompt: %v", out)
+	}
 	status, out = h.request(http.MethodPost, "/api/accounts/revoked/claim", "", map[string]string{
 		"claim": out["claim"].(string), "handle": "robin",
 	})
@@ -383,6 +387,7 @@ func newFakeRevoked(t *testing.T) *fakeRevoked {
 			"issuer":                           f.URL,
 			"authorization_endpoint":           f.URL + "/oidc/authorize",
 			"token_endpoint":                   f.URL + "/oidc/token",
+			"userinfo_endpoint":                f.URL + "/oidc/userinfo",
 			"jwks_uri":                         f.URL + "/oidc/jwks",
 			"code_challenge_methods_supported": []string{"S256"},
 		})
@@ -398,7 +403,7 @@ func newFakeRevoked(t *testing.T) *fakeRevoked {
 		now := time.Now().Unix()
 		signing := enc(map[string]any{"alg": "RS256", "typ": "JWT", "kid": "k"}) + "." + enc(map[string]any{
 			"iss": f.URL, "sub": "subject-1", "aud": revokedOn["PUBLIC_ORIGIN"], "nonce": f.nonce,
-			"iat": now, "exp": now + 300, "name": "Robin",
+			"iat": now, "exp": now + 300,
 		})
 		sum := sha256.Sum256([]byte(signing))
 		sig, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, sum[:])
@@ -409,6 +414,17 @@ func newFakeRevoked(t *testing.T) *fakeRevoked {
 			"access_token": "a", "token_type": "Bearer",
 			"id_token": signing + "." + base64.RawURLEncoding.EncodeToString(sig),
 		})
+	})
+	mux.HandleFunc("/oidc/userinfo", func(w http.ResponseWriter, _ *http.Request) {
+		respond(w, map[string]any{"sub": "subject-1", "revoked_links": map[string]any{
+			"endpoint": f.URL + "/api/grants/resolve",
+			"grants":   []map[string]any{{"id": "g1", "token": "t1", "keys": []string{"showdown_name"}}},
+		}})
+	})
+	mux.HandleFunc("/api/grants/resolve", func(w http.ResponseWriter, _ *http.Request) {
+		respond(w, map[string]any{"items": []map[string]any{
+			{"id": "g1", "status": "active", "values": map[string]string{"showdown_name": "Robin"}},
+		}})
 	})
 	f.Server = httptest.NewServer(mux)
 	t.Cleanup(f.Close)

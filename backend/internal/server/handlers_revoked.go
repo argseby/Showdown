@@ -21,10 +21,14 @@ import (
 // put to sleep while the app was open may only ask again at the end of it.
 const revokedFlowLifetime = 10 * time.Minute
 
-// revokedScopes: the subject is what a profile is keyed on and the name is
-// only a suggested handle. No email is asked for — this server sends none,
-// and a profile that needs no address should not collect one.
-var revokedScopes = []string{"openid", "profile"}
+// revokedScopes: the subject is what a profile is keyed on. No email is asked
+// for — this server sends none, and a profile that needs no address should not
+// collect one.
+var revokedScopes = []string{"openid"}
+
+// revokedNameKey is the vault entry asked for at sign-in. It is only a suggested
+// handle, so a player who shares none is simply asked to type one.
+const revokedNameKey = "showdown_name"
 
 // revokedFlow is a sign-in that has been started and not yet come back.
 type revokedFlow struct {
@@ -261,7 +265,7 @@ func (s *Server) handleRevokedStart(w http.ResponseWriter, r *http.Request) {
 	})
 	writeJSON(w, http.StatusOK, map[string]any{
 		"app_link": revokedauth.AppLink(
-			s.cfg.PublicOrigin, s.revokedRedirectURI(), state, nonce, challenge, revokedScopes),
+			s.cfg.PublicOrigin, s.revokedRedirectURI(), state, nonce, challenge, revokedScopes, []string{revokedNameKey}),
 		"wait":   wait,
 		"issuer": issuer,
 		// Shown next to the prompt in the app, so the player can see the
@@ -365,8 +369,12 @@ func (s *Server) revokedAnswer(r *http.Request, flow *revokedFlow, q url.Values)
 		// Nobody here yet. The profile is not created behind their back:
 		// the app asks for a handle first, and that call makes it.
 		handoff.issuer, handoff.subject = claims.Issuer, claims.Subject
-		handoff.name = claims.Name
-		handoff.suggested = s.suggestHandle(r, claims.Name)
+		name, err := s.revoked.ReadEntry(r.Context(), issuer, tokens.AccessToken, revokedNameKey)
+		if err != nil {
+			s.log.Warn("revoked name entry", "issuer", issuer, "err", err)
+		}
+		handoff.name = name
+		handoff.suggested = s.suggestHandle(r, name)
 	default:
 		s.log.Error("account by identity", "err", err)
 		return "", "internal"
