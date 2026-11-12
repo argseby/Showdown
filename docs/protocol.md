@@ -353,6 +353,27 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   is kept, and asked again every five minutes, because resuming is their
 >   doing), `expired` once the 90 days a connection lasts have run out, `gone`
 >   once they disconnected it. A connection only they can renew, from the app.
+> - **Coming back to your own seat (2026-11-12).** A seat used to hang on the
+>   session token alone, so a browser that lost it lost the seat: the player's
+>   own name was taken — by their own seat — and nothing short of the table
+>   admin could get them back in. `POST /api/tables/{id}/join` now looks first,
+>   for a signed-in request, at whether a seat of this table already carries
+>   that profile. If one does, nobody joins: the answer is `200` with
+>   `{player_token, player_id, seat, name, reclaimed: true}`, a fresh session
+>   for the seat that is already theirs, under the name that seat already has
+>   (the `name` in the request is ignored, as are `seat` and `avatar`). A new
+>   player and `201` as before otherwise. The profile is the stronger claim: a
+>   token only ever proved that somebody sat down here once, while the seat
+>   carries the account. A guest has no identity to recognise, so for them a
+>   taken name stays taken (`name_taken`, 409).
+> - **A table does not run forever (2026-11-12).** `TABLE_MAX_HOURS` (0, off)
+>   closes tables that have run that long. Ten minutes before, the table is
+>   told in its chat; at the limit it is asked to end after the hand it is
+>   playing; five minutes later it is ended whatever it is doing, which is the
+>   part that matters — a table hung mid-hand is exactly the one that would
+>   otherwise sit there forever. A new round on the same table starts the clock
+>   over. The sweep runs once a minute, reads the live tables and needs no
+>   column of its own: a restart picks the age up from `tables.created_at`.
 > - **A profile's own record (2026-09-20).** Every hand a signed-in player is
 >   dealt writes one `hand_results` row and every finished round one
 >   `round_results` row; a guest writes nothing. Every hand played counts —
@@ -440,9 +461,10 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   like anybody else. There is no route to remove one: the host kicks it.
 >   Bot seats are restored after a server restart — the seat survived, so the
 >   table starts playing it again, while a person's browser reconnects itself.
-> - **Close codes** in use: `4001` bad/expired token (also a player who already left),
->   `4002` version, `4003` table not found / deleted, `4004` replaced, `4005`
->   kicked, `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,
+> - **Close codes** in use: `4001` bad/expired token, `4002` version, `4003`
+>   table not found / deleted, `4004` replaced, `4005` kicked, `4006` the
+>   session is good but its seat is gone, `4007` the token could not be
+>   checked at all (the client keeps its session and comes back), `1008` policy (no hello within 5 s, oversize, rate limit, slow consumer,
 >   spectators disabled), `1000` after a voluntary `leave`, `1001` server shutdown
 >   (after `server_restarting`).
 
@@ -489,7 +511,14 @@ rank `2-9 T J Q K A`, suit `s h d c` (e.g. `"As"`, `"Td"`).
 
 Close codes from the server: `4001` bad token, `4002` unsupported protocol version,
 `4003` table not found or deleted, `4004` replaced by a newer connection, `4005` kicked,
-`1008` policy (rate limit / oversize). An ended table does **not** close connections.
+`4006` not seated (the session is a good one, but the seat it names is gone),
+`4007` try again (the server could not check the token — a client must keep its
+session and reconnect, never throw it away), `1008` policy (rate limit / oversize).
+An ended table does **not** close connections.
+
+Only `4001` and `4006` say that a stored session is worthless. Everything else,
+`4007` above all, leaves it intact: a server that cannot answer must not cost a
+player the seat they are sitting on.
 
 ### 8.3 Server → client
 

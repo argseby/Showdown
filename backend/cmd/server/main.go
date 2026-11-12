@@ -106,6 +106,10 @@ func run() error {
 	// player results are kept for the global leaderboard.
 	go st.RunRetention(ctx, cfg.TableRetentionDays, 24*time.Hour, log)
 
+	// The table time limit: tables that have run longer than
+	// TABLE_MAX_HOURS are warned, then closed. Does nothing when unset.
+	go registry.RunTimeLimit(ctx, time.Duration(cfg.TableMaxHours)*time.Hour, time.Minute, log)
+
 	srv := server.New(cfg, st, registry, log)
 	// The table a player is at, kept in their own revoked vault: sitting
 	// down nudges this loop, and standing up or the table ending is

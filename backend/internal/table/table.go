@@ -334,6 +334,14 @@ type Table struct {
 	ritVotes        map[int]bool    // run-it-twice answers by seat (vote open while non-nil)
 	ritEndsAt       int64           // when the run-it-twice vote closes (ms)
 	ritDecided      bool            // the vote of this hand is over
+
+	// The instance time limit (TABLE_MAX_HOURS), tracked per table:
+	// when this round's clock started (0 = since the table was created),
+	// whether the warning has gone out, and when the polite end was asked
+	// for, so a table that cannot finish its hand can still be closed.
+	limitFrom     int64
+	limitWarned   bool
+	limitEndAsked int64
 }
 
 // newTable wires a table but does not start its loop.
@@ -586,6 +594,28 @@ func (t *Table) Profiles() (seated []Seated, free int) {
 		}
 	})
 	return seated, free
+}
+
+// SeatOfAccount names the seat this profile holds, if it holds one. It is
+// how a player who lost the token of their session comes back to their own
+// seat: the profile is the stronger claim, while a token only ever proved
+// that somebody sat down here once.
+func (t *Table) SeatOfAccount(accountID string) (playerID, name string, seat int, ok bool) {
+	seat = -1
+	if accountID == "" {
+		return "", "", -1, false
+	}
+	t.call(func() {
+		for i := 0; i < t.settings.MaxPlayers && i < maxSeats; i++ {
+			p := t.seats[i]
+			if p == nil || p.AccountID != accountID || p.Status == StatusLeft {
+				continue
+			}
+			playerID, name, seat, ok = p.ID, p.Name, p.Seat, true
+			return
+		}
+	})
+	return playerID, name, seat, ok
 }
 
 // State returns the table state.
@@ -1651,6 +1681,9 @@ func (t *Table) Restart() error {
 		t.settings.BigBlind = t.settings.StartBigBlind
 		t.settings.Ante = t.settings.StartAnte
 		t.blindsUpAt, t.blindsPausedMs = 0, 0
+		// A new round is a new life: the time limit starts over, or the
+		// table would be swept away the moment it reopened.
+		t.limitFrom, t.limitWarned, t.limitEndAsked = t.nowMs(), false, 0
 		t.persistSettings()
 		for _, p := range t.seats[:maxSeats] {
 			if p == nil {

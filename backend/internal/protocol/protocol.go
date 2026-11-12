@@ -107,7 +107,15 @@ const (
 	CloseTableGone          = 4003
 	CloseReplaced           = 4004
 	CloseKicked             = 4005
-	ClosePolicy             = 1008
+	// CloseNotSeated: the session is a good one, but the seat it names is
+	// gone. The client may drop it - unlike CloseBadToken it says nothing
+	// about the token itself.
+	CloseNotSeated = 4006
+	// CloseTryAgain: the server could not check the token at all (a store
+	// that would not answer). The client must keep its session and come
+	// back; throwing it away would strand a player whose seat is fine.
+	CloseTryAgain = 4007
+	ClosePolicy   = 1008
 )
 
 // ErrForbidden is the answer to something the profile may not do — asking

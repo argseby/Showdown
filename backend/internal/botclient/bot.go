@@ -259,7 +259,8 @@ func (b *Bot) session(ctx context.Context) error {
 			b.closeCode = int(code)
 			b.mu.Unlock()
 			switch code {
-			case protocol.CloseBadToken, protocol.CloseUnsupportedVersion, protocol.CloseTableGone, protocol.CloseKicked:
+			case protocol.CloseBadToken, protocol.CloseNotSeated, protocol.CloseUnsupportedVersion,
+				protocol.CloseTableGone, protocol.CloseKicked:
 				return fmt.Errorf("%w: %d", ErrTerminal, code)
 			}
 			return err

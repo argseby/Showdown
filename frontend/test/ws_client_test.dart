@@ -221,6 +221,46 @@ void main() {
     });
   });
 
+  test('a token the server could not check is not a lost session', () {
+    fakeAsync((async) {
+      final transports = <FakeTransport>[];
+      final client = WsClient(
+        url: Uri.parse('ws://x/ws/table/t'),
+        token: 'tok',
+        transportFactory: (_) {
+          final t = FakeTransport();
+          transports.add(t);
+          return t;
+        },
+        random: Random(2),
+      );
+      client.connect();
+      async.flushMicrotasks();
+      transports[0].push('welcome', welcomePayload());
+      async.flushMicrotasks();
+
+      // 4007: the server never judged the token, so the client comes back
+      // and keeps the session it has. Throwing it away would strand a
+      // player whose seat is perfectly fine.
+      transports[0].serverClose(CloseCodes.tryAgain, 'could not check');
+      async.flushMicrotasks();
+      expect(client.state.terminal, isFalse);
+      expect(CloseCodes.clearsSession(CloseCodes.tryAgain), isFalse);
+      async.elapse(const Duration(seconds: 2));
+      expect(transports.length, 2, reason: 'reconnected after 4007');
+
+      // 4006: the session is good, the seat is gone. Nothing to come back
+      // to, and the stored session is worthless.
+      transports[1].serverClose(CloseCodes.notSeated, 'not seated');
+      async.flushMicrotasks();
+      expect(client.state.terminal, isTrue);
+      expect(CloseCodes.clearsSession(CloseCodes.notSeated), isTrue);
+      async.elapse(const Duration(seconds: 30));
+      expect(transports.length, 2, reason: 'no reconnect after 4006');
+      client.dispose();
+    });
+  });
+
   test('connect failures are retried', () {
     fakeAsync((async) {
       var calls = 0;

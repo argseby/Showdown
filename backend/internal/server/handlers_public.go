@@ -85,6 +85,27 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 	if a, ok := s.accountOf(r.Context(), r); ok {
 		profile = table.Profile{ID: a.ID, Handle: a.Handle}
 	}
+	// Already sitting here under this profile? Then this is not a join but
+	// a return: hand out a fresh session for the seat that is already
+	// theirs. A seat carries the account, which outlives the session token
+	// a browser may have lost — without this the player's own name is
+	// taken by their own seat and there is no way back in.
+	if profile.ID != "" {
+		if playerID, name, seatNo, ok := t.SeatOfAccount(profile.ID); ok {
+			token, err := s.createSession(r.Context(), table.RolePlayer, t.ID, playerID, name)
+			if err != nil {
+				s.log.Error("create session", "err", err)
+				writeError(w, http.StatusInternalServerError, protocol.ErrInternal, "could not create session")
+				return
+			}
+			s.audit(r, "reclaim_seat", t.ID, playerID, map[string]any{"account": profile.ID})
+			writeJSON(w, http.StatusOK, map[string]any{
+				"player_token": token, "player_id": playerID, "seat": seatNo,
+				"name": name, "reclaimed": true,
+			})
+			return
+		}
+	}
 	res, err := t.Join(req.Name, seat, avatar, hat, profile, req.Bot)
 	if err != nil {
 		writeErr(w, err)

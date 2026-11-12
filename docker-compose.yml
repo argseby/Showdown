@@ -23,6 +23,8 @@ services:
         aliases: [showdown-api]   # the name web proxies to; see API_UPSTREAM
     environment:
       TABLE_RETENTION_DAYS: ${TABLE_RETENTION_DAYS:-90}
+      # Close tables that have run this long; 0 = no limit (see .env.example).
+      TABLE_MAX_HOURS: ${TABLE_MAX_HOURS:-0}
       MAX_TABLES: ${MAX_TABLES:-100}
       # Optional player profiles; off unless set (see .env.example).
       ACCOUNTS: ${ACCOUNTS:-false}

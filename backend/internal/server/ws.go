@@ -13,6 +13,7 @@ import (
 
 	"showdown/internal/poker"
 	"showdown/internal/protocol"
+	"showdown/internal/store"
 	"showdown/internal/table"
 )
 
@@ -241,7 +242,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := t.Attach(client); err != nil {
-		code, reason := protocol.CloseBadToken, "not seated"
+		code, reason := protocol.CloseNotSeated, "not seated"
 		if errors.Is(err, table.ErrTableEnded) {
 			code, reason = protocol.CloseTableGone, "table ended"
 		} else if errors.Is(err, table.ErrSpectatorsDisabled) {
@@ -266,6 +267,12 @@ func (s *Server) resolveClient(ctx context.Context, conn *wsConn, t *table.Table
 		return &table.Client{Conn: conn, Role: table.RoleAdmin, Name: "admin", Admin: true}, 0, ""
 	}
 	sess, err := s.lookupSession(ctx, hello.Token)
+	if err != nil && !errors.Is(err, store.ErrNotFound) {
+		// The token may well be good; we simply could not look it up. Say
+		// so, so the client comes back instead of forgetting its session.
+		s.log.Error("ws session lookup", "table", t.ID, "err", err)
+		return nil, protocol.CloseTryAgain, "could not check the token"
+	}
 	if err != nil || sess.TableID != t.ID {
 		return nil, protocol.CloseBadToken, "bad token"
 	}

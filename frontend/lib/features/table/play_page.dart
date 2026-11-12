@@ -1118,7 +1118,7 @@ class _PlayPageState extends ConsumerState<PlayPage>
       });
       if (next.connection.terminal &&
           !_handledTerminal &&
-          next.connection.closeCode == CloseCodes.badToken) {
+          CloseCodes.clearsSession(next.connection.closeCode)) {
         _handledTerminal = true;
         _clearAndGoToJoin();
       }

@@ -15,9 +15,15 @@ import (
 
 // Config is the fully validated server configuration.
 type Config struct {
-	ListenAddr          string
-	DataDir             string
-	TableRetentionDays  int
+	ListenAddr         string
+	DataDir            string
+	TableRetentionDays int
+	// TableMaxHours ends a table automatically once it has run this long:
+	// the players are told in the chat, the table ends after the hand it
+	// is playing, and one that cannot finish that hand is ended anyway a
+	// few minutes later. 0 (the default) lets a table live until somebody
+	// ends it.
+	TableMaxHours       int
 	MaxTables           int
 	MaxConnectionsPerIP int
 	TrustProxy          bool
@@ -84,6 +90,7 @@ func Load(getenv func(string) string) (Config, error) {
 		ListenAddr:                 l.str("LISTEN_ADDR", ":8080"),
 		DataDir:                    l.str("DATA_DIR", "/data"),
 		TableRetentionDays:         l.integer("TABLE_RETENTION_DAYS", 90),
+		TableMaxHours:              l.integer("TABLE_MAX_HOURS", 0),
 		MaxTables:                  l.integer("MAX_TABLES", 100),
 		MaxConnectionsPerIP:        l.integer("MAX_CONNECTIONS_PER_IP", 50),
 		TrustProxy:                 l.boolean("TRUST_PROXY", true),
@@ -133,6 +140,9 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	if cfg.TableRetentionDays < 0 {
 		l.errorf("TABLE_RETENTION_DAYS must be >= 0")
+	}
+	if cfg.TableMaxHours < 0 {
+		l.errorf("TABLE_MAX_HOURS must be >= 0 (0 = no limit)")
 	}
 	if cfg.MaxTables < 1 {
 		l.errorf("MAX_TABLES must be >= 1")

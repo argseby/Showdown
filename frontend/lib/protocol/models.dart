@@ -14,6 +14,13 @@ class CloseCodes {
   static const int tableGone = 4003;
   static const int replaced = 4004;
   static const int kicked = 4005;
+
+  /// The session is good, but the seat it names is gone.
+  static const int notSeated = 4006;
+
+  /// The server could not check the token at all. The session may well be
+  /// fine, so the client keeps it and comes back.
+  static const int tryAgain = 4007;
   static const int policy = 1008;
 
   /// Codes after which the client must not reconnect automatically.
@@ -22,7 +29,14 @@ class CloseCodes {
       code == unsupportedVersion ||
       code == tableGone ||
       code == replaced ||
-      code == kicked;
+      code == kicked ||
+      code == notSeated;
+
+  /// Codes after which the stored session is worthless and must go. A
+  /// session is only thrown away when the server says it is no good -
+  /// never because the server could not answer.
+  static bool clearsSession(int? code) =>
+      code == badToken || code == notSeated;
 }
 
 // ---- envelope --------------------------------------------------------------------------

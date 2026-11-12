@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sort"
 	"sync"
 	"time"
@@ -20,6 +21,14 @@ var ErrTooManyTables = errors.New("too many tables")
 // server restart, so the host can open a new round on it. Older ended
 // tables stay in the database but no longer occupy an actor.
 const RematchWindow = 7 * 24 * time.Hour
+
+// TableLimitWarning is how long before the time limit the table is told,
+// and TableLimitGrace how long it then gets to finish its hand before it is
+// closed anyway.
+const (
+	TableLimitWarning = 10 * time.Minute
+	TableLimitGrace   = 5 * time.Minute
+)
 
 // Registry owns every live table actor.
 type Registry struct {
@@ -282,4 +291,78 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 		r.mu.Unlock()
 	}
 	return nil
+}
+
+// RunTimeLimit closes tables older than maxAge until ctx is done; maxAge
+// of zero (TABLE_MAX_HOURS unset) does nothing at all.
+//
+// A table is warned in its chat first, then asked to end after the hand it
+// is playing. One that has still not ended TableLimitGrace later is ended
+// immediately: a table that cannot finish its hand is exactly the one this
+// loop exists for.
+func (r *Registry) RunTimeLimit(ctx context.Context, maxAge, interval time.Duration, log *slog.Logger) {
+	if maxAge <= 0 {
+		return
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			r.SweepTimeLimit(maxAge, log)
+		}
+	}
+}
+
+// SweepTimeLimit is one pass of RunTimeLimit, and what the tests drive.
+func (r *Registry) SweepTimeLimit(maxAge time.Duration, log *slog.Logger) {
+	if maxAge <= 0 {
+		return
+	}
+	for _, t := range r.List() {
+		soft, hard := t.timeLimitDue(maxAge)
+		if !soft && !hard {
+			continue
+		}
+		if err := t.End(hard); err != nil && !errors.Is(err, ErrInvalidState) {
+			log.Error("table time limit", "table", t.ID, "immediate", hard, "err", err)
+			continue
+		}
+		log.Info("table closed by time limit", "table", t.ID, "immediate", hard)
+	}
+}
+
+// timeLimitDue advances one table's time limit by a single pass: it posts
+// the warning when the end comes into view, asks for a polite end once the
+// limit is reached, and reports a hard end when the grace is up.
+func (t *Table) timeLimitDue(maxAge time.Duration) (soft, hard bool) {
+	t.call(func() {
+		if t.state == StateEnded {
+			return
+		}
+		from := t.limitFrom
+		if from == 0 {
+			from = t.createdAt
+		}
+		now := t.nowMs()
+		age := now - from
+		limit := maxAge.Milliseconds()
+		switch {
+		case age >= limit:
+			if t.limitEndAsked == 0 {
+				t.limitEndAsked = now
+				t.postChat("system", "system", "Time is up: this table is closing.")
+				soft = true
+				return
+			}
+			hard = now-t.limitEndAsked >= TableLimitGrace.Milliseconds()
+		case age >= limit-TableLimitWarning.Milliseconds() && !t.limitWarned:
+			t.limitWarned = true
+			t.postChat("system", "system",
+				fmt.Sprintf("This table closes in about %d minutes.", int(TableLimitWarning.Minutes())))
+		}
+	})
+	return soft, hard
 }
