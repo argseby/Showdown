@@ -165,7 +165,21 @@ func (s *Server) handleAdminAddBot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	res, err := t.AddBot()
+	// A host who clicks an empty seat gets a bot in that seat; the invite
+	// dialog sends no seat at all and takes the lowest free one.
+	var req struct {
+		Seat *int `json:"seat"`
+	}
+	if r.ContentLength > 0 {
+		if !decodeJSON(w, r, &req) {
+			return
+		}
+	}
+	seat := -1
+	if req.Seat != nil {
+		seat = *req.Seat
+	}
+	res, err := t.AddBotAt(seat)
 	if err != nil {
 		writeErr(w, err)
 		return

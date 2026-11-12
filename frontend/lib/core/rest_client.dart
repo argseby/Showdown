@@ -109,6 +109,21 @@ class RestClient {
 
   Uri _uri(String path) => Uri.parse('$_base$path');
 
+  /// The address of an API route, for the few callers that are handed a
+  /// route rather than making the call themselves — the official revoked
+  /// button, which talks to `start` and `wait` on its own.
+  ///
+  /// Same-origin builds get a relative address, which is what the rest of
+  /// this client uses too.
+  Uri endpoint(String path, [Map<String, String> query = const {}]) {
+    final uri = _uri(path);
+    return query.isEmpty ? uri : uri.replace(queryParameters: query);
+  }
+
+  /// The client every call here goes through, so a widget that talks to the
+  /// API itself shares it — and, in a test, shares the fake.
+  http.Client get httpClient => _client;
+
   Future<Map<String, dynamic>> getJson(String path, {String? token}) async {
     final resp = await _client.get(_uri(path), headers: _headers(token));
     return _decode(resp);
@@ -226,6 +241,17 @@ class RestClient {
     try {
       final json = await getJson('/api/config');
       return json['revoked_sign_in'] as bool? ?? false;
+    } on Object catch (_) {
+      return false;
+    }
+  }
+
+  /// Whether this instance offers to keep the table a player is at in
+  /// their own revoked vault.
+  Future<bool> revokedNowPlayingEnabled() async {
+    try {
+      final json = await getJson('/api/config');
+      return json['revoked_now_playing'] as bool? ?? false;
     } on Object catch (_) {
       return false;
     }

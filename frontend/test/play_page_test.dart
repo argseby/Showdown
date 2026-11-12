@@ -911,6 +911,47 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
+  testWidgets('the host fills an empty seat with a bot from the table', (
+    tester,
+  ) async {
+    final bodies = <String>[];
+    final api = MockClient((req) async {
+      if (req.url.path.endsWith('/bots')) {
+        bodies.add(req.body);
+        return http.Response(
+          jsonEncode({'player_id': 'b1', 'name': 'Bot 1', 'seat': 1}),
+          201,
+        );
+      }
+      return http.Response(
+        '{"error":{"code":"not_found","message":"no"}}',
+        404,
+      );
+    });
+    transport.admin = true;
+    await pumpPlay(
+      tester,
+      api: api,
+      extra: [adminTokenProvider('k7m2p9xq4w').overrideWith(_AdminToken.new)],
+    );
+    // Seat 1 is free in the fixture: the host gets the bot there, and in
+    // that seat rather than wherever the server would have put one.
+    await tester.tap(find.byKey(const Key('add-bot-1')));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(bodies, [
+      jsonEncode({'seat': 1}),
+    ]);
+    expect(find.text('Bot 1 sat down'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('a player who does not host sees no bot on an empty seat', (
+    tester,
+  ) async {
+    await pumpPlay(tester);
+    expect(find.byKey(const Key('add-bot-1')), findsNothing);
+  });
+
   testWidgets('the display size is adjustable from the drawer', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await pumpPlay(tester);

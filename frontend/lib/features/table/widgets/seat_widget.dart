@@ -33,6 +33,7 @@ class SeatWidget extends ConsumerWidget {
     this.bigBlind = 0,
     this.chipDisplay = ChipDisplay.coins,
     this.onTakeSeat,
+    this.onAddBot,
     this.pendingForViewer = false,
     this.speaking = false,
     this.scale = 1.0,
@@ -114,6 +115,10 @@ class SeatWidget extends ConsumerWidget {
   /// For an empty seat: the viewer may move here (tap the plus).
   final VoidCallback? onTakeSeat;
 
+  /// For an empty seat: the host may fill it with a bot from here, which
+  /// is where a host looks for it — the invite dialog has it too.
+  final VoidCallback? onAddBot;
+
   /// For an empty seat: the viewer moves here at the next deal.
   final bool pendingForViewer;
 
@@ -171,15 +176,46 @@ class SeatWidget extends ConsumerWidget {
             else
               disc,
             const Gap(4),
-            Text(
-              pendingForViewer ? l10n.seatPendingYou : l10n.emptySeat,
-              style: TextStyle(
-                fontSize: 11,
-                color: pendingForViewer
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.mutedForeground,
+            // The host sees what the seat is for instead of that it is
+            // empty, which they can see anyway; everyone else reads
+            // "Empty" (or that they are moving here next hand).
+            if (onAddBot != null && !pendingForViewer)
+              Tooltip(
+                tooltip: TooltipContainer(child: Text(l10n.botSeatFillHint))
+                    .call,
+                child: Clickable(
+                  key: Key('add-bot-$seat'),
+                  onPressed: onAddBot,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.bot,
+                        size: 11,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                      const Gap(3),
+                      Text(
+                        l10n.botSeatFill,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Text(
+                pendingForViewer ? l10n.seatPendingYou : l10n.emptySeat,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: pendingForViewer
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.mutedForeground,
+                ),
               ),
-            ),
           ],
         ),
       );

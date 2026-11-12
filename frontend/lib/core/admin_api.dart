@@ -413,10 +413,12 @@ class AdminApi {
       _rest.delete('/api/admin/tables/$id', token: token);
 
   /// Seats a bot the server plays itself; returns the name it was given.
-  Future<String> addBot(String token, String id) async {
+  /// [seat] asks for one seat in particular — a host filling an empty seat
+  /// at the table — and null takes the lowest free one.
+  Future<String> addBot(String token, String id, {int? seat}) async {
     final json = await _rest.postJson(
       '/api/admin/tables/$id/bots',
-      null,
+      seat == null ? null : {'seat': seat},
       token: token,
     );
     return (json['name'] as String?) ?? '';

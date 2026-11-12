@@ -54,11 +54,20 @@ always play.
 - Sign in with [revoked](https://docs.revoked.link) (`REVOKED_SIGN_IN=true`)
   instead of a password, from **any** revoked server. The sign-in starts with
   `api.revoked.link`, and a player on another server changes it right there.
-  Nothing is registered in advance: the button shows the request as a QR code
-  for a phone and a link for this device, and the player approves in their
-  Revoked app. The client id is this instance's own origin and PKCE is the only
-  credential. A profile made this way has no password and no recovery code; the
-  revoked server is how its owner proves who they are.
+  Nothing is registered in advance: the button is revoked's own
+  [`revoked_sign_in`](https://pub.dev/packages/revoked_sign_in), which shows the
+  request as a QR code for a phone and a link for this device, and the player
+  approves in their Revoked app. The client id is this instance's own origin
+  and PKCE is the only credential. A profile made this way has no password and
+  no recovery code; the revoked server is how its owner proves who they are.
+- Your table in your own vault (`REVOKED_NOW_PLAYING=true`): a player who signs in
+  with revoked can connect this instance to their vault as a tool. It is given a
+  section of its own there and keeps one entry in it saying which table they are at,
+  with the stakes and the way in. A share over that entry resolves at read time, so
+  the one link they get always points at the table they are at now — paste it in a
+  chat, a forum signature or a stream overlay. It never reads anything of theirs, a
+  closed table is named without its address, and the player pauses, narrows or revokes
+  it in their Revoked app at any time.
 - Friends: find someone by name or from their seat, and see where your friends are
   playing with the free seats and a way in. A friend at a table can call you over;
   requests and invitations reach you wherever you are in the app. Anyone can be
@@ -168,6 +177,7 @@ All settings live in `.env`; everything has a default.
 | `PUBLIC_ORIGIN` | – | the address players reach this instance at, no path |
 | `REVOKED_ISSUERS` | – | only these revoked servers; empty accepts any |
 | `REVOKED_DEFAULT_ISSUER` | `https://api.revoked.link` | the revoked server the sign-in starts with; players can change it |
+| `REVOKED_NOW_PLAYING` | `false` | let a player keep the table they are at in their own revoked vault (needs `REVOKED_SIGN_IN`) |
 
 Rarely needed, add them to the `api` service environment: `MAX_CONNECTIONS_PER_IP`
 (50), `TRUST_PROXY` (`true`, rate limiting uses `X-Forwarded-For`), `LOG_LEVEL`

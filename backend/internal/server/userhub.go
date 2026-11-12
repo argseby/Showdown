@@ -145,6 +145,9 @@ func (s *Server) handleUserWS(w http.ResponseWriter, r *http.Request) {
 	defer s.users.remove(a.ID, conn)
 	conn.Send(protocol.Envelope{Type: protocol.TypeWelcome, Payload: json.RawMessage(`{"v":1}`)})
 	s.friendsChanged(a.ID)
+	// Coming back on a new device is a good moment to check the vault
+	// entry says what the tables say, after a restart or a lapse.
+	s.nowPlayingChanged(a.ID)
 
 	// Reads exist only to notice the connection going away and to answer a
 	// ping; anything else closes it.

@@ -7,10 +7,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -108,6 +110,46 @@ func TestRevokedStartHonoursTheAllowList(t *testing.T) {
 	})
 	if status != http.StatusBadGateway || errCode(out) != "revoked_server_unusable" {
 		t.Fatalf("start off the allow-list: %d %v", status, out)
+	}
+}
+
+// TestRevokedStartTakesTheServerFromTheQuery covers the official button,
+// which posts a body of its own: the page that offers a choice of server
+// puts the one the player picked in the start URL it hands the button, and
+// it is judged exactly like one that came in the body.
+func TestRevokedStartTakesTheServerFromTheQuery(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, t.TempDir(), "", revokedOn)
+	defer h.stop()
+
+	status, out := h.request(http.MethodPost,
+		"/api/accounts/revoked/start?issuer=nope%3A%2F%2Fa.example", "", map[string]string{})
+	if status != http.StatusBadRequest || errCode(out) != "validation_failed" {
+		t.Fatalf("start with a bad address in the query: %d %v", status, out)
+	}
+
+	status, out = h.request(http.MethodPost,
+		"/api/accounts/revoked/start?issuer=https%3A%2F%2F127.0.0.1", "", map[string]string{})
+	if status != http.StatusBadGateway || errCode(out) != "revoked_server_unusable" {
+		t.Fatalf("start with a private address in the query: %d %v", status, out)
+	}
+
+	// A body that names one wins: the query is only there for a caller
+	// that cannot write a body.
+	status, out = h.request(http.MethodPost,
+		"/api/accounts/revoked/start?issuer=https%3A%2F%2Fquery.example", "",
+		map[string]string{"issuer": "nope://a.example"})
+	if status != http.StatusBadRequest || errCode(out) != "validation_failed" {
+		t.Fatalf("start with both: %d %v", status, out)
+	}
+
+	// Nothing either way is still the ordinary way in.
+	status, out = h.request(http.MethodPost, "/api/accounts/revoked/start?issuer=", "", map[string]string{})
+	if status != http.StatusOK {
+		t.Fatalf("start with an empty query: %d %v", status, out)
+	}
+	if out["issuer"] != "" {
+		t.Fatalf("issuer = %v, want empty", out["issuer"])
 	}
 }
 
@@ -362,6 +404,82 @@ type fakeRevoked struct {
 	*httptest.Server
 	key   *rsa.PrivateKey
 	nonce string
+
+	// The connected-tool side: what a player's vault did with what this
+	// instance wrote to it.
+	mu sync.Mutex
+	// connToken is handed out by /api/connect/token and expected back in
+	// X-Revoked-Connection.
+	connToken string
+	// records are the entries written, by id, and keys says which key
+	// each one was written under.
+	records map[string]string
+	keys    map[string]string
+	// shares are the links made, by id: the address each one got, and the
+	// record ids it grants. A share serves the records it names and
+	// nothing else — naming a section only groups them for whoever reads
+	// it — so the fake holds a link to exactly that, as the real server
+	// does.
+	shares  map[string]string
+	grants  map[string][]string
+	revoked map[string]bool
+	// Switches a test flips to make the vault behave as a real one can.
+	keyTaken     bool
+	paused       bool
+	noSection    bool
+	disconnected bool
+}
+
+// vaultRecord is what the vault holds under the given key, for a test to
+// check without reaching into the maps.
+func (f *fakeRevoked) vaultRecord(key string) (string, bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for id, k := range f.keys {
+		if k == key {
+			return f.records[id], true
+		}
+	}
+	return "", false
+}
+
+func (f *fakeRevoked) shareCount() (made, ended int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return len(f.shares), len(f.revoked)
+}
+
+// resolve is what somebody opening a share's address is served: the values
+// of the records it grants, in order. A revoked share serves nothing, and
+// neither does one that granted nothing in the first place.
+func (f *fakeRevoked) resolve(url string) []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for id, address := range f.shares {
+		if address != url || f.revoked[id] {
+			continue
+		}
+		var out []string
+		for _, rid := range f.grants[id] {
+			if v, ok := f.records[rid]; ok {
+				out = append(out, v)
+			}
+		}
+		return out
+	}
+	return nil
+}
+
+// liveShare is the address of the one share that has not been revoked.
+func (f *fakeRevoked) liveShare() string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for id, address := range f.shares {
+		if !f.revoked[id] {
+			return address
+		}
+	}
+	return ""
 }
 
 // newFakeRevoked stands in for a revoked instance: discovery, keys and a
@@ -372,7 +490,11 @@ func newFakeRevoked(t *testing.T) *fakeRevoked {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := &fakeRevoked{key: key}
+	f := &fakeRevoked{
+		key: key, connToken: "connection-token",
+		records: map[string]string{}, keys: map[string]string{},
+		shares: map[string]string{}, grants: map[string][]string{}, revoked: map[string]bool{},
+	}
 	respond := func(w http.ResponseWriter, v any) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(v)
@@ -426,6 +548,163 @@ func newFakeRevoked(t *testing.T) *fakeRevoked {
 			{"id": "g1", "status": "active", "values": map[string]string{"showdown_name": "Robin"}},
 		}})
 	})
+	// ---- the connected-tool side ------------------------------------------
+	//
+	// A connection token is not a session: it is sent in its own header,
+	// writes the section the tool was given, and manages the shares it
+	// made. The fake holds it to exactly that.
+	fail := func(w http.ResponseWriter, status int, code string) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		_ = json.NewEncoder(w).Encode(map[string]any{"code": code, "message": code, "status": status})
+	}
+	// tool checks the token the way the real server does, including the
+	// states a player can put the connection into from their app.
+	tool := func(w http.ResponseWriter, r *http.Request) bool {
+		if r.Header.Get("Authorization") != "" {
+			t.Errorf("a connection token must not travel in Authorization")
+		}
+		f.mu.Lock()
+		token, paused, gone := f.connToken, f.paused, f.disconnected
+		f.mu.Unlock()
+		switch {
+		case r.Header.Get("X-Revoked-Connection") != token, gone:
+			fail(w, http.StatusUnauthorized, "connection_unauthorized")
+			return false
+		case paused:
+			fail(w, http.StatusForbidden, "connection_paused")
+			return false
+		}
+		return true
+	}
+	connection := func() map[string]any {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		section := "section-1"
+		if f.noSection {
+			section = ""
+		}
+		return map[string]any{
+			"id": "conn-1", "clientId": revokedOn["PUBLIC_ORIGIN"], "clientName": "Showdown",
+			"expiresAt":   time.Now().Add(90 * 24 * time.Hour).Format(time.RFC3339),
+			"permissions": []string{"vault:write", "shares:manage"},
+			"vaultAccess": "write", "section": section,
+		}
+	}
+	mux.HandleFunc("POST /api/connect/token", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Code, Verifier, RedirectURI string
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		if body.Code == "" || body.Verifier == "" {
+			fail(w, http.StatusBadRequest, "connection_grant_invalid")
+			return
+		}
+		f.mu.Lock()
+		token := f.connToken
+		f.mu.Unlock()
+		respond(w, map[string]any{"token": token, "connection": connection()})
+	})
+	mux.HandleFunc("GET /api/connection", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		respond(w, connection())
+	})
+	mux.HandleFunc("DELETE /api/connection", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		f.mu.Lock()
+		f.disconnected = true
+		f.mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("POST /api/vault", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		var body struct {
+			Key, Label, Value string
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		f.mu.Lock()
+		// A key the player already uses is refused: an entry the tool did
+		// not write is not its to take over.
+		taken := f.keyTaken && body.Key == nowPlayingKey
+		var id string
+		if !taken {
+			id = fmt.Sprintf("rec-%d", len(f.records)+1)
+			f.records[id], f.keys[id] = body.Value, body.Key
+		}
+		f.mu.Unlock()
+		if taken {
+			fail(w, http.StatusConflict, "vault_key_taken")
+			return
+		}
+		respond(w, map[string]any{"id": id, "key": body.Key, "label": body.Label})
+	})
+	mux.HandleFunc("PATCH /api/vault/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		var body struct{ Value string }
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		id := r.PathValue("id")
+		f.mu.Lock()
+		_, known := f.records[id]
+		if known {
+			f.records[id] = body.Value
+		}
+		f.mu.Unlock()
+		if !known {
+			fail(w, http.StatusNotFound, "record_not_found")
+			return
+		}
+		respond(w, map[string]any{"id": id})
+	})
+	mux.HandleFunc("POST /api/connection/links", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		var body struct {
+			Label, Ref string
+			Sections   []string
+			Records    []string
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		f.mu.Lock()
+		// A record out of reach answers 404, like a missing one.
+		missing := false
+		for _, rid := range body.Records {
+			if _, ok := f.records[rid]; !ok {
+				missing = true
+			}
+		}
+		var id, address string
+		if !missing {
+			id = fmt.Sprintf("link-%d", len(f.shares)+1)
+			address = fmt.Sprintf("%s/s/slug%d", f.URL, len(f.shares)+1)
+			f.shares[id] = address
+			f.grants[id] = append([]string{}, body.Records...)
+		}
+		f.mu.Unlock()
+		if missing {
+			fail(w, http.StatusNotFound, "record_not_found")
+			return
+		}
+		respond(w, map[string]any{"id": id, "url": address, "label": body.Label, "ref": body.Ref})
+	})
+	mux.HandleFunc("POST /api/connection/links/{id}/revoke", func(w http.ResponseWriter, r *http.Request) {
+		if !tool(w, r) {
+			return
+		}
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		f.revoked[r.PathValue("id")] = true
+		respond(w, map[string]any{"id": r.PathValue("id"), "status": "revoked"})
+	})
+
 	f.Server = httptest.NewServer(mux)
 	t.Cleanup(f.Close)
 	return f

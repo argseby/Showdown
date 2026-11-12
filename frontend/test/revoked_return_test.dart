@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showdown/core/account.dart';
@@ -17,6 +16,12 @@ import 'test_helpers.dart';
 
 const _appLink =
     'revoked://signin?client_id=https%3A%2F%2Fpoker.example&revoked_return=background';
+
+/// What `revoked_sign_in` writes, in English: the button and the panel are
+/// the package's, so these are the words a player reads.
+const _scan = 'Scan this code with the Revoked app on your phone.';
+const _declined = 'Sign-in declined.';
+const _failed = 'Signing in didn’t work. Please try again.';
 
 class _MemoryTokens extends AccountTokenStore {
   String? token;
@@ -71,7 +76,13 @@ class _Server {
             200,
           );
         case '/api/accounts/revoked/start':
-          final issuer = (jsonDecode(req.body) as Map)['issuer'] as String;
+          // The button posts a body of its own, so the server the player
+          // picked rides in the address instead.
+          final body = jsonDecode(req.body) as Map;
+          final issuer =
+              (body['issuer'] as String?) ??
+              req.url.queryParameters['issuer'] ??
+              '';
           started.add(issuer);
           return http.Response(
             jsonEncode({
@@ -85,7 +96,7 @@ class _Server {
           );
         case '/api/accounts/revoked/wait':
           asked++;
-          expect(jsonDecode(req.body), {'wait': 'page-key'});
+          expect(jsonDecode(req.body), containsPair('wait', 'page-key'));
           return http.Response(jsonEncode(answer ?? {'done': false}), 200);
         case '/api/accounts/revoked/finish':
           if (linked) {
@@ -111,8 +122,14 @@ Future<_FakeBrowser> _openPanel(
   WidgetTester tester,
   _Server server, {
   Size size = const Size(1280, 800),
+  TargetPlatform platform = TargetPlatform.linux,
 }) async {
-  final browser = await _openAccount(tester, server, size: size);
+  final browser = await _openAccount(
+    tester,
+    server,
+    size: size,
+    platform: platform,
+  );
   await tester.ensureVisible(find.byKey(const Key('revoked-continue')));
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('revoked-continue')));
@@ -124,11 +141,24 @@ Future<_FakeBrowser> _openAccount(
   WidgetTester tester,
   _Server server, {
   Size size = const Size(1280, 800),
+  // A computer unless a test says otherwise: that is where a web page
+  // cannot know whether the app is here, so the code leads.
+  TargetPlatform platform = TargetPlatform.linux,
 }) async {
   SharedPreferences.setMockInitialValues({});
+  debugDefaultTargetPlatformOverride = platform;
+  addTearDown(() => debugDefaultTargetPlatformOverride = null);
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  // The panel's footer marks the wait with a mark that fades its bars in
+  // turn, which never settles. The package stands it still when the
+  // platform asks for less motion, and so does this.
+  tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(
+    tester.binding.platformDispatcher.clearAccessibilityFeaturesTestValue,
+  );
   final browser = _FakeBrowser();
   await tester.pumpWidget(
     wrap(
@@ -164,11 +194,7 @@ void main() {
     final server = _Server();
     final browser = await _openPanel(tester, server);
 
-    expect(
-      tester.widget<QrImageView>(find.byType(QrImageView)).size,
-      greaterThanOrEqualTo(200),
-    );
-    expect(find.byKey(const Key('revoked-qr')), findsOneWidget);
+    expect(find.text(_scan), findsOneWidget);
     expect(find.textContaining('0D2-99B'), findsOneWidget);
     expect(
       browser.opened,
@@ -176,10 +202,10 @@ void main() {
       reason: 'with no app here a revoked:// link does nothing at all',
     );
 
-    await tester.tap(find.byKey(const Key('revoked-open-here')));
+    await tester.tap(find.byKey(const Key('revoked-open')));
     expect(browser.opened, [_appLink]);
 
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
+    await tester.tap(find.byKey(const Key('revoked-close')));
     await tester.pumpAndSettle();
   });
 
@@ -192,12 +218,12 @@ void main() {
       await _nextAsk(tester);
       await _nextAsk(tester);
       expect(server.asked, 2);
-      expect(find.byKey(const Key('revoked-qr')), findsOneWidget);
+      expect(find.text(_scan), findsOneWidget);
 
       server.answer = {'done': true, 'code': 'one-time', 'error': ''};
       await _nextAsk(tester);
 
-      expect(find.byKey(const Key('revoked-qr')), findsNothing);
+      expect(find.text(_scan), findsNothing);
       expect(find.text('Pick your name'), findsOneWidget);
     },
   );
@@ -210,7 +236,7 @@ void main() {
     await _nextAsk(tester);
 
     expect(server.seen, contains('/api/accounts/revoked/finish'));
-    expect(find.byKey(const Key('revoked-qr')), findsNothing);
+    expect(find.text(_scan), findsNothing);
     // The account dialog has done its job too.
     expect(find.byKey(const Key('revoked-continue')), findsNothing);
   });
@@ -222,7 +248,7 @@ void main() {
     await _openPanel(tester, server);
 
     expect(server.started, ['https://api.revoked.link']);
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
+    await tester.tap(find.byKey(const Key('revoked-close')));
     await tester.pumpAndSettle();
     expect(find.text('api.revoked.link'), findsOneWidget);
   });
@@ -239,12 +265,10 @@ void main() {
       find.byKey(const Key('revoked-server')),
       'own.example',
     );
-    await tester.tap(find.byKey(const Key('revoked-continue')));
+    // Kept once this server has shown it can reach the address.
+    await tester.tap(find.byKey(const Key('revoked-server-use')));
     await tester.pumpAndSettle();
     expect(server.started, ['own.example']);
-
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
-    await tester.pumpAndSettle();
     expect(find.text('own.example'), findsOneWidget);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('pref:revoked_server'), 'https://own.example');
@@ -253,7 +277,7 @@ void main() {
     await tester.tap(find.byKey(const Key('revoked-continue')));
     await tester.pumpAndSettle();
     expect(server.started.last, 'https://own.example');
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
+    await tester.tap(find.byKey(const Key('revoked-close')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('revoked-server-edit')));
     await tester.pumpAndSettle();
@@ -264,14 +288,15 @@ void main() {
     expect(find.text('api.revoked.link'), findsOneWidget);
   });
 
-  testWidgets('an app on another server is told how to fix it', (tester) async {
+  testWidgets('an answer that is not a yes ends the sign-in', (tester) async {
     final server = _Server();
     await _openPanel(tester, server);
 
     server.answer = {'done': true, 'code': '', 'error': 'issuer_mismatch'};
     await _nextAsk(tester);
 
-    expect(find.textContaining('different server'), findsOneWidget);
+    expect(find.text(_failed), findsOneWidget);
+    expect(server.seen, isNot(contains('/api/accounts/revoked/finish')));
   });
 
   testWidgets('a decline on the phone reaches the page', (tester) async {
@@ -281,8 +306,8 @@ void main() {
     server.answer = {'done': true, 'code': '', 'error': 'access_denied'};
     await _nextAsk(tester);
 
-    expect(find.byKey(const Key('revoked-qr')), findsNothing);
-    expect(find.text('The sign-in was declined.'), findsOneWidget);
+    expect(find.text(_scan), findsNothing);
+    expect(find.text(_declined), findsOneWidget);
     expect(server.seen, isNot(contains('/api/accounts/revoked/finish')));
   });
 
@@ -290,28 +315,34 @@ void main() {
     final server = _Server();
     await _openPanel(tester, server);
 
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
+    await tester.tap(find.byKey(const Key('revoked-close')));
     await tester.pumpAndSettle();
     final asked = server.asked;
     await _nextAsk(tester);
 
     expect(server.asked, asked);
-    expect(find.byKey(const Key('revoked-error')), findsNothing);
+    expect(find.text(_declined), findsNothing);
+    expect(find.text(_failed), findsNothing);
   });
 
-  testWidgets('a phone leads with opening the app', (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+  testWidgets('a phone app opens Revoked at once', (tester) async {
     final server = _Server();
-    await _openPanel(tester, server, size: const Size(375, 812));
+    final browser = await _openPanel(
+      tester,
+      server,
+      size: const Size(375, 812),
+      platform: TargetPlatform.android,
+    );
 
-    final open = tester.getTopLeft(find.byKey(const Key('revoked-open-here')));
-    final qr = tester.getTopLeft(find.byKey(const Key('revoked-qr')));
-    expect(open.dy, lessThan(qr.dy));
+    expect(browser.opened, [_appLink]);
+    // And the panel waits behind it, with the code for another device.
+    expect(
+      find.text('On another device? Scan this code there.'),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.byKey(const Key('revoked-wait-close')));
+    await tester.tap(find.byKey(const Key('revoked-close')));
     await tester.pumpAndSettle();
-    debugDefaultTargetPlatformOverride = null;
   });
 
   for (final size in const [
@@ -328,15 +359,17 @@ void main() {
       await _openPanel(tester, server, size: size);
 
       expect(tester.takeException(), isNull);
-      await tester.ensureVisible(find.byKey(const Key('revoked-open-here')));
+      await tester.ensureVisible(find.byKey(const Key('revoked-open')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.byKey(const Key('revoked-close')));
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('revoked-wait-close')).hitTestable(),
+        find.byKey(const Key('revoked-close')).hitTestable(),
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const Key('revoked-wait-close')));
+      await tester.tap(find.byKey(const Key('revoked-close')));
       await tester.pumpAndSettle();
     });
   }

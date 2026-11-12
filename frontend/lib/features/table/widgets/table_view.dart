@@ -24,6 +24,7 @@ class TableView extends ConsumerWidget {
     super.key,
     required this.session,
     this.onTakeSeat,
+    this.onAddBot,
     this.speaking = const {},
     this.onPlayerTap,
     this.onSelfTap,
@@ -52,6 +53,9 @@ class TableView extends ConsumerWidget {
 
   /// Called with a free seat the viewer wants to move to (null = read-only).
   final ValueChanged<int>? onTakeSeat;
+
+  /// Called with a free seat the host wants a bot in (null = not the host).
+  final ValueChanged<int>? onAddBot;
 
   /// Player ids currently speaking in the voice chat ("me" for the viewer).
   final Set<String> speaking;
@@ -516,6 +520,9 @@ class TableView extends ConsumerWidget {
                           snap.you.canChangeSeat &&
                           snap.you.pendingSeat == null
                       ? () => onTakeSeat!(sv.seat)
+                      : null,
+                  onAddBot: sv.player == null && onAddBot != null
+                      ? () => onAddBot!(sv.seat)
                       : null,
                 ),
               ),

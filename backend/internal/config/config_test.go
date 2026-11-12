@@ -214,6 +214,10 @@ func TestRevokedSignIn(t *testing.T) {
 			map[string]string{"PUBLIC_ORIGIN": "https://poker.example/play"},
 			"PUBLIC_ORIGIN",
 		},
+		"the vault entry needs the sign-in it is written for": {
+			map[string]string{"REVOKED_NOW_PLAYING": "true", "ACCOUNTS": "true"},
+			"REVOKED_NOW_PLAYING needs REVOKED_SIGN_IN",
+		},
 		"an allow-listed issuer must be an origin": {
 			map[string]string{"REVOKED_ISSUERS": "revoked.example"},
 			"REVOKED_ISSUERS",
@@ -232,7 +236,7 @@ func TestRevokedSignIn(t *testing.T) {
 
 	// The whole set together, with the trailing slash taken off.
 	cfg, err = Load(env(map[string]string{
-		"ACCOUNTS": "true", "REVOKED_SIGN_IN": "true",
+		"ACCOUNTS": "true", "REVOKED_SIGN_IN": "true", "REVOKED_NOW_PLAYING": "true",
 		"PUBLIC_ORIGIN":   "https://poker.example/",
 		"REVOKED_ISSUERS": "https://a.example, https://b.example",
 	}))
@@ -241,6 +245,9 @@ func TestRevokedSignIn(t *testing.T) {
 	}
 	if cfg.PublicOrigin != "https://poker.example" {
 		t.Errorf("PublicOrigin = %q", cfg.PublicOrigin)
+	}
+	if !cfg.RevokedNowPlaying {
+		t.Error("RevokedNowPlaying was not read")
 	}
 	if len(cfg.RevokedIssuers) != 2 || cfg.RevokedIssuers[1] != "https://b.example" {
 		t.Errorf("RevokedIssuers = %v", cfg.RevokedIssuers)

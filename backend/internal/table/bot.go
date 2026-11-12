@@ -193,14 +193,18 @@ func botTurnKey(s protocol.Snapshot) string {
 	return fmt.Sprintf("%d/%s/%d", s.Table.HandNumber, s.Hand.Street, deadline)
 }
 
-// AddBot seats a bot and starts playing it. The name is picked from the free
-// ones (Bot 1, Bot 2, ...) so the host does not have to think of one.
-func (t *Table) AddBot() (JoinResult, error) {
+// AddBot seats a bot in the lowest free seat and starts playing it.
+func (t *Table) AddBot() (JoinResult, error) { return t.AddBotAt(-1) }
+
+// AddBotAt seats a bot in seat (or the lowest free one for -1) and starts
+// playing it. The name is picked from the free ones (Bot 1, Bot 2, ...) so
+// the host does not have to think of one.
+func (t *Table) AddBotAt(seat int) (JoinResult, error) {
 	name, err := t.freeBotName()
 	if err != nil {
 		return JoinResult{}, err
 	}
-	res, err := t.Join(name, -1, -1, "", Profile{}, true)
+	res, err := t.Join(name, seat, -1, "", Profile{}, true)
 	if err != nil {
 		return JoinResult{}, err
 	}

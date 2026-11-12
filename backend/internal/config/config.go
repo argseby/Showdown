@@ -46,6 +46,12 @@ type Config struct {
 	// RevokedDefaultIssuer is the revoked server the sign-in starts with.
 	// Players can change it, unless RevokedIssuers says otherwise.
 	RevokedDefaultIssuer string
+	// RevokedNowPlaying offers to keep the table a player is at in their
+	// own revoked vault: this instance is connected as a tool, gets a
+	// section of its own there, and writes one entry that a share of
+	// theirs resolves at read time. Needs RevokedSignIn, because the
+	// vault written to is always a server the profile signs in with.
+	RevokedNowPlaying bool
 	// RevokedAllowPrivateNetwork lets a revoked address resolve into a
 	// private network. Development only — it turns the sign-in form into
 	// a way to ask this server what it can reach.
@@ -86,6 +92,7 @@ func Load(getenv func(string) string) (Config, error) {
 		RevokedSignIn:              l.boolean("REVOKED_SIGN_IN", false),
 		RevokedIssuers:             splitList(l.str("REVOKED_ISSUERS", "")),
 		RevokedDefaultIssuer:       strings.TrimRight(l.str("REVOKED_DEFAULT_ISSUER", "https://api.revoked.link"), "/"),
+		RevokedNowPlaying:          l.boolean("REVOKED_NOW_PLAYING", false),
 		RevokedAllowPrivateNetwork: l.boolean("REVOKED_ALLOW_PRIVATE_NETWORK", false),
 		PublicOrigin:               strings.TrimRight(l.str("PUBLIC_ORIGIN", ""), "/"),
 		DevCORSOrigin:              l.str("DEV_CORS_ORIGIN", ""),
@@ -155,6 +162,9 @@ func Load(getenv func(string) string) (Config, error) {
 	// would then be refused.
 	if len(cfg.RevokedIssuers) > 0 && !slices.Contains(cfg.RevokedIssuers, cfg.RevokedDefaultIssuer) {
 		cfg.RevokedDefaultIssuer = cfg.RevokedIssuers[0]
+	}
+	if cfg.RevokedNowPlaying && !cfg.RevokedSignIn {
+		l.errorf("REVOKED_NOW_PLAYING needs REVOKED_SIGN_IN=true: the vault written to is the server a profile signs in with")
 	}
 	if cfg.RevokedSignIn {
 		if !cfg.Accounts {

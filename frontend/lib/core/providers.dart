@@ -24,6 +24,12 @@ final revokedSignInEnabledProvider = FutureProvider<bool>(
   (ref) => ref.read(restClientProvider).revokedSignInEnabled(),
 );
 
+/// Whether this instance offers to keep the table a player is at in their
+/// own revoked vault. Only a profile that signs in with revoked has one.
+final revokedNowPlayingProvider = FutureProvider<bool>(
+  (ref) => ref.read(restClientProvider).revokedNowPlayingEnabled(),
+);
+
 /// The revoked server the sign-in starts with, until the player changes it.
 final revokedDefaultServerProvider = FutureProvider<String>(
   (ref) => ref.read(restClientProvider).revokedDefaultServer(),

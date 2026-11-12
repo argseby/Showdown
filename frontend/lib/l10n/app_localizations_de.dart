@@ -312,9 +312,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accountsOff => 'Diese Instanz hat keine Spielerprofile.';
 
   @override
-  String get revokedSignIn => 'Mit Revoked anmelden';
-
-  @override
   String get revokedNeedsApp =>
       'Du brauchst die Revoked-App auf deinem Handy oder auf diesem Gerät.';
 
@@ -358,6 +355,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Jeder revoked-Server funktioniert — gib die Adresse deines Servers ein.';
 
   @override
+  String get revokedServerUse => 'Diesen Server verwenden';
+
+  @override
   String get revokedContinue => 'Weiter';
 
   @override
@@ -383,6 +383,70 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get revokedExpired =>
       'Die Anmeldung hat zu lange gedauert. Bitte starte sie neu.';
+
+  @override
+  String get nowPlayingOpen => 'Link zum Tisch';
+
+  @override
+  String get nowPlayingTitle => 'Dein Tisch, in deinem Vault';
+
+  @override
+  String get nowPlayingBody =>
+      'Showdown kann einen Eintrag in deinem Revoked-Vault pflegen, der sagt, an welchem Tisch du sitzt. Du bekommst einen Link, den du überall einfügen kannst — er zeigt immer auf den Tisch, an dem du gerade sitzt, und wird still, wenn du aufstehst.';
+
+  @override
+  String get nowPlayingConnect => 'Vault verbinden';
+
+  @override
+  String get nowPlayingConnectTitle => 'Vault verbinden';
+
+  @override
+  String get nowPlayingLinkLabel => 'Dein Link';
+
+  @override
+  String get nowPlayingCopy => 'Link kopieren';
+
+  @override
+  String get nowPlayingCopied => 'Link kopiert.';
+
+  @override
+  String nowPlayingAt(String what) {
+    return 'Gerade: $what';
+  }
+
+  @override
+  String get nowPlayingIdle => 'An keinem Tisch';
+
+  @override
+  String get nowPlayingOff => 'Abschalten';
+
+  @override
+  String get nowPlayingOffBody =>
+      'Der Link funktioniert nicht mehr und Showdown gibt die Verbindung auf. Der Eintrag bleibt in deinem Vault, denn er ist deiner.';
+
+  @override
+  String get nowPlayingYours =>
+      'Eintrag und Link gehören dir: Du kannst Showdown pausieren, seine Rechte ändern oder den Link in deiner Revoked-App jederzeit zurücknehmen.';
+
+  @override
+  String get nowPlayingPaused =>
+      'Du hast Showdown in deiner Revoked-App pausiert, der Eintrag wird darum nicht aktualisiert. Setze es dort fort, dann geht es weiter.';
+
+  @override
+  String get nowPlayingLapsed =>
+      'Die Verbindung ist abgelaufen — sie hält 90 Tage. Verbinde erneut, um weiterzumachen.';
+
+  @override
+  String get nowPlayingNeedsRevoked =>
+      'Melde dich mit Revoked an, um das zu nutzen: geschrieben wird in den Vault des Servers, mit dem du dich anmeldest.';
+
+  @override
+  String get nowPlayingNotPermitted =>
+      'Showdown hat keinen eigenen Abschnitt bekommen, es gibt also nichts zu pflegen. Versuche es noch einmal und lass diesen Teil an.';
+
+  @override
+  String get nowPlayingFailed =>
+      'Das ist nicht fertig geworden. Bitte versuche es noch einmal.';
 
   @override
   String get accountRecoveryTitle => 'Schreib das auf';
@@ -2927,6 +2991,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get botSeatHint => 'Auf diesem Platz spielt ein Programm, kein Mensch';
+
+  @override
+  String get botSeatFill => 'Bot setzen';
+
+  @override
+  String get botSeatFillHint => 'Diesen Platz mit einem Bot besetzen';
 
   @override
   String get peerMutedMark => 'Für dich stummgeschaltet';

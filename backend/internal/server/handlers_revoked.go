@@ -232,10 +232,18 @@ func (s *Server) handleRevokedStart(w http.ResponseWriter, r *http.Request) {
 	// No address is the ordinary case: the app knows which server the
 	// person uses, and says so in the iss of the answer. An address only
 	// narrows it: the answer then has to come from that server.
+	//
+	// It may come in the body or in the query. The official button posts an
+	// empty body, so the page that offers a choice of server puts the one
+	// the player picked in the start URL it hands the button.
+	asked := req.Issuer
+	if strings.TrimSpace(asked) == "" {
+		asked = r.URL.Query().Get("issuer")
+	}
 	var issuer string
-	if strings.TrimSpace(req.Issuer) != "" {
+	if strings.TrimSpace(asked) != "" {
 		var err error
-		if issuer, err = revokedauth.NormalizeIssuer(req.Issuer); err != nil {
+		if issuer, err = revokedauth.NormalizeIssuer(asked); err != nil {
 			writeError(w, http.StatusBadRequest, protocol.ErrValidation, err.Error())
 			return
 		}

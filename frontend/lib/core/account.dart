@@ -315,6 +315,29 @@ class RevokedNeedsHandle extends RevokedFinish {
   final String name;
 }
 
+/// Where a profile's table link stands: whether this instance is connected
+/// to their vault at all, the link itself, and what it currently says.
+///
+/// [url] is the share. It resolves at read time, so whoever holds it sees
+/// the table the player is at now — and nothing once they end it.
+typedef NowPlaying = ({
+  bool connected,
+  String server,
+  String url,
+  String playing,
+  String published,
+  String trouble,
+});
+
+const nowPlayingNone = (
+  connected: false,
+  server: '',
+  url: '',
+  playing: '',
+  published: '',
+  trouble: '',
+);
+
 /// The REST calls of the profile API.
 class AccountApi {
   AccountApi(this._rest);
@@ -373,18 +396,6 @@ class AccountApi {
     );
   }
 
-  /// How a started sign-in stands; null while the player has not answered.
-  Future<RevokedAnswer?> revokedWait(String wait) async {
-    final json = await _rest.postJson('/api/accounts/revoked/wait', {
-      'wait': wait,
-    });
-    if (json['done'] != true) return null;
-    return (
-      code: json['code'] as String? ?? '',
-      error: json['error'] as String? ?? '',
-    );
-  }
-
   /// Spends the one-time code a finished sign-in left for this page.
   Future<RevokedFinish> revokedFinish(String code) async {
     final json = await _rest.postJson('/api/accounts/revoked/finish', {
@@ -420,6 +431,53 @@ class AccountApi {
       account: Account.fromJson(json['account'] as Map<String, dynamic>),
     );
   }
+
+  /// Asks this server to prepare the vault connection: a `revoked://connect`
+  /// link for the app, and the key the page collects the answer with. The
+  /// vault is on the revoked server this profile signs in with, so there is
+  /// no address to type.
+  Future<RevokedStart> revokedConnectStart(String token) async {
+    final json = await _rest.postJson('/api/accounts/revoked/connect/start', {
+      'server': '',
+    }, token: token);
+    return (
+      appLink: json['app_link'] as String? ?? '',
+      wait: json['wait'] as String? ?? '',
+      issuer: json['server'] as String? ?? '',
+      checkCode: json['check_code'] as String? ?? '',
+    );
+  }
+
+  /// How a started connection stands; null while the player has not
+  /// answered in their app.
+  Future<RevokedAnswer?> revokedConnectWait(String token, String wait) async {
+    final json = await _rest.postJson('/api/accounts/revoked/connect/wait', {
+      'wait': wait,
+    }, token: token);
+    if (json['done'] != true) return null;
+    return (code: '', error: json['error'] as String? ?? '');
+  }
+
+  /// Where this profile's table link stands.
+  Future<NowPlaying> nowPlaying(String token) async {
+    final json = await _rest.getJson(
+      '/api/accounts/me/now-playing',
+      token: token,
+    );
+    return (
+      connected: json['connected'] as bool? ?? false,
+      server: json['server'] as String? ?? '',
+      url: json['url'] as String? ?? '',
+      playing: json['playing'] as String? ?? '',
+      published: json['published'] as String? ?? '',
+      trouble: json['trouble'] as String? ?? '',
+    );
+  }
+
+  /// Ends the share and gives the connection up. What was written stays in
+  /// the player's vault, because it is theirs.
+  Future<void> nowPlayingOff(String token) =>
+      _rest.delete('/api/accounts/me/now-playing', token: token);
 
   /// Sets a new password. Every other device is signed out and a fresh
   /// recovery code comes back — the old one is spent.
@@ -626,6 +684,16 @@ final accountStatsProvider = FutureProvider<ProfileStats?>((ref) async {
   final token = ref.read(accountProvider.notifier).token;
   if (account == null || token == null) return null;
   return ref.read(accountApiProvider).stats(token);
+});
+
+/// Where the signed-in profile's table link stands; null while signed out,
+/// and not connected on an instance that does not offer it.
+final nowPlayingProvider = FutureProvider<NowPlaying?>((ref) async {
+  final account = await ref.watch(accountProvider.future);
+  final token = ref.read(accountProvider.notifier).token;
+  if (account == null || token == null) return null;
+  if (await ref.watch(revokedNowPlayingProvider.future) != true) return null;
+  return ref.read(accountApiProvider).nowPlaying(token);
 });
 
 /// The hands and milestones behind the record; null while signed out.

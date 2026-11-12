@@ -10,6 +10,7 @@ import '../../core/formatting.dart';
 import '../../core/friends.dart';
 import '../../core/rest_client.dart';
 import '../friends/friends_dialog.dart';
+import 'now_playing_dialog.dart';
 import 'stats_dialog.dart';
 import 'visibility_dialog.dart';
 
@@ -229,6 +230,29 @@ class _AccountSheetState extends ConsumerState<AccountSheet> {
             },
           ),
           const Gap(6),
+          // Only where the instance offers it, and only for a profile that
+          // signs in with revoked: the vault written to is that server's.
+          Consumer(
+            builder: (context, ref, _) {
+              final state = ref.watch(nowPlayingProvider).value;
+              if (state == null) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlineButton(
+                    key: const Key('account-now-playing'),
+                    onPressed: () => showNowPlayingDialog(context),
+                    leading: const Icon(LucideIcons.link, size: 14),
+                    trailing: state.connected
+                        ? const Icon(LucideIcons.check, size: 14)
+                        : null,
+                    child: Text(l10n.nowPlayingOpen),
+                  ),
+                  const Gap(6),
+                ],
+              );
+            },
+          ),
           OutlineButton(
             key: const Key('account-visibility'),
             onPressed: () => showVisibilityDialog(context),

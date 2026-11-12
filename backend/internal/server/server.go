@@ -42,6 +42,14 @@ type Server struct {
 	// that have been started and not yet come back.
 	revoked      *revokedauth.Client
 	revokedFlows *revokedFlows
+	// revokedConnects holds the vault connections players have started
+	// and not yet approved; nil when this instance does not offer the
+	// table link. npDirty collects the profiles the publisher should
+	// look at next, and npWake nudges it.
+	revokedConnects *revokedConnects
+	npMu            sync.Mutex
+	npDirty         map[string]bool
+	npWake          chan struct{}
 
 	// users holds the open user sockets (/ws/me), one profile to many
 	// devices; nil is fine and simply means nobody is reachable.
@@ -62,6 +70,7 @@ func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logg
 		limAccount:     newLimiter(30, 15),
 		limRevokedWait: newLimiter(300, 60),
 		users:          newUserHub(),
+		npWake:         make(chan struct{}, 1),
 		connsByIP:      map[string]int{},
 	}
 	if cfg.Accounts && cfg.RevokedSignIn {
@@ -76,6 +85,9 @@ func New(cfg config.Config, st *store.Store, reg *table.Registry, log *slog.Logg
 			log.Error("revoked sign-in disabled", "err", err)
 		} else {
 			s.revoked, s.revokedFlows = rc, newRevokedFlows()
+			if cfg.RevokedNowPlaying {
+				s.revokedConnects = newRevokedConnects()
+			}
 		}
 	}
 	s.routes()
@@ -132,6 +144,11 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/accounts/revoked/wait", s.rateLimited(s.limRevokedWait, s.handleRevokedWait))
 	s.mux.HandleFunc("POST /api/accounts/revoked/finish", s.rateLimited(s.limAccount, s.handleRevokedFinish))
 	s.mux.HandleFunc("POST /api/accounts/revoked/claim", s.rateLimited(s.limAccount, s.handleRevokedClaim))
+	s.mux.HandleFunc("POST /api/accounts/revoked/connect/start", s.rateLimited(s.limAccount, s.handleRevokedConnectStart))
+	s.mux.HandleFunc("GET /api/accounts/revoked/connect/callback", s.rateLimited(s.limAccount, s.handleRevokedConnectCallback))
+	s.mux.HandleFunc("POST /api/accounts/revoked/connect/wait", s.rateLimited(s.limRevokedWait, s.handleRevokedConnectWait))
+	s.mux.HandleFunc("GET /api/accounts/me/now-playing", s.rateLimited(s.limAccount, s.handleNowPlaying))
+	s.mux.HandleFunc("DELETE /api/accounts/me/now-playing", s.rateLimited(s.limAccount, s.handleNowPlayingOff))
 
 	// Table admin: every route is guarded by the table's own admin token.
 	s.mux.HandleFunc("GET /api/admin/tables/{id}", s.requireTableAdmin(s.handleAdminGetTable))
@@ -217,6 +234,9 @@ func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 		"revoked_sign_in": s.revoked != nil,
 		// The revoked server the sign-in starts with; players can change it.
 		"revoked_default_server": s.cfg.RevokedDefaultIssuer,
+		// Whether a signed-in player can have this instance keep the
+		// table they are at in their own revoked vault.
+		"revoked_now_playing": s.nowPlayingOn(),
 		// Whether this instance lets a player be told what to do on their
 		// turn; with it off no client offers the recommendation. What a
 		// player's own cards make is theirs either way.

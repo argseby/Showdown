@@ -32,6 +32,10 @@ type harness struct {
 	reg  *table.Registry
 	srv  *httptest.Server
 	base string
+	// s is the server under test, for the few things a test drives
+	// directly rather than over HTTP — the publisher loop, which the
+	// binary starts and the harness does not.
+	s *Server
 	// extraHeaders is set for one request by requestWith.
 	extraHeaders map[string]string
 }
@@ -92,7 +96,7 @@ func newHarness(t *testing.T, dir, addr string, env ...map[string]string) *harne
 	srv := httptest.NewUnstartedServer(s.Handler())
 	srv.Listener = l
 	srv.Start()
-	return &harness{t: t, dir: dir, addr: l.Addr().String(), st: st, reg: reg, srv: srv, base: "http://" + l.Addr().String()}
+	return &harness{t: t, dir: dir, addr: l.Addr().String(), st: st, reg: reg, srv: srv, s: s, base: "http://" + l.Addr().String()}
 }
 
 // stop shuts everything down the way main() does on SIGTERM.

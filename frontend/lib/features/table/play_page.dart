@@ -219,6 +219,23 @@ class _PlayPageState extends ConsumerState<PlayPage>
     if (ok && mounted) await _session.changeSeat(seat);
   }
 
+  /// Host: fill an empty seat with a bot from the table itself. The same
+  /// bot the invite dialog adds, in the seat that was clicked.
+  Future<void> _addBotAt(int seat) async {
+    final token = ref.read(adminTokenProvider(widget.tableId)).value;
+    if (token == null) return;
+    final name = await guardAdmin(
+      ref,
+      context,
+      widget.tableId,
+      () =>
+          ref.read(adminApiProvider).addBot(token, widget.tableId, seat: seat),
+    );
+    if (name != null && mounted) {
+      showAdminToast(context, context.l10n.botAdded(name));
+    }
+  }
+
   String get _locale => Localizations.localeOf(context).toString();
 
   /// What the strip above the table shows for the current snapshot. There
@@ -1329,6 +1346,11 @@ class _PlayPageState extends ConsumerState<PlayPage>
             child: TableView(
               session: session,
               onTakeSeat: _changeSeat,
+              // Only the host, and only with the key on this device: the
+              // same two conditions the invite dialog's button has.
+              onAddBot: (snap?.you.isAdmin ?? false) && adminToken != null
+                  ? _addBotAt
+                  : null,
               speaking: voice.speaking,
               onSayTap: session.isPlayer
                   ? () => showSayDialog(context, ref, widget.tableId)

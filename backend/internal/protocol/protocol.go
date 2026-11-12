@@ -146,12 +146,17 @@ const (
 	ErrAccountsOff        = "accounts_disabled"
 	// Sign-in with revoked: off on this instance, the revoked server
 	// could not be used, or the half-finished sign-in has expired.
-	ErrRevokedOff     = "revoked_sign_in_disabled"
-	ErrRevokedServer  = "revoked_server_unusable"
-	ErrRevokedState   = "revoked_sign_in_expired"
-	ErrHandleTaken    = "handle_taken"
-	ErrBadCredentials = "bad_credentials"
-	ErrInternal       = "internal_error"
+	ErrRevokedOff    = "revoked_sign_in_disabled"
+	ErrRevokedServer = "revoked_server_unusable"
+	ErrRevokedState  = "revoked_sign_in_expired"
+	// The table link in a player's own revoked vault: off for this
+	// instance, or asked for by a profile that signs in with a password
+	// and so has no vault for this to be about.
+	ErrNowPlayingOff   = "revoked_now_playing_disabled"
+	ErrRevokedIdentity = "revoked_identity_required"
+	ErrHandleTaken     = "handle_taken"
+	ErrBadCredentials  = "bad_credentials"
+	ErrInternal        = "internal_error"
 )
 
 // ---- client payloads ------------------------------------------------------------

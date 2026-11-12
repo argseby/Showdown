@@ -70,3 +70,36 @@ func TestIntegrationAddBot(t *testing.T) {
 		return len(out["players"].([]any)) == 1
 	})
 }
+
+// TestIntegrationAddBotAtSeat covers the seat a host picks by clicking an
+// empty seat at the table: the bot lands there and not in the lowest free
+// seat, and a seat somebody already has is refused like any other join.
+func TestIntegrationAddBotAtSeat(t *testing.T) {
+	if testing.Short() {
+		t.Skip("integration test skipped in -short mode")
+	}
+	h := newHarness(t, t.TempDir(), "")
+	defer h.stop()
+	tableID, token := h.createTable(fastSettings())
+
+	status, out := h.request(http.MethodPost, "/api/admin/tables/"+tableID+"/bots", token, map[string]any{"seat": 4})
+	if status != http.StatusCreated {
+		t.Fatalf("add bot at seat 4: %d %v", status, out)
+	}
+	if out["seat"].(float64) != 4 {
+		t.Errorf("seat = %v, want 4", out["seat"])
+	}
+
+	// The same seat again: taken, like any other join of a full seat.
+	if status, out := h.request(http.MethodPost, "/api/admin/tables/"+tableID+"/bots", token, map[string]any{"seat": 4}); status != http.StatusConflict {
+		t.Fatalf("add bot at a taken seat: %d %v", status, out)
+	}
+
+	// No seat in the body is still the lowest free one, the way the invite
+	// dialog asks for it.
+	if status, out := h.request(http.MethodPost, "/api/admin/tables/"+tableID+"/bots", token, nil); status != http.StatusCreated {
+		t.Fatalf("add bot without a seat: %d %v", status, out)
+	} else if out["seat"].(float64) != 0 {
+		t.Errorf("seat = %v, want 0", out["seat"])
+	}
+}

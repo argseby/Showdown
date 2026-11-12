@@ -257,12 +257,15 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   the `client_id` is `PUBLIC_ORIGIN` itself, the client is public, and PKCE
 >   `S256` is the only credential. `/api/config` gains `revoked_sign_in` and
 >   `revoked_default_server`, the server the sign-in starts with.
->   `POST /api/accounts/revoked/start` takes an optional `{issuer}` and returns
->   `{app_link, wait, issuer, check_code}`. `app_link` is a `revoked://signin`
+>   `POST /api/accounts/revoked/start` takes an optional `{issuer}`, in the body
+>   or as a query parameter for a client that posts a body of its own, and
+>   returns `{app_link, wait, issuer, check_code}`. `app_link` is a `revoked://signin`
 >   link with `revoked_return=background` that carries the request itself: the
 >   app opens it on whichever server the person is signed into, so which server
 >   that is never has to be asked. The page shows it as a QR code and as a link
->   for this device, because a page cannot tell where the app is. The client
+>   for this device, because a page cannot tell where the app is: the web client
+>   hands these two routes to revoked's own `revoked_sign_in` button, which
+>   draws the button and that panel, and asks `wait` for itself. The client
 >   sends the server the player sees, which is discovered up front and is the
 >   only one whose answer is accepted; with none, any server may answer. The app
 >   delivers its answer to `GET /api/accounts/revoked/callback`, usually from a
@@ -284,6 +287,72 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   empty hash is refused. Because the player chooses the address, an issuer
 >   must be `https`, must not resolve into a private network, must name itself
 >   in its own discovery document, and has every endpoint pinned to its origin.
+> - **Your table in your own vault (2026-11-12).** `REVOKED_NOW_PLAYING=true`
+>   (with `REVOKED_SIGN_IN`) offers a signed-in player to have this instance
+>   keep the table they are at in their own revoked vault. It is the other
+>   direction of the same relationship: the sign-in tells this instance who
+>   somebody is, and this lets it keep one thing for them. `/api/config` gains
+>   `revoked_now_playing`.
+>
+>   The player connects this instance as a *tool*, from their app:
+>   `POST /api/accounts/revoked/connect/start` (bearer) answers
+>   `{app_link, wait, server, check_code}`, where `app_link` is a
+>   `revoked://connect` link asking for `section=1` and
+>   `permissions=vault:write,shares:manage` — a section of the vault of its
+>   own, and the right to make one share over it. It never asks for `vault=read`,
+>   so nothing of the player's is ever read. The panel is the sign-in's: the
+>   request as a QR code for a phone, as a link for this device, and the check
+>   code the app shows beside it. The app opens
+>   `GET /api/accounts/revoked/connect/callback` with `state`, `status`,
+>   `server` and a one-time `code`, which is spent at the server's
+>   `/api/connect/token` with the PKCE verifier this server kept; the page asks
+>   `POST /api/accounts/revoked/connect/wait` with `{wait}` until it answers
+>   `{done: true, error}`. The vault must be on a server the profile already
+>   signs in with (`account_identities`), and a profile that signs in with a
+>   password is refused with `revoked_identity_required`: without that, reading
+>   the link off somebody's screen would be enough to have their play reported
+>   into a vault of one's own. A connection that comes back without a section
+>   of its own, or without `shares:manage`, is given up rather than kept.
+>
+>   The connection is then one `account_revoked_links` row: the server, the
+>   connection token (sent as `X-Revoked-Connection`, not a session and not
+>   able to reach the rest of the vault), the section, the entry and the
+>   share. The entry is `now_playing`, or `now_playing_<host>` where the
+>   player already uses that key — an entry this instance did not write is
+>   not its to change. The share names that entry: a share serves the
+>   records it names and nothing else, and a section on a link only groups
+>   them for whoever reads it — a link naming the section alone resolves to
+>   nothing. `account_revoked_links.link_records` is the set the share was
+>   made to grant, and a share granting any other set is revoked and made
+>   again, which is also how the first links made here, granting nothing,
+>   repair themselves without the player approving anything again. The
+>   address is handed over once, when the share is created, and is kept for
+>   that reason. No `maxViews` and no expiry: every read of a share consumes
+>   a view, so a cap would turn a standing link into a burner.
+>
+>   What the entry says is one line: the table's name, its stakes, its seats
+>   and `PUBLIC_ORIGIN/t/<id>`. A table that requires a password, one whose
+>   joins are closed and a full one are named without an address — a link is
+>   an invitation, and those are not — and a table password is of course
+>   never written anywhere. Between tables the entry says so rather than
+>   being deleted, so the link stays good and simply goes quiet.
+>
+>   Sitting down nudges the publisher, which writes after a moment's pause so
+>   that sitting down, picking another seat and reconnecting is one write.
+>   Everything else — standing up, busting out, the table ending, this server
+>   restarting — is noticed by the pass it makes every 30 seconds, because a
+>   seat has many ways to empty and a loop that looks at what is there cannot
+>   miss one. A player who has not moved costs their server no request at all.
+>   `GET /api/accounts/me/now-playing` → `{connected, server, url, playing,
+>   published, trouble, expires_at}`; `DELETE` the same path revokes the share,
+>   gives the connection up and forgets the row. What was written stays in the
+>   player's vault, because it is theirs.
+>
+>   The player is the one who ends it, and `trouble` is how this instance says
+>   which way: `paused` while they have the tool paused in their app (the token
+>   is kept, and asked again every five minutes, because resuming is their
+>   doing), `expired` once the 90 days a connection lasts have run out, `gone`
+>   once they disconnected it. A connection only they can renew, from the app.
 > - **A profile's own record (2026-09-20).** Every hand a signed-in player is
 >   dealt writes one `hand_results` row and every finished round one
 >   `round_results` row; a guest writes nothing. Every hand played counts —
@@ -360,7 +429,10 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   so the table can see who it is playing against.
 > - **Bots the server plays (2026-09-20).** `POST /api/admin/tables/{id}/bots`
 >   (table admin) seats one and starts playing it: `{player_id, name, seat}`
->   (201), the name being the lowest free `Bot n`. `table_full` when there is no
+>   (201), the name being the lowest free `Bot n`. An optional body `{seat}`
+>   asks for one seat in particular — what a host clicking an empty seat at the
+>   table sends — and answers `seat_taken` (409) when somebody beat them to it;
+>   no body at all takes the lowest free seat. `table_full` when there is no
 >   seat. The bot attaches as an ordinary client and reads the same redacted
 >   snapshots as everyone else, so it cannot see a card it has no business
 >   seeing and the rules that apply to it are the rules that apply to a person.

@@ -90,9 +90,11 @@ func (s *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
-	// A friend sitting down is news on everybody else's home screen.
+	// A friend sitting down is news on everybody else's home screen, and
+	// it is what the table link in their own revoked vault is for.
 	if profile.ID != "" {
 		s.friendsChanged(profile.ID)
+		s.nowPlayingChanged(profile.ID)
 	}
 	token, err := s.createSession(r.Context(), table.RolePlayer, t.ID, res.PlayerID, res.Name)
 	if err != nil {

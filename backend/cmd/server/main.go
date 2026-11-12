@@ -107,6 +107,11 @@ func run() error {
 	go st.RunRetention(ctx, cfg.TableRetentionDays, 24*time.Hour, log)
 
 	srv := server.New(cfg, st, registry, log)
+	// The table a player is at, kept in their own revoked vault: sitting
+	// down nudges this loop, and standing up or the table ending is
+	// noticed on its next pass. Does nothing unless the instance offers
+	// it and somebody asked for it.
+	go srv.RunNowPlaying(ctx)
 	httpSrv := &http.Server{
 		Addr:              cfg.ListenAddr,
 		Handler:           srv.Handler(),

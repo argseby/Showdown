@@ -632,12 +632,6 @@ abstract class AppLocalizations {
   /// **'This instance has no player profiles.'**
   String get accountsOff;
 
-  /// No description provided for @revokedSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in with Revoked'**
-  String get revokedSignIn;
-
   /// No description provided for @revokedNeedsApp.
   ///
   /// In en, this message translates to:
@@ -710,6 +704,12 @@ abstract class AppLocalizations {
   /// **'Any revoked server works — type the address of the one you use.'**
   String get revokedServerBody;
 
+  /// No description provided for @revokedServerUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this server'**
+  String get revokedServerUse;
+
   /// No description provided for @revokedContinue.
   ///
   /// In en, this message translates to:
@@ -751,6 +751,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That sign-in took too long. Please start again.'**
   String get revokedExpired;
+
+  /// No description provided for @nowPlayingOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing link'**
+  String get nowPlayingOpen;
+
+  /// No description provided for @nowPlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your table, in your vault'**
+  String get nowPlayingTitle;
+
+  /// No description provided for @nowPlayingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdown can keep one entry in your Revoked vault saying which table you are at. You get a link to paste wherever you like — it always points at the table you are at now, and it goes quiet when you stand up.'**
+  String get nowPlayingBody;
+
+  /// No description provided for @nowPlayingConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your vault'**
+  String get nowPlayingConnect;
+
+  /// No description provided for @nowPlayingConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your vault'**
+  String get nowPlayingConnectTitle;
+
+  /// No description provided for @nowPlayingLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your link'**
+  String get nowPlayingLinkLabel;
+
+  /// No description provided for @nowPlayingCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get nowPlayingCopy;
+
+  /// No description provided for @nowPlayingCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied.'**
+  String get nowPlayingCopied;
+
+  /// No description provided for @nowPlayingAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently: {what}'**
+  String nowPlayingAt(String what);
+
+  /// No description provided for @nowPlayingIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not at a table'**
+  String get nowPlayingIdle;
+
+  /// No description provided for @nowPlayingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get nowPlayingOff;
+
+  /// No description provided for @nowPlayingOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The link stops working and Showdown gives up the connection. The entry stays in your vault, because it is yours.'**
+  String get nowPlayingOffBody;
+
+  /// No description provided for @nowPlayingYours.
+  ///
+  /// In en, this message translates to:
+  /// **'The entry and the link are yours: you can pause Showdown, change what it may do, or revoke the link in your Revoked app at any time.'**
+  String get nowPlayingYours;
+
+  /// No description provided for @nowPlayingPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'You paused Showdown in your Revoked app, so the entry is not being updated. Resume it there and it carries on.'**
+  String get nowPlayingPaused;
+
+  /// No description provided for @nowPlayingLapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection has lapsed — they last 90 days. Connect again to carry on.'**
+  String get nowPlayingLapsed;
+
+  /// No description provided for @nowPlayingNeedsRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Revoked to use this: the vault written to is the server you sign in with.'**
+  String get nowPlayingNeedsRevoked;
+
+  /// No description provided for @nowPlayingNotPermitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Showdown was not given a section of its own, so there is nothing for it to keep. Try again and leave that part on.'**
+  String get nowPlayingNotPermitted;
+
+  /// No description provided for @nowPlayingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not finish. Please try again.'**
+  String get nowPlayingFailed;
 
   /// No description provided for @accountRecoveryTitle.
   ///
@@ -5185,6 +5293,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This seat is played by a program, not a person'**
   String get botSeatHint;
+
+  /// No description provided for @botSeatFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bot'**
+  String get botSeatFill;
+
+  /// No description provided for @botSeatFillHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill this seat with a bot'**
+  String get botSeatFillHint;
 
   /// No description provided for @peerMutedMark.
   ///
