@@ -274,8 +274,7 @@ func (s *Server) handleRevokedConnectCallback(w http.ResponseWriter, r *http.Req
 // revokedConnectAnswer turns the app's answer into a saved connection, or
 // into the reason there is none.
 func (s *Server) revokedConnectAnswer(r *http.Request, fl *revokedConnect, q url.Values) string {
-	switch q.Get("status") {
-	case "declined":
+	if q.Get("status") == "declined" {
 		return "access_denied"
 	}
 	// The app names the server it answered on. It has to be the one this

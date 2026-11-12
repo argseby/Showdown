@@ -23,9 +23,11 @@ func nowPlayingEnv() map[string]string {
 }
 
 // signInWithRevoked runs a whole sign-in against the fake server and
-// returns the account token. Everything below needs a profile that signs
-// in with revoked, because that is the only kind this feature is for.
-func signInWithRevoked(t *testing.T, h *harness, issuer *fakeRevoked, handle string) string {
+// returns the account token of "robin", the one player these tests need:
+// everything below wants a profile that signs in with revoked, because
+// that is the only kind this feature is for.
+func signInWithRevoked(t *testing.T, h *harness, issuer *fakeRevoked) string {
+	const handle = "robin"
 	t.Helper()
 	status, out := h.request(http.MethodPost, "/api/accounts/revoked/start", "", map[string]string{})
 	if status != http.StatusOK {
@@ -170,7 +172,7 @@ func TestNowPlayingFollowsTheTable(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	status, out := h.request(http.MethodGet, "/api/accounts/me/now-playing", token, nil)
 	if status != http.StatusOK || out["connected"] != false || out["playing"] != nowPlayingIdle {
 		t.Fatalf("before connecting: %d %v", status, out)
@@ -265,7 +267,7 @@ func TestNowPlayingKeepsPrivateTablesPrivate(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	connectVault(t, h, issuer, token)
 
 	settings := fastSettings()
@@ -299,7 +301,7 @@ func TestNowPlayingRefusesAnotherServersVault(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	status, out := h.request(http.MethodPost, "/api/accounts/revoked/connect/start", token, map[string]string{})
 	if status != http.StatusOK {
 		t.Fatalf("connect start: %d %v", status, out)
@@ -340,7 +342,7 @@ func TestNowPlayingDeclined(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	status, out := h.request(http.MethodPost, "/api/accounts/revoked/connect/start", token, map[string]string{})
 	if status != http.StatusOK {
 		t.Fatalf("connect start: %d %v", status, out)
@@ -365,7 +367,7 @@ func TestNowPlayingWithoutASection(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	status, out := h.request(http.MethodPost, "/api/accounts/revoked/connect/start", token, map[string]string{})
 	if status != http.StatusOK {
 		t.Fatalf("connect start: %d %v", status, out)
@@ -391,7 +393,7 @@ func TestNowPlayingKeyTaken(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	connectVault(t, h, issuer, token)
 	if _, ok := issuer.vaultRecord(nowPlayingKey + "_poker_example"); !ok {
 		t.Fatal("no entry was written under a free key")
@@ -410,7 +412,7 @@ func TestNowPlayingPaused(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	connectVault(t, h, issuer, token)
 
 	issuer.mu.Lock()
@@ -466,7 +468,7 @@ func TestNowPlayingReplacesAShareThatGrantsNothing(t *testing.T) {
 	h := newHarness(t, t.TempDir(), "", nowPlayingEnv())
 	defer h.stop()
 
-	token := signInWithRevoked(t, h, issuer, "robin")
+	token := signInWithRevoked(t, h, issuer)
 	connectVault(t, h, issuer, token)
 
 	// Put the row back the way the first version left it: a share that

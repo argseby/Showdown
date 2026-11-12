@@ -147,6 +147,9 @@ Future<_FakeBrowser> _openAccount(
 }) async {
   SharedPreferences.setMockInitialValues({});
   debugDefaultTargetPlatformOverride = platform;
+  // A safety net only: the binding checks the foundation debug variables
+  // when the test body returns, which is before any tear-down runs, so
+  // the tests below go through [signInTest], which puts it back in time.
   addTearDown(() => debugDefaultTargetPlatformOverride = null);
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -187,8 +190,23 @@ Future<void> _nextAsk(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// `testWidgets` for a test that opens the account panel: it puts the
+/// platform override back before the body returns. The test binding reads
+/// the foundation debug variables the moment the body is done — a
+/// tear-down would be too late, and every test in the file would fail with
+/// "the value of a foundation debug variable was changed by the test".
+void signInTest(String description, Future<void> Function(WidgetTester) body) {
+  testWidgets(description, (tester) async {
+    try {
+      await body(tester);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+}
+
 void main() {
-  testWidgets('the button shows a code to scan, and does not leave the page', (
+  signInTest('the button shows a code to scan, and does not leave the page', (
     tester,
   ) async {
     final server = _Server();
@@ -209,26 +227,25 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets(
-    'it keeps asking until the answer comes, then asks for a handle',
-    (tester) async {
-      final server = _Server();
-      await _openPanel(tester, server);
+  signInTest('it keeps asking until the answer comes, then asks for a handle', (
+    tester,
+  ) async {
+    final server = _Server();
+    await _openPanel(tester, server);
 
-      await _nextAsk(tester);
-      await _nextAsk(tester);
-      expect(server.asked, 2);
-      expect(find.text(_scan), findsOneWidget);
+    await _nextAsk(tester);
+    await _nextAsk(tester);
+    expect(server.asked, 2);
+    expect(find.text(_scan), findsOneWidget);
 
-      server.answer = {'done': true, 'code': 'one-time', 'error': ''};
-      await _nextAsk(tester);
+    server.answer = {'done': true, 'code': 'one-time', 'error': ''};
+    await _nextAsk(tester);
 
-      expect(find.text(_scan), findsNothing);
-      expect(find.text('Pick your name'), findsOneWidget);
-    },
-  );
+    expect(find.text(_scan), findsNothing);
+    expect(find.text('Pick your name'), findsOneWidget);
+  });
 
-  testWidgets('a known identity is simply signed in', (tester) async {
+  signInTest('a known identity is simply signed in', (tester) async {
     final server = _Server(linked: true);
     await _openPanel(tester, server);
 
@@ -241,7 +258,7 @@ void main() {
     expect(find.byKey(const Key('revoked-continue')), findsNothing);
   });
 
-  testWidgets('the sign-in starts with the default server, and says so', (
+  signInTest('the sign-in starts with the default server, and says so', (
     tester,
   ) async {
     final server = _Server();
@@ -253,7 +270,7 @@ void main() {
     expect(find.text('api.revoked.link'), findsOneWidget);
   });
 
-  testWidgets('a player changes the server, and it is remembered', (
+  signInTest('a player changes the server, and it is remembered', (
     tester,
   ) async {
     final server = _Server();
@@ -288,7 +305,7 @@ void main() {
     expect(find.text('api.revoked.link'), findsOneWidget);
   });
 
-  testWidgets('an answer that is not a yes ends the sign-in', (tester) async {
+  signInTest('an answer that is not a yes ends the sign-in', (tester) async {
     final server = _Server();
     await _openPanel(tester, server);
 
@@ -299,7 +316,7 @@ void main() {
     expect(server.seen, isNot(contains('/api/accounts/revoked/finish')));
   });
 
-  testWidgets('a decline on the phone reaches the page', (tester) async {
+  signInTest('a decline on the phone reaches the page', (tester) async {
     final server = _Server();
     await _openPanel(tester, server);
 
@@ -311,7 +328,7 @@ void main() {
     expect(server.seen, isNot(contains('/api/accounts/revoked/finish')));
   });
 
-  testWidgets('closing the panel stops asking', (tester) async {
+  signInTest('closing the panel stops asking', (tester) async {
     final server = _Server();
     await _openPanel(tester, server);
 
@@ -325,7 +342,7 @@ void main() {
     expect(find.text(_failed), findsNothing);
   });
 
-  testWidgets('a phone app opens Revoked at once', (tester) async {
+  signInTest('a phone app opens Revoked at once', (tester) async {
     final server = _Server();
     final browser = await _openPanel(
       tester,
@@ -352,7 +369,7 @@ void main() {
     Size(768, 1024),
     Size(1280, 800),
   ]) {
-    testWidgets('the panel fits at ${size.width}x${size.height}', (
+    signInTest('the panel fits at ${size.width}x${size.height}', (
       tester,
     ) async {
       final server = _Server();
@@ -374,7 +391,7 @@ void main() {
     });
   }
 
-  testWidgets('a failure that came back through the address is explained', (
+  signInTest('a failure that came back through the address is explained', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -398,7 +415,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('an ordinary visit does not touch the sign-in', (tester) async {
+  signInTest('an ordinary visit does not touch the sign-in', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final server = _Server();
     await tester.pumpWidget(
