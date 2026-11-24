@@ -74,7 +74,7 @@ simulate: ## verify the rules and the chip accounting over many simulated tables
 	cd $(GO_DIR) && go run ./cmd/simulate -tables $(SIM_TABLES) -hands $(SIM_HANDS)
 
 # The run published on the website. Takes a few minutes; afterwards copy the
-# numbers it prints into the "checked by machine" section of website/index.html.
+# numbers it prints into the "How we test the game" section of website/index.html.
 site-verification: ## refresh website/verification.json with the published run
 	cd $(GO_DIR) && go run ./cmd/simulate -tables 200000 -hands 120 -deals 2000000 \
 		-json ../website/verification.json
