@@ -290,6 +290,9 @@ type Table struct {
 	// lastRound is the standing of the round that ended last, taken before
 	// a new round resets the stacks (nil until a round has ended).
 	lastRound *protocol.RoundResult
+	// roundBest is the biggest pot of the round being played (nil until a
+	// pot was won); written next to the round's standings when it ends.
+	roundBest *protocol.RoundHighlight
 
 	seats          [maxSeats]*Player
 	players        map[string]*Player // seated players by id
@@ -1669,6 +1672,7 @@ func (t *Table) Restart() error {
 		// and number, and the hand log keeps both rounds. Where the round
 		// began is what the tournament lock goes by.
 		t.roundStartHand = t.handNumber
+		t.roundBest = nil
 		t.endedAt = 0
 		t.endAfterHand = false
 		t.buttonSeat = -1
@@ -1805,6 +1809,9 @@ func (t *Table) persistTable() {
 		ID: t.ID, Name: t.name, State: t.state, CreatedAt: t.createdAt, EndedAt: t.endedAt,
 		HandNumber: t.handNumber, ButtonSeat: t.buttonSeat, AdminTokenHash: t.adminTokenHash,
 		RoundStartHand: t.roundStartHand, LastRound: string(marshalJSON(t.lastRound)),
+	}
+	if t.roundBest != nil {
+		row.RoundBest = string(marshalJSON(t.roundBest))
 	}
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.UpdateTable(ctx, row)

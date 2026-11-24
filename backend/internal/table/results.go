@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"showdown/internal/poker"
+	"showdown/internal/protocol"
 	"showdown/internal/store"
 )
 
@@ -92,4 +93,72 @@ func (t *Table) recordRoundResults() {
 	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
 		return st.InsertRoundResults(ctx, rows)
 	})
+}
+
+// recordRoundStandings keeps the table's own record of the round that just
+// ended: one row per player who sat in it, guests and bots included. It is
+// what survives the restart that puts every stack back to the start money,
+// and what the all-time standings of the table are summed from.
+func (t *Table) recordRoundStandings() {
+	players := 0
+	for _, p := range t.seats[:maxSeats] {
+		if p != nil {
+			players++
+		}
+	}
+	hands := t.handNumber - t.roundStartHand
+	var rows []store.RoundStandingRow
+	for _, p := range t.seats[:maxSeats] {
+		if p == nil {
+			continue
+		}
+		rows = append(rows, store.RoundStandingRow{
+			TableID: t.ID, TableName: t.name, RoundStart: t.roundStartHand, Hands: hands,
+			EndedAt: t.endedAt, BigBlind: t.settings.BigBlind,
+			PlayerID: p.ID, AccountID: p.AccountID, Name: p.Name, NameKey: NameKey(p.Name),
+			Avatar: p.Avatar, Bot: p.Bot,
+			Stack: p.Stack, BuyInTotal: p.BuyInTotal, Net: p.Stack - p.BuyInTotal,
+			Place: p.Place, Players: players,
+			HandsPlayed: p.HandsPlayed, HandsWon: p.HandsWon, BiggestPot: p.BiggestPot,
+			VPIPHands: p.VPIPHands, Showdowns: p.Showdowns, ShowdownsWon: p.ShowdownsWon,
+		})
+	}
+	if len(rows) == 0 {
+		return
+	}
+	var best *store.RoundHighlightRow
+	if b := t.roundBest; b != nil {
+		best = &store.RoundHighlightRow{
+			Hand: b.Hand, Amount: b.Amount, Winners: append([]string{}, b.Winners...), Description: b.Description,
+		}
+	}
+	t.persist.enqueue(func(ctx context.Context, st *store.Store, _ *persister) error {
+		return st.InsertRoundStandings(ctx, rows, best)
+	})
+}
+
+// noteRoundBest keeps the biggest pot of the round being played. The
+// winners are named now, while they still sit where the engine says: a
+// player who leaves later in the round is still who took it.
+func (t *Table) noteRoundBest(res *poker.Results) {
+	if res == nil {
+		return
+	}
+	changed := false
+	for _, pot := range res.Pots {
+		if pot.Amount <= 0 || (t.roundBest != nil && pot.Amount <= t.roundBest.Amount) {
+			continue
+		}
+		best := &protocol.RoundHighlight{Hand: t.handNumber, Amount: pot.Amount, Winners: []string{}, Description: pot.Description}
+		for _, w := range pot.Winners {
+			if p := t.seats[w.Seat]; p != nil {
+				best.Winners = append(best.Winners, p.Name)
+			}
+		}
+		t.roundBest = best
+		changed = true
+	}
+	if changed {
+		t.persistTable()
+	}
 }

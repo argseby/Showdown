@@ -3350,4 +3350,172 @@ class AppLocalizationsEn extends AppLocalizations {
   String spotlightSplit(String names, String description) {
     return 'Split pot – $names: $description';
   }
+
+  @override
+  String get lbAllTime => 'All time';
+
+  @override
+  String lbAllTimeNote(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Totals of $count finished rounds at this table',
+      one: 'Totals of 1 finished round at this table',
+      zero: 'No round has finished yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lbAllTimeEmpty =>
+      'Nothing here yet. When a round ends, its result is kept and totalled here — a new round on this table no longer wipes it.';
+
+  @override
+  String get lbAllTimeFailed => 'The all-time standings could not be loaded.';
+
+  @override
+  String get lbRetry => 'Try again';
+
+  @override
+  String lbRoundsPlayed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rounds',
+      one: '1 round',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lbRoundsWon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wins',
+      one: '1 win',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lbRoundTitle(int index) {
+    return 'Round $index';
+  }
+
+  @override
+  String get lbExportPdf => 'Export PDF';
+
+  @override
+  String get lbExported => 'Leaderboard exported';
+
+  @override
+  String get lbExportFailed => 'The export failed.';
+
+  @override
+  String get lbPdfTitle => 'Leaderboard';
+
+  @override
+  String lbPdfGenerated(String when) {
+    return 'Exported $when';
+  }
+
+  @override
+  String get lbPdfAllTimeNote =>
+      'Every finished round at this table, added up.';
+
+  @override
+  String get lbPdfNoRounds => 'No round has finished yet.';
+
+  @override
+  String get lbColRank => '#';
+
+  @override
+  String get lbColPlayer => 'Player';
+
+  @override
+  String get lbColRounds => 'Rounds';
+
+  @override
+  String get lbColWins => 'Wins';
+
+  @override
+  String get lbColNet => 'Net';
+
+  @override
+  String get lbColStack => 'Stack';
+
+  @override
+  String get lbColHands => 'Hands';
+
+  @override
+  String get lbColHandsWon => 'Hands won';
+
+  @override
+  String get lbBot => 'bot';
+
+  @override
+  String get lbScopeSession => 'This session';
+
+  @override
+  String lbSessionNote(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Totals of $count finished rounds this session',
+      one: 'Totals of 1 finished round this session',
+      zero: 'No round of this session has finished yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lbIncludesLive => 'Includes the round in progress';
+
+  @override
+  String get lbLiveRound => 'now';
+
+  @override
+  String get lbChartTitle => 'Net over the rounds';
+
+  @override
+  String lbChartTop(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Top $count players shown',
+      one: 'Top player shown',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lbChartAfterRound(int index) {
+    return 'After round $index';
+  }
+
+  @override
+  String get lbRounds => 'Rounds';
+
+  @override
+  String lbRoundWonBy(String name) {
+    return 'won by $name';
+  }
+
+  @override
+  String lbBiggestPotLine(String amount, String names, int hand) {
+    return 'Biggest pot $amount: $names, hand #$hand';
+  }
+
+  @override
+  String get lbPlayerDetailsHint => 'Tap a player for their rounds';
+
+  @override
+  String get lbBestPlace => 'Best place';
+
+  @override
+  String get lbHistory => 'Round by round';
+
+  @override
+  String get lbStatRounds => 'Rounds played / won';
 }

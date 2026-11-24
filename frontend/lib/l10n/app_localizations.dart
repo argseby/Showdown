@@ -5917,6 +5917,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split pot – {names}: {description}'**
   String spotlightSplit(String names, String description);
+
+  /// No description provided for @lbAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get lbAllTime;
+
+  /// No description provided for @lbAllTimeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No round has finished yet} =1{Totals of 1 finished round at this table} other{Totals of {count} finished rounds at this table}}'**
+  String lbAllTimeNote(int count);
+
+  /// No description provided for @lbAllTimeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet. When a round ends, its result is kept and totalled here — a new round on this table no longer wipes it.'**
+  String get lbAllTimeEmpty;
+
+  /// No description provided for @lbAllTimeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The all-time standings could not be loaded.'**
+  String get lbAllTimeFailed;
+
+  /// No description provided for @lbRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get lbRetry;
+
+  /// No description provided for @lbRoundsPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 round} other{{count} rounds}}'**
+  String lbRoundsPlayed(int count);
+
+  /// No description provided for @lbRoundsWon.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 win} other{{count} wins}}'**
+  String lbRoundsWon(int count);
+
+  /// No description provided for @lbRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {index}'**
+  String lbRoundTitle(int index);
+
+  /// No description provided for @lbExportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF'**
+  String get lbExportPdf;
+
+  /// No description provided for @lbExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard exported'**
+  String get lbExported;
+
+  /// No description provided for @lbExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The export failed.'**
+  String get lbExportFailed;
+
+  /// No description provided for @lbPdfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get lbPdfTitle;
+
+  /// No description provided for @lbPdfGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported {when}'**
+  String lbPdfGenerated(String when);
+
+  /// No description provided for @lbPdfAllTimeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every finished round at this table, added up.'**
+  String get lbPdfAllTimeNote;
+
+  /// No description provided for @lbPdfNoRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'No round has finished yet.'**
+  String get lbPdfNoRounds;
+
+  /// No description provided for @lbColRank.
+  ///
+  /// In en, this message translates to:
+  /// **'#'**
+  String get lbColRank;
+
+  /// No description provided for @lbColPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get lbColPlayer;
+
+  /// No description provided for @lbColRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds'**
+  String get lbColRounds;
+
+  /// No description provided for @lbColWins.
+  ///
+  /// In en, this message translates to:
+  /// **'Wins'**
+  String get lbColWins;
+
+  /// No description provided for @lbColNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get lbColNet;
+
+  /// No description provided for @lbColStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Stack'**
+  String get lbColStack;
+
+  /// No description provided for @lbColHands.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands'**
+  String get lbColHands;
+
+  /// No description provided for @lbColHandsWon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands won'**
+  String get lbColHandsWon;
+
+  /// No description provided for @lbBot.
+  ///
+  /// In en, this message translates to:
+  /// **'bot'**
+  String get lbBot;
+
+  /// No description provided for @lbScopeSession.
+  ///
+  /// In en, this message translates to:
+  /// **'This session'**
+  String get lbScopeSession;
+
+  /// No description provided for @lbSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No round of this session has finished yet} =1{Totals of 1 finished round this session} other{Totals of {count} finished rounds this session}}'**
+  String lbSessionNote(int count);
+
+  /// No description provided for @lbIncludesLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes the round in progress'**
+  String get lbIncludesLive;
+
+  /// No description provided for @lbLiveRound.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get lbLiveRound;
+
+  /// No description provided for @lbChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Net over the rounds'**
+  String get lbChartTitle;
+
+  /// No description provided for @lbChartTop.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Top player shown} other{Top {count} players shown}}'**
+  String lbChartTop(int count);
+
+  /// No description provided for @lbChartAfterRound.
+  ///
+  /// In en, this message translates to:
+  /// **'After round {index}'**
+  String lbChartAfterRound(int index);
+
+  /// No description provided for @lbRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds'**
+  String get lbRounds;
+
+  /// No description provided for @lbRoundWonBy.
+  ///
+  /// In en, this message translates to:
+  /// **'won by {name}'**
+  String lbRoundWonBy(String name);
+
+  /// No description provided for @lbBiggestPotLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest pot {amount}: {names}, hand #{hand}'**
+  String lbBiggestPotLine(String amount, String names, int hand);
+
+  /// No description provided for @lbPlayerDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a player for their rounds'**
+  String get lbPlayerDetailsHint;
+
+  /// No description provided for @lbBestPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Best place'**
+  String get lbBestPlace;
+
+  /// No description provided for @lbHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Round by round'**
+  String get lbHistory;
+
+  /// No description provided for @lbStatRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounds played / won'**
+  String get lbStatRounds;
 }
 
 class _AppLocalizationsDelegate

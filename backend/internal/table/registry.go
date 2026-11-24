@@ -216,6 +216,14 @@ func (r *Registry) LoadAll(ctx context.Context) error {
 				t.lastRound = &lr
 			}
 		}
+		if row.RoundBest != "" {
+			var best protocol.RoundHighlight
+			if err := json.Unmarshal([]byte(row.RoundBest), &best); err != nil {
+				r.deps.Log.Warn("round highlight unreadable", "table", row.ID, "err", err)
+			} else {
+				t.roundBest = &best
+			}
+		}
 		t.settings = SettingsFromRow(settings)
 
 		players, err := st.ListPlayers(ctx, row.ID)

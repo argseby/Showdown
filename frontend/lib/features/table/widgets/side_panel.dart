@@ -14,6 +14,7 @@ import '../../../core/gamepad/gamepad.dart';
 import '../../../core/gamepad/pad_section.dart';
 import '../../../core/providers.dart';
 import '../../../core/session_store.dart';
+import '../../../core/standings.dart';
 import '../../../protocol/protocol.dart';
 import '../../../shared/avatars.dart';
 import '../../../shared/kbd_hint.dart';
@@ -25,10 +26,12 @@ import '../../admin/admin_panel.dart';
 import '../../admin/table_rules_pending.dart';
 import '../../admin/table_rules_section.dart';
 import '../../friends/friends_dialog.dart';
+import '../leaderboard_pdf.dart';
 import '../log_text.dart';
 import '../replay/replay_dialog.dart';
 import '../table_session.dart';
 import 'settings_tab.dart';
+import 'standings_widgets.dart';
 
 /// Tabs of the side panel. [admin] exists only for the table's host.
 enum PanelTab { chat, log, leaderboard, settings }
@@ -337,6 +340,10 @@ class SidePanelState extends ConsumerState<SidePanel> {
               onReplay: session.snapshot == null ? null : _replay,
             ),
             PanelTab.leaderboard => TableLeaderboard(
+              tableId: widget.tableId,
+              token:
+                  adminToken ??
+                  ref.watch(sessionProvider(widget.tableId)).value?.token,
               snapshot: session.snapshot,
             ),
             PanelTab.settings => switch (page) {
@@ -778,17 +785,172 @@ class HandLog extends ConsumerWidget {
   }
 }
 
-class TableLeaderboard extends ConsumerWidget {
-  const TableLeaderboard({super.key, required this.snapshot});
+class TableLeaderboard extends ConsumerStatefulWidget {
+  const TableLeaderboard({
+    super.key,
+    required this.tableId,
+    required this.snapshot,
+    this.token,
+  });
 
+  final String tableId;
   final Snapshot? snapshot;
 
+  /// The caller's session token, or the host's admin token: the all-time
+  /// standings are read over REST and need one. Null for a client that has
+  /// neither yet, which only shows the live round.
+  final String? token;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TableLeaderboard> createState() => _TableLeaderboardState();
+}
+
+class _TableLeaderboardState extends ConsumerState<TableLeaderboard> {
+  /// The table state the standings were last read at. A round ending or a
+  /// new one opening is exactly when the record changes, and the only time
+  /// it does — so that is when it is read again.
+  String? _readAt;
+  bool _exporting = false;
+
+  /// The board the viewer picked; null follows the default (this session
+  /// when it has anything, all time otherwise).
+  _BoardScope? _scope;
+
+  /// The colour slot of every player in the chart: their place on the
+  /// all-time board while that is one of the eight colours, else the first
+  /// colour no other drawn line uses — so switching between session and all
+  /// time does not repaint anybody.
+  int Function(String) _colourSlots(
+    List<AllTimeEntry> allTime,
+    List<NetSeries> shown,
+  ) {
+    const colours = 8;
+    final order = {
+      for (var i = 0; i < allTime.length; i++)
+        standingsNameKey(allTime[i].name): i,
+    };
+    final slots = <String, int>{};
+    final taken = <int>{};
+    for (final s in shown) {
+      final k = standingsNameKey(s.name);
+      final pref = order[k];
+      if (pref != null && pref < colours && taken.add(pref)) slots[k] = pref;
+    }
+    for (final s in shown) {
+      final k = standingsNameKey(s.name);
+      if (slots.containsKey(k)) continue;
+      var slot = 0;
+      while (taken.contains(slot) && slot < colours - 1) {
+        slot++;
+      }
+      taken.add(slot);
+      slots[k] = slot;
+    }
+    return (name) => slots[standingsNameKey(name)] ?? 0;
+  }
+
+  StandingsKey? get _key {
+    final token = widget.token;
+    return token == null ? null : (tableId: widget.tableId, token: token);
+  }
+
+  /// Re-reads the record when the table has ended a round or started a new
+  /// one since the last read.
+  void _refreshOnStateChange() {
+    final state = widget.snapshot?.table.state;
+    final key = _key;
+    if (state == null || key == null || state == _readAt) return;
+    final first = _readAt == null;
+    _readAt = state;
+    if (first) return; // the first read is the provider's own
+    Future.microtask(() {
+      if (mounted) ref.invalidate(tableStandingsProvider(key));
+    });
+  }
+
+  Future<void> _export(TableStandings? standings) async {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final snapshot = widget.snapshot;
+    final bigBlind = snapshot?.table.settings.bigBlind ?? 0;
+    final chipDisplay = ref.read(chipDisplayProvider);
+    final tableName = snapshot?.table.name ?? standings?.tableName ?? '';
+    // An ended table's live list *is* its newest finished round, which the
+    // rounds below already carry: printing it twice would read as two.
+    final current = snapshot?.table.state == 'ended'
+        ? const <LeaderboardEntry>[]
+        : snapshot?.leaderboard ?? const <LeaderboardEntry>[];
+    setState(() => _exporting = true);
+    try {
+      final bytes = await buildLeaderboardPdf(
+        tableName: tableName,
+        standings: standings,
+        current: current,
+        amount: (v) => formatAmount(
+          v,
+          mode: chipDisplay,
+          bigBlind: bigBlind,
+          locale: locale,
+        ),
+        date: (ts) => formatDate(ts, locale),
+        texts: LeaderboardPdfTexts(
+          title: l10n.lbPdfTitle,
+          generated: l10n.lbPdfGenerated(
+            '${formatDate(DateTime.now().millisecondsSinceEpoch, locale)} '
+            '${formatClock(DateTime.now().millisecondsSinceEpoch)}',
+          ),
+          allTime: l10n.lbAllTime,
+          allTimeNote: l10n.lbPdfAllTimeNote,
+          thisRound: l10n.thisRound,
+          round: l10n.lbRoundTitle,
+          hands: l10n.lastRoundHands,
+          noRounds: l10n.lbPdfNoRounds,
+          colRank: l10n.lbColRank,
+          colPlayer: l10n.lbColPlayer,
+          colRounds: l10n.lbColRounds,
+          colWins: l10n.lbColWins,
+          colNet: l10n.lbColNet,
+          colStack: l10n.lbColStack,
+          colHands: l10n.lbColHands,
+          colHandsWon: l10n.lbColHandsWon,
+          colBiggestPot: l10n.lbBiggestPot,
+          bot: l10n.lbBot,
+          chartTitle: l10n.lbChartTitle,
+          biggestPot: l10n.lbBiggestPotLine,
+        ),
+      );
+      FileSaver.create().saveBytes(
+        'showdown-${widget.tableId}-leaderboard.pdf',
+        bytes,
+        mimeType: 'application/pdf',
+      );
+      if (!mounted) return;
+      showToast(
+        context: context,
+        location: ToastLocation.bottomCenter,
+        builder: (context, overlay) =>
+            SurfaceCard(child: Text(l10n.lbExported)),
+      );
+    } on Object {
+      if (!mounted) return;
+      showToast(
+        context: context,
+        location: ToastLocation.bottomCenter,
+        builder: (context, overlay) =>
+            SurfaceCard(child: Text(l10n.lbExportFailed)),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
     final chipDisplay = ref.watch(chipDisplayProvider);
+    final snapshot = widget.snapshot;
     final bigBlind = snapshot?.table.settings.bigBlind ?? 0;
     final entries = snapshot?.leaderboard ?? const <LeaderboardEntry>[];
     // While the table sits ended the live list is that round's standing;
@@ -804,11 +966,185 @@ class TableLeaderboard extends ConsumerWidget {
       fontSize: 11,
       color: theme.colorScheme.mutedForeground,
     );
+
+    final key = _key;
+    _refreshOnStateChange();
+    final standings = key == null
+        ? const AsyncValue<TableStandings?>.data(null)
+        : ref.watch(tableStandingsProvider(key));
+    final record = standings.value;
+
+    // The round being played counts right away, provisionally: the board
+    // moves hand by hand instead of waiting for the round to end. An ended
+    // table's live list is the round just recorded, so it is not added
+    // twice.
+    final state = snapshot?.table.state;
+    final rounds = record?.rounds ?? const <RoundStanding>[];
+    final live = state == null || state == 'ended'
+        ? const <LeaderboardEntry>[]
+        : entries;
+    final liveRound = (rounds.isEmpty ? 0 : rounds.last.index) + 1;
+    final hasLive = liveRoundHasPlay(live);
+    final sessionFrom = record?.sessionFrom ?? 0;
+    final sessionRounds = sessionFrom == 0
+        ? const <RoundStanding>[]
+        : [
+            for (final r in rounds)
+              if (r.index >= sessionFrom) r,
+          ];
+    // Tonight first when tonight has anything; the whole record otherwise.
+    final scope =
+        _scope ??
+        (sessionRounds.isNotEmpty || hasLive
+            ? _BoardScope.session
+            : _BoardScope.allTime);
+    final inSession = scope == _BoardScope.session;
+    final scopeRounds = inSession ? sessionRounds : rounds;
+    final board = withLiveRound(
+      inSession
+          ? record?.session ?? const <AllTimeEntry>[]
+          : record?.allTime ?? const <AllTimeEntry>[],
+      live,
+      liveRound: liveRound,
+      avatars: avatars,
+    );
+    final chartRounds = [
+      for (final r in scopeRounds) r.index,
+      if (hasLive) liveRound,
+    ];
+    final series = netSeries(board, chartRounds, top: chartTopPlayers);
+    final slotOf = _colourSlots(
+      withLiveRound(
+        record?.allTime ?? const <AllTimeEntry>[],
+        live,
+        liveRound: liveRound,
+      ),
+      series,
+    );
+
     return ListView(
       children: [
+        // The table's own record, which survives the restart that puts every
+        // stack back to the start money. It is what a group playing all
+        // evening on one table actually keeps.
+        if (rounds.isNotEmpty || hasLive)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Row(
+              children: [
+                for (final (s, label) in [
+                  (_BoardScope.session, l10n.lbScopeSession),
+                  (_BoardScope.allTime, l10n.lbAllTime),
+                ]) ...[
+                  if (s == scope)
+                    PrimaryButton(
+                      key: Key('leaderboard-scope-${s.name}'),
+                      size: ButtonSize.small,
+                      onPressed: () {},
+                      child: Text(label),
+                    )
+                  else
+                    OutlineButton(
+                      key: Key('leaderboard-scope-${s.name}'),
+                      size: ButtonSize.small,
+                      onPressed: () => setState(() => _scope = s),
+                      child: Text(label),
+                    ),
+                  const Gap(6),
+                ],
+              ],
+            ),
+          )
+        else
+          _LeaderboardSection(label: l10n.lbAllTime),
+        if (standings.isLoading && record == null)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(),
+                ),
+              ],
+            ),
+          )
+        else if (standings.hasError && record == null) ...[
+          Text(l10n.lbAllTimeFailed, style: muted),
+          const Gap(4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GhostButton(
+              key: const Key('leaderboard-retry'),
+              size: ButtonSize.small,
+              onPressed: () => ref.invalidate(tableStandingsProvider(key!)),
+              child: Text(l10n.lbRetry),
+            ),
+          ),
+        ] else if (board.isEmpty)
+          Text(
+            inSession ? l10n.lbSessionNote(0) : l10n.lbAllTimeEmpty,
+            style: muted,
+          )
+        else ...[
+          Text(
+            [
+              inSession
+                  ? l10n.lbSessionNote(scopeRounds.length)
+                  : l10n.lbAllTimeNote(scopeRounds.length),
+              if (hasLive) l10n.lbIncludesLive,
+            ].join(' · '),
+            style: muted,
+          ),
+          const Gap(4),
+          for (var i = 0; i < board.length; i++)
+            _AllTimeRow(
+              key: Key('alltime-row-$i'),
+              index: i,
+              e: board[i],
+              amount: amount,
+              muted: muted,
+              onTap: () => showPlayerStandings(
+                context,
+                entry: board[i],
+                amount: amount,
+                liveRound: hasLive ? liveRound : null,
+              ),
+            ),
+          Text(l10n.lbPlayerDetailsHint, style: muted.copyWith(fontSize: 10)),
+
+          // How the evening went, not only where it ended: from the second
+          // point on there is a line to draw.
+          if (chartRounds.length >= 2) ...[
+            const Gap(10),
+            _LeaderboardSection(label: l10n.lbChartTitle),
+            if (board.length > chartTopPlayers)
+              Text(l10n.lbChartTop(chartTopPlayers), style: muted),
+            const Gap(4),
+            NetChart(
+              labels: [
+                for (final r in chartRounds)
+                  hasLive && r == liveRound ? l10n.lbLiveRound : '$r',
+              ],
+              series: series,
+              slotOf: slotOf,
+              amount: amount,
+              liveLast: hasLive,
+            ),
+          ],
+          if (scopeRounds.isNotEmpty) ...[
+            const Gap(10),
+            _LeaderboardSection(label: l10n.lbRounds),
+            for (final r in scopeRounds.reversed)
+              RoundSummaryRow(round: r, amount: amount, muted: muted),
+          ],
+        ],
+        const Gap(6),
+        const Divider(),
+
         // The round that finished before this one: the stacks and statistics
-        // below were reset when the new round opened, so this is the only
-        // place the result is still readable.
+        // below were reset when the new round opened.
         if (last != null) ...[
           _LeaderboardSection(
             label:
@@ -824,8 +1160,8 @@ class TableLeaderboard extends ConsumerWidget {
             ),
           const Gap(6),
           const Divider(),
-          _LeaderboardSection(label: l10n.thisRound),
         ],
+        _LeaderboardSection(label: l10n.thisRound),
         for (var i = 0; i < entries.length; i++)
           _LeaderboardRow(
             index: i,
@@ -834,7 +1170,124 @@ class TableLeaderboard extends ConsumerWidget {
             amount: amount,
             muted: muted,
           ),
+
+        // Always available, whatever is on screen: an empty table prints an
+        // empty board, which is still an answer.
+        const Gap(10),
+        const Divider(),
+        const Gap(6),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlineButton(
+            key: const Key('leaderboard-export-pdf'),
+            size: ButtonSize.small,
+            leading: const Icon(LucideIcons.fileDown),
+            onPressed: _exporting ? null : () => _export(record),
+            child: Text(l10n.lbExportPdf),
+          ),
+        ),
       ],
+    );
+  }
+}
+
+/// Which board the leaderboard shows.
+enum _BoardScope { session, allTime }
+
+/// One player's totals across the rounds of the board; tapping opens their
+/// whole record.
+class _AllTimeRow extends StatelessWidget {
+  const _AllTimeRow({
+    super.key,
+    required this.index,
+    required this.e,
+    required this.amount,
+    required this.muted,
+    required this.onTap,
+  });
+
+  final int index;
+  final AllTimeEntry e;
+  final String Function(int) amount;
+  final TextStyle muted;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+    cursor: SystemMouseCursors.click,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: _row(context),
+    ),
+  );
+
+  Widget _row(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          SizedBox(width: 22, child: Text('${index + 1}.', style: muted)),
+          PlayerAvatar(index: e.avatar, size: 28),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        e.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    if (e.bot) ...[
+                      const Gap(4),
+                      Text('(${l10n.lbBot})', style: muted),
+                    ],
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(l10n.lbRoundsPlayed(e.rounds), style: muted),
+                    const Gap(10),
+                    Icon(
+                      LucideIcons.trophy,
+                      size: 11,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    const Gap(3),
+                    Text(l10n.lbRoundsWon(e.wins), style: muted),
+                    const Gap(10),
+                    Icon(
+                      LucideIcons.coins,
+                      size: 11,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                    const Gap(3),
+                    Text(amount(e.biggestPot), style: muted),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Text(
+            e.net > 0 ? '+${amount(e.net)}' : amount(e.net),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: e.net > 0
+                  ? Colors.green
+                  : e.net < 0
+                  ? theme.colorScheme.destructive
+                  : theme.colorScheme.mutedForeground,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

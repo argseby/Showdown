@@ -10826,6 +10826,1524 @@ as List<LeaderboardEntry>,
 
 
 /// @nodoc
+mixin _$TableStandings {
+
+ String get tableId; String get tableName; List<RoundStanding> get rounds; List<AllTimeEntry> get allTime;/// The board of the current session (rounds without a long break in
+/// between, the newest recent); empty when no finished round belongs to
+/// it. [sessionFrom] is the index of its first round, 0 then.
+ List<AllTimeEntry> get session; int get sessionFrom;
+/// Create a copy of TableStandings
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TableStandingsCopyWith<TableStandings> get copyWith => _$TableStandingsCopyWithImpl<TableStandings>(this as TableStandings, _$identity);
+
+  /// Serializes this TableStandings to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as TableStandings;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TableStandings&&(identical(other.tableId, _this.tableId) || other.tableId == _this.tableId)&&(identical(other.tableName, _this.tableName) || other.tableName == _this.tableName)&&const DeepCollectionEquality().equals(other.rounds, _this.rounds)&&const DeepCollectionEquality().equals(other.allTime, _this.allTime)&&const DeepCollectionEquality().equals(other.session, _this.session)&&(identical(other.sessionFrom, _this.sessionFrom) || other.sessionFrom == _this.sessionFrom));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as TableStandings;
+  return Object.hash(runtimeType,_this.tableId,_this.tableName,const DeepCollectionEquality().hash(_this.rounds),const DeepCollectionEquality().hash(_this.allTime),const DeepCollectionEquality().hash(_this.session),_this.sessionFrom);
+}
+
+@override
+String toString() {
+  final _this = this as TableStandings;
+  return 'TableStandings(tableId: ${_this.tableId}, tableName: ${_this.tableName}, rounds: ${_this.rounds}, allTime: ${_this.allTime}, session: ${_this.session}, sessionFrom: ${_this.sessionFrom})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TableStandingsCopyWith<$Res>  {
+  factory $TableStandingsCopyWith(TableStandings value, $Res Function(TableStandings) _then) = _$TableStandingsCopyWithImpl;
+@useResult
+$Res call({
+ String tableId, String tableName, List<RoundStanding> rounds, List<AllTimeEntry> allTime, List<AllTimeEntry> session, int sessionFrom
+});
+
+
+
+
+}
+/// @nodoc
+class _$TableStandingsCopyWithImpl<$Res>
+    implements $TableStandingsCopyWith<$Res> {
+  _$TableStandingsCopyWithImpl(this._self, this._then);
+
+  final TableStandings _self;
+  final $Res Function(TableStandings) _then;
+
+/// Create a copy of TableStandings
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? tableId = null,Object? tableName = null,Object? rounds = null,Object? allTime = null,Object? session = null,Object? sessionFrom = null,}) {
+  return _then(TableStandings(
+tableId: null == tableId ? _self.tableId : tableId // ignore: cast_nullable_to_non_nullable
+as String,tableName: null == tableName ? _self.tableName : tableName // ignore: cast_nullable_to_non_nullable
+as String,rounds: null == rounds ? _self.rounds : rounds // ignore: cast_nullable_to_non_nullable
+as List<RoundStanding>,allTime: null == allTime ? _self.allTime : allTime // ignore: cast_nullable_to_non_nullable
+as List<AllTimeEntry>,session: null == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
+as List<AllTimeEntry>,sessionFrom: null == sessionFrom ? _self.sessionFrom : sessionFrom // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [TableStandings].
+extension TableStandingsPatterns on TableStandings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TableStandings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TableStandings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TableStandings value)  $default,){
+final _that = this;
+switch (_that) {
+case _TableStandings():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TableStandings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TableStandings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String tableId,  String tableName,  List<RoundStanding> rounds,  List<AllTimeEntry> allTime,  List<AllTimeEntry> session,  int sessionFrom)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TableStandings() when $default != null:
+return $default(_that.tableId,_that.tableName,_that.rounds,_that.allTime,_that.session,_that.sessionFrom);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String tableId,  String tableName,  List<RoundStanding> rounds,  List<AllTimeEntry> allTime,  List<AllTimeEntry> session,  int sessionFrom)  $default,) {final _that = this;
+switch (_that) {
+case _TableStandings():
+return $default(_that.tableId,_that.tableName,_that.rounds,_that.allTime,_that.session,_that.sessionFrom);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String tableId,  String tableName,  List<RoundStanding> rounds,  List<AllTimeEntry> allTime,  List<AllTimeEntry> session,  int sessionFrom)?  $default,) {final _that = this;
+switch (_that) {
+case _TableStandings() when $default != null:
+return $default(_that.tableId,_that.tableName,_that.rounds,_that.allTime,_that.session,_that.sessionFrom);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _TableStandings implements TableStandings {
+  const _TableStandings({required this.tableId, required this.tableName, required  List<RoundStanding> rounds, required  List<AllTimeEntry> allTime,  List<AllTimeEntry> session = const <AllTimeEntry>[], this.sessionFrom = 0}): _rounds = rounds,_allTime = allTime,_session = session;
+  factory _TableStandings.fromJson(Map<String, dynamic> json) => _$TableStandingsFromJson(json);
+
+@override final  String tableId;
+@override final  String tableName;
+ final  List<RoundStanding> _rounds;
+@override List<RoundStanding> get rounds {
+  if (_rounds is EqualUnmodifiableListView) return _rounds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_rounds);
+}
+
+ final  List<AllTimeEntry> _allTime;
+@override List<AllTimeEntry> get allTime {
+  if (_allTime is EqualUnmodifiableListView) return _allTime;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_allTime);
+}
+
+/// The board of the current session (rounds without a long break in
+/// between, the newest recent); empty when no finished round belongs to
+/// it. [sessionFrom] is the index of its first round, 0 then.
+ final  List<AllTimeEntry> _session;
+/// The board of the current session (rounds without a long break in
+/// between, the newest recent); empty when no finished round belongs to
+/// it. [sessionFrom] is the index of its first round, 0 then.
+@override@JsonKey() List<AllTimeEntry> get session {
+  if (_session is EqualUnmodifiableListView) return _session;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_session);
+}
+
+@override@JsonKey() final  int sessionFrom;
+
+/// Create a copy of TableStandings
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TableStandingsCopyWith<_TableStandings> get copyWith => __$TableStandingsCopyWithImpl<_TableStandings>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$TableStandingsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TableStandings&&(identical(other.tableId, tableId) || other.tableId == tableId)&&(identical(other.tableName, tableName) || other.tableName == tableName)&&const DeepCollectionEquality().equals(other.rounds, _rounds)&&const DeepCollectionEquality().equals(other.allTime, _allTime)&&const DeepCollectionEquality().equals(other.session, _session)&&(identical(other.sessionFrom, sessionFrom) || other.sessionFrom == sessionFrom));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,tableId,tableName,const DeepCollectionEquality().hash(_rounds),const DeepCollectionEquality().hash(_allTime),const DeepCollectionEquality().hash(_session),sessionFrom);
+}
+
+@override
+String toString() {
+    return 'TableStandings(tableId: $tableId, tableName: $tableName, rounds: $rounds, allTime: $allTime, session: $session, sessionFrom: $sessionFrom)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TableStandingsCopyWith<$Res> implements $TableStandingsCopyWith<$Res> {
+  factory _$TableStandingsCopyWith(_TableStandings value, $Res Function(_TableStandings) _then) = __$TableStandingsCopyWithImpl;
+@override @useResult
+$Res call({
+ String tableId, String tableName, List<RoundStanding> rounds, List<AllTimeEntry> allTime, List<AllTimeEntry> session, int sessionFrom
+});
+
+
+
+
+}
+/// @nodoc
+class __$TableStandingsCopyWithImpl<$Res>
+    implements _$TableStandingsCopyWith<$Res> {
+  __$TableStandingsCopyWithImpl(this._self, this._then);
+
+  final _TableStandings _self;
+  final $Res Function(_TableStandings) _then;
+
+/// Create a copy of TableStandings
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? tableId = null,Object? tableName = null,Object? rounds = null,Object? allTime = null,Object? session = null,Object? sessionFrom = null,}) {
+  return _then(_TableStandings(
+tableId: null == tableId ? _self.tableId : tableId // ignore: cast_nullable_to_non_nullable
+as String,tableName: null == tableName ? _self.tableName : tableName // ignore: cast_nullable_to_non_nullable
+as String,rounds: null == rounds ? _self._rounds : rounds // ignore: cast_nullable_to_non_nullable
+as List<RoundStanding>,allTime: null == allTime ? _self._allTime : allTime // ignore: cast_nullable_to_non_nullable
+as List<AllTimeEntry>,session: null == session ? _self._session : session // ignore: cast_nullable_to_non_nullable
+as List<AllTimeEntry>,sessionFrom: null == sessionFrom ? _self.sessionFrom : sessionFrom // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$RoundStanding {
+
+ int get index; int get roundStart; int get hands; int get endedAt; int get bigBlind; List<LeaderboardEntry> get standings;@JsonKey(includeIfNull: false) RoundHighlight? get biggestPot;
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RoundStandingCopyWith<RoundStanding> get copyWith => _$RoundStandingCopyWithImpl<RoundStanding>(this as RoundStanding, _$identity);
+
+  /// Serializes this RoundStanding to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as RoundStanding;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoundStanding&&(identical(other.index, _this.index) || other.index == _this.index)&&(identical(other.roundStart, _this.roundStart) || other.roundStart == _this.roundStart)&&(identical(other.hands, _this.hands) || other.hands == _this.hands)&&(identical(other.endedAt, _this.endedAt) || other.endedAt == _this.endedAt)&&(identical(other.bigBlind, _this.bigBlind) || other.bigBlind == _this.bigBlind)&&const DeepCollectionEquality().equals(other.standings, _this.standings)&&(identical(other.biggestPot, _this.biggestPot) || other.biggestPot == _this.biggestPot));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as RoundStanding;
+  return Object.hash(runtimeType,_this.index,_this.roundStart,_this.hands,_this.endedAt,_this.bigBlind,const DeepCollectionEquality().hash(_this.standings),_this.biggestPot);
+}
+
+@override
+String toString() {
+  final _this = this as RoundStanding;
+  return 'RoundStanding(index: ${_this.index}, roundStart: ${_this.roundStart}, hands: ${_this.hands}, endedAt: ${_this.endedAt}, bigBlind: ${_this.bigBlind}, standings: ${_this.standings}, biggestPot: ${_this.biggestPot})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RoundStandingCopyWith<$Res>  {
+  factory $RoundStandingCopyWith(RoundStanding value, $Res Function(RoundStanding) _then) = _$RoundStandingCopyWithImpl;
+@useResult
+$Res call({
+ int index, int roundStart, int hands, int endedAt, int bigBlind, List<LeaderboardEntry> standings,@JsonKey(includeIfNull: false) RoundHighlight? biggestPot
+});
+
+
+$RoundHighlightCopyWith<$Res>? get biggestPot;
+
+}
+/// @nodoc
+class _$RoundStandingCopyWithImpl<$Res>
+    implements $RoundStandingCopyWith<$Res> {
+  _$RoundStandingCopyWithImpl(this._self, this._then);
+
+  final RoundStanding _self;
+  final $Res Function(RoundStanding) _then;
+
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? roundStart = null,Object? hands = null,Object? endedAt = null,Object? bigBlind = null,Object? standings = null,Object? biggestPot = freezed,}) {
+  return _then(RoundStanding(
+index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,roundStart: null == roundStart ? _self.roundStart : roundStart // ignore: cast_nullable_to_non_nullable
+as int,hands: null == hands ? _self.hands : hands // ignore: cast_nullable_to_non_nullable
+as int,endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
+as int,standings: null == standings ? _self.standings : standings // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardEntry>,biggestPot: freezed == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
+as RoundHighlight?,
+  ));
+}
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RoundHighlightCopyWith<$Res>? get biggestPot {
+    if (_self.biggestPot == null) {
+    return null;
+  }
+
+  return $RoundHighlightCopyWith<$Res>(_self.biggestPot!, (value) {
+    return _then(_self.copyWith(biggestPot: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [RoundStanding].
+extension RoundStandingPatterns on RoundStanding {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RoundStanding value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RoundStanding() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RoundStanding value)  $default,){
+final _that = this;
+switch (_that) {
+case _RoundStanding():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RoundStanding value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RoundStanding() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int index,  int roundStart,  int hands,  int endedAt,  int bigBlind,  List<LeaderboardEntry> standings, @JsonKey(includeIfNull: false)  RoundHighlight? biggestPot)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RoundStanding() when $default != null:
+return $default(_that.index,_that.roundStart,_that.hands,_that.endedAt,_that.bigBlind,_that.standings,_that.biggestPot);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int index,  int roundStart,  int hands,  int endedAt,  int bigBlind,  List<LeaderboardEntry> standings, @JsonKey(includeIfNull: false)  RoundHighlight? biggestPot)  $default,) {final _that = this;
+switch (_that) {
+case _RoundStanding():
+return $default(_that.index,_that.roundStart,_that.hands,_that.endedAt,_that.bigBlind,_that.standings,_that.biggestPot);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int index,  int roundStart,  int hands,  int endedAt,  int bigBlind,  List<LeaderboardEntry> standings, @JsonKey(includeIfNull: false)  RoundHighlight? biggestPot)?  $default,) {final _that = this;
+switch (_that) {
+case _RoundStanding() when $default != null:
+return $default(_that.index,_that.roundStart,_that.hands,_that.endedAt,_that.bigBlind,_that.standings,_that.biggestPot);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RoundStanding implements RoundStanding {
+  const _RoundStanding({required this.index, required this.roundStart, required this.hands, required this.endedAt, required this.bigBlind, required  List<LeaderboardEntry> standings, @JsonKey(includeIfNull: false) this.biggestPot}): _standings = standings;
+  factory _RoundStanding.fromJson(Map<String, dynamic> json) => _$RoundStandingFromJson(json);
+
+@override final  int index;
+@override final  int roundStart;
+@override final  int hands;
+@override final  int endedAt;
+@override final  int bigBlind;
+ final  List<LeaderboardEntry> _standings;
+@override List<LeaderboardEntry> get standings {
+  if (_standings is EqualUnmodifiableListView) return _standings;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_standings);
+}
+
+@override@JsonKey(includeIfNull: false) final  RoundHighlight? biggestPot;
+
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RoundStandingCopyWith<_RoundStanding> get copyWith => __$RoundStandingCopyWithImpl<_RoundStanding>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RoundStandingToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoundStanding&&(identical(other.index, index) || other.index == index)&&(identical(other.roundStart, roundStart) || other.roundStart == roundStart)&&(identical(other.hands, hands) || other.hands == hands)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.bigBlind, bigBlind) || other.bigBlind == bigBlind)&&const DeepCollectionEquality().equals(other.standings, _standings)&&(identical(other.biggestPot, biggestPot) || other.biggestPot == biggestPot));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,index,roundStart,hands,endedAt,bigBlind,const DeepCollectionEquality().hash(_standings),biggestPot);
+}
+
+@override
+String toString() {
+    return 'RoundStanding(index: $index, roundStart: $roundStart, hands: $hands, endedAt: $endedAt, bigBlind: $bigBlind, standings: $standings, biggestPot: $biggestPot)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RoundStandingCopyWith<$Res> implements $RoundStandingCopyWith<$Res> {
+  factory _$RoundStandingCopyWith(_RoundStanding value, $Res Function(_RoundStanding) _then) = __$RoundStandingCopyWithImpl;
+@override @useResult
+$Res call({
+ int index, int roundStart, int hands, int endedAt, int bigBlind, List<LeaderboardEntry> standings,@JsonKey(includeIfNull: false) RoundHighlight? biggestPot
+});
+
+
+@override $RoundHighlightCopyWith<$Res>? get biggestPot;
+
+}
+/// @nodoc
+class __$RoundStandingCopyWithImpl<$Res>
+    implements _$RoundStandingCopyWith<$Res> {
+  __$RoundStandingCopyWithImpl(this._self, this._then);
+
+  final _RoundStanding _self;
+  final $Res Function(_RoundStanding) _then;
+
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? roundStart = null,Object? hands = null,Object? endedAt = null,Object? bigBlind = null,Object? standings = null,Object? biggestPot = freezed,}) {
+  return _then(_RoundStanding(
+index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,roundStart: null == roundStart ? _self.roundStart : roundStart // ignore: cast_nullable_to_non_nullable
+as int,hands: null == hands ? _self.hands : hands // ignore: cast_nullable_to_non_nullable
+as int,endedAt: null == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as int,bigBlind: null == bigBlind ? _self.bigBlind : bigBlind // ignore: cast_nullable_to_non_nullable
+as int,standings: null == standings ? _self._standings : standings // ignore: cast_nullable_to_non_nullable
+as List<LeaderboardEntry>,biggestPot: freezed == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
+as RoundHighlight?,
+  ));
+}
+
+/// Create a copy of RoundStanding
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RoundHighlightCopyWith<$Res>? get biggestPot {
+    if (_self.biggestPot == null) {
+    return null;
+  }
+
+  return $RoundHighlightCopyWith<$Res>(_self.biggestPot!, (value) {
+    return _then(_self.copyWith(biggestPot: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$RoundHighlight {
+
+ int get hand; int get amount; List<String> get winners; String get description;
+/// Create a copy of RoundHighlight
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RoundHighlightCopyWith<RoundHighlight> get copyWith => _$RoundHighlightCopyWithImpl<RoundHighlight>(this as RoundHighlight, _$identity);
+
+  /// Serializes this RoundHighlight to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as RoundHighlight;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoundHighlight&&(identical(other.hand, _this.hand) || other.hand == _this.hand)&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&const DeepCollectionEquality().equals(other.winners, _this.winners)&&(identical(other.description, _this.description) || other.description == _this.description));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as RoundHighlight;
+  return Object.hash(runtimeType,_this.hand,_this.amount,const DeepCollectionEquality().hash(_this.winners),_this.description);
+}
+
+@override
+String toString() {
+  final _this = this as RoundHighlight;
+  return 'RoundHighlight(hand: ${_this.hand}, amount: ${_this.amount}, winners: ${_this.winners}, description: ${_this.description})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RoundHighlightCopyWith<$Res>  {
+  factory $RoundHighlightCopyWith(RoundHighlight value, $Res Function(RoundHighlight) _then) = _$RoundHighlightCopyWithImpl;
+@useResult
+$Res call({
+ int hand, int amount, List<String> winners, String description
+});
+
+
+
+
+}
+/// @nodoc
+class _$RoundHighlightCopyWithImpl<$Res>
+    implements $RoundHighlightCopyWith<$Res> {
+  _$RoundHighlightCopyWithImpl(this._self, this._then);
+
+  final RoundHighlight _self;
+  final $Res Function(RoundHighlight) _then;
+
+/// Create a copy of RoundHighlight
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? hand = null,Object? amount = null,Object? winners = null,Object? description = null,}) {
+  return _then(RoundHighlight(
+hand: null == hand ? _self.hand : hand // ignore: cast_nullable_to_non_nullable
+as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as int,winners: null == winners ? _self.winners : winners // ignore: cast_nullable_to_non_nullable
+as List<String>,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RoundHighlight].
+extension RoundHighlightPatterns on RoundHighlight {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RoundHighlight value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RoundHighlight() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RoundHighlight value)  $default,){
+final _that = this;
+switch (_that) {
+case _RoundHighlight():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RoundHighlight value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RoundHighlight() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int hand,  int amount,  List<String> winners,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RoundHighlight() when $default != null:
+return $default(_that.hand,_that.amount,_that.winners,_that.description);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int hand,  int amount,  List<String> winners,  String description)  $default,) {final _that = this;
+switch (_that) {
+case _RoundHighlight():
+return $default(_that.hand,_that.amount,_that.winners,_that.description);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int hand,  int amount,  List<String> winners,  String description)?  $default,) {final _that = this;
+switch (_that) {
+case _RoundHighlight() when $default != null:
+return $default(_that.hand,_that.amount,_that.winners,_that.description);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RoundHighlight implements RoundHighlight {
+  const _RoundHighlight({required this.hand, required this.amount,  List<String> winners = const <String>[], this.description = ''}): _winners = winners;
+  factory _RoundHighlight.fromJson(Map<String, dynamic> json) => _$RoundHighlightFromJson(json);
+
+@override final  int hand;
+@override final  int amount;
+ final  List<String> _winners;
+@override@JsonKey() List<String> get winners {
+  if (_winners is EqualUnmodifiableListView) return _winners;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_winners);
+}
+
+@override@JsonKey() final  String description;
+
+/// Create a copy of RoundHighlight
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RoundHighlightCopyWith<_RoundHighlight> get copyWith => __$RoundHighlightCopyWithImpl<_RoundHighlight>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RoundHighlightToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoundHighlight&&(identical(other.hand, hand) || other.hand == hand)&&(identical(other.amount, amount) || other.amount == amount)&&const DeepCollectionEquality().equals(other.winners, _winners)&&(identical(other.description, description) || other.description == description));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,hand,amount,const DeepCollectionEquality().hash(_winners),description);
+}
+
+@override
+String toString() {
+    return 'RoundHighlight(hand: $hand, amount: $amount, winners: $winners, description: $description)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RoundHighlightCopyWith<$Res> implements $RoundHighlightCopyWith<$Res> {
+  factory _$RoundHighlightCopyWith(_RoundHighlight value, $Res Function(_RoundHighlight) _then) = __$RoundHighlightCopyWithImpl;
+@override @useResult
+$Res call({
+ int hand, int amount, List<String> winners, String description
+});
+
+
+
+
+}
+/// @nodoc
+class __$RoundHighlightCopyWithImpl<$Res>
+    implements _$RoundHighlightCopyWith<$Res> {
+  __$RoundHighlightCopyWithImpl(this._self, this._then);
+
+  final _RoundHighlight _self;
+  final $Res Function(_RoundHighlight) _then;
+
+/// Create a copy of RoundHighlight
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? hand = null,Object? amount = null,Object? winners = null,Object? description = null,}) {
+  return _then(_RoundHighlight(
+hand: null == hand ? _self.hand : hand // ignore: cast_nullable_to_non_nullable
+as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
+as int,winners: null == winners ? _self._winners : winners // ignore: cast_nullable_to_non_nullable
+as List<String>,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$RoundLine {
+
+ int get round; int get net; int get place; int get handsWon;
+/// Create a copy of RoundLine
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RoundLineCopyWith<RoundLine> get copyWith => _$RoundLineCopyWithImpl<RoundLine>(this as RoundLine, _$identity);
+
+  /// Serializes this RoundLine to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as RoundLine;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoundLine&&(identical(other.round, _this.round) || other.round == _this.round)&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.place, _this.place) || other.place == _this.place)&&(identical(other.handsWon, _this.handsWon) || other.handsWon == _this.handsWon));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as RoundLine;
+  return Object.hash(runtimeType,_this.round,_this.net,_this.place,_this.handsWon);
+}
+
+@override
+String toString() {
+  final _this = this as RoundLine;
+  return 'RoundLine(round: ${_this.round}, net: ${_this.net}, place: ${_this.place}, handsWon: ${_this.handsWon})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RoundLineCopyWith<$Res>  {
+  factory $RoundLineCopyWith(RoundLine value, $Res Function(RoundLine) _then) = _$RoundLineCopyWithImpl;
+@useResult
+$Res call({
+ int round, int net, int place, int handsWon
+});
+
+
+
+
+}
+/// @nodoc
+class _$RoundLineCopyWithImpl<$Res>
+    implements $RoundLineCopyWith<$Res> {
+  _$RoundLineCopyWithImpl(this._self, this._then);
+
+  final RoundLine _self;
+  final $Res Function(RoundLine) _then;
+
+/// Create a copy of RoundLine
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? round = null,Object? net = null,Object? place = null,Object? handsWon = null,}) {
+  return _then(RoundLine(
+round: null == round ? _self.round : round // ignore: cast_nullable_to_non_nullable
+as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
+as int,place: null == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RoundLine].
+extension RoundLinePatterns on RoundLine {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RoundLine value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RoundLine() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RoundLine value)  $default,){
+final _that = this;
+switch (_that) {
+case _RoundLine():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RoundLine value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RoundLine() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int round,  int net,  int place,  int handsWon)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RoundLine() when $default != null:
+return $default(_that.round,_that.net,_that.place,_that.handsWon);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int round,  int net,  int place,  int handsWon)  $default,) {final _that = this;
+switch (_that) {
+case _RoundLine():
+return $default(_that.round,_that.net,_that.place,_that.handsWon);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int round,  int net,  int place,  int handsWon)?  $default,) {final _that = this;
+switch (_that) {
+case _RoundLine() when $default != null:
+return $default(_that.round,_that.net,_that.place,_that.handsWon);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RoundLine implements RoundLine {
+  const _RoundLine({required this.round, required this.net, this.place = 0, this.handsWon = 0});
+  factory _RoundLine.fromJson(Map<String, dynamic> json) => _$RoundLineFromJson(json);
+
+@override final  int round;
+@override final  int net;
+@override@JsonKey() final  int place;
+@override@JsonKey() final  int handsWon;
+
+/// Create a copy of RoundLine
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RoundLineCopyWith<_RoundLine> get copyWith => __$RoundLineCopyWithImpl<_RoundLine>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RoundLineToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoundLine&&(identical(other.round, round) || other.round == round)&&(identical(other.net, net) || other.net == net)&&(identical(other.place, place) || other.place == place)&&(identical(other.handsWon, handsWon) || other.handsWon == handsWon));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,round,net,place,handsWon);
+}
+
+@override
+String toString() {
+    return 'RoundLine(round: $round, net: $net, place: $place, handsWon: $handsWon)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RoundLineCopyWith<$Res> implements $RoundLineCopyWith<$Res> {
+  factory _$RoundLineCopyWith(_RoundLine value, $Res Function(_RoundLine) _then) = __$RoundLineCopyWithImpl;
+@override @useResult
+$Res call({
+ int round, int net, int place, int handsWon
+});
+
+
+
+
+}
+/// @nodoc
+class __$RoundLineCopyWithImpl<$Res>
+    implements _$RoundLineCopyWith<$Res> {
+  __$RoundLineCopyWithImpl(this._self, this._then);
+
+  final _RoundLine _self;
+  final $Res Function(_RoundLine) _then;
+
+/// Create a copy of RoundLine
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? round = null,Object? net = null,Object? place = null,Object? handsWon = null,}) {
+  return _then(_RoundLine(
+round: null == round ? _self.round : round // ignore: cast_nullable_to_non_nullable
+as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
+as int,place: null == place ? _self.place : place // ignore: cast_nullable_to_non_nullable
+as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$AllTimeEntry {
+
+ String get name;@JsonKey(includeIfNull: false) String? get handle; int get avatar; bool get bot; int get rounds; int get wins; int get net; int get handsPlayed; int get handsWon; int get biggestPot; int get vpipHands; int get showdowns; int get showdownsWon; int get bestPlace; int get lastPlayed;/// The player's result in every round they sat in, oldest first.
+ List<RoundLine> get history;
+/// Create a copy of AllTimeEntry
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AllTimeEntryCopyWith<AllTimeEntry> get copyWith => _$AllTimeEntryCopyWithImpl<AllTimeEntry>(this as AllTimeEntry, _$identity);
+
+  /// Serializes this AllTimeEntry to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as AllTimeEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AllTimeEntry&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.handle, _this.handle) || other.handle == _this.handle)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.bot, _this.bot) || other.bot == _this.bot)&&(identical(other.rounds, _this.rounds) || other.rounds == _this.rounds)&&(identical(other.wins, _this.wins) || other.wins == _this.wins)&&(identical(other.net, _this.net) || other.net == _this.net)&&(identical(other.handsPlayed, _this.handsPlayed) || other.handsPlayed == _this.handsPlayed)&&(identical(other.handsWon, _this.handsWon) || other.handsWon == _this.handsWon)&&(identical(other.biggestPot, _this.biggestPot) || other.biggestPot == _this.biggestPot)&&(identical(other.vpipHands, _this.vpipHands) || other.vpipHands == _this.vpipHands)&&(identical(other.showdowns, _this.showdowns) || other.showdowns == _this.showdowns)&&(identical(other.showdownsWon, _this.showdownsWon) || other.showdownsWon == _this.showdownsWon)&&(identical(other.bestPlace, _this.bestPlace) || other.bestPlace == _this.bestPlace)&&(identical(other.lastPlayed, _this.lastPlayed) || other.lastPlayed == _this.lastPlayed)&&const DeepCollectionEquality().equals(other.history, _this.history));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as AllTimeEntry;
+  return Object.hash(runtimeType,_this.name,_this.handle,_this.avatar,_this.bot,_this.rounds,_this.wins,_this.net,_this.handsPlayed,_this.handsWon,_this.biggestPot,_this.vpipHands,_this.showdowns,_this.showdownsWon,_this.bestPlace,_this.lastPlayed,const DeepCollectionEquality().hash(_this.history));
+}
+
+@override
+String toString() {
+  final _this = this as AllTimeEntry;
+  return 'AllTimeEntry(name: ${_this.name}, handle: ${_this.handle}, avatar: ${_this.avatar}, bot: ${_this.bot}, rounds: ${_this.rounds}, wins: ${_this.wins}, net: ${_this.net}, handsPlayed: ${_this.handsPlayed}, handsWon: ${_this.handsWon}, biggestPot: ${_this.biggestPot}, vpipHands: ${_this.vpipHands}, showdowns: ${_this.showdowns}, showdownsWon: ${_this.showdownsWon}, bestPlace: ${_this.bestPlace}, lastPlayed: ${_this.lastPlayed}, history: ${_this.history})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AllTimeEntryCopyWith<$Res>  {
+  factory $AllTimeEntryCopyWith(AllTimeEntry value, $Res Function(AllTimeEntry) _then) = _$AllTimeEntryCopyWithImpl;
+@useResult
+$Res call({
+ String name,@JsonKey(includeIfNull: false) String? handle, int avatar, bool bot, int rounds, int wins, int net, int handsPlayed, int handsWon, int biggestPot, int vpipHands, int showdowns, int showdownsWon, int bestPlace, int lastPlayed, List<RoundLine> history
+});
+
+
+
+
+}
+/// @nodoc
+class _$AllTimeEntryCopyWithImpl<$Res>
+    implements $AllTimeEntryCopyWith<$Res> {
+  _$AllTimeEntryCopyWithImpl(this._self, this._then);
+
+  final AllTimeEntry _self;
+  final $Res Function(AllTimeEntry) _then;
+
+/// Create a copy of AllTimeEntry
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? handle = freezed,Object? avatar = null,Object? bot = null,Object? rounds = null,Object? wins = null,Object? net = null,Object? handsPlayed = null,Object? handsWon = null,Object? biggestPot = null,Object? vpipHands = null,Object? showdowns = null,Object? showdownsWon = null,Object? bestPlace = null,Object? lastPlayed = null,Object? history = null,}) {
+  return _then(AllTimeEntry(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,handle: freezed == handle ? _self.handle : handle // ignore: cast_nullable_to_non_nullable
+as String?,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,bot: null == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as bool,rounds: null == rounds ? _self.rounds : rounds // ignore: cast_nullable_to_non_nullable
+as int,wins: null == wins ? _self.wins : wins // ignore: cast_nullable_to_non_nullable
+as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
+as int,handsPlayed: null == handsPlayed ? _self.handsPlayed : handsPlayed // ignore: cast_nullable_to_non_nullable
+as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
+as int,biggestPot: null == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
+as int,vpipHands: null == vpipHands ? _self.vpipHands : vpipHands // ignore: cast_nullable_to_non_nullable
+as int,showdowns: null == showdowns ? _self.showdowns : showdowns // ignore: cast_nullable_to_non_nullable
+as int,showdownsWon: null == showdownsWon ? _self.showdownsWon : showdownsWon // ignore: cast_nullable_to_non_nullable
+as int,bestPlace: null == bestPlace ? _self.bestPlace : bestPlace // ignore: cast_nullable_to_non_nullable
+as int,lastPlayed: null == lastPlayed ? _self.lastPlayed : lastPlayed // ignore: cast_nullable_to_non_nullable
+as int,history: null == history ? _self.history : history // ignore: cast_nullable_to_non_nullable
+as List<RoundLine>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [AllTimeEntry].
+extension AllTimeEntryPatterns on AllTimeEntry {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _AllTimeEntry value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _AllTimeEntry() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _AllTimeEntry value)  $default,){
+final _that = this;
+switch (_that) {
+case _AllTimeEntry():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _AllTimeEntry value)?  $default,){
+final _that = this;
+switch (_that) {
+case _AllTimeEntry() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name, @JsonKey(includeIfNull: false)  String? handle,  int avatar,  bool bot,  int rounds,  int wins,  int net,  int handsPlayed,  int handsWon,  int biggestPot,  int vpipHands,  int showdowns,  int showdownsWon,  int bestPlace,  int lastPlayed,  List<RoundLine> history)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _AllTimeEntry() when $default != null:
+return $default(_that.name,_that.handle,_that.avatar,_that.bot,_that.rounds,_that.wins,_that.net,_that.handsPlayed,_that.handsWon,_that.biggestPot,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.bestPlace,_that.lastPlayed,_that.history);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name, @JsonKey(includeIfNull: false)  String? handle,  int avatar,  bool bot,  int rounds,  int wins,  int net,  int handsPlayed,  int handsWon,  int biggestPot,  int vpipHands,  int showdowns,  int showdownsWon,  int bestPlace,  int lastPlayed,  List<RoundLine> history)  $default,) {final _that = this;
+switch (_that) {
+case _AllTimeEntry():
+return $default(_that.name,_that.handle,_that.avatar,_that.bot,_that.rounds,_that.wins,_that.net,_that.handsPlayed,_that.handsWon,_that.biggestPot,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.bestPlace,_that.lastPlayed,_that.history);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name, @JsonKey(includeIfNull: false)  String? handle,  int avatar,  bool bot,  int rounds,  int wins,  int net,  int handsPlayed,  int handsWon,  int biggestPot,  int vpipHands,  int showdowns,  int showdownsWon,  int bestPlace,  int lastPlayed,  List<RoundLine> history)?  $default,) {final _that = this;
+switch (_that) {
+case _AllTimeEntry() when $default != null:
+return $default(_that.name,_that.handle,_that.avatar,_that.bot,_that.rounds,_that.wins,_that.net,_that.handsPlayed,_that.handsWon,_that.biggestPot,_that.vpipHands,_that.showdowns,_that.showdownsWon,_that.bestPlace,_that.lastPlayed,_that.history);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _AllTimeEntry implements AllTimeEntry {
+  const _AllTimeEntry({required this.name, @JsonKey(includeIfNull: false) this.handle, this.avatar = 0, this.bot = false, required this.rounds, required this.wins, required this.net, required this.handsPlayed, required this.handsWon, required this.biggestPot, this.vpipHands = 0, this.showdowns = 0, this.showdownsWon = 0, this.bestPlace = 0, this.lastPlayed = 0,  List<RoundLine> history = const <RoundLine>[]}): _history = history;
+  factory _AllTimeEntry.fromJson(Map<String, dynamic> json) => _$AllTimeEntryFromJson(json);
+
+@override final  String name;
+@override@JsonKey(includeIfNull: false) final  String? handle;
+@override@JsonKey() final  int avatar;
+@override@JsonKey() final  bool bot;
+@override final  int rounds;
+@override final  int wins;
+@override final  int net;
+@override final  int handsPlayed;
+@override final  int handsWon;
+@override final  int biggestPot;
+@override@JsonKey() final  int vpipHands;
+@override@JsonKey() final  int showdowns;
+@override@JsonKey() final  int showdownsWon;
+@override@JsonKey() final  int bestPlace;
+@override@JsonKey() final  int lastPlayed;
+/// The player's result in every round they sat in, oldest first.
+ final  List<RoundLine> _history;
+/// The player's result in every round they sat in, oldest first.
+@override@JsonKey() List<RoundLine> get history {
+  if (_history is EqualUnmodifiableListView) return _history;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_history);
+}
+
+
+/// Create a copy of AllTimeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AllTimeEntryCopyWith<_AllTimeEntry> get copyWith => __$AllTimeEntryCopyWithImpl<_AllTimeEntry>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$AllTimeEntryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AllTimeEntry&&(identical(other.name, name) || other.name == name)&&(identical(other.handle, handle) || other.handle == handle)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.bot, bot) || other.bot == bot)&&(identical(other.rounds, rounds) || other.rounds == rounds)&&(identical(other.wins, wins) || other.wins == wins)&&(identical(other.net, net) || other.net == net)&&(identical(other.handsPlayed, handsPlayed) || other.handsPlayed == handsPlayed)&&(identical(other.handsWon, handsWon) || other.handsWon == handsWon)&&(identical(other.biggestPot, biggestPot) || other.biggestPot == biggestPot)&&(identical(other.vpipHands, vpipHands) || other.vpipHands == vpipHands)&&(identical(other.showdowns, showdowns) || other.showdowns == showdowns)&&(identical(other.showdownsWon, showdownsWon) || other.showdownsWon == showdownsWon)&&(identical(other.bestPlace, bestPlace) || other.bestPlace == bestPlace)&&(identical(other.lastPlayed, lastPlayed) || other.lastPlayed == lastPlayed)&&const DeepCollectionEquality().equals(other.history, _history));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,name,handle,avatar,bot,rounds,wins,net,handsPlayed,handsWon,biggestPot,vpipHands,showdowns,showdownsWon,bestPlace,lastPlayed,const DeepCollectionEquality().hash(_history));
+}
+
+@override
+String toString() {
+    return 'AllTimeEntry(name: $name, handle: $handle, avatar: $avatar, bot: $bot, rounds: $rounds, wins: $wins, net: $net, handsPlayed: $handsPlayed, handsWon: $handsWon, biggestPot: $biggestPot, vpipHands: $vpipHands, showdowns: $showdowns, showdownsWon: $showdownsWon, bestPlace: $bestPlace, lastPlayed: $lastPlayed, history: $history)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AllTimeEntryCopyWith<$Res> implements $AllTimeEntryCopyWith<$Res> {
+  factory _$AllTimeEntryCopyWith(_AllTimeEntry value, $Res Function(_AllTimeEntry) _then) = __$AllTimeEntryCopyWithImpl;
+@override @useResult
+$Res call({
+ String name,@JsonKey(includeIfNull: false) String? handle, int avatar, bool bot, int rounds, int wins, int net, int handsPlayed, int handsWon, int biggestPot, int vpipHands, int showdowns, int showdownsWon, int bestPlace, int lastPlayed, List<RoundLine> history
+});
+
+
+
+
+}
+/// @nodoc
+class __$AllTimeEntryCopyWithImpl<$Res>
+    implements _$AllTimeEntryCopyWith<$Res> {
+  __$AllTimeEntryCopyWithImpl(this._self, this._then);
+
+  final _AllTimeEntry _self;
+  final $Res Function(_AllTimeEntry) _then;
+
+/// Create a copy of AllTimeEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? handle = freezed,Object? avatar = null,Object? bot = null,Object? rounds = null,Object? wins = null,Object? net = null,Object? handsPlayed = null,Object? handsWon = null,Object? biggestPot = null,Object? vpipHands = null,Object? showdowns = null,Object? showdownsWon = null,Object? bestPlace = null,Object? lastPlayed = null,Object? history = null,}) {
+  return _then(_AllTimeEntry(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,handle: freezed == handle ? _self.handle : handle // ignore: cast_nullable_to_non_nullable
+as String?,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as int,bot: null == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as bool,rounds: null == rounds ? _self.rounds : rounds // ignore: cast_nullable_to_non_nullable
+as int,wins: null == wins ? _self.wins : wins // ignore: cast_nullable_to_non_nullable
+as int,net: null == net ? _self.net : net // ignore: cast_nullable_to_non_nullable
+as int,handsPlayed: null == handsPlayed ? _self.handsPlayed : handsPlayed // ignore: cast_nullable_to_non_nullable
+as int,handsWon: null == handsWon ? _self.handsWon : handsWon // ignore: cast_nullable_to_non_nullable
+as int,biggestPot: null == biggestPot ? _self.biggestPot : biggestPot // ignore: cast_nullable_to_non_nullable
+as int,vpipHands: null == vpipHands ? _self.vpipHands : vpipHands // ignore: cast_nullable_to_non_nullable
+as int,showdowns: null == showdowns ? _self.showdowns : showdowns // ignore: cast_nullable_to_non_nullable
+as int,showdownsWon: null == showdownsWon ? _self.showdownsWon : showdownsWon // ignore: cast_nullable_to_non_nullable
+as int,bestPlace: null == bestPlace ? _self.bestPlace : bestPlace // ignore: cast_nullable_to_non_nullable
+as int,lastPlayed: null == lastPlayed ? _self.lastPlayed : lastPlayed // ignore: cast_nullable_to_non_nullable
+as int,history: null == history ? _self._history : history // ignore: cast_nullable_to_non_nullable
+as List<RoundLine>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$EventsPayload {
 
  int get handNumber; List<GameEvent> get events;

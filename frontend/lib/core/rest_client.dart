@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../protocol/protocol.dart';
 import 'config.dart';
 import 'voice/voice_engine.dart';
 
@@ -298,6 +299,15 @@ class RestClient {
       rethrow;
     }
   }
+
+  /// The table's whole record: every finished round and the all-time
+  /// totals. Needs a session token of that table (or its admin token).
+  Future<TableStandings> standings(
+    String tableId, {
+    required String token,
+  }) async => TableStandings.fromJson(
+    await getJson('/api/tables/$tableId/standings', token: token),
+  );
 
   /// STUN and TURN servers the instance hands to browsers for voice and
   /// video.

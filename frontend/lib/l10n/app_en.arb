@@ -1985,5 +1985,119 @@
         "type": "String"
       }
     }
-  }
+  },
+  "lbAllTime": "All time",
+  "lbAllTimeNote": "{count, plural, =0{No round has finished yet} =1{Totals of 1 finished round at this table} other{Totals of {count} finished rounds at this table}}",
+  "@lbAllTimeNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lbAllTimeEmpty": "Nothing here yet. When a round ends, its result is kept and totalled here — a new round on this table no longer wipes it.",
+  "lbAllTimeFailed": "The all-time standings could not be loaded.",
+  "lbRetry": "Try again",
+  "lbRoundsPlayed": "{count, plural, =1{1 round} other{{count} rounds}}",
+  "@lbRoundsPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lbRoundsWon": "{count, plural, =1{1 win} other{{count} wins}}",
+  "@lbRoundsWon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lbRoundTitle": "Round {index}",
+  "@lbRoundTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "lbExportPdf": "Export PDF",
+  "lbExported": "Leaderboard exported",
+  "lbExportFailed": "The export failed.",
+  "lbPdfTitle": "Leaderboard",
+  "lbPdfGenerated": "Exported {when}",
+  "@lbPdfGenerated": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "lbPdfAllTimeNote": "Every finished round at this table, added up.",
+  "lbPdfNoRounds": "No round has finished yet.",
+  "lbColRank": "#",
+  "lbColPlayer": "Player",
+  "lbColRounds": "Rounds",
+  "lbColWins": "Wins",
+  "lbColNet": "Net",
+  "lbColStack": "Stack",
+  "lbColHands": "Hands",
+  "lbColHandsWon": "Hands won",
+  "lbBot": "bot",
+  "lbScopeSession": "This session",
+  "lbSessionNote": "{count, plural, =0{No round of this session has finished yet} =1{Totals of 1 finished round this session} other{Totals of {count} finished rounds this session}}",
+  "@lbSessionNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lbIncludesLive": "Includes the round in progress",
+  "lbLiveRound": "now",
+  "lbChartTitle": "Net over the rounds",
+  "lbChartTop": "{count, plural, =1{Top player shown} other{Top {count} players shown}}",
+  "@lbChartTop": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lbChartAfterRound": "After round {index}",
+  "@lbChartAfterRound": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "lbRounds": "Rounds",
+  "lbRoundWonBy": "won by {name}",
+  "@lbRoundWonBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lbBiggestPotLine": "Biggest pot {amount}: {names}, hand #{hand}",
+  "@lbBiggestPotLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      },
+      "hand": {
+        "type": "int"
+      }
+    }
+  },
+  "lbPlayerDetailsHint": "Tap a player for their rounds",
+  "lbBestPlace": "Best place",
+  "lbHistory": "Round by round",
+  "lbStatRounds": "Rounds played / won"
 }

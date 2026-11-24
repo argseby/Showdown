@@ -16,6 +16,8 @@ type TableRow struct {
 	RoundStartHand int
 	// LastRound is the JSON standing of the last finished round, "" = none.
 	LastRound string
+	// RoundBest is the JSON biggest pot of the round being played, "" = none.
+	RoundBest string
 }
 
 // SettingsRow mirrors table_settings. PasswordHash is empty when the table
@@ -160,6 +162,46 @@ type RoundResultRow struct {
 	Place      int
 	Players    int
 	Tournament bool
+}
+
+// RoundStandingRow mirrors round_standings: one player's finished round at
+// one table, guests included. RoundIndex is filled in by the store (it
+// counts the rounds of the table), so callers leave it at zero.
+type RoundStandingRow struct {
+	TableID      string
+	TableName    string
+	RoundIndex   int
+	RoundStart   int
+	Hands        int
+	EndedAt      int64
+	BigBlind     int64
+	PlayerID     string
+	AccountID    string
+	Name         string
+	NameKey      string
+	Avatar       int
+	Bot          bool
+	Stack        int64
+	BuyInTotal   int64
+	Net          int64
+	Place        int
+	Players      int
+	HandsPlayed  int
+	HandsWon     int
+	BiggestPot   int64
+	VPIPHands    int
+	Showdowns    int
+	ShowdownsWon int
+}
+
+// RoundHighlightRow mirrors round_highlights: the biggest pot of one
+// finished round of a table.
+type RoundHighlightRow struct {
+	RoundIndex  int
+	Hand        int
+	Amount      int64
+	Winners     []string
+	Description string
 }
 
 // AccountSessionRow mirrors account_sessions: a profile login, which

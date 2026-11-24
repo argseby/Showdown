@@ -735,6 +735,84 @@ type RoundResult struct {
 	Standings []LeaderboardEntry `json:"standings"`
 }
 
+// TableStandings is a table's whole record: every round it has played and
+// the all-time totals summed from them. Rounds survive the restart that
+// puts the stacks back to the start money, which `last_round` in the
+// snapshot could only do for the one round just finished.
+type TableStandings struct {
+	TableID   string          `json:"table_id"`
+	TableName string          `json:"table_name"`
+	Rounds    []RoundStanding `json:"rounds"`
+	AllTime   []AllTimeEntry  `json:"all_time"`
+	// Session is the same board over the current session only: the rounds
+	// played one after another without a long break, the newest of them
+	// recent. A group that meets every week on the same table wants
+	// tonight, not the year. SessionFrom is the index of the first round of
+	// it, 0 when no finished round belongs to the current session.
+	Session     []AllTimeEntry `json:"session"`
+	SessionFrom int            `json:"session_from"`
+}
+
+// RoundHighlight is the biggest pot of a round: who took it (several on a
+// split), how much, at which hand and with what.
+type RoundHighlight struct {
+	Hand        int      `json:"hand"`
+	Amount      int64    `json:"amount"`
+	Winners     []string `json:"winners"`
+	Description string   `json:"description,omitempty"`
+}
+
+// RoundLine is one player's result in one round, for the history of a
+// player and the chart of the board over the rounds.
+type RoundLine struct {
+	Round    int   `json:"round"`
+	Net      int64 `json:"net"`
+	Place    int   `json:"place,omitempty"`
+	HandsWon int   `json:"hands_won"`
+}
+
+// RoundStanding is one finished round of a table, oldest first. Index
+// counts the rounds of that table from 1.
+type RoundStanding struct {
+	Index      int                `json:"index"`
+	RoundStart int                `json:"round_start"`
+	Hands      int                `json:"hands"`
+	EndedAt    int64              `json:"ended_at"`
+	BigBlind   int64              `json:"big_blind"`
+	Standings  []LeaderboardEntry `json:"standings"`
+	// BiggestPot is the round's biggest pot; absent for rounds recorded
+	// before it was kept and for a round without a hand.
+	BiggestPot *RoundHighlight `json:"biggest_pot,omitempty"`
+}
+
+// AllTimeEntry is one player's total across every finished round of a
+// table. Players are the same player across rounds by profile where they
+// have one and by name otherwise, which is what a guest is known by.
+type AllTimeEntry struct {
+	Name   string `json:"name"`
+	Handle string `json:"handle,omitempty"`
+	Avatar int    `json:"avatar"`
+	Bot    bool   `json:"bot,omitempty"`
+	// Rounds played and rounds finished in first place.
+	Rounds int `json:"rounds"`
+	Wins   int `json:"wins"`
+	// Net is the sum of the round results (stack minus everything bought
+	// in), which is the money the player is up or down at this table.
+	Net          int64 `json:"net"`
+	HandsPlayed  int   `json:"hands_played"`
+	HandsWon     int   `json:"hands_won"`
+	BiggestPot   int64 `json:"biggest_pot"`
+	VPIPHands    int   `json:"vpip_hands,omitempty"`
+	Showdowns    int   `json:"showdowns,omitempty"`
+	ShowdownsWon int   `json:"showdowns_won,omitempty"`
+	// BestPlace is the best placement reached, 0 when never placed.
+	BestPlace  int   `json:"best_place,omitempty"`
+	LastPlayed int64 `json:"last_played"`
+	// History is the player's result in every round they sat in, oldest
+	// first.
+	History []RoundLine `json:"history"`
+}
+
 // Pong answers a ping.
 type Pong struct {
 	ServerTS int64 `json:"server_ts"`

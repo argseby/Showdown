@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -43,10 +44,10 @@ func (s *Store) CreateTable(ctx context.Context, t TableRow, st SettingsRow) err
 	defer func() { _ = tx.Rollback() }()
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO tables (id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash,
-			round_start_hand, last_round)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			round_start_hand, last_round, round_best)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		t.ID, t.Name, t.State, t.CreatedAt, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash,
-		t.RoundStartHand, t.LastRound); err != nil {
+		t.RoundStartHand, t.LastRound, t.RoundBest); err != nil {
 		return fmt.Errorf("insert table: %w", err)
 	}
 	st.TableID = t.ID
@@ -107,9 +108,9 @@ func (s *Store) SaveSettings(ctx context.Context, st SettingsRow) error {
 func (s *Store) UpdateTable(ctx context.Context, t TableRow) error {
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE tables SET name = ?, state = ?, ended_at = ?, hand_number = ?, button_seat = ?, admin_token_hash = ?,
-			round_start_hand = ?, last_round = ? WHERE id = ?`,
+			round_start_hand = ?, last_round = ?, round_best = ? WHERE id = ?`,
 		t.Name, t.State, nullInt(t.EndedAt), t.HandNumber, t.ButtonSeat, t.AdminTokenHash,
-		t.RoundStartHand, t.LastRound, t.ID)
+		t.RoundStartHand, t.LastRound, t.RoundBest, t.ID)
 	if err != nil {
 		return fmt.Errorf("update table: %w", err)
 	}
@@ -120,13 +121,13 @@ func (s *Store) UpdateTable(ctx context.Context, t TableRow) error {
 }
 
 const tableCols = `id, name, state, created_at, ended_at, hand_number, button_seat, admin_token_hash,
-	round_start_hand, last_round`
+	round_start_hand, last_round, round_best`
 
 func scanTable(row interface{ Scan(...any) error }) (TableRow, error) {
 	var t TableRow
 	var ended sql.NullInt64
 	err := row.Scan(&t.ID, &t.Name, &t.State, &t.CreatedAt, &ended, &t.HandNumber, &t.ButtonSeat, &t.AdminTokenHash,
-		&t.RoundStartHand, &t.LastRound)
+		&t.RoundStartHand, &t.LastRound, &t.RoundBest)
 	t.EndedAt = scanNullInt(ended)
 	return t, err
 }
@@ -559,6 +560,109 @@ func (s *Store) InsertRoundResults(ctx context.Context, rows []RoundResultRow) e
 		}
 	}
 	return tx.Commit()
+}
+
+// InsertRoundStandings records a finished round of one table for every
+// player who sat in it, guests included. All rows of one call belong to the
+// same round and are given the table's next round index; best, when there
+// is one, is the biggest pot of that round and is stored under the same
+// index.
+func (s *Store) InsertRoundStandings(ctx context.Context, rows []RoundStandingRow, best *RoundHighlightRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	var idx int
+	if err := tx.QueryRowContext(ctx,
+		`SELECT COALESCE(MAX(round_index), 0) + 1 FROM round_standings WHERE table_id = ?`,
+		rows[0].TableID).Scan(&idx); err != nil {
+		return fmt.Errorf("next round index: %w", err)
+	}
+	for _, r := range rows {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO round_standings (table_id, table_name, round_index, round_start, hands, ended_at,
+				big_blind, player_id, account_id, name, name_key, avatar, bot, stack, buy_in_total, net,
+				place, players, hands_played, hands_won, biggest_pot, vpip_hands, showdowns, showdowns_won)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			r.TableID, r.TableName, idx, r.RoundStart, r.Hands, r.EndedAt,
+			r.BigBlind, r.PlayerID, r.AccountID, r.Name, r.NameKey, r.Avatar, b2i(r.Bot),
+			r.Stack, r.BuyInTotal, r.Net, r.Place, r.Players, r.HandsPlayed, r.HandsWon,
+			r.BiggestPot, r.VPIPHands, r.Showdowns, r.ShowdownsWon); err != nil {
+			return fmt.Errorf("insert round standing: %w", err)
+		}
+	}
+	if best != nil {
+		winners, err := json.Marshal(best.Winners)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO round_highlights (table_id, round_index, hand, amount, winners, description)
+			VALUES (?, ?, ?, ?, ?, ?)`,
+			rows[0].TableID, idx, best.Hand, best.Amount, string(winners), best.Description); err != nil {
+			return fmt.Errorf("insert round highlight: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
+// ListRoundHighlights returns the biggest pot of every recorded round of a
+// table, oldest round first. Rounds recorded before highlights were kept
+// have none.
+func (s *Store) ListRoundHighlights(ctx context.Context, tableID string) ([]RoundHighlightRow, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT round_index, hand, amount, winners, description
+		FROM round_highlights WHERE table_id = ? ORDER BY round_index`, tableID)
+	if err != nil {
+		return nil, fmt.Errorf("list round highlights: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+	var out []RoundHighlightRow
+	for rows.Next() {
+		var r RoundHighlightRow
+		var winners string
+		if err := rows.Scan(&r.RoundIndex, &r.Hand, &r.Amount, &winners, &r.Description); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(winners), &r.Winners); err != nil {
+			return nil, fmt.Errorf("round highlight winners: %w", err)
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// ListRoundStandings returns every recorded round of a table, oldest round
+// first and inside a round by placement then net.
+func (s *Store) ListRoundStandings(ctx context.Context, tableID string) ([]RoundStandingRow, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT table_id, table_name, round_index, round_start, hands, ended_at, big_blind,
+		       player_id, account_id, name, name_key, avatar, bot, stack, buy_in_total, net,
+		       place, players, hands_played, hands_won, biggest_pot, vpip_hands, showdowns, showdowns_won
+		FROM round_standings WHERE table_id = ?
+		ORDER BY round_index, CASE WHEN place = 0 THEN 1 ELSE 0 END, place, net DESC, id`, tableID)
+	if err != nil {
+		return nil, fmt.Errorf("list round standings: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+	var out []RoundStandingRow
+	for rows.Next() {
+		var r RoundStandingRow
+		var bot int
+		if err := rows.Scan(&r.TableID, &r.TableName, &r.RoundIndex, &r.RoundStart, &r.Hands,
+			&r.EndedAt, &r.BigBlind, &r.PlayerID, &r.AccountID, &r.Name, &r.NameKey, &r.Avatar,
+			&bot, &r.Stack, &r.BuyInTotal, &r.Net, &r.Place, &r.Players, &r.HandsPlayed,
+			&r.HandsWon, &r.BiggestPot, &r.VPIPHands, &r.Showdowns, &r.ShowdownsWon); err != nil {
+			return nil, err
+		}
+		r.Bot = bot != 0
+		out = append(out, r)
+	}
+	return out, rows.Err()
 }
 
 // ---- sessions -------------------------------------------------------------------

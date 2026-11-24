@@ -1238,6 +1238,155 @@ void main() {
       expect(find.byKey(const Key('tab-settings')), findsOneWidget);
     });
 
+    testWidgets('the table keeps every round it played, and exports them', (
+      tester,
+    ) async {
+      // The report: everybody went bankrupt, the host opened a new round,
+      // and the evening's record has to still be there afterwards.
+      var asked = 0;
+      final api = MockClient((req) async {
+        if (req.url.path.endsWith('/standings')) {
+          asked++;
+          return http.Response(
+            jsonEncode({
+              'table_id': 'k7m2p9xq4w',
+              'table_name': 'Friday',
+              'rounds': [
+                {
+                  'index': 1,
+                  'round_start': 0,
+                  'hands': 12,
+                  'ended_at': 1789000000000,
+                  'big_blind': 100,
+                  'standings': [
+                    {
+                      'name': 'Bob',
+                      'stack': 30000,
+                      'net': 20000,
+                      'hands_won': 9,
+                      'biggest_pot': 4000,
+                      'place': 1,
+                    },
+                  ],
+                },
+                {
+                  'index': 2,
+                  'round_start': 12,
+                  'hands': 20,
+                  'ended_at': 1789001000000,
+                  'big_blind': 100,
+                  'standings': [
+                    {
+                      'name': 'Bob',
+                      'stack': 25000,
+                      'net': 5000,
+                      'hands_won': 11,
+                      'biggest_pot': 7000,
+                      'place': 1,
+                    },
+                  ],
+                  'biggest_pot': {
+                    'hand': 27,
+                    'amount': 7000,
+                    'winners': ['Bob'],
+                    'description': 'Full House',
+                  },
+                },
+              ],
+              'all_time': [
+                {
+                  'name': 'Bob',
+                  'avatar': 1,
+                  'rounds': 3,
+                  'wins': 2,
+                  'net': 20000,
+                  'hands_played': 40,
+                  'hands_won': 9,
+                  'biggest_pot': 4000,
+                  'last_played': 1789000000000,
+                  'history': [
+                    {'round': 1, 'net': 20000, 'place': 1, 'hands_won': 9},
+                  ],
+                },
+              ],
+              'session_from': 2,
+              'session': [
+                {
+                  'name': 'Bob',
+                  'avatar': 1,
+                  'rounds': 1,
+                  'wins': 1,
+                  'net': 5000,
+                  'hands_played': 20,
+                  'hands_won': 11,
+                  'biggest_pot': 7000,
+                  'last_played': 1789001000000,
+                  'history': [
+                    {'round': 2, 'net': 5000, 'place': 1, 'hands_won': 11},
+                  ],
+                },
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response(
+          '{"error":{"code":"not_found","message":"no"}}',
+          404,
+        );
+      });
+      await pumpPlay(tester, api: api);
+      pushSnapshot(transport, state: 'waiting');
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('Leaderboard'));
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(asked, greaterThan(0));
+
+      // Tonight first: the session's round plus the one being played, which
+      // already counts (Alice is down 1,550 in it), a line per player over
+      // the two, and the round's biggest pot.
+      expect(find.textContaining('1 finished round this session'), findsOne);
+      expect(find.textContaining('Includes the round in progress'), findsOne);
+      expect(find.byKey(const Key('leaderboard-chart')), findsOneWidget);
+      expect(find.textContaining('Round 2'), findsWidgets);
+      expect(find.textContaining('hand #27'), findsOneWidget);
+      expect(find.textContaining('Full House'), findsOneWidget);
+      expect(find.textContaining('Round 1 '), findsNothing);
+
+      // A player's whole record, round by round.
+      await tester.tap(find.byKey(const Key('alltime-row-0')));
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.byKey(const Key('player-standings')), findsOneWidget);
+      expect(find.text('Round by round'.toUpperCase()), findsOneWidget);
+      await tester.tap(find.byKey(const Key('player-standings-close')));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+
+      // The whole record goes back to the first round.
+      await tester.tap(find.byKey(const Key('leaderboard-scope-allTime')));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.textContaining('3 rounds'), findsWidgets);
+      expect(find.textContaining('2 wins'), findsOneWidget);
+      expect(find.textContaining('Round 1 '), findsOneWidget);
+
+      // And the list prints at any time, whatever the table is doing.
+      await tester.tap(find.byKey(const Key('leaderboard-export-pdf')));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.text('Leaderboard exported'), findsOneWidget);
+      // Let the toast run out, or its timer outlives the widget tree.
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+    });
+
     testWidgets('is kept in the leaderboard tab of the new round', (
       tester,
     ) async {

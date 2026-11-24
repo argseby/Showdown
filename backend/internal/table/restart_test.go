@@ -226,3 +226,42 @@ func TestRestartUnlocksATournamentAndResetsTheBlinds(t *testing.T) {
 		t.Fatalf("seat change during the round: %v", err)
 	}
 }
+
+// TestRoundBestIsKeptPerRound notes the biggest pot of the round as hands
+// are won, names who took it, and starts over with the next round.
+func TestRoundBestIsKeptPerRound(t *testing.T) {
+	t.Parallel()
+	s := testSettings()
+	s.StartMoney = 500
+	s.AutoStart = true
+	tbl := newTestTable(t, s)
+	join(t, tbl, "Alice")
+	join(t, tbl, "Bob")
+
+	waitFor(t, "a hand", func() bool { return handNumber(tbl) >= 1 })
+	playToEnd(t, tbl)
+	waitFor(t, "hand finished", func() bool { return !handRunning(tbl) })
+	endNow(t, tbl)
+
+	tbl.call(func() {
+		b := tbl.roundBest
+		if b == nil {
+			t.Fatal("no biggest pot after a hand was won")
+			return
+		}
+		if b.Amount <= 0 || b.Hand < 1 || len(b.Winners) != 1 {
+			t.Errorf("round best = %+v, want a pot with one winner", b)
+		}
+		if w := b.Winners[0]; w != "Alice" && w != "Bob" {
+			t.Errorf("winner = %q", w)
+		}
+	})
+	if err := tbl.Restart(); err != nil {
+		t.Fatalf("Restart: %v", err)
+	}
+	tbl.call(func() {
+		if tbl.roundBest != nil {
+			t.Errorf("round best carried into the new round: %+v", tbl.roundBest)
+		}
+	})
+}

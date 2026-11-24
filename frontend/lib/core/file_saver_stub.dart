@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'file_saver.dart';
 
 class _NoFileSaver implements FileSaver {
@@ -6,6 +8,13 @@ class _NoFileSaver implements FileSaver {
     String fileName,
     String content, {
     String mimeType = 'text/plain',
+  }) {}
+
+  @override
+  void saveBytes(
+    String fileName,
+    Uint8List bytes, {
+    String mimeType = 'application/octet-stream',
   }) {}
 }
 

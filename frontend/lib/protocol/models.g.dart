@@ -619,6 +619,141 @@ Map<String, dynamic> _$RoundResultToJson(_RoundResult instance) =>
       'standings': instance.standings.map((e) => e.toJson()).toList(),
     };
 
+_TableStandings _$TableStandingsFromJson(Map<String, dynamic> json) =>
+    _TableStandings(
+      tableId: json['table_id'] as String,
+      tableName: json['table_name'] as String,
+      rounds: (json['rounds'] as List<dynamic>)
+          .map((e) => RoundStanding.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      allTime: (json['all_time'] as List<dynamic>)
+          .map((e) => AllTimeEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      session:
+          (json['session'] as List<dynamic>?)
+              ?.map((e) => AllTimeEntry.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <AllTimeEntry>[],
+      sessionFrom: (json['session_from'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$TableStandingsToJson(_TableStandings instance) =>
+    <String, dynamic>{
+      'table_id': instance.tableId,
+      'table_name': instance.tableName,
+      'rounds': instance.rounds.map((e) => e.toJson()).toList(),
+      'all_time': instance.allTime.map((e) => e.toJson()).toList(),
+      'session': instance.session.map((e) => e.toJson()).toList(),
+      'session_from': instance.sessionFrom,
+    };
+
+_RoundStanding _$RoundStandingFromJson(Map<String, dynamic> json) =>
+    _RoundStanding(
+      index: (json['index'] as num).toInt(),
+      roundStart: (json['round_start'] as num).toInt(),
+      hands: (json['hands'] as num).toInt(),
+      endedAt: (json['ended_at'] as num).toInt(),
+      bigBlind: (json['big_blind'] as num).toInt(),
+      standings: (json['standings'] as List<dynamic>)
+          .map((e) => LeaderboardEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      biggestPot: json['biggest_pot'] == null
+          ? null
+          : RoundHighlight.fromJson(
+              json['biggest_pot'] as Map<String, dynamic>,
+            ),
+    );
+
+Map<String, dynamic> _$RoundStandingToJson(_RoundStanding instance) =>
+    <String, dynamic>{
+      'index': instance.index,
+      'round_start': instance.roundStart,
+      'hands': instance.hands,
+      'ended_at': instance.endedAt,
+      'big_blind': instance.bigBlind,
+      'standings': instance.standings.map((e) => e.toJson()).toList(),
+      'biggest_pot': ?instance.biggestPot?.toJson(),
+    };
+
+_RoundHighlight _$RoundHighlightFromJson(Map<String, dynamic> json) =>
+    _RoundHighlight(
+      hand: (json['hand'] as num).toInt(),
+      amount: (json['amount'] as num).toInt(),
+      winners:
+          (json['winners'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      description: json['description'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$RoundHighlightToJson(_RoundHighlight instance) =>
+    <String, dynamic>{
+      'hand': instance.hand,
+      'amount': instance.amount,
+      'winners': instance.winners,
+      'description': instance.description,
+    };
+
+_RoundLine _$RoundLineFromJson(Map<String, dynamic> json) => _RoundLine(
+  round: (json['round'] as num).toInt(),
+  net: (json['net'] as num).toInt(),
+  place: (json['place'] as num?)?.toInt() ?? 0,
+  handsWon: (json['hands_won'] as num?)?.toInt() ?? 0,
+);
+
+Map<String, dynamic> _$RoundLineToJson(_RoundLine instance) =>
+    <String, dynamic>{
+      'round': instance.round,
+      'net': instance.net,
+      'place': instance.place,
+      'hands_won': instance.handsWon,
+    };
+
+_AllTimeEntry _$AllTimeEntryFromJson(Map<String, dynamic> json) =>
+    _AllTimeEntry(
+      name: json['name'] as String,
+      handle: json['handle'] as String?,
+      avatar: (json['avatar'] as num?)?.toInt() ?? 0,
+      bot: json['bot'] as bool? ?? false,
+      rounds: (json['rounds'] as num).toInt(),
+      wins: (json['wins'] as num).toInt(),
+      net: (json['net'] as num).toInt(),
+      handsPlayed: (json['hands_played'] as num).toInt(),
+      handsWon: (json['hands_won'] as num).toInt(),
+      biggestPot: (json['biggest_pot'] as num).toInt(),
+      vpipHands: (json['vpip_hands'] as num?)?.toInt() ?? 0,
+      showdowns: (json['showdowns'] as num?)?.toInt() ?? 0,
+      showdownsWon: (json['showdowns_won'] as num?)?.toInt() ?? 0,
+      bestPlace: (json['best_place'] as num?)?.toInt() ?? 0,
+      lastPlayed: (json['last_played'] as num?)?.toInt() ?? 0,
+      history:
+          (json['history'] as List<dynamic>?)
+              ?.map((e) => RoundLine.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <RoundLine>[],
+    );
+
+Map<String, dynamic> _$AllTimeEntryToJson(_AllTimeEntry instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'handle': ?instance.handle,
+      'avatar': instance.avatar,
+      'bot': instance.bot,
+      'rounds': instance.rounds,
+      'wins': instance.wins,
+      'net': instance.net,
+      'hands_played': instance.handsPlayed,
+      'hands_won': instance.handsWon,
+      'biggest_pot': instance.biggestPot,
+      'vpip_hands': instance.vpipHands,
+      'showdowns': instance.showdowns,
+      'showdowns_won': instance.showdownsWon,
+      'best_place': instance.bestPlace,
+      'last_played': instance.lastPlayed,
+      'history': instance.history.map((e) => e.toJson()).toList(),
+    };
+
 _EventsPayload _$EventsPayloadFromJson(Map<String, dynamic> json) =>
     _EventsPayload(
       handNumber: (json['hand_number'] as num).toInt(),

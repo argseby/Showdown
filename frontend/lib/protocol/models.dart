@@ -531,6 +531,98 @@ abstract class RoundResult with _$RoundResult {
       _$RoundResultFromJson(json);
 }
 
+/// A table's whole record: every round it has finished and the all-time
+/// totals summed from them. Fetched from `GET /api/tables/{id}/standings`,
+/// not carried in the snapshot — it outlives every round, so it is read when
+/// the leaderboard is looked at rather than pushed with every change.
+@freezed
+abstract class TableStandings with _$TableStandings {
+  const factory TableStandings({
+    required String tableId,
+    required String tableName,
+    required List<RoundStanding> rounds,
+    required List<AllTimeEntry> allTime,
+
+    /// The board of the current session (rounds without a long break in
+    /// between, the newest recent); empty when no finished round belongs to
+    /// it. [sessionFrom] is the index of its first round, 0 then.
+    @Default(<AllTimeEntry>[]) List<AllTimeEntry> session,
+    @Default(0) int sessionFrom,
+  }) = _TableStandings;
+  factory TableStandings.fromJson(Map<String, dynamic> json) =>
+      _$TableStandingsFromJson(json);
+}
+
+/// One finished round of a table, oldest first; [index] counts from 1.
+@freezed
+abstract class RoundStanding with _$RoundStanding {
+  const factory RoundStanding({
+    required int index,
+    required int roundStart,
+    required int hands,
+    required int endedAt,
+    required int bigBlind,
+    required List<LeaderboardEntry> standings,
+    @JsonKey(includeIfNull: false) RoundHighlight? biggestPot,
+  }) = _RoundStanding;
+  factory RoundStanding.fromJson(Map<String, dynamic> json) =>
+      _$RoundStandingFromJson(json);
+}
+
+/// The biggest pot of a round: who took it (several on a split), how much,
+/// at which hand and with what ('' when nobody had to show).
+@freezed
+abstract class RoundHighlight with _$RoundHighlight {
+  const factory RoundHighlight({
+    required int hand,
+    required int amount,
+    @Default(<String>[]) List<String> winners,
+    @Default('') String description,
+  }) = _RoundHighlight;
+  factory RoundHighlight.fromJson(Map<String, dynamic> json) =>
+      _$RoundHighlightFromJson(json);
+}
+
+/// One player's result in one round of a table.
+@freezed
+abstract class RoundLine with _$RoundLine {
+  const factory RoundLine({
+    required int round,
+    required int net,
+    @Default(0) int place,
+    @Default(0) int handsWon,
+  }) = _RoundLine;
+  factory RoundLine.fromJson(Map<String, dynamic> json) =>
+      _$RoundLineFromJson(json);
+}
+
+/// One player's totals across every finished round of a table.
+@freezed
+abstract class AllTimeEntry with _$AllTimeEntry {
+  const factory AllTimeEntry({
+    required String name,
+    @JsonKey(includeIfNull: false) String? handle,
+    @Default(0) int avatar,
+    @Default(false) bool bot,
+    required int rounds,
+    required int wins,
+    required int net,
+    required int handsPlayed,
+    required int handsWon,
+    required int biggestPot,
+    @Default(0) int vpipHands,
+    @Default(0) int showdowns,
+    @Default(0) int showdownsWon,
+    @Default(0) int bestPlace,
+    @Default(0) int lastPlayed,
+
+    /// The player's result in every round they sat in, oldest first.
+    @Default(<RoundLine>[]) List<RoundLine> history,
+  }) = _AllTimeEntry;
+  factory AllTimeEntry.fromJson(Map<String, dynamic> json) =>
+      _$AllTimeEntryFromJson(json);
+}
+
 @freezed
 abstract class EventsPayload with _$EventsPayload {
   const factory EventsPayload({

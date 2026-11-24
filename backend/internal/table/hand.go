@@ -455,6 +455,7 @@ func (t *Table) finishHand() {
 			}
 		}
 	}
+	t.noteRoundBest(res)
 	if startSum != endSum {
 		t.log.Error("chip conservation violated; pausing table",
 			"hand", t.handNumber, "start", startSum, "end", endSum, "events", string(marshalJSON(t.handEvents)))
@@ -635,6 +636,7 @@ func (t *Table) endTable() {
 		t.persistPlayer(p)
 	}
 	t.recordRoundResults()
+	t.recordRoundStandings()
 	// Taken before a new round resets every stack and statistic: from here
 	// on this is the only readable record of how the round went.
 	standings := t.leaderboard()

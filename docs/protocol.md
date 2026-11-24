@@ -461,6 +461,32 @@ Source of truth for the wire protocol; update this file whenever behaviour chang
 >   like anybody else. There is no route to remove one: the host kicks it.
 >   Bot seats are restored after a server restart — the seat survived, so the
 >   table starts playing it again, while a person's browser reconnects itself.
+> - **The table's own record (2026-11-19).** `GET /api/tables/{id}/standings`
+>   (bearer = a player or spectator session of that table, or its admin token)
+>   answers `{table_id, table_name, rounds: [{index, round_start, hands, ended_at,
+>   big_blind, standings[]}], all_time: [{name, avatar, bot?, rounds, wins, net,
+>   hands_played, hands_won, biggest_pot, vpip_hands?, showdowns?, showdowns_won?,
+>   best_place?, last_played}]}`. A round is written when it ends — every seat in
+>   it, guests and bots included, not only the signed-in profiles `round_results`
+>   keeps — so a table that is restarted because everybody went bankrupt no longer
+>   loses the evening: `snapshot.last_round` held exactly one round, this holds all
+>   of them. `rounds` is oldest first and `index` counts the rounds of that table
+>   from 1; `all_time` is summed from them and sorted by `net`, and a player is the
+>   same player across rounds by profile where they have one and by name otherwise
+>   (which is all a guest has). Totals are of finished rounds only — the round
+>   being played is in `snapshot.leaderboard`. Nothing is pushed: the record only
+>   changes when a round ends, so clients read it when they show it and again when
+>   the table ends or restarts. The rows belong to the table and are deleted with
+>   it; retention, which drops the hands and the chat of an old table, leaves them.
+>   Each round also carries `biggest_pot` `{hand, amount, winners[], description?}`
+>   when one was recorded (the server keeps it across a restart mid-round in
+>   `tables.round_best`). Every `all_time` entry has `history: [{round, net, place?,
+>   hands_won}]`, oldest first. `session` is the same board summed over the
+>   current session only — the trailing rounds that ended less than 6 h apart,
+>   provided the newest ended less than 6 h ago — and `session_from` is the index of
+>   its first round (0 and `session: []` when no finished round belongs to it).
+>   Clients add the round in progress (`snapshot.leaderboard`, matched by name) on
+>   top as provisional totals; the server never does.
 > - **Close codes** in use: `4001` bad/expired token, `4002` version, `4003`
 >   table not found / deleted, `4004` replaced, `4005` kicked, `4006` the
 >   session is good but its seat is gone, `4007` the token could not be
