@@ -17,10 +17,13 @@ DEV_WEB_ORIGIN ?= http://localhost:3000
 
 GEN_FILES := find $(WEB_DIR)/lib \( -name '*.g.dart' -o -name '*.freezed.dart' -o -path '*/l10n/app_localizations*.dart' \) -type f | sort
 
-.PHONY: help dev-api dev-web gen check-gen lint test test-engine simulate site-verification build up down logs bots bot-match loadtest
+.PHONY: help dev dev-api dev-web gen check-gen lint test test-engine simulate site-verification build up down logs bots bot-match loadtest
 
 help: ## list targets
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
+
+dev: ## run API + Flutter web on two free ports, wired together (pin with DEV_API_PORT / DEV_WEB_PORT)
+	@./scripts/dev.sh
 
 dev-api: ## run the Go API locally (API_PORT=8081 by default)
 	@if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -qE ':$(API_PORT)[[:space:]]'; then \
