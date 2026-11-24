@@ -35,8 +35,7 @@ class CloseCodes {
   /// Codes after which the stored session is worthless and must go. A
   /// session is only thrown away when the server says it is no good -
   /// never because the server could not answer.
-  static bool clearsSession(int? code) =>
-      code == badToken || code == notSeated;
+  static bool clearsSession(int? code) => code == badToken || code == notSeated;
 }
 
 // ---- envelope --------------------------------------------------------------------------
